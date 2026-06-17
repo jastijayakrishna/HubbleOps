@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-synthgen.py — synthetic agent-traffic generator for the Witness detector + firewall.
+synthgen.py — synthetic agent-traffic generator for the HubbleOps detector + firewall.
 
 Emits JSONL in the exact testdata/loop_corpus convention:
   one toolEventRequest-shaped object per line, with ground-truth fields:
@@ -125,7 +125,7 @@ def fam_self_trigger_alarm_loop(rng, sid):
 
 def fam_silent_redispatch_duplicate(rng, sid):
     """Checkpoint re-dispatch reuses key while original in flight. LangGraph #7417 (A6)."""
-    s = Session(rng, "silent_redispatch_duplicate", sid, "block", "duplicate_side_effect", "A6")
+    s = Session(rng, "silent_redispatch_duplicate", sid, "block", "action_in_flight", "A6")
     key = f"task-{h(sid)}"; args = {"report_id": rng.randrange(9999), "action": "generate"}
     s.emit("enqueue_task", args, {"status": "pending"}, risk="write", idem=key, step_ms=2000)
     s.chaff(rng.randint(0, 2))
@@ -134,7 +134,10 @@ def fam_silent_redispatch_duplicate(rng, sid):
 
 def fam_duplicate_payment_retry(rng, sid):
     """502 mid-flight; client retries same key+payload on money movement. A17/A18."""
-    s = Session(rng, "duplicate_payment_retry", sid, "block", "duplicate_side_effect", "A17/A18")
+    # The 502'd first attempt never provably committed, so the firewall blocks
+    # the blind retry via the pending lease (action_in_flight), not the
+    # committed-replay path (duplicate_side_effect).
+    s = Session(rng, "duplicate_payment_retry", sid, "block", "action_in_flight", "A17/A18")
     key = f"chg-{h(sid)}"; amt = rng.choice([1999, 4999, 12500, 41250])
     args = {"customer": f"cus_{h(sid)[:8]}", "amount_cents": amt}
     s.emit("charge_card", args, {"error": {"code": 502}}, risk="dangerous",
@@ -405,7 +408,7 @@ NEGATIVES = [fam_legit_backoff_retry, fam_polling_until_success, fam_polling_opa
 # ============================================================ FAMOUS-INCIDENT DEMO PACK
 def demo_pack():
     """Hand-built, deterministic replays of documented public incidents (evidence-table IDs).
-    Dollar arcs match the published figures. This is the `witness demo` wow content."""
+    Dollar arcs match the published figures. This is the `hubbleops demo` wow content."""
     rng = random.Random(42)
     packs = []
 
@@ -416,7 +419,7 @@ def demo_pack():
                risk="write", cost=34895.0 / 400, ptok=50, otok=5, step_ms=950)
     packs.append(s)
 
-    s = Session(rng, "demo_langgraph_redispatch", "demo-a6", "block", "duplicate_side_effect", "A6: LangGraph #7417 silent re-dispatch — 2-3x duplicate work")
+    s = Session(rng, "demo_langgraph_redispatch", "demo-a6", "block", "action_in_flight", "A6: LangGraph #7417 silent re-dispatch — 2-3x duplicate work")
     args = {"report_id": 8841, "action": "generate_and_email"}
     s.emit("enqueue_task", args, {"status": "pending"}, risk="write", idem="task-8841", step_ms=2000)
     s.emit("enqueue_task", args, {"status": "pending"}, risk="write", idem="task-8841", step_ms=183_000)
@@ -455,7 +458,7 @@ def demo_pack():
         s.emit("check_flight_status", {"flight": "UA1432"}, res, sdh=h(res), step_ms=2200)
     packs.append(s)
 
-    s = Session(rng, "demo_duplicate_refund", "demo-stripe", "block", "duplicate_side_effect", "A17/A18 pattern: retried refund, same key+payload — double-payout prevented")
+    s = Session(rng, "demo_duplicate_refund", "demo-stripe", "block", "action_in_flight", "A17/A18 pattern: retried refund, same key+payload — double-payout prevented")
     args = {"order": 5512, "amount_cents": 41250}
     s.emit("refund_payment", args, {"error": {"code": 502}}, risk="dangerous",
            idem="rf-5512", amount=41250, max_amount=100_000, backup="bk-5512", step_ms=1300)

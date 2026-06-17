@@ -5,7 +5,7 @@ Put anonymized customer shadow traces here when design partners send real agent 
 Each JSONL line is one tool event:
 
 ```json
-{"project":"p","session_id":"s","tool_name":"search","args":{"witness_capture":"fingerprint","sha256":"..."},"result_class":"empty","label":"true_runaway","expected_action":"block"}
+{"project":"p","session_id":"s","tool_name":"search","args":{"hubbleops_capture":"fingerprint","sha256":"..."},"result_class":"empty","label":"true_runaway","expected_action":"block"}
 ```
 
 Required fields:
@@ -30,13 +30,13 @@ Recommended fields:
 Generate privacy-safe traces:
 
 ```bash
-go run ./cmd/witness eval raw-shadow.jsonl -anonymize-out testdata/real_shadow/customer-a.jsonl -salt "$WITNESS_ANON_SALT"
+go run ./cmd/hubbleops eval raw-shadow.jsonl -anonymize-out testdata/real_shadow/customer-a.jsonl -salt "$HUBBLEOPS_ANON_SALT"
 ```
 
 Evaluate all real traces:
 
 ```bash
-go run ./cmd/witness eval -assert testdata/real_shadow/*.jsonl
+go run ./cmd/hubbleops eval -assert testdata/real_shadow/*.jsonl
 ```
 
 Do not commit raw prompts, raw tool args, raw tool results, emails, tokens, customer names, or API payloads.
