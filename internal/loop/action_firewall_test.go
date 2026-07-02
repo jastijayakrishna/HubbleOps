@@ -2,6 +2,10 @@ package loop
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -17,11 +21,12 @@ func newActionTestStore(t *testing.T) *ActionStore {
 
 // commitObs promotes a pending claim to committed the way the result path does, so tests
 // can exercise the duplicate-replay path that only opens after a side effect succeeds.
-func commitObs(t *testing.T, store *ActionStore, obs ActionObservation, result string) {
+func commitObs(t *testing.T, store *ActionStore, obs ActionObservation, claimNonce string, result string) {
 	t.Helper()
 	if err := store.Commit(context.Background(), ActionResult{
 		Project:        obs.Project,
 		IdempotencyKey: obs.IdempotencyKey,
+		ClaimNonce:     claimNonce,
 		ToolName:       obs.ToolName,
 		ActionRisk:     obs.ActionRisk,
 		ResourceID:     obs.ResourceID,
@@ -66,7 +71,7 @@ func TestActionStoreBlocksDuplicateSideEffect(t *testing.T) {
 	}
 
 	// The side effect succeeds and is committed for the full duplicate window.
-	commitObs(t, store, obs, `{"refunded":true}`)
+	commitObs(t, store, obs, first.ClaimNonce, `{"refunded":true}`)
 
 	// A later attempt with the same committed key replays the recorded outcome instead
 	// of running the refund again.
@@ -88,8 +93,14 @@ func TestActionStoreBlocksDuplicateSideEffect(t *testing.T) {
 	if !hasSignal(second.Decision, SignalDuplicateSideEffect) {
 		t.Fatalf("signals=%v missing %s", second.Decision.SignalsFired, SignalDuplicateSideEffect)
 	}
-	if second.Replay == nil || string(second.Replay.Result) != `{"refunded":true}` {
-		t.Fatalf("replay did not carry the original result: %+v", second.Replay)
+	if second.Replay == nil {
+		t.Fatalf("replay was missing")
+	}
+	if len(second.Replay.Result) != 0 {
+		t.Fatalf("replay carried raw result: %s", string(second.Replay.Result))
+	}
+	if second.Replay.ResultFingerprint != actionValueFingerprint(`{"refunded":true}`) {
+		t.Fatalf("replay result fingerprint=%q", second.Replay.ResultFingerprint)
 	}
 	if second.Replay.DecisionID != "dec_original" {
 		t.Fatalf("replay decision_id=%q want dec_original", second.Replay.DecisionID)
@@ -190,6 +201,209 @@ func TestActionStoreReleaseAllowsImmediateRetry(t *testing.T) {
 	}
 	if retry.Outcome != ActionOutcomeClaimed {
 		t.Fatalf("retry outcome=%q want %q after release", retry.Outcome, ActionOutcomeClaimed)
+	}
+}
+
+func TestActionStoreHeartbeatExtendsPendingLease(t *testing.T) {
+	for _, backend := range heartbeatActionStores(t) {
+		t.Run(backend.name, func(t *testing.T) {
+			assertHeartbeatExtendsPendingLease(t, backend)
+		})
+	}
+}
+
+func TestActionStoreHeartbeatWrongNonceDoesNotExtend(t *testing.T) {
+	for _, backend := range heartbeatActionStores(t) {
+		t.Run(backend.name, func(t *testing.T) {
+			store := backend.store.WithLease(30 * time.Millisecond)
+			ctx := context.Background()
+			obs := heartbeatObservation(backend.name)
+			first, err := store.Decide(ctx, obs)
+			if err != nil || first.Outcome != ActionOutcomeClaimed {
+				t.Fatalf("first decide outcome=%q err=%v", first.Outcome, err)
+			}
+			if err := store.Heartbeat(ctx, obs.Project, obs.IdempotencyKey, "wrong-nonce"); !errors.Is(err, ErrLeaseNotHeld) {
+				t.Fatalf("heartbeat wrong nonce err=%v want ErrLeaseNotHeld", err)
+			}
+
+			backend.advance(45 * time.Millisecond)
+			retry, err := store.Decide(ctx, obs)
+			if err != nil {
+				t.Fatalf("retry decide: %v", err)
+			}
+			if retry.Outcome != ActionOutcomeClaimed {
+				t.Fatalf("retry outcome=%q want claimed (wrong nonce must not extend lease)", retry.Outcome)
+			}
+		})
+	}
+}
+
+func TestActionStoreHeartbeatAfterCommitReturnsAlreadyCommitted(t *testing.T) {
+	for _, backend := range heartbeatActionStores(t) {
+		t.Run(backend.name, func(t *testing.T) {
+			store := backend.store.WithLease(30 * time.Millisecond)
+			ctx := context.Background()
+			obs := heartbeatObservation(backend.name)
+			first, err := store.Decide(ctx, obs)
+			if err != nil || first.Outcome != ActionOutcomeClaimed {
+				t.Fatalf("first decide outcome=%q err=%v", first.Outcome, err)
+			}
+			commitObs(t, store, obs, first.ClaimNonce, `{"ok":true}`)
+			if err := store.Heartbeat(ctx, obs.Project, obs.IdempotencyKey, first.ClaimNonce); !errors.Is(err, ErrAlreadyCommitted) {
+				t.Fatalf("heartbeat after commit err=%v want ErrAlreadyCommitted", err)
+			}
+		})
+	}
+}
+
+func TestActionStoreCommitCarriesClaimFingerprintWhenCallbackIsLossy(t *testing.T) {
+	store := newActionTestStore(t)
+	ctx := context.Background()
+	obs := ActionObservation{
+		Project:        "proj",
+		SessionID:      "sess-lossy-callback",
+		ToolName:       "send_email",
+		ActionRisk:     "customer_visible",
+		IdempotencyKey: "email:customer:welcome",
+		ResourceID:     "template/welcome",
+		Recipient:      "customer@example.com",
+		UnixMillis:     1_000,
+	}
+	first, err := store.Decide(ctx, obs)
+	if err != nil || first.Outcome != ActionOutcomeClaimed {
+		t.Fatalf("first decide outcome=%q err=%v", first.Outcome, err)
+	}
+	if err := store.Commit(ctx, ActionResult{
+		Project:        obs.Project,
+		IdempotencyKey: obs.IdempotencyKey,
+		ClaimNonce:     first.ClaimNonce,
+		ToolName:       obs.ToolName,
+		ActionRisk:     obs.ActionRisk,
+		ResourceID:     obs.ResourceID,
+		DecisionID:     "dec_lossy_callback",
+		ResultClass:    "success",
+		UnixMillis:     2_000,
+	}); err != nil {
+		t.Fatalf("commit: %v", err)
+	}
+
+	replay, err := store.Decide(ctx, obs)
+	if err != nil {
+		t.Fatalf("duplicate decide: %v", err)
+	}
+	if replay.Outcome != ActionOutcomeCommittedReplay {
+		t.Fatalf("duplicate outcome=%q reason=%q want committed replay, not mismatch", replay.Outcome, replay.Reason)
+	}
+	if replay.Replay == nil || replay.Replay.DecisionID != "dec_lossy_callback" {
+		t.Fatalf("replay=%+v want committed decision", replay.Replay)
+	}
+
+	ledger := store.ledger.(*memoryActionLedger)
+	ledger.mu.Lock()
+	committed := ledger.items[actionKey(obs.Project, obs.IdempotencyKey)].value
+	ledger.mu.Unlock()
+	var rec map[string]any
+	if err := json.Unmarshal([]byte(committed), &rec); err != nil {
+		t.Fatalf("decode committed record: %v", err)
+	}
+	if rec["fingerprint_source"] != "claim_carryforward" {
+		t.Fatalf("committed record fingerprint_source=%v want claim_carryforward: %s", rec["fingerprint_source"], committed)
+	}
+}
+
+func TestActionStoreInvalidateOwnedRequiresDecisionID(t *testing.T) {
+	for _, backend := range invalidationActionStores(t) {
+		t.Run(backend.name, func(t *testing.T) {
+			assertInvalidateOwnedRequiresDecisionID(t, backend.name, backend.store)
+		})
+	}
+}
+
+func TestActionStoreSweepExpiredMemory(t *testing.T) {
+	store := NewMemoryActionStore()
+	ledger := store.ledger.(*memoryActionLedger)
+	now := time.Now()
+	ledger.mu.Lock()
+	ledger.items["expired"] = memoryActionItem{state: ledgerStatePending, expiresAt: now.Add(-time.Second)}
+	ledger.items["live"] = memoryActionItem{state: ledgerStatePending, expiresAt: now.Add(time.Hour)}
+	ledger.items["forever"] = memoryActionItem{state: ledgerStateCommitted}
+	ledger.mu.Unlock()
+
+	removed, err := store.SweepExpired(context.Background())
+	if err != nil {
+		t.Fatalf("SweepExpired: %v", err)
+	}
+	if removed != 1 {
+		t.Fatalf("removed=%d want 1", removed)
+	}
+	ledger.mu.Lock()
+	defer ledger.mu.Unlock()
+	if _, ok := ledger.items["expired"]; ok {
+		t.Fatalf("expired item was not removed")
+	}
+	if _, ok := ledger.items["live"]; !ok {
+		t.Fatalf("live item was removed")
+	}
+	if _, ok := ledger.items["forever"]; !ok {
+		t.Fatalf("non-expiring item was removed")
+	}
+}
+
+func TestActionStoreSweepExpiredFile(t *testing.T) {
+	now := time.Date(2026, 7, 2, 12, 0, 0, 0, time.UTC)
+	path := filepath.Join(t.TempDir(), "action-ledger.json")
+	items := map[string]fileActionItem{
+		"expired": {State: ledgerStatePending, ExpiresAtUnixNano: now.Add(-time.Second).UnixNano()},
+		"live":    {State: ledgerStatePending, ExpiresAtUnixNano: now.Add(time.Hour).UnixNano()},
+		"forever": {State: ledgerStateCommitted},
+	}
+	data, err := json.Marshal(items)
+	if err != nil {
+		t.Fatalf("marshal ledger: %v", err)
+	}
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		t.Fatalf("write ledger: %v", err)
+	}
+	store := &ActionStore{ledger: &fileActionLedger{path: path, now: func() time.Time { return now }}}
+
+	removed, err := store.SweepExpired(context.Background())
+	if err != nil {
+		t.Fatalf("SweepExpired: %v", err)
+	}
+	if removed != 1 {
+		t.Fatalf("removed=%d want 1", removed)
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read ledger: %v", err)
+	}
+	var got map[string]fileActionItem
+	if err := json.Unmarshal(raw, &got); err != nil {
+		t.Fatalf("decode ledger: %v", err)
+	}
+	if _, ok := got["expired"]; ok {
+		t.Fatalf("expired item was not removed: %s", string(raw))
+	}
+	if _, ok := got["live"]; !ok {
+		t.Fatalf("live item was removed: %s", string(raw))
+	}
+	if _, ok := got["forever"]; !ok {
+		t.Fatalf("non-expiring item was removed: %s", string(raw))
+	}
+}
+
+func TestActionStoreSweepExpiredRedisNoop(t *testing.T) {
+	mr := miniredis.RunT(t)
+	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+	t.Cleanup(func() { _ = rdb.Close() })
+	store := NewActionStore(rdb)
+
+	removed, err := store.SweepExpired(context.Background())
+	if err != nil {
+		t.Fatalf("SweepExpired: %v", err)
+	}
+	if removed != 0 {
+		t.Fatalf("removed=%d want 0 for redis TTL-backed ledger", removed)
 	}
 }
 
@@ -323,7 +537,7 @@ func TestActionStoreReleaseDoesNotDropCommittedRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decide: %v", err)
 	}
-	commitObs(t, store, obs, `{"refunded":true}`)
+	commitObs(t, store, obs, first.ClaimNonce, `{"refunded":true}`)
 	if err := store.Release(ctx, obs.Project, obs.IdempotencyKey, first.ClaimNonce); err != nil {
 		t.Fatalf("release: %v", err)
 	}
@@ -368,6 +582,7 @@ func TestActionStoreFloorsDuplicateWindowForFailClosedRisk(t *testing.T) {
 	if err := store.Commit(ctx, ActionResult{
 		Project:                obs.Project,
 		IdempotencyKey:         obs.IdempotencyKey,
+		ClaimNonce:             first.ClaimNonce,
 		ToolName:               obs.ToolName,
 		ActionRisk:             obs.ActionRisk,
 		ResultClass:            "success",
@@ -424,12 +639,14 @@ func TestActionStoreHonorsClientWindowForWriteRisk(t *testing.T) {
 		DuplicateWindowSeconds: 1,
 		UnixMillis:             1_000,
 	}
-	if first, err := store.Decide(ctx, obs); err != nil || first.Outcome != ActionOutcomeClaimed {
+	first, err := store.Decide(ctx, obs)
+	if err != nil || first.Outcome != ActionOutcomeClaimed {
 		t.Fatalf("first decide outcome=%q err=%v", first.Outcome, err)
 	}
 	if err := store.Commit(ctx, ActionResult{
 		Project:                obs.Project,
 		IdempotencyKey:         obs.IdempotencyKey,
+		ClaimNonce:             first.ClaimNonce,
 		ToolName:               obs.ToolName,
 		ActionRisk:             obs.ActionRisk,
 		ResultClass:            "success",
@@ -503,12 +720,13 @@ func TestActionStoreTreatsIdenticalReplayAsBenignDuplicate(t *testing.T) {
 		ResourceID:     "invoice_9",
 		UnixMillis:     1_000,
 	}
-	if first, err := store.Decide(ctx, obs); err != nil || first.Decision.ActionCeiling != ActionNone {
+	first, err := store.Decide(ctx, obs)
+	if err != nil || first.Decision.ActionCeiling != ActionNone {
 		t.Fatalf("first decide=%+v err=%v", first.Decision, err)
 	}
 
 	// The first attempt commits, then the same key with the same payload is replayed.
-	commitObs(t, store, obs, `{"refunded":true}`)
+	commitObs(t, store, obs, first.ClaimNonce, `{"refunded":true}`)
 	obs.StepID = "refund-2"
 	obs.UnixMillis = 2_000
 	dup, err := store.Decide(ctx, obs)
@@ -634,141 +852,6 @@ func TestActionStoreBlocksDangerousActionWithoutIdempotencyKey(t *testing.T) {
 	}
 }
 
-func TestActionStoreBlocksAmountAboveDeclaredLimit(t *testing.T) {
-	store := newActionTestStore(t)
-	decision, err := store.Decide(context.Background(), ActionObservation{
-		Project:        "proj",
-		SessionID:      "sess-amount",
-		ToolName:       "refund_customer",
-		ActionRisk:     "money_movement",
-		IdempotencyKey: "refund:invoice_9:7500",
-		AmountCents:    7500,
-		MaxAmountCents: 5000,
-	})
-	if err != nil {
-		t.Fatalf("decide: %v", err)
-	}
-	if decision.Decision.ActionCeiling != ActionBlock {
-		t.Fatalf("action ceiling=%s want block", decision.Decision.ActionCeiling)
-	}
-	if !hasSignal(decision.Decision, SignalPolicyAmountExceeded) {
-		t.Fatalf("signals=%v missing %s", decision.Decision.SignalsFired, SignalPolicyAmountExceeded)
-	}
-}
-
-func TestActionStoreBlocksRecipientOutsideAllowedDomain(t *testing.T) {
-	store := newActionTestStore(t)
-	decision, err := store.Decide(context.Background(), ActionObservation{
-		Project:        "proj",
-		SessionID:      "sess-email",
-		ToolName:       "send_email",
-		ActionRisk:     "customer_visible",
-		IdempotencyKey: "email:user:notice",
-		Recipient:      "customer@external.example",
-		AllowedDomain:  "company.example",
-	})
-	if err != nil {
-		t.Fatalf("decide: %v", err)
-	}
-	if decision.Decision.ActionCeiling != ActionBlock {
-		t.Fatalf("action ceiling=%s want block", decision.Decision.ActionCeiling)
-	}
-	if !hasSignal(decision.Decision, SignalRecipientOutOfPolicy) {
-		t.Fatalf("signals=%v missing %s", decision.Decision.SignalsFired, SignalRecipientOutOfPolicy)
-	}
-}
-
-func TestActionStoreRequiresSafetyPreconditionForDangerousIdempotentAction(t *testing.T) {
-	store := newActionTestStore(t)
-	decision, err := store.Decide(context.Background(), ActionObservation{
-		Project:        "proj",
-		SessionID:      "sess-danger",
-		ToolName:       "delete_account",
-		ActionRisk:     "dangerous",
-		IdempotencyKey: "delete:acct_1",
-		ResourceID:     "acct_1",
-	})
-	if err != nil {
-		t.Fatalf("decide: %v", err)
-	}
-	if decision.Decision.ActionCeiling != ActionBlock {
-		t.Fatalf("action ceiling=%s want block", decision.Decision.ActionCeiling)
-	}
-	if !hasSignal(decision.Decision, SignalMissingSafetyPrecondition) {
-		t.Fatalf("signals=%v missing %s", decision.Decision.SignalsFired, SignalMissingSafetyPrecondition)
-	}
-
-	allowed, err := store.Decide(context.Background(), ActionObservation{
-		Project:        "proj",
-		SessionID:      "sess-danger",
-		ToolName:       "delete_account",
-		ActionRisk:     "dangerous",
-		IdempotencyKey: "delete:acct_2",
-		ResourceID:     "acct_2",
-		BackupID:       "backup_123",
-	})
-	if err != nil {
-		t.Fatalf("decide allowed: %v", err)
-	}
-	if allowed.Decision.ActionCeiling != ActionNone {
-		t.Fatalf("action ceiling=%s want none", allowed.Decision.ActionCeiling)
-	}
-}
-
-func TestActionStoreAllowsDangerousActionWithScopedCapability(t *testing.T) {
-	secret := []byte("test-capability-secret")
-	token, err := IssueCapability(secret, Capability{
-		Project:     "proj",
-		AgentID:     "agent-1",
-		ActionName:  "delete_account",
-		ResourceID:  "acct_1",
-		ExpiresUnix: time.Now().Add(time.Hour).Unix(),
-		Nonce:       "nonce-1",
-	})
-	if err != nil {
-		t.Fatalf("issue capability: %v", err)
-	}
-	store := newActionTestStore(t).WithCapabilitySecret(string(secret))
-	decision, err := store.Decide(context.Background(), ActionObservation{
-		Project:         "proj",
-		SessionID:       "sess-cap",
-		ToolName:        "delete_account",
-		ActionRisk:      "dangerous",
-		IdempotencyKey:  "delete:acct_1",
-		ResourceID:      "acct_1",
-		AgentID:         "agent-1",
-		CapabilityToken: token,
-	})
-	if err != nil {
-		t.Fatalf("decide: %v", err)
-	}
-	if decision.Decision.ActionCeiling != ActionNone {
-		t.Fatalf("action ceiling=%s want none evidence=%v", decision.Decision.ActionCeiling, decision.Decision.DecisionEvidence)
-	}
-}
-
-func TestActionStoreBlocksInvalidCapability(t *testing.T) {
-	store := newActionTestStore(t).WithCapabilitySecret("test-capability-secret")
-	decision, err := store.Decide(context.Background(), ActionObservation{
-		Project:         "proj",
-		SessionID:       "sess-bad-cap",
-		ToolName:        "delete_account",
-		ActionRisk:      "dangerous",
-		IdempotencyKey:  "delete:acct_1",
-		ResourceID:      "acct_1",
-		CapabilityToken: "witcap_v1.invalid.invalid",
-	})
-	if err != nil {
-		t.Fatalf("decide: %v", err)
-	}
-	if decision.Decision.ActionCeiling != ActionBlock {
-		t.Fatalf("action ceiling=%s want block", decision.Decision.ActionCeiling)
-	}
-	if !hasSignal(decision.Decision, SignalInvalidCapability) {
-		t.Fatalf("signals=%v missing %s", decision.Decision.SignalsFired, SignalInvalidCapability)
-	}
-}
-
 // TestRedisLedgerCommitIsOneAtomicWrite: commit must move the key to its committed shape
 // (state, record, full-window TTL, no leftover claim nonce) in a single script. The old
 // two-call commit (HSET then PEXPIRE) could crash in between, leaving a committed record
@@ -787,12 +870,14 @@ func TestRedisLedgerCommitIsOneAtomicWrite(t *testing.T) {
 		IdempotencyKey: "refund:cust_1:invoice_9:5000",
 		UnixMillis:     1_000,
 	}
-	if first, err := store.Decide(ctx, obs); err != nil || first.Outcome != ActionOutcomeClaimed {
+	first, err := store.Decide(ctx, obs)
+	if err != nil || first.Outcome != ActionOutcomeClaimed {
 		t.Fatalf("decide outcome=%q err=%v", first.Outcome, err)
 	}
 	if err := store.Commit(ctx, ActionResult{
 		Project:        obs.Project,
 		IdempotencyKey: obs.IdempotencyKey,
+		ClaimNonce:     first.ClaimNonce,
 		ToolName:       obs.ToolName,
 		ActionRisk:     obs.ActionRisk,
 		ResultClass:    "success",
@@ -828,5 +913,173 @@ func TestNormalizeActionRisk(t *testing.T) {
 		if got := NormalizeActionRisk(in); got != want {
 			t.Fatalf("NormalizeActionRisk(%q)=%q want %q", in, got, want)
 		}
+	}
+}
+
+func hasSignal(decision Decision, signal string) bool {
+	for _, got := range decision.SignalsFired {
+		if got == signal {
+			return true
+		}
+	}
+	return false
+}
+
+type heartbeatBackend struct {
+	name    string
+	store   *ActionStore
+	advance func(time.Duration)
+}
+
+func heartbeatActionStores(t *testing.T) []heartbeatBackend {
+	t.Helper()
+	mr := miniredis.RunT(t)
+	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+	t.Cleanup(func() { _ = rdb.Close() })
+	fileNow := time.Date(2026, 7, 2, 12, 0, 0, 0, time.UTC)
+	fileLedger := &fileActionLedger{
+		path: filepath.Join(t.TempDir(), "action-ledger.json"),
+		now:  func() time.Time { return fileNow },
+	}
+	return []heartbeatBackend{
+		{
+			name:    "memory",
+			store:   NewMemoryActionStore(),
+			advance: func(d time.Duration) { time.Sleep(d) },
+		},
+		{
+			name:    "file",
+			store:   &ActionStore{ledger: fileLedger},
+			advance: func(d time.Duration) { fileNow = fileNow.Add(d) },
+		},
+		{
+			name:    "redis",
+			store:   NewActionStore(rdb),
+			advance: func(d time.Duration) { mr.FastForward(d) },
+		},
+	}
+}
+
+func assertHeartbeatExtendsPendingLease(t *testing.T, backend heartbeatBackend) {
+	t.Helper()
+	store := backend.store.WithLease(30 * time.Millisecond)
+	ctx := context.Background()
+	obs := heartbeatObservation(backend.name)
+	first, err := store.Decide(ctx, obs)
+	if err != nil || first.Outcome != ActionOutcomeClaimed {
+		t.Fatalf("first decide outcome=%q err=%v", first.Outcome, err)
+	}
+	if err := store.Heartbeat(ctx, obs.Project, obs.IdempotencyKey, first.ClaimNonce); err != nil {
+		t.Fatalf("initial heartbeat: %v", err)
+	}
+
+	for i := 0; i < 10; i++ {
+		backend.advance(10 * time.Millisecond)
+		if err := store.Heartbeat(ctx, obs.Project, obs.IdempotencyKey, first.ClaimNonce); err != nil {
+			t.Fatalf("heartbeat: %v", err)
+		}
+		if i == 4 || i == 9 {
+			assertInFlight(t, store, obs)
+		}
+	}
+
+	backend.advance(45 * time.Millisecond)
+	retry, err := store.Decide(ctx, obs)
+	if err != nil {
+		t.Fatalf("retry after heartbeat stopped: %v", err)
+	}
+	if retry.Outcome != ActionOutcomeClaimed {
+		t.Fatalf("retry outcome=%q want claimed after heartbeat stops and lease lapses", retry.Outcome)
+	}
+}
+
+func assertInFlight(t *testing.T, store *ActionStore, obs ActionObservation) {
+	t.Helper()
+	retry, err := store.Decide(context.Background(), obs)
+	if err != nil {
+		t.Fatalf("concurrent decide: %v", err)
+	}
+	if retry.Outcome != ActionOutcomeInFlight {
+		t.Fatalf("outcome=%q want in_flight while heartbeat keeps lease alive", retry.Outcome)
+	}
+}
+
+func heartbeatObservation(label string) ActionObservation {
+	return ActionObservation{
+		Project:        "proj-heartbeat-" + label,
+		SessionID:      "sess-heartbeat",
+		ToolName:       "refund_customer",
+		ActionRisk:     "money_movement",
+		IdempotencyKey: "refund:heartbeat:" + label,
+		UnixMillis:     1_000,
+	}
+}
+
+type invalidationBackend struct {
+	name  string
+	store *ActionStore
+}
+
+func invalidationActionStores(t *testing.T) []invalidationBackend {
+	t.Helper()
+	mr := miniredis.RunT(t)
+	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+	t.Cleanup(func() { _ = rdb.Close() })
+	return []invalidationBackend{
+		{name: "memory", store: NewMemoryActionStore()},
+		{name: "file", store: NewFileActionStore(filepath.Join(t.TempDir(), "action-ledger.json"))},
+		{name: "redis", store: NewActionStore(rdb)},
+	}
+}
+
+func assertInvalidateOwnedRequiresDecisionID(t *testing.T, label string, store *ActionStore) {
+	t.Helper()
+	ctx := context.Background()
+	obs := ActionObservation{
+		Project:        "proj-invalidate-" + label,
+		SessionID:      "sess-invalidate",
+		ToolName:       "deploy.release",
+		ActionRisk:     ActionRiskDangerous,
+		IdempotencyKey: "deploy:invalidate:" + label,
+		ResourceID:     "service/" + label,
+		UnixMillis:     1_000,
+	}
+	first, err := store.Decide(ctx, obs)
+	if err != nil || first.Outcome != ActionOutcomeClaimed {
+		t.Fatalf("first decide outcome=%q err=%v", first.Outcome, err)
+	}
+	decisionID := "dec_owned_" + label
+	if err := store.Commit(ctx, ActionResult{
+		Project:        obs.Project,
+		IdempotencyKey: obs.IdempotencyKey,
+		ClaimNonce:     first.ClaimNonce,
+		ToolName:       obs.ToolName,
+		ActionRisk:     obs.ActionRisk,
+		ResourceID:     obs.ResourceID,
+		DecisionID:     decisionID,
+		ResultClass:    "success",
+		UnixMillis:     2_000,
+	}); err != nil {
+		t.Fatalf("commit: %v", err)
+	}
+	if err := store.InvalidateOwned(ctx, obs.Project, obs.IdempotencyKey, "dec_wrong"); err != nil {
+		t.Fatalf("InvalidateOwned wrong decision: %v", err)
+	}
+	dup, err := store.Decide(ctx, obs)
+	if err != nil {
+		t.Fatalf("duplicate after wrong decision id: %v", err)
+	}
+	if dup.Outcome != ActionOutcomeCommittedReplay {
+		t.Fatalf("outcome after wrong decision id=%q want committed replay", dup.Outcome)
+	}
+	if err := store.InvalidateOwned(ctx, obs.Project, obs.IdempotencyKey, decisionID); err != nil {
+		t.Fatalf("InvalidateOwned correct decision: %v", err)
+	}
+	retry, err := store.Decide(ctx, obs)
+	if err != nil {
+		t.Fatalf("retry after correct decision id: %v", err)
+	}
+	if retry.Outcome != ActionOutcomeClaimed {
+		t.Fatalf("retry outcome=%q want claimed after owned invalidation", retry.Outcome)
 	}
 }

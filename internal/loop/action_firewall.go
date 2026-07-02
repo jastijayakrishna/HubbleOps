@@ -6,11 +6,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/hubbleops/hubbleops/internal/privacy"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -25,7 +27,8 @@ const (
 	// /4 hardens that protocol: releases must prove lease ownership with the claim
 	// nonce, the duplicate window for fail-closed risks is floored server-side, and the
 	// Redis commit is a single atomic script.
-	ActionPolicyVersion = "action-firewall/4"
+	ActionPolicyVersion = "idempotency-ledger/1"
+	DetectorVersion     = "idempotency-ledger/1"
 
 	ActionRiskRead      = "read"
 	ActionRiskWrite     = "write"
@@ -34,10 +37,6 @@ const (
 	SignalDuplicateSideEffect         = "duplicate_side_effect"
 	SignalIdempotencyKeyReuseMismatch = "idempotency_key_reuse_mismatch"
 	SignalMissingIdempotency          = "missing_idempotency_key"
-	SignalPolicyAmountExceeded        = "policy_amount_exceeded"
-	SignalMissingSafetyPrecondition   = "missing_safety_precondition"
-	SignalRecipientOutOfPolicy        = "recipient_out_of_policy"
-	SignalInvalidCapability           = "invalid_capability"
 	SignalActionFirewallUnavailable   = "action_firewall_unavailable"
 	SignalActionInFlight              = "action_in_flight"
 
@@ -60,10 +59,33 @@ const (
 	defaultActionLease = 2 * time.Minute
 )
 
+var (
+	ErrLeaseNotHeld     = errors.New("action lease not held")
+	ErrAlreadyCommitted = errors.New("action already committed")
+)
+
+type Action string
+
+const (
+	ActionNone  Action = "allow"
+	ActionWarn  Action = "warn"
+	ActionBlock Action = "block"
+)
+
+type Decision struct {
+	SignalsFired     []string `json:"signals_fired,omitempty"`
+	Confidence       float64  `json:"confidence,omitempty"`
+	ActionCeiling    Action   `json:"action_ceiling,omitempty"`
+	DetectorVersion  string   `json:"detector_version,omitempty"`
+	Reason           string   `json:"reason,omitempty"`
+	HadSession       bool     `json:"had_session,omitempty"`
+	PolicyVersion    string   `json:"policy_version,omitempty"`
+	DecisionEvidence []string `json:"decision_evidence,omitempty"`
+}
+
 type ActionStore struct {
-	ledger           actionLedger
-	capabilitySecret []byte
-	lease            time.Duration
+	ledger actionLedger
+	lease  time.Duration
 }
 
 func NewActionStore(rdb *redis.Client) *ActionStore {
@@ -95,11 +117,11 @@ func (as *ActionStore) leaseDuration() time.Duration {
 }
 
 type ActionObservation struct {
-	Project                string
-	SessionID              string
-	StepID                 string
-	ToolName               string
-	ActionRisk             string
+	Project    string
+	SessionID  string
+	StepID     string
+	ToolName   string
+	ActionRisk string
 	// RawActionRisk is the client-declared risk label before any server-side floor was
 	// applied. Fail-closed semantics (window floor, hold-on-ambiguous) key on both: the
 	// raw label catches an honest "money_movement", the floored one catches a client lie.
@@ -140,12 +162,14 @@ type ActionDecision struct {
 // idempotency key. It is what the firewall returns instead of executing a duplicate
 // side effect a second time.
 type ActionReplay struct {
-	DecisionID        string          `json:"decision_id,omitempty"`
-	ResultClass       string          `json:"result_class,omitempty"`
-	ResultFingerprint string          `json:"result_fingerprint,omitempty"`
-	Result            json.RawMessage `json:"result,omitempty"`
-	FirstSeenMillis   int64           `json:"first_seen_millis,omitempty"`
-	CommittedMillis   int64           `json:"committed_millis,omitempty"`
+	DecisionID        string `json:"decision_id,omitempty"`
+	ResultClass       string `json:"result_class,omitempty"`
+	ResultFingerprint string `json:"result_fingerprint,omitempty"`
+	// Result is read only from legacy records that already contain a raw replay body.
+	// New commits store result fingerprints and shape metadata instead.
+	Result          json.RawMessage `json:"result,omitempty"`
+	FirstSeenMillis int64           `json:"first_seen_millis,omitempty"`
+	CommittedMillis int64           `json:"committed_millis,omitempty"`
 }
 
 // ActionResult is the post-execution outcome the result path hands back to the ledger
@@ -153,6 +177,7 @@ type ActionReplay struct {
 type ActionResult struct {
 	Project                string
 	IdempotencyKey         string
+	ClaimNonce             string
 	ToolName               string
 	ActionRisk             string
 	RawActionRisk          string
@@ -172,29 +197,6 @@ func (as *ActionStore) Decide(ctx context.Context, obs ActionObservation) (Actio
 		return ActionDecision{}, fmt.Errorf("action ledger is not configured")
 	}
 	risk := NormalizeActionRisk(obs.ActionRisk)
-	decisionTime := actionTime(obs.UnixMillis)
-	capabilityVerified := false
-	var cap Capability
-	if obs.CapabilityToken != "" {
-		verified, err := VerifyCapability(as.capabilitySecret, obs.CapabilityToken, obs, decisionTime)
-		if err != nil {
-			return blockActionDecision(
-				SignalInvalidCapability,
-				"capability token is invalid or outside its scope",
-				[]string{"capability=invalid", "reason=" + err.Error()},
-				0.98,
-				obs.SessionID,
-			), nil
-		}
-		capabilityVerified = true
-		cap = verified
-	}
-	if decision, ok := enforceAmountPolicy(obs, cap, capabilityVerified); ok {
-		return decision, nil
-	}
-	if decision, ok := enforceRecipientPolicy(obs); ok {
-		return decision, nil
-	}
 	if risk == ActionRiskRead {
 		return ActionDecision{Decision: allowActionDecision("no idempotency policy fired", obs.SessionID)}, nil
 	}
@@ -223,15 +225,6 @@ func (as *ActionStore) Decide(ctx context.Context, obs ActionObservation) (Actio
 			Evidence: evidence,
 		}, nil
 	}
-	if risk == ActionRiskDangerous && obs.BackupID == "" && !capabilityVerified {
-		return blockActionDecision(
-			SignalMissingSafetyPrecondition,
-			"dangerous action requires a backup_id or a valid scoped capability",
-			[]string{"action_risk=" + risk, "backup_id=missing", "capability=missing"},
-			0.95,
-			obs.SessionID,
-		), nil
-	}
 
 	window := duplicateWindow(obs.DuplicateWindowSeconds, firstNonEmptyString(obs.RawActionRisk, obs.ActionRisk), risk)
 	lease := as.leaseDuration()
@@ -243,16 +236,16 @@ func (as *ActionStore) Decide(ctx context.Context, obs ActionObservation) (Actio
 	currentFP := actionRequestFingerprint(obs, risk)
 	nonce := newClaimNonce()
 	record := map[string]any{
-		"project":              obs.Project,
-		"session_id":           obs.SessionID,
-		"tool_name":            obs.ToolName,
+		"project":              actionLedgerIdentifier(obs.Project),
+		"session_id":           actionLedgerIdentifier(obs.SessionID),
+		"tool_name":            actionLedgerIdentifier(obs.ToolName),
 		"action_risk":          risk,
 		"idempotency_key_hash": actionValueFingerprint(obs.IdempotencyKey),
-		"agent_id":             obs.AgentID,
-		"user_id":              obs.UserID,
+		"agent_id":             actionLedgerIdentifier(obs.AgentID),
+		"user_id":              actionLedgerIdentifier(obs.UserID),
 		"resource_fingerprint": actionValueFingerprint(obs.ResourceID),
 		"amount_cents":         obs.AmountCents,
-		"step_id":              obs.StepID,
+		"step_id":              actionLedgerIdentifier(obs.StepID),
 		"first_seen_ms":        nowMillis,
 		"request_fingerprint":  currentFP,
 		"claim_nonce":          nonce,
@@ -268,9 +261,6 @@ func (as *ActionStore) Decide(ctx context.Context, obs ActionObservation) (Actio
 	}
 	if status == claimStatusClaimed {
 		evidence := []string{"idempotency_key=first_seen", "claim=pending", "lease=" + lease.String(), "duplicate_window=" + window.String()}
-		if capabilityVerified {
-			evidence = append(evidence, "capability=valid")
-		}
 		if obs.ResourceID != "" {
 			evidence = append(evidence, "resource_fingerprint="+actionValueFingerprint(obs.ResourceID))
 		}
@@ -382,24 +372,29 @@ func (as *ActionStore) Commit(ctx context.Context, res ActionResult) error {
 	if nowMillis == 0 {
 		nowMillis = time.Now().UnixMilli()
 	}
+	resultFingerprint := actionLedgerIdentifier(res.ResultFingerprint)
+	if resultFingerprint == "" && len(res.Result) > 0 {
+		resultFingerprint = actionValueFingerprint(string(res.Result))
+	}
 	record := map[string]any{
-		"project":              res.Project,
-		"tool_name":            res.ToolName,
+		"project":              actionLedgerIdentifier(res.Project),
+		"tool_name":            actionLedgerIdentifier(res.ToolName),
 		"action_risk":          risk,
 		"idempotency_key_hash": actionValueFingerprint(res.IdempotencyKey),
 		"resource_fingerprint": actionValueFingerprint(res.ResourceID),
 		"amount_cents":         res.AmountCents,
 		"committed_ms":         nowMillis,
 		"request_fingerprint":  actionResultFingerprint(res, risk),
-		"decision_id":          res.DecisionID,
-		"result_class":         res.ResultClass,
-		"result_fingerprint":   res.ResultFingerprint,
+		"decision_id":          actionLedgerIdentifier(res.DecisionID),
+		"result_class":         actionLedgerIdentifier(res.ResultClass),
+		"result_fingerprint":   resultFingerprint,
 	}
 	if len(res.Result) > 0 {
-		record["result"] = json.RawMessage(res.Result)
+		record["result_payload_fingerprint"] = actionValueFingerprint(string(res.Result))
+		record["result_shape"] = jsonPayloadShape(res.Result)
 	}
 	data, _ := json.Marshal(record)
-	return as.ledger.Commit(ctx, key, data, window)
+	return as.ledger.Commit(ctx, key, data, window, res.ClaimNonce)
 }
 
 // Release drops a pending claim so a known-failed action is immediately retryable rather
@@ -414,6 +409,94 @@ func (as *ActionStore) Release(ctx context.Context, project, idempotencyKey, non
 		return nil
 	}
 	return as.ledger.Release(ctx, actionKey(project, idempotencyKey), nonce)
+}
+
+// Heartbeat refreshes a pending idempotency claim so a legitimate long-running side
+// effect does not lose its short lease and allow a retry to execute concurrently.
+func (as *ActionStore) Heartbeat(ctx context.Context, project, idempotencyKey, nonce string) error {
+	if as == nil || as.ledger == nil {
+		return fmt.Errorf("action ledger is not configured")
+	}
+	if idempotencyKey == "" {
+		return nil
+	}
+	return as.ledger.Extend(ctx, actionKey(project, idempotencyKey), as.leaseDuration(), nonce)
+}
+
+// HeartbeatEvery keeps a pending claim alive until stopped, the context is cancelled, or
+// the lease is no longer owned. Losing the lease means the caller should stop executing if
+// it can: another attempt may have legitimately reclaimed the idempotency key.
+func (as *ActionStore) HeartbeatEvery(ctx context.Context, project, key, nonce string) (stop func()) {
+	heartbeatCtx, cancel := context.WithCancel(ctx)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		lease := as.leaseDuration()
+		interval := lease / 3
+		if interval <= 0 {
+			interval = lease
+		}
+		if interval <= 0 {
+			interval = time.Second
+		}
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-heartbeatCtx.Done():
+				return
+			case <-ticker.C:
+				err := as.Heartbeat(heartbeatCtx, project, key, nonce)
+				if errors.Is(err, ErrLeaseNotHeld) || errors.Is(err, ErrAlreadyCommitted) {
+					return
+				}
+			}
+		}
+	}()
+	return func() {
+		cancel()
+		<-done
+	}
+}
+
+// SweepExpired removes expired pending leases and committed duplicate-window records
+// from ledgers that need explicit cleanup. Backends with native TTL expiry can no-op.
+func (as *ActionStore) SweepExpired(ctx context.Context) (int64, error) {
+	if as == nil || as.ledger == nil {
+		return 0, fmt.Errorf("action ledger is not configured")
+	}
+	sweeper, ok := as.ledger.(actionLedgerSweeper)
+	if !ok {
+		return 0, nil
+	}
+	return sweeper.SweepExpired(ctx)
+}
+
+// Invalidate removes a committed or pending key without ownership proof. It is retained
+// for legacy deploy-result callbacks; new production callers should use
+// InvalidateOwned so a caller that only knows the idempotency key cannot erase another
+// action's committed duplicate-suppression record.
+func (as *ActionStore) Invalidate(ctx context.Context, project, idempotencyKey string) error {
+	if as == nil || as.ledger == nil {
+		return fmt.Errorf("action ledger is not configured")
+	}
+	if idempotencyKey == "" {
+		return nil
+	}
+	return as.ledger.Invalidate(ctx, actionKey(project, idempotencyKey))
+}
+
+// InvalidateOwned removes a committed key only when its stored decision_id matches the
+// caller-provided decisionID. Pending records and committed records from a different
+// decision are left intact, so failure callbacks cannot clear someone else's dedup entry.
+func (as *ActionStore) InvalidateOwned(ctx context.Context, project, idempotencyKey, decisionID string) error {
+	if as == nil || as.ledger == nil {
+		return fmt.Errorf("action ledger is not configured")
+	}
+	if idempotencyKey == "" || strings.TrimSpace(decisionID) == "" {
+		return nil
+	}
+	return as.ledger.InvalidateOwned(ctx, actionKey(project, idempotencyKey), actionLedgerIdentifier(decisionID))
 }
 
 // newClaimNonce returns an unguessable per-claim ownership token. It is not a secret in
@@ -451,6 +534,39 @@ func replayFromRecord(rec map[string]any) *ActionReplay {
 	return replay
 }
 
+func decisionIDFromRecord(raw string) string {
+	var rec map[string]any
+	if err := json.Unmarshal([]byte(raw), &rec); err != nil {
+		return ""
+	}
+	decisionID, _ := rec["decision_id"].(string)
+	return decisionID
+}
+
+func carryForwardRequestFingerprint(committed []byte, pending string) ([]byte, error) {
+	if pending == "" {
+		return committed, nil
+	}
+	var pendingRec map[string]any
+	if err := json.Unmarshal([]byte(pending), &pendingRec); err != nil {
+		return committed, nil
+	}
+	claimFP, _ := pendingRec["request_fingerprint"].(string)
+	if claimFP == "" {
+		return committed, nil
+	}
+	var committedRec map[string]any
+	if err := json.Unmarshal(committed, &committedRec); err != nil {
+		return nil, err
+	}
+	if got, _ := committedRec["request_fingerprint"].(string); got == claimFP {
+		return committed, nil
+	}
+	committedRec["request_fingerprint"] = claimFP
+	committedRec["fingerprint_source"] = "claim_carryforward"
+	return json.Marshal(committedRec)
+}
+
 func recordMillis(rec map[string]any, key string) int64 {
 	switch v := rec[key].(type) {
 	case float64:
@@ -462,55 +578,6 @@ func recordMillis(rec map[string]any, key string) int64 {
 		return n
 	}
 	return 0
-}
-
-func enforceAmountPolicy(obs ActionObservation, cap Capability, capabilityVerified bool) (ActionDecision, bool) {
-	if obs.AmountCents <= 0 {
-		return ActionDecision{}, false
-	}
-	if obs.MaxAmountCents > 0 && obs.AmountCents > obs.MaxAmountCents {
-		return blockActionDecision(
-			SignalPolicyAmountExceeded,
-			"action amount exceeds declared policy maximum",
-			[]string{
-				fmt.Sprintf("amount_cents=%d", obs.AmountCents),
-				fmt.Sprintf("max_amount_cents=%d", obs.MaxAmountCents),
-			},
-			0.99,
-			obs.SessionID,
-		), true
-	}
-	if capabilityVerified && cap.MaxAmountCents > 0 && obs.AmountCents > cap.MaxAmountCents {
-		return blockActionDecision(
-			SignalPolicyAmountExceeded,
-			"action amount exceeds capability maximum",
-			[]string{
-				fmt.Sprintf("amount_cents=%d", obs.AmountCents),
-				fmt.Sprintf("capability_max_amount_cents=%d", cap.MaxAmountCents),
-			},
-			0.99,
-			obs.SessionID,
-		), true
-	}
-	return ActionDecision{}, false
-}
-
-func enforceRecipientPolicy(obs ActionObservation) (ActionDecision, bool) {
-	if obs.Recipient == "" || obs.AllowedDomain == "" {
-		return ActionDecision{}, false
-	}
-	recipientDomain := emailDomain(obs.Recipient)
-	allowedDomain := strings.ToLower(strings.TrimSpace(obs.AllowedDomain))
-	if recipientDomain == "" || !strings.EqualFold(recipientDomain, allowedDomain) {
-		return blockActionDecision(
-			SignalRecipientOutOfPolicy,
-			"recipient is outside the declared allowed domain",
-			[]string{"recipient_domain=" + firstNonEmptyString(recipientDomain, "invalid"), "allowed_domain=" + allowedDomain},
-			0.96,
-			obs.SessionID,
-		), true
-	}
-	return ActionDecision{}, false
 }
 
 func blockActionDecision(signal, reason string, evidence []string, confidence float64, sessionID string) ActionDecision {
@@ -528,24 +595,6 @@ func blockActionDecision(signal, reason string, evidence []string, confidence fl
 		Reason:   reason,
 		Evidence: evidence,
 	}
-}
-
-func (as *ActionStore) WithCapabilitySecret(secret string) *ActionStore {
-	if as == nil {
-		return nil
-	}
-	secret = strings.TrimSpace(secret)
-	if secret != "" {
-		as.capabilitySecret = []byte(secret)
-	}
-	return as
-}
-
-func actionTime(unixMillis int64) time.Time {
-	if unixMillis <= 0 {
-		return time.Now().UTC()
-	}
-	return time.UnixMilli(unixMillis).UTC()
 }
 
 func emailDomain(recipient string) string {
@@ -671,8 +720,8 @@ func ResultDisposition(resultClass, rawRisk, flooredRisk string) string {
 	if disposition != ActionDispositionRelease {
 		return disposition
 	}
-	switch normalizeResultClass(resultClass) {
-	case ResultTimeout, ResultUnknownError:
+	switch strings.ToLower(strings.TrimSpace(resultClass)) {
+	case "timeout", "unknown_error", "error", "failed":
 		if FailClosedRisk(rawRisk) || NormalizeActionRisk(flooredRisk) == ActionRiskDangerous {
 			return ActionDispositionHold
 		}
@@ -707,6 +756,56 @@ func actionValueFingerprint(value string) string {
 	}
 	sum := sha256.Sum256([]byte(value))
 	return fmt.Sprintf("sha256:%x", sum[:])
+}
+
+func actionLedgerIdentifier(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	if len(value) > 160 || privacy.ContainsSensitiveText(value) || !hasOnlyActionLedgerIdentifierChars(value) || hasUnsafeActionLedgerAtSign(value) {
+		return actionValueFingerprint(value)
+	}
+	return value
+}
+
+func hasOnlyActionLedgerIdentifierChars(value string) bool {
+	for _, r := range value {
+		switch {
+		case r >= 'a' && r <= 'z':
+		case r >= 'A' && r <= 'Z':
+		case r >= '0' && r <= '9':
+		case r == '_' || r == '.' || r == ':' || r == '/' || r == '#' || r == '-' || r == '@':
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+func hasUnsafeActionLedgerAtSign(value string) bool {
+	return strings.IndexByte(value, '@') > 0
+}
+
+func jsonPayloadShape(raw json.RawMessage) string {
+	var value any
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return "bytes"
+	}
+	switch value.(type) {
+	case map[string]any:
+		return "object"
+	case []any:
+		return "array"
+	case string:
+		return "string"
+	case bool:
+		return "bool"
+	case nil:
+		return "null"
+	default:
+		return "number"
+	}
 }
 
 // actionRequestFingerprint binds an idempotency key to the payload it was first
@@ -780,13 +879,32 @@ type actionLedger interface {
 	// corresponding status and the stored record JSON in previous.
 	Claim(ctx context.Context, key string, pending []byte, lease time.Duration, nonce string) (claimStatus, string, error)
 	// Commit promotes key to COMMITTED with the full window and stores the result record.
-	// It is idempotent and must succeed even if the pending lease already expired.
-	Commit(ctx context.Context, key string, committed []byte, window time.Duration) error
+	// It must prove ownership of a live pending lease with nonce. If the pending lease has
+	// already expired and disappeared, commit is allowed so a slow-but-successful original
+	// side effect can still become the replay source.
+	Commit(ctx context.Context, key string, committed []byte, window time.Duration, nonce string) error
 	// Release drops a pending lease so a known-failed action is immediately retryable. It
 	// must not remove a committed record, and it must not remove a pending lease whose
 	// stored owner nonce does not match the caller's (a lease claimed without a nonce —
 	// a legacy record — remains releasable by anyone).
 	Release(ctx context.Context, key, nonce string) error
+	// Extend refreshes a live pending lease owned by nonce. Heartbeats close the
+	// slow-execution gap where a legitimate action runs longer than the short pending
+	// lease, loses its claim, and a retry executes the same side effect concurrently.
+	// Legacy pending records with an empty stored nonce are extendable by anyone, matching
+	// Release. Committed records return ErrAlreadyCommitted; missing, expired, or
+	// nonce-mismatched pending records return ErrLeaseNotHeld.
+	Extend(ctx context.Context, key string, lease time.Duration, nonce string) error
+	// Invalidate removes a key regardless of state (pending or committed). It is the
+	// legacy unowned escape hatch; prefer InvalidateOwned for production callbacks.
+	Invalidate(ctx context.Context, key string) error
+	// InvalidateOwned removes only a committed record whose stored decision_id matches
+	// the caller's decision ID. Pending rows and mismatched committed rows survive.
+	InvalidateOwned(ctx context.Context, key, decisionID string) error
+}
+
+type actionLedgerSweeper interface {
+	SweepExpired(ctx context.Context) (int64, error)
 }
 
 type redisActionLedger struct {
@@ -823,6 +941,39 @@ end
 return 0
 `)
 
+// invalidateOwnedScript deletes only committed records that carry the caller's
+// decision_id in their stored record JSON. Malformed legacy records and pending leases
+// are treated as not owned and left untouched.
+var invalidateOwnedScript = redis.NewScript(`
+if redis.call('HGET', KEYS[1], 'state') ~= 'committed' then return 0 end
+local rec = redis.call('HGET', KEYS[1], 'record')
+if not rec then return 0 end
+local ok, obj = pcall(cjson.decode, rec)
+if not ok then return 0 end
+if obj['decision_id'] == ARGV[1] then
+  return redis.call('DEL', KEYS[1])
+end
+return 0
+`)
+
+// extendScript refreshes the TTL only while the key is still pending and the caller owns
+// the claim nonce. An empty stored nonce is a legacy pending record and remains
+// extendable. Committed records are reported distinctly from missing/mismatched leases so
+// callers can stop heartbeating for the right reason.
+var extendScript = redis.NewScript(`
+local state = redis.call('HGET', KEYS[1], 'state')
+if not state then return 'missing' end
+if state == 'committed' then return 'committed' end
+if state == 'pending' then
+  local owner = redis.call('HGET', KEYS[1], 'nonce')
+  if (not owner) or owner == '' or owner == ARGV[2] then
+    redis.call('PEXPIRE', KEYS[1], ARGV[1])
+    return 'extended'
+  end
+end
+return 'notheld'
+`)
+
 func (l redisActionLedger) Claim(ctx context.Context, key string, pending []byte, lease time.Duration, nonce string) (claimStatus, string, error) {
 	if l.rdb == nil {
 		return claimStatusClaimed, "", fmt.Errorf("redis client is nil")
@@ -840,17 +991,39 @@ func (l redisActionLedger) Claim(ctx context.Context, key string, pending []byte
 // duplicate window to ~2 minutes for that key. The claim's ownership nonce is dropped:
 // a committed record is never releasable, so retaining it would only mislead.
 var commitScript = redis.NewScript(`
-redis.call('HSET', KEYS[1], 'state', 'committed', 'record', ARGV[1])
+local state = redis.call('HGET', KEYS[1], 'state')
+if state == 'committed' then return 1 end
+local record = ARGV[1]
+if state == 'pending' then
+  local owner = redis.call('HGET', KEYS[1], 'nonce')
+  if owner and owner ~= '' and owner ~= ARGV[3] then
+    return redis.error_reply('claim nonce mismatch')
+  end
+  local pending = redis.call('HGET', KEYS[1], 'record')
+  if pending then
+    local pending_ok, pending_obj = pcall(cjson.decode, pending)
+    local committed_ok, committed_obj = pcall(cjson.decode, ARGV[1])
+    if pending_ok and committed_ok then
+      local claim_fp = pending_obj['request_fingerprint']
+      if claim_fp and claim_fp ~= '' and committed_obj['request_fingerprint'] ~= claim_fp then
+        committed_obj['request_fingerprint'] = claim_fp
+        committed_obj['fingerprint_source'] = 'claim_carryforward'
+        record = cjson.encode(committed_obj)
+      end
+    end
+  end
+end
+redis.call('HSET', KEYS[1], 'state', 'committed', 'record', record)
 redis.call('HDEL', KEYS[1], 'nonce')
 redis.call('PEXPIRE', KEYS[1], ARGV[2])
 return 1
 `)
 
-func (l redisActionLedger) Commit(ctx context.Context, key string, committed []byte, window time.Duration) error {
+func (l redisActionLedger) Commit(ctx context.Context, key string, committed []byte, window time.Duration, nonce string) error {
 	if l.rdb == nil {
 		return fmt.Errorf("redis client is nil")
 	}
-	return commitScript.Run(ctx, l.rdb, []string{key}, committed, window.Milliseconds()).Err()
+	return commitScript.Run(ctx, l.rdb, []string{key}, committed, window.Milliseconds(), nonce).Err()
 }
 
 func (l redisActionLedger) Release(ctx context.Context, key, nonce string) error {
@@ -858,6 +1031,43 @@ func (l redisActionLedger) Release(ctx context.Context, key, nonce string) error
 		return fmt.Errorf("redis client is nil")
 	}
 	return releaseScript.Run(ctx, l.rdb, []string{key}, nonce).Err()
+}
+
+func (l redisActionLedger) Extend(ctx context.Context, key string, lease time.Duration, nonce string) error {
+	if l.rdb == nil {
+		return fmt.Errorf("redis client is nil")
+	}
+	res, err := extendScript.Run(ctx, l.rdb, []string{key}, lease.Milliseconds(), nonce).Text()
+	if err != nil {
+		return err
+	}
+	switch res {
+	case "extended":
+		return nil
+	case "committed":
+		return ErrAlreadyCommitted
+	default:
+		return ErrLeaseNotHeld
+	}
+}
+
+func (l redisActionLedger) Invalidate(ctx context.Context, key string) error {
+	if l.rdb == nil {
+		return fmt.Errorf("redis client is nil")
+	}
+	return l.rdb.Del(ctx, key).Err()
+}
+
+func (l redisActionLedger) InvalidateOwned(ctx context.Context, key, decisionID string) error {
+	if l.rdb == nil {
+		return fmt.Errorf("redis client is nil")
+	}
+	return invalidateOwnedScript.Run(ctx, l.rdb, []string{key}, decisionID).Err()
+}
+
+func (l redisActionLedger) SweepExpired(ctx context.Context) (int64, error) {
+	// Redis owns expiry with per-key TTLs, so there is no table/file to sweep.
+	return 0, nil
 }
 
 func parseClaimResult(res any) (claimStatus, string, error) {
@@ -883,6 +1093,8 @@ func parseClaimResult(res any) (claimStatus, string, error) {
 type postgresActionLedger struct {
 	pool *pgxpool.Pool
 }
+
+const actionLedgerSweepBatch = 5000
 
 func (l postgresActionLedger) Claim(ctx context.Context, key string, pending []byte, lease time.Duration, nonce string) (claimStatus, string, error) {
 	if l.pool == nil {
@@ -928,18 +1140,53 @@ func (l postgresActionLedger) Claim(ctx context.Context, key string, pending []b
 	return claimStatusInFlight, previous, nil
 }
 
-func (l postgresActionLedger) Commit(ctx context.Context, key string, committed []byte, window time.Duration) error {
+func (l postgresActionLedger) Commit(ctx context.Context, key string, committed []byte, window time.Duration, nonce string) error {
 	if l.pool == nil {
 		return fmt.Errorf("postgres pool is nil")
 	}
 	expiresAt := time.Now().Add(window)
-	_, err := l.pool.Exec(ctx, `
-		INSERT INTO action_ledger (action_key, first_record, state, expires_at)
-		VALUES ($1, $2::jsonb, 'committed', $3)
-		ON CONFLICT (action_key) DO UPDATE
-		SET first_record = EXCLUDED.first_record, state = 'committed', expires_at = EXCLUDED.expires_at
-	`, key, string(committed), expiresAt)
-	return err
+	tx, err := l.pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	if _, err := tx.Exec(ctx, "DELETE FROM action_ledger WHERE action_key = $1 AND expires_at <= now()", key); err != nil {
+		return err
+	}
+	var previous, state string
+	err = tx.QueryRow(ctx, "SELECT first_record::text, state FROM action_ledger WHERE action_key = $1 FOR UPDATE", key).Scan(&previous, &state)
+	if err == pgx.ErrNoRows {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO action_ledger (action_key, first_record, state, expires_at)
+			VALUES ($1, $2::jsonb, 'committed', $3)
+		`, key, string(committed), expiresAt); err != nil {
+			return err
+		}
+		return tx.Commit(ctx)
+	}
+	if err != nil {
+		return err
+	}
+	if state == ledgerStateCommitted {
+		return tx.Commit(ctx)
+	}
+	var rec map[string]any
+	_ = json.Unmarshal([]byte(previous), &rec)
+	if owner, _ := rec["claim_nonce"].(string); owner != "" && owner != nonce {
+		return fmt.Errorf("claim nonce mismatch")
+	}
+	committed, err = carryForwardRequestFingerprint(committed, previous)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE action_ledger
+		SET first_record = $2::jsonb, state = 'committed', expires_at = $3
+		WHERE action_key = $1
+	`, key, string(committed), expiresAt); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
 
 // Release deletes the pending row only when the caller's nonce matches the one stored in
@@ -955,6 +1202,87 @@ func (l postgresActionLedger) Release(ctx context.Context, key, nonce string) er
 		  AND (COALESCE(first_record->>'claim_nonce', '') = '' OR first_record->>'claim_nonce' = $2)
 	`, key, nonce)
 	return err
+}
+
+func (l postgresActionLedger) Extend(ctx context.Context, key string, lease time.Duration, nonce string) error {
+	if l.pool == nil {
+		return fmt.Errorf("postgres pool is nil")
+	}
+	expiresAt := time.Now().Add(lease)
+	tag, err := l.pool.Exec(ctx, `
+		UPDATE action_ledger
+		SET expires_at = $2
+		WHERE action_key = $1 AND state = 'pending' AND expires_at > now()
+		  AND (COALESCE(first_record->>'claim_nonce', '') = '' OR first_record->>'claim_nonce' = $3)
+	`, key, expiresAt, nonce)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 1 {
+		return nil
+	}
+	var state string
+	err = l.pool.QueryRow(ctx, `
+		SELECT state FROM action_ledger
+		WHERE action_key = $1 AND expires_at > now()
+	`, key).Scan(&state)
+	if err == pgx.ErrNoRows {
+		return ErrLeaseNotHeld
+	}
+	if err != nil {
+		return err
+	}
+	if state == ledgerStateCommitted {
+		return ErrAlreadyCommitted
+	}
+	return ErrLeaseNotHeld
+}
+
+func (l postgresActionLedger) Invalidate(ctx context.Context, key string) error {
+	if l.pool == nil {
+		return fmt.Errorf("postgres pool is nil")
+	}
+	_, err := l.pool.Exec(ctx, "DELETE FROM action_ledger WHERE action_key = $1", key)
+	return err
+}
+
+func (l postgresActionLedger) InvalidateOwned(ctx context.Context, key, decisionID string) error {
+	if l.pool == nil {
+		return fmt.Errorf("postgres pool is nil")
+	}
+	_, err := l.pool.Exec(ctx, `
+		DELETE FROM action_ledger
+		WHERE action_key = $1 AND state = 'committed' AND first_record->>'decision_id' = $2
+	`, key, decisionID)
+	return err
+}
+
+func (l postgresActionLedger) SweepExpired(ctx context.Context) (int64, error) {
+	if l.pool == nil {
+		return 0, fmt.Errorf("postgres pool is nil")
+	}
+	var total int64
+	for {
+		tag, err := l.pool.Exec(ctx, `
+			WITH doomed AS (
+				SELECT ctid
+				FROM action_ledger
+				WHERE expires_at <= now()
+				LIMIT $1
+			)
+			DELETE FROM action_ledger AS a
+			USING doomed
+			WHERE a.ctid = doomed.ctid
+		`, actionLedgerSweepBatch)
+		if err != nil {
+			return total, err
+		}
+		removed := tag.RowsAffected()
+		total += removed
+		if removed < actionLedgerSweepBatch {
+			return total, nil
+		}
+	}
 }
 
 type memoryActionLedger struct {
@@ -999,15 +1327,32 @@ func (l *memoryActionLedger) Claim(ctx context.Context, key string, pending []by
 	return claimStatusClaimed, "", nil
 }
 
-func (l *memoryActionLedger) Commit(ctx context.Context, key string, committed []byte, window time.Duration) error {
+func (l *memoryActionLedger) Commit(ctx context.Context, key string, committed []byte, window time.Duration, nonce string) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 	}
 	now := time.Now()
+	var pending string
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	if item, ok := l.items[key]; ok {
+		if !item.expiresAt.IsZero() && !item.expiresAt.After(now) {
+			delete(l.items, key)
+		} else if item.state == ledgerStateCommitted {
+			return nil
+		} else if item.nonce != "" && item.nonce != nonce {
+			return fmt.Errorf("claim nonce mismatch")
+		} else if item.state == ledgerStatePending {
+			pending = item.value
+		}
+	}
+	var err error
+	committed, err = carryForwardRequestFingerprint(committed, pending)
+	if err != nil {
+		return err
+	}
 	expiresAt := time.Time{}
 	if window > 0 {
 		expiresAt = now.Add(window)
@@ -1028,4 +1373,79 @@ func (l *memoryActionLedger) Release(ctx context.Context, key, nonce string) err
 		delete(l.items, key)
 	}
 	return nil
+}
+
+func (l *memoryActionLedger) Extend(ctx context.Context, key string, lease time.Duration, nonce string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	now := time.Now()
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	item, ok := l.items[key]
+	if !ok {
+		return ErrLeaseNotHeld
+	}
+	if !item.expiresAt.IsZero() && !item.expiresAt.After(now) {
+		delete(l.items, key)
+		return ErrLeaseNotHeld
+	}
+	if item.state == ledgerStateCommitted {
+		return ErrAlreadyCommitted
+	}
+	if item.state != ledgerStatePending || (item.nonce != "" && item.nonce != nonce) {
+		return ErrLeaseNotHeld
+	}
+	item.expiresAt = now.Add(lease)
+	l.items[key] = item
+	return nil
+}
+
+func (l *memoryActionLedger) Invalidate(ctx context.Context, key string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	delete(l.items, key)
+	return nil
+}
+
+func (l *memoryActionLedger) InvalidateOwned(ctx context.Context, key, decisionID string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	item, ok := l.items[key]
+	if !ok || item.state != ledgerStateCommitted || decisionIDFromRecord(item.value) != decisionID {
+		return nil
+	}
+	delete(l.items, key)
+	return nil
+}
+
+func (l *memoryActionLedger) SweepExpired(ctx context.Context) (int64, error) {
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+	now := time.Now()
+	var removed int64
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	for key, item := range l.items {
+		if !item.expiresAt.IsZero() && !item.expiresAt.After(now) {
+			delete(l.items, key)
+			removed++
+		}
+	}
+	return removed, nil
 }
