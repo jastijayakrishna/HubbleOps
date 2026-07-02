@@ -35,7 +35,7 @@ import (
 func main() {
 	if len(os.Args) < 2 {
 		usage()
-		os.Exit(2)
+		os.Exit(exitUsage)
 	}
 
 	switch os.Args[1] {
@@ -53,21 +53,21 @@ func main() {
 		os.Exit(runVerifyReceipts(os.Args[2:]))
 	default:
 		usage()
-		os.Exit(2)
+		os.Exit(exitUsage)
 	}
 }
 
 func runPolicy(args []string) int {
 	if len(args) < 1 {
 		policyUsage()
-		return 2
+		return exitUsage
 	}
 	switch args[0] {
 	case "validate":
 		return runPolicyValidate(args[1:])
 	default:
 		policyUsage()
-		return 2
+		return exitUsage
 	}
 }
 
@@ -76,22 +76,22 @@ func runPolicyValidate(args []string) int {
 	fs.SetOutput(io.Discard)
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 2
+		return exitUsage
 	}
 	if fs.NArg() != 1 {
 		fmt.Fprintln(os.Stderr, "policy validate requires one policy YAML path")
-		return 2
+		return exitUsage
 	}
 	pol, err := policy.Load(fs.Arg(0))
 	if err != nil {
 		printPolicyError(err)
-		return 1
+		return exitBlock
 	}
 	for _, warning := range pol.Warnings {
 		fmt.Fprintln(os.Stderr, "warning: "+warning)
 	}
 	fmt.Printf("ok rules=%d\n", len(pol.Rules))
-	return 0
+	return exitAllow
 }
 
 func printPolicyError(err error) {
@@ -132,7 +132,7 @@ type preflightFlags struct {
 func runPreflight(args []string) int {
 	if len(args) < 1 {
 		preflightUsage()
-		return 2
+		return exitUsage
 	}
 	switch args[0] {
 	case "terraform":
@@ -145,7 +145,7 @@ func runPreflight(args []string) int {
 		return runPreflightDeployResult(args[1:])
 	default:
 		preflightUsage()
-		return 2
+		return exitUsage
 	}
 }
 
@@ -162,30 +162,30 @@ func runPreflightDeployResult(args []string) int {
 	}
 	if fs.NArg() != 0 {
 		fmt.Fprintln(os.Stderr, "preflight deploy-result takes flags only")
-		return 2
+		return exitUsage
 	}
 	if err := validatePreflightIdentifiers(*cfg); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 2
+		return exitUsage
 	}
 	serviceName := strings.TrimSpace(*service)
 	if serviceName == "" {
 		fmt.Fprintln(os.Stderr, "-service is required")
-		return 2
+		return exitUsage
 	}
 	if strings.TrimSpace(cfg.ActionLedgerPath) == "" {
 		fmt.Fprintln(os.Stderr, "-action-ledger is required")
-		return 2
+		return exitUsage
 	}
 	st := strings.ToLower(strings.TrimSpace(*status))
 	if st != "success" && st != "failed" {
 		fmt.Fprintln(os.Stderr, "-status must be success or failed")
-		return 2
+		return exitUsage
 	}
 	pol, err := loadPolicy(cfg.PolicyPath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitInternalError
 	}
 	cfg.IdempotencyKey = strings.TrimSpace(cfg.IdempotencyKey)
 	if cfg.IdempotencyKey == "" {
@@ -206,7 +206,7 @@ func runPreflightDeployResult(args []string) int {
 		store := loop.NewFileActionStore(cfg.ActionLedgerPath)
 		if err := store.Invalidate(context.Background(), req.Project, cfg.IdempotencyKey); err != nil {
 			fmt.Fprintf(os.Stderr, "release deploy idempotency: %v\n", err)
-			return 1
+			return exitInternalError
 		}
 		decision = withDecisionEvidence(decision, []string{"deploy_idempotency=released"})
 	} else {
@@ -222,23 +222,23 @@ func runPreflightTerraform(args []string) int {
 	}
 	if fs.NArg() != 1 {
 		fmt.Fprintln(os.Stderr, "preflight terraform requires one terraform show -json plan file")
-		return 2
+		return exitUsage
 	}
 	if err := validatePreflightIdentifiers(*cfg); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 2
+		return exitUsage
 	}
 
 	planPath := fs.Arg(0)
 	data, err := os.ReadFile(planPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "read terraform plan: %v\n", err)
-		return 1
+		return exitInternalError
 	}
 	pol, err := loadPolicy(cfg.PolicyPath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitInternalError
 	}
 	var protected []string
 	if pol != nil {
@@ -247,7 +247,7 @@ func runPreflightTerraform(args []string) int {
 	findings, err := preterraform.Scan(strings.NewReader(string(data)), preterraform.Options{ProtectedResources: protected})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitInternalError
 	}
 	req := baseRequest(*cfg)
 	req.Action = "terraform.plan"
@@ -271,21 +271,21 @@ func runPreflightMigration(args []string) int {
 	}
 	if fs.NArg() < 1 {
 		fmt.Fprintln(os.Stderr, "preflight migration requires at least one migration file or directory")
-		return 2
+		return exitUsage
 	}
 	if err := validatePreflightIdentifiers(*cfg); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 2
+		return exitUsage
 	}
 	pol, err := loadPolicy(cfg.PolicyPath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitInternalError
 	}
 	findings, err := premigration.ScanPaths(fs.Args())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitInternalError
 	}
 	req := baseRequest(*cfg)
 	req.Action = "migration.apply"
@@ -311,25 +311,25 @@ func runPreflightDeploy(args []string) int {
 	}
 	if fs.NArg() != 0 {
 		fmt.Fprintln(os.Stderr, "preflight deploy takes flags only; use -service for the service name")
-		return 2
+		return exitUsage
 	}
 	if err := validatePreflightIdentifiers(*cfg); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 2
+		return exitUsage
 	}
 	serviceName := strings.TrimSpace(*service)
 	if serviceName == "" {
 		fmt.Fprintln(os.Stderr, "-service is required")
-		return 2
+		return exitUsage
 	}
 	if strings.TrimSpace(cfg.ActionLedgerPath) == "" {
 		fmt.Fprintln(os.Stderr, "-action-ledger is required for deploy idempotency")
-		return 2
+		return exitUsage
 	}
 	pol, err := loadPolicy(cfg.PolicyPath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitInternalError
 	}
 	if strings.TrimSpace(cfg.ServiceRisk) == "" && pol != nil {
 		cfg.ServiceRisk = pol.ServiceRisk(serviceName)
@@ -664,12 +664,12 @@ func finishPreflightWithHook(req action.Request, decision action.Decision, findi
 	decision, err := writePreflightReceipt(req, decision, cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "write preflight receipt: %v\n", err)
-		return 1
+		return exitInternalError
 	}
 	if afterReceipt != nil {
 		if err := afterReceipt(decision); err != nil {
 			fmt.Fprintf(os.Stderr, "record deploy idempotency: %v\n", err)
-			return 1
+			return exitInternalError
 		}
 	}
 	if cfg.JSONOut {
@@ -686,11 +686,11 @@ func finishPreflightWithHook(req action.Request, decision action.Decision, findi
 	}
 	switch decision.Decision {
 	case action.DecisionBlock:
-		return 1
+		return exitBlock
 	case action.DecisionRequireApproval:
-		return 3
+		return exitRequireApproval
 	default:
-		return 0
+		return exitAllow
 	}
 }
 
@@ -790,7 +790,7 @@ func runEvidencePack(args []string) {
 		since, err := parseDay(*sinceRaw)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "since: %v\n", err)
-			os.Exit(2)
+			os.Exit(exitUsage)
 		}
 		opts.Since = since
 	}
@@ -798,7 +798,7 @@ func runEvidencePack(args []string) {
 		until, err := parseDay(*untilRaw)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "until: %v\n", err)
-			os.Exit(2)
+			os.Exit(exitUsage)
 		}
 		opts.Until = until.AddDate(0, 0, 1)
 	}
@@ -806,7 +806,7 @@ func runEvidencePack(args []string) {
 	records, err := readWALRecords(fs.Args())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		os.Exit(exitInternalError)
 	}
 	pack := evidencepack.Build(records, opts)
 
@@ -816,17 +816,17 @@ func runEvidencePack(args []string) {
 		rendered, err = evidencepack.RenderJSON(pack)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "render json: %v\n", err)
-			os.Exit(1)
+			os.Exit(exitInternalError)
 		}
 	case "markdown", "md", "":
 		rendered = []byte(evidencepack.RenderMarkdown(pack))
 	default:
 		fmt.Fprintf(os.Stderr, "unknown evidence-pack format %q; use markdown or json\n", *format)
-		os.Exit(2)
+		os.Exit(exitUsage)
 	}
 	writeOutputOrExit(*out, rendered)
 	if !pack.Integrity.Verified {
-		os.Exit(1)
+		os.Exit(exitBlock)
 	}
 }
 
@@ -843,12 +843,12 @@ func runVerifyReceipts(args []string) int {
 	keySet := parseKeyPairs(*receiptPublicKeys)
 	if *requireSignatures && *receiptSecret == "" && *receiptPublicKey == "" && len(keySet) == 0 {
 		fmt.Fprintln(os.Stderr, "-require-signatures needs -receipt-public-key(s) or -receipt-secret")
-		return 1
+		return exitUsage
 	}
 	anchor, err := anchorFromArg(*anchorRaw)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitUsage
 	}
 
 	// Stream the WAL one record at a time so verification stays O(1) in memory regardless of
@@ -863,11 +863,11 @@ func runVerifyReceipts(args []string) int {
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitInternalError
 	}
 	if err := streamWALInto(verifier, fs.Args()); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return exitInternalError
 	}
 	report := verifier.Report()
 	if *jsonOut {
@@ -892,9 +892,9 @@ func runVerifyReceipts(args []string) int {
 		}
 	}
 	if !report.Verified {
-		return 1
+		return exitBlock
 	}
-	return 0
+	return exitAllow
 }
 
 func anchorFromArg(raw string) (wal.Anchor, error) {
@@ -1014,7 +1014,7 @@ func writeOutputOrExit(path string, data []byte) {
 	}
 	if err := os.WriteFile(path, data, 0600); err != nil {
 		fmt.Fprintf(os.Stderr, "write %s: %v\n", path, err)
-		os.Exit(1)
+		os.Exit(exitInternalError)
 	}
 }
 

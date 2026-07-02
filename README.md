@@ -1,599 +1,252 @@
 # HubbleOps Action Firewall
 
-HubbleOps stops AI agents from repeating dangerous or useless actions before they execute, and produces a tamper-evident receipt for every decision.
+HubbleOps is a lightweight action firewall for AI agents. The current MVP gates
+engineering actions before they execute and writes a tamper-evident receipt for
+each decision.
 
-It sits in front of LLM and tool calls. For tools, HubbleOps acts as a pre-execution action firewall: legitimate reads pass through, repeated side-effect attempts are caught with idempotency keys, no-progress loops are detected from results, and every allow/warn/block decision is written to a hash-chained WAL.
+The product surface is deliberately small:
 
-## The Problem
+- capture action decisions
+- record anonymized action outcomes
+- collect customer review labels
+- learn policy-template changes from reviewed labels
+- export/import reviewed labels with anonymization by default
+- aggregate privacy-safe decision intelligence
 
-Agent loops are expensive, risky, and hard to debug:
+It is not a dashboard, prompt manager, eval platform, IAM system, DLP product, or
+workflow builder.
 
-- An agent retries the same tool with the same bad args.
-- An agent repeats the same customer-visible side effect, such as sending an email, refunding an invoice, opening a ticket, or triggering a deploy.
-- A dangerous action is attempted without a stable idempotency key.
-- A tool keeps returning `not_found`, `permission_error`, `timeout`, or `rate_limited`.
-- The model keeps spending tokens while making no state progress.
-- Operators only notice after the bill, duplicate action, or incident.
+## Local Preflight
 
-HubbleOps is built for one job: **send legitimate work through, stop repeated dangerous or useless actions before execution, and prove every decision with an audit trail.**
-
-## Current Status
-
-Production-shaped MVP:
-
-- OpenAI, Anthropic, and Gemini proxy support
-- Streaming and non-streaming usage capture
-- Pre-execution action firewall for tool calls
-- Postgres-backed durable action ledger for duplicate side-effect prevention
-- Tool-event fuse for pre-tool and post-tool loop detection
-- Redis-backed loop state with detector version `2.2.0`
-- Shadow, warn, and block modes
-- Decision receipts with `decision_id`, `policy_version`, `action_risk`, effect scope, reason, evidence, and an optional Ed25519 signature (asymmetric: auditors verify with the published public key, only the server can sign)
-- Fail-open SDK defaults
-- Budget seatbelt with atomic Redis reservations
-- Tamper-evident JSONL WAL with hash chaining
-- Separate WAL drain worker for Postgres reconciliation
-- Shadow report for would-block review and first policy recommendation
-- Receipt verifier for hash-chain, decision-field, and signed-receipt integrity
-- Real-trace eval harness for recall, precision, missed runaways, false positives, latency, and saved cost
-
-Brutal honest status: the repo is technically strong enough for MVP. The remaining proof gap is real customer shadow traces.
-
-## Quickstart
+The first working wedge is local preflight:
 
 ```bash
-make quickstart
+go run ./cmd/hubbleops preflight terraform ./plan.json \
+  -project acme \
+  -session pr-842 \
+  -actor agent:claude-code \
+  -human-delegator krish \
+  -env production \
+  -intent "cleanup old audit bucket" \
+  -receipt-secret "$HUBBLEOPS_RECEIPT_SIGNING_SECRET"
 ```
-
-Manual path:
 
 ```bash
-docker compose -f deploy/docker-compose.yml up --build -d
-go run ./cmd/hubbleops doctor -base-url http://localhost:8080
+go run ./cmd/hubbleops preflight migration ./migrations \
+  -project acme \
+  -session pr-842 \
+  -actor agent:claude-code \
+  -env production
 ```
-
-`doctor` runs a real pre-tool check and result round-trip against the proxy, so a
-green run confirms the full path (Postgres, Redis, WAL, signing) is working. Point your
-agent's SDK at `http://localhost:8080`, run a workload, then read what HubbleOps would
-enforce with `go run ./cmd/hubbleops shadow-report <wal-file>.jsonl`.
-
-No provider API keys are required. See [docs/QUICKSTART.md](docs/QUICKSTART.md) and [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
-
-## Fastest Safe Rollout
-
-Use hosted HubbleOps if you have a provisioned endpoint:
 
 ```bash
-export HUBBLEOPS_BASE_URL=https://YOUR_HUBBLEOPS_ENDPOINT
-export HUBBLEOPS_PROJECT_KEY=your_project_key
+go run ./cmd/hubbleops preflight deploy \
+  -service billing-api \
+  -artifact "$GITHUB_SHA" \
+  -idempotency-key "deploy:$GITHUB_SHA" \
+  -project acme \
+  -session pr-842 \
+  -actor agent:claude-code \
+  -human-delegator krish \
+  -env production \
+  -receipt-secret "$HUBBLEOPS_RECEIPT_SIGNING_SECRET"
 ```
 
-Run the HubbleOps preflight:
+Terraform preflight focuses on action-risk changes: protected or stateful
+destroys/replaces, deletion-protection removal, storage shrink, force-destroy or
+skip-final-snapshot flips, broad public ingress, wildcard IAM policies, public
+S3 access, S3 versioning rollback, KMS key deletion, and mass non-harmless
+destroys. Migration preflight focuses on destructive, locking, or bulk
+schema/data actions, including CTE-driven rewrites and `INSERT ... SELECT`, while
+suppressing known-safe local setup work such as indexes on tables created
+earlier in the same migration and temporary table cleanup.
+
+Each command prints `allow`, `require_approval`, or `block`, writes a signed WAL
+receipt when a receipt signer is configured, and reports the outcome through a
+fixed exit-code contract so CI can tell a gate decision from a tool failure:
+
+| Exit code | Meaning |
+|-----------|---------|
+| 0 | allow |
+| 1 | block (also: failed verification for `verify-receipts` / `evidence-pack`, invalid policy for `policy validate`) |
+| 2 | usage or flag error; nothing was executed |
+| 3 | require_approval |
+| 4 | internal error (receipt write failure, ledger unavailable, IO error) — no decision was produced, treat the action as not cleared to run |
+
+Deploy preflight also records the idempotency key in the ActionStore
+ledger so the same deploy cannot be gated twice with the same key.
+
+## Gate API And GitHub App
+
+Run the action-gate server:
 
 ```bash
-go run ./cmd/hubbleops doctor \
-  -base-url "$HUBBLEOPS_BASE_URL" \
-  -project "$HUBBLEOPS_PROJECT_KEY"
+go run ./cmd/gate \
+  -policy configs/policy.yaml.example \
+  -wal-dir data/wal \
+  -receipt-signer aws-kms \
+  -receipt-kms-key-id "$HUBBLEOPS_RECEIPT_KMS_KEY_ID" \
+  -receipt-kms-region "$HUBBLEOPS_RECEIPT_KMS_REGION" \
+  -receipt-key-id "$HUBBLEOPS_RECEIPT_KEY_ID"
 ```
 
-Expected shape:
+`POST /v1/preflight` accepts the same action request shape as the CLI and writes
+the same signed receipt. `require_approval` decisions create an approval request
+in `data/approvals.json` by default. Review it with
+`POST /v1/approvals/{approval_id}/review`; the next identical preflight consults
+that approval and writes a new signed allow/block receipt with reviewer
+fingerprint evidence. `GET /v1/receipts/{decision_id}` returns the latest receipt
+metadata for the decision. CLI and API JSON responses sanitize caller-controlled
+targets, file paths, evidence, approvers, and reviewer identifiers before echoing
+them back.
 
-```text
-HubbleOps doctor
-base_url: https://YOUR_HUBBLEOPS_ENDPOINT
-[ok] base_url: https://YOUR_HUBBLEOPS_ENDPOINT
-[ok] healthz: {"status":"healthy"}
-[ok] tool_check: action=allow
-[ok] tool_result: action=allow
-```
+Decision IDs are derived from a labeled v2 hash payload. Upgrading from the old
+v1 derivation intentionally changes IDs, so pre-existing pending approvals keyed
+to v1 decision IDs will not match v2 preflight decisions and must be requested
+again.
 
-Then route model calls through HubbleOps:
+`POST /github/webhook` handles GitHub `pull_request` events, verifies
+`X-Hub-Signature-256` when `GITHUB_WEBHOOK_SECRET` is set, loads changed files and
+CODEOWNERS through GitHub App installation auth, then creates a check run named
+`HubbleOps Action Firewall`.
+
+Required GitHub App settings:
 
 ```bash
-export OPENAI_BASE_URL="$HUBBLEOPS_BASE_URL/openai/v1"
+GITHUB_APP_ID=12345
+GITHUB_APP_PRIVATE_KEY_FILE=/run/secrets/github-app.pem
+GITHUB_WEBHOOK_SECRET=replace-with-random-secret
 ```
 
-Shadow mode is the default. HubbleOps records what it would warn or block without interrupting the agent.
+Give the App read access to contents and pull requests, and write access to
+checks. In branch protection, require the `HubbleOps Action Firewall` check.
+Set `HUBBLEOPS_SLACK_WEBHOOK_URL` only if you want privacy-safe approval request
+notifications.
 
-## Local Services
+## Phase 4 Demo
+
+Run the approvals demo:
 
 ```bash
-docker compose -f deploy/docker-compose.yml up --build
+go run ./cmd/hubbleops demo phase4 \
+  -wal-dir data/phase4-demo/wal \
+  -approval-store data/phase4-demo/approvals.json \
+  -receipt-secret "local-demo-secret"
 ```
 
-Services:
+It processes 20 deterministic PR/plan decisions: 14 allow, 4 require approval,
+and 2 block. It then approves one pending item and writes the post-review signed
+receipt.
 
-- Proxy: `http://localhost:8080`
-- WAL drain metrics: `http://localhost:9090/metrics`
-- Postgres: `localhost:5433`
-- Redis: `localhost:6380`
+## Policy
 
-Verify with `make doctor`.
+Policy is YAML and intentionally deterministic:
 
-## Proxy Examples
+- policies are loaded with strict YAML fields; unknown keys fail validation
+- rules are evaluated top to bottom, first-match-wins
+- every non-default blocking/review rule must have at least one `if` condition
+- validate changes before rollout with `hubbleops policy validate <path>`
 
-OpenAI:
+```yaml
+version: engineering-gate/v1
+protected_resources:
+  - aws_s3_bucket.audit_logs_prod
+services:
+  billing-api:
+    risk: tier_0
+    owners:
+      - billing-owner
+      - sre
+rules:
+  - id: block-prod-destroy
+    if:
+      action: terraform.destroy
+      env: prod
+      touches_any:
+        - aws_s3_bucket.audit_logs_prod
+    decision: block
+    risk_score: 99
+    reason: production destroy is blocked
+
+  - id: review-drop-table
+    if:
+      migration_contains:
+        - DROP_TABLE
+    decision: require_approval
+    required_approvers:
+      - db-owner
+    risk_score: 85
+
+  - id: review-tier0-prod-deploy
+    if:
+      action: deploy.release
+      env: prod
+      service_risk: tier_0
+    decision: require_approval
+    required_approvers:
+      - sre
+      - billing-owner
+    risk_score: 85
+
+  - id: review-infra-pr
+    if:
+      action: github.pull_request
+      touches_any:
+        - infra/
+        - terraform/
+        - migrations/
+    decision: require_approval
+    required_approvers:
+      - codeowner
+    risk_score: 80
+```
+
+The default policy path is `configs/policy.yaml` or
+`configs/policy.yaml.example` when present. Override with `-policy`.
+
+Because rules are first-match-wins, broad `allow` rules should appear only after
+more specific `block` and `require_approval` rules. The validator warns when an
+earlier `allow` rule has an exactly identical `if` block to a later `block`
+rule, but it does not attempt general overlap analysis.
+
+## Privacy Defaults
+
+Default capture mode is fingerprint. Preflight receipts do not store raw plan
+JSON, SQL text, prompts, tool args, CRM rows, payment data, files, or raw PII.
+Intent, evidence, project, session, actor, human delegator, target, and
+idempotency keys are fingerprinted on the receipt path. Unknown evidence keys are
+fingerprinted instead of stored as readable text. The local deploy idempotency
+ledger stores hashed idempotency and resource values, not raw service/action
+payloads; result payloads are stored as fingerprints plus shape metadata. GitHub
+PR titles and bodies are used only as receipt intent input; they are stored as
+hashes, not raw text.
+Approval comments are stored as hashes, and reviewer identifiers are fingerprinted
+when they look sensitive.
+
+## Receipts
+
+Verify WAL receipts:
 
 ```bash
-curl http://localhost:8080/openai/v1/chat/completions \
-  -H "X-HubbleOps-API-Key: YOUR_HUBBLEOPS_API_KEY" \
-  -H "Authorization: Bearer YOUR_OPENAI_KEY" \
-  -H "X-Project: my-project" \
-  -H "X-Session-ID: sess-123" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-4o-mini",
-    "messages": [{"role": "user", "content": "Hello"}],
-    "stream": true
-  }'
+go run ./cmd/hubbleops verify-receipts \
+  -receipt-public-keys "$HUBBLEOPS_RECEIPT_PUBLIC_KEYS" \
+  -require-signatures \
+  data/wal/*.jsonl
 ```
 
-Anthropic:
-
-```bash
-curl http://localhost:8080/anthropic/v1/messages \
-  -H "X-HubbleOps-API-Key: YOUR_HUBBLEOPS_API_KEY" \
-  -H "x-api-key: YOUR_ANTHROPIC_KEY" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "X-Project: my-project" \
-  -H "X-Session-ID: sess-123" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-3-5-sonnet-20241022",
-    "messages": [{"role": "user", "content": "Hello"}],
-    "max_tokens": 100
-  }'
-```
-
-Gemini:
-
-```bash
-curl http://localhost:8080/gemini/v1beta/models/gemini-2.5-flash-lite:generateContent \
-  -H "X-HubbleOps-API-Key: YOUR_HUBBLEOPS_API_KEY" \
-  -H "x-goog-api-key: YOUR_GOOGLE_API_KEY" \
-  -H "X-Project: my-project" \
-  -H "X-Session-ID: sess-123" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "contents": [{
-      "parts": [{"text": "Hello"}]
-    }]
-  }'
-```
-
-## Action Firewall
-
-The proxy sees model calls. The action firewall checks consequential actions before execution and records results after execution, which is where agent loops and duplicate side effects become obvious.
-
-Python:
-
-```python
-from hubbleops_agent import HubbleOpsClient
-
-hubbleops = HubbleOpsClient(
-    base_url="http://localhost:8080",
-    project="my-project",
-    session_id="sess-123",
-    api_key="YOUR_HUBBLEOPS_API_KEY",
-)
-
-@hubbleops.action
-def search_docs(query: str):
-    return retriever.search(query)
-
-def refund_key(call):
-    invoice_id = call["kwargs"]["invoice_id"] if "invoice_id" in call["kwargs"] else call["args"][0]
-    amount_cents = call["kwargs"]["amount_cents"] if "amount_cents" in call["kwargs"] else call["args"][1]
-    return f"refund:{invoice_id}:{amount_cents}"
-
-@hubbleops.action(
-    risk="money_movement",
-    idempotency_key=refund_key,
-    resource_id=lambda call: call["kwargs"].get("invoice_id") or call["args"][0],
-    amount_cents=lambda call: call["kwargs"].get("amount_cents") or call["args"][1],
-    max_amount_cents=5000,
-)
-def refund_customer(invoice_id: str, amount_cents: int):
-    return payments.refund(invoice_id, amount_cents)
-```
-
-JavaScript:
-
-```js
-const { HubbleOpsClient } = require("./sdk/javascript/hubbleops-agent");
-
-const hubbleops = new HubbleOpsClient({
-  baseUrl: "http://localhost:8080",
-  project: "my-project",
-  sessionId: "sess-123",
-  apiKey: "YOUR_HUBBLEOPS_API_KEY",
-});
-
-const searchDocs = hubbleops.action(async function searchDocs(query) {
-  return retriever.search(query);
-});
-
-const refundCustomer = hubbleops.action(
-  async function refundCustomer(invoiceId, amountCents) {
-    return payments.refund(invoiceId, amountCents);
-  },
-  {
-    risk: "money_movement",
-    idempotencyKey: ({ args }) => `refund:${args[0]}:${args[1]}`,
-    resourceId: ({ args }) => args[0],
-    amountCents: ({ args }) => args[1],
-    maxAmountCents: 5000,
-  }
-);
-```
-
-For read-only tools, `risk` defaults to `read` and no idempotency key is required. For side-effect tools, set `risk` to `write`, `customer_visible`, `money_movement`, or `dangerous`, and pass a stable `idempotency_key` for the real-world action being attempted.
-
-The `/v1/action/check` endpoint is the pre-execution gate. SDK wrappers call it before the action runs. The `/v1/action/result` endpoint records what happened after the action runs. `/v1/tool/check` and `/v1/tool/result` remain as compatibility aliases.
-
-Direct API:
-
-```bash
-curl http://localhost:8080/v1/action/check \
-  -H "X-HubbleOps-API-Key: YOUR_HUBBLEOPS_API_KEY" \
-  -H "X-Project: my-project" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "session_id": "sess-123",
-    "action_name": "refund_customer",
-    "action_risk": "money_movement",
-    "idempotency_key": "refund:invoice_9:5000",
-    "resource_id": "invoice_9",
-    "amount_cents": 5000,
-    "max_amount_cents": 5000,
-    "args": {"invoice_id": "invoice_9", "amount_cents": 5000}
-  }'
-```
-
-Important request fields:
-
-| Field | Purpose |
-| --- | --- |
-| `action_name` | Name of the real-world action being attempted. |
-| `action_risk` | `read`, `write`, `customer_visible`, `money_movement`, or `dangerous`. |
-| `idempotency_key` | Stable key for the real-world side effect, such as `refund:invoice_9:5000`. |
-| `resource_id` | Optional real-world object being touched, such as an invoice, account, ticket, or deployment. |
-| `amount_cents`, `max_amount_cents` | Optional money/action bound. HubbleOps blocks when `amount_cents` exceeds the declared maximum. |
-| `backup_id` | Required safety prerequisite for `dangerous` actions unless a valid capability token is supplied. |
-| `recipient`, `allowed_domain` | Optional customer-visible guard. HubbleOps blocks when the recipient domain is outside policy. |
-| `capability_token` | Optional HMAC-scoped authority for high-risk actions. Verified with `HUBBLEOPS_ACTION_CAPABILITY_SECRET`. |
-| `duplicate_window_seconds` | Optional duplicate window. Defaults to 24 hours. |
-| `agent_id`, `user_id` | Optional attribution fields for receipts and review. |
-
-Duplicate side-effect rule (two-phase claim, `action-firewall/3`):
-
-This is **duplicate suppression with crash-safe reconciliation**, not a distributed
-transaction. A side effect is claimed under a short *pending lease* before it runs and is
-only promoted to the full duplicate window once it reports success:
-
-- First `write`/`dangerous` action with a new idempotency key claims a **pending lease**
-  and is allowed. The result call promotes it to `committed` for the duplicate window (on
-  success) or releases it (on failure, so a retry is allowed).
-- A retry that arrives while the first attempt is still within its lease gets `409` with a
-  short `Retry-After` — it is **in flight**, not a permanent duplicate.
-- A retry of an already-`committed` action is **replayed**: HubbleOps returns `200` with
-  `action=duplicate` and the recorded outcome (the original result body in raw-capture
-  mode), so a well-behaved client retry is none the wiser and the side effect does not run
-  again. The SDK short-circuits on this and never re-executes the tool.
-- If a process crashes between claim and execution, the pending lease expires and the next
-  retry is allowed — the effect provably never committed, so it is no longer blocked for
-  24h.
-- A key reused with a *different* payload is a contradiction, returned as `422`.
-- A `write` action without an idempotency key warns; a `dangerous` action without one is
-  blockable in `block` mode.
-- A money-moving action over `max_amount_cents` is blocked before execution.
-- A dangerous action with an idempotency key still needs `backup_id` or a valid scoped
-  `capability_token`.
-- In `shadow` mode, HubbleOps allows the action but records `would_action=block`.
-
-Every decision response includes a receipt:
-
-```json
-{
-  "action": "allow",
-  "action_name": "refund_customer",
-  "would_action": "block",
-  "reason": "duplicate side-effect blocked: idempotency key was already seen",
-  "receipt": {
-    "decision_id": "sha256...",
-    "action_name": "refund_customer",
-    "policy_version": "action-firewall/3",
-    "action_risk": "write",
-    "idempotency_key_hash": "sha256:...",
-    "resource_fingerprint": "sha256:...",
-    "amount_cents": 5000,
-    "max_amount_cents": 5000,
-    "evidence": ["idempotency_key=repeated", "duplicate_window=24h0m0s"],
-    "signature": "hubbleopsreceipt_v2...",
-    "key_id": "prod-2026-06"
-  }
-}
-```
-
-Receipt signatures are Ed25519. The proxy both logs its base64 public key on startup and
-serves it at an unauthenticated endpoint, so an auditor can fetch it and verify exported
-receipts without ever holding the signing secret:
-
-```bash
-# Auditor fetches the verification key (no auth, no secret):
-curl -s http://localhost:8080/v1/receipts/public-key
-# -> {"algorithm":"ed25519","key_id":"...","public_key":"...","verify_cmd":"..."}
-
-# ...then verifies an export with the public key alone:
-go run ./cmd/hubbleops verify-receipts -receipt-public-key "<public_key>" wal-*.jsonl
-```
-
-The signing secret never leaves the server, so possessing the public key allows
-verification but not forgery. (Capability tokens remain symmetric HMAC — those are
-operator-issued bearer credentials the operator both mints and checks.)
-
-### Evidence pack
-
-For a compliance reviewer, `evidence-pack` turns a WAL export into a date-ranged summary
-that maps each enforced/recorded activity to the controls a SOC 2 / ISO 42001 / EU AI Act
-assessor cares about, with the log's integrity proven inline:
+Generate an evidence pack:
 
 ```bash
 go run ./cmd/hubbleops evidence-pack \
-  -since 2026-05-01 -until 2026-05-31 \
-  -project acme-payments \
-  -receipt-public-key "<public_key>" \
-  wal-*.jsonl
+  -receipt-public-key "$HUBBLEOPS_RECEIPT_PUBLIC_KEY" \
+  data/wal/*.jsonl
 ```
-
-It emits Markdown (default) or `-format json`, exits non-zero if the log does not verify,
-and labels itself supporting evidence — not an audit or certification.
-
-SDK defaults are production-safe:
-
-- `HUBBLEOPS_FAIL_OPEN=true`: tools continue if HubbleOps is down.
-- `HUBBLEOPS_CAPTURE_MODE=fingerprint`: args and results are hashed by default.
-- `HUBBLEOPS_TIMEOUT_SECONDS=1.0` for Python and `HUBBLEOPS_TIMEOUT_MS=1000` for JavaScript.
-- Raw capture is local/debug-only with `HUBBLEOPS_ENV=dev` and `HUBBLEOPS_CAPTURE_MODE=raw`.
-
-## Loop Detection
-
-HubbleOps combines mechanical loop signals with economic signals:
-
-- identical repeated calls
-- alternating repeated calls
-- no-op repeated results
-- cycle repeats
-- argument homogeneity
-- result homogeneity
-- cost velocity
-- context growth
-- output degradation
-- no-progress result classes such as `not_found`, `schema_error`, `permission_error`, `timeout`, and `rate_limited`
-
-Actions:
-
-| Action | Behavior |
-| --- | --- |
-| `shadow` | Record what HubbleOps would do. Default and recommended first rollout. |
-| `warn` | Allow request and emit warning behavior/metrics. |
-| `block` | Return 429 when confidence and safety gates pass. |
-
-Blocking is intentionally conservative. High-confidence block decisions require session context and corroborating no-progress evidence.
-
-## Audit Trail
-
-Every proxied request writes a WAL record before the response returns.
-
-The WAL includes:
-
-- project, provider, model, status code
-- input/output/total tokens and computed cost
-- prompt hash
-- session ID and trajectory ID
-- tool signature and args fingerprint
-- decision ID
-- agent ID and user ID
-- action risk and idempotency key hash
-- resource fingerprint, amount bounds, backup ID, recipient domain, allowed domain, and capability hash
-- policy version, decision reason, and decision evidence
-- receipt signature and signing key ID when `HUBBLEOPS_RECEIPT_SIGNING_SECRET` is set
-- result class and immediate outcome
-- loop signals, confidence, action, evidence, detector version
-- previous hash and record hash
-
-Hash-chain violations halt the drain worker and increment `llmproxy_wal_chain_violation_total`.
-
-Verify exported receipts:
-
-```bash
-go run ./cmd/hubbleops verify-receipts data/wal/*.jsonl
-go run ./cmd/hubbleops verify-receipts -json data/wal/*.jsonl
-HUBBLEOPS_RECEIPT_SIGNING_SECRET=... go run ./cmd/hubbleops verify-receipts -require-signatures data/wal/*.jsonl
-```
-
-Expected shape:
-
-```text
-HubbleOps receipt verify
-records=18421 action_receipts=9120 signed_receipts=9120 unsigned_receipts=0 verified=true
-missing_hashes=0 hash_mismatches=0 signature_mismatches=0 chain_broken_at=-1 receipt_field_gaps=0
-```
-
-## Shadow Report
-
-Shadow mode is how you prove the product before enforcing it. Run a report over WAL JSONL to see would-blocks, blocked actions, duplicate side effects, no-progress events, estimated cost saved, and the exact decisions customers should review before enabling block mode.
-
-```bash
-go run ./cmd/hubbleops shadow-report data/wal/*.jsonl
-go run ./cmd/hubbleops shadow-report -format markdown data/wal/*.jsonl
-go run ./cmd/hubbleops shadow-report -json data/wal/*.jsonl
-```
-
-Expected shape:
-
-```text
-HubbleOps shadow report
-records=18421 tool_events=9120 total_action_decisions=9120
-would_block_decisions=37 blocked=0 duplicate_side_effect_decisions=9 no_progress_decisions=141 budget_decisions=0
-estimated_cost_saved_usd=18.420000
-unreviewed_decisions_count=37 recommended_review_sample=10
-recommended_first_policy=block duplicate side-effect actions with stable idempotency keys
-```
-
-## Proving It On Real Traces
-
-Synthetic tests are useful, but the production proof is shadow data.
-
-Export real shadow traces, anonymize them, then run quality gates:
-
-```bash
-go run ./cmd/hubbleops eval raw-shadow.jsonl \
-  -anonymize-out testdata/real_shadow/customer-a.jsonl \
-  -salt "$HUBBLEOPS_ANON_SALT"
-
-go run ./cmd/hubbleops eval -assert testdata/real_shadow/customer-a.jsonl
-```
-
-The numbers that matter:
-
-- runaway recall
-- block precision
-- false-positive block rate
-- missed-runaway rate
-- replay p95 decision latency
-- saved cost
-
-This is the bar for claiming production readiness.
-
-## Configuration
-
-Environment variables:
-
-```bash
-HUBBLEOPS_ENV=prod
-HUBBLEOPS_AUTH_ENABLED=true
-HUBBLEOPS_DEV_AUTH_BYPASS=false
-HUBBLEOPS_METRICS_PUBLIC=false
-HUBBLEOPS_CAPTURE_MODE=fingerprint
-HUBBLEOPS_ALLOW_RAW_CAPTURE_IN_PROD=false
-HUBBLEOPS_REQUIRE_RECEIPT_FOR_BLOCK=true
-HUBBLEOPS_ENFORCE_WITHOUT_RECEIPT=false
-HUBBLEOPS_RECEIPT_SIGNING_SECRET=replace-with-random-secret
-HUBBLEOPS_RECEIPT_KEY_ID=prod-2026-06
-
-HUBBLEOPS_SERVER_HOST=0.0.0.0
-HUBBLEOPS_SERVER_PORT=8080
-
-HUBBLEOPS_POSTGRES_HOST=localhost
-HUBBLEOPS_POSTGRES_PORT=5432
-HUBBLEOPS_POSTGRES_USER=hubbleops
-HUBBLEOPS_POSTGRES_PASSWORD=hubbleops
-HUBBLEOPS_POSTGRES_DBNAME=hubbleops
-HUBBLEOPS_POSTGRES_SSLMODE=disable
-
-HUBBLEOPS_REDIS_HOST=localhost
-HUBBLEOPS_REDIS_PORT=6379
-HUBBLEOPS_REDIS_PASSWORD=
-HUBBLEOPS_REDIS_DB=0
-
-HUBBLEOPS_WAL_DIR=data/wal
-HUBBLEOPS_WAL_SYNC_MODE=batch
-
-HUBBLEOPS_LOOP_ENABLED=true
-HUBBLEOPS_LOOP_ACTION=shadow
-HUBBLEOPS_LOOP_MAX_REPEATED=3
-HUBBLEOPS_LOOP_VELOCITY_ACCEL_RATIO=1.5
-HUBBLEOPS_LOOP_VELOCITY_WINDOW_MS=300000
-HUBBLEOPS_LOOP_WARN_CONFIDENCE=0.40
-HUBBLEOPS_LOOP_BLOCK_CONFIDENCE=0.70
-HUBBLEOPS_LOOP_REQUIRE_SESSION_FOR_BLOCK=true
-
-HUBBLEOPS_BUDGET_DAILY_SOFT_USD=0
-HUBBLEOPS_BUDGET_DAILY_HARD_USD=0
-HUBBLEOPS_BUDGET_RESERVE_PER_REQUEST_USD=0.50
-```
-
-Or edit `configs/proxy.yaml`.
-
-Production startup validation refuses insecure config such as disabled auth,
-public metrics, missing WAL, missing receipt signing, raw capture, or block mode
-without the session safety floor. See `docs/CONFIG_SAFETY.md`.
 
 ## Development
 
-Build:
-
-```bash
-go build ./...
-```
-
-Run tests:
-
 ```bash
 go test ./...
-go test ./internal/proxy/... -v
-node --check sdk/javascript/hubbleops-agent/index.js
-python -m py_compile sdk/python/hubbleops_agent/langchain.py sdk/python/hubbleops_agent/__init__.py
-go test ./... -bench=. -benchmem
 ```
 
-Run gated live Gemini checks:
-
-```bash
-HUBBLEOPS_LIVE_GEMINI=1 \
-HUBBLEOPS_LIVE_GEMINI_MODEL=gemini-2.5-flash-lite \
-go test ./internal/proxy -run TestLiveGemini -count=1 -v
-```
-
-Run the live Gemini agent action-firewall check:
-
-```bash
-HUBBLEOPS_LIVE_GEMINI=1 \
-HUBBLEOPS_LIVE_GEMINI_AGENT=1 \
-HUBBLEOPS_LIVE_GEMINI_MODEL=gemini-2.5-flash \
-go test ./internal/proxy -run TestLiveGeminiAgentActionFirewallDuplicateAndDangerous -count=1 -v
-```
-
-Run the live Gemini mini-soak:
-
-```bash
-HUBBLEOPS_LIVE_GEMINI=1 \
-HUBBLEOPS_LIVE_GEMINI_SOAK=1 \
-HUBBLEOPS_LIVE_GEMINI_MODEL=gemini-2.5-flash-lite \
-go test ./internal/proxy -run TestLiveGeminiProxyMiniSoakConcurrentWAL -count=1 -v
-```
-
-## Project Layout
-
-```text
-cmd/proxy                 Main proxy binary
-cmd/waldrain              Separate WAL drain worker
-cmd/hubbleops               Doctor, trace eval, shadow report, receipt verify CLI
-internal/config           YAML config and HUBBLEOPS_* env overrides
-internal/providers        OpenAI, Anthropic, Gemini, pricing, usage extraction
-internal/proxy            HTTP proxy, streaming, action events, attribution
-internal/loop             Loop detector, Redis state, budgets, overrides, alerts
-internal/wal              JSONL writer, hash chain, crash recovery
-internal/storage          Postgres schema and migrations
-internal/loopeval         Real shadow trace evaluator
-internal/receiptverify    WAL receipt integrity verifier
-sdk/python/hubbleops_agent  Python action firewall SDK
-sdk/javascript/hubbleops-agent JavaScript action firewall SDK
-docs/INSTALL.md           One-page rollout guide
-```
-
-## What Not To Add Yet
-
-Do not add a dashboard, new providers, or complex enterprise policy UI before real shadow data.
-
-The next highest-value work is:
-
-1. Run shadow mode on 3 real users or projects.
-2. Collect at least 100 real traces.
-3. Report false positives, missed runaways, and saved cost.
-4. Tighten detector thresholds from real labels.
-
-## License
-
-Apache 2.0
+The reusable kernel is the signed receipt code, hash-chained WAL, WAL verifier,
+Postgres WAL drain path, privacy helpers, and the idempotency ActionStore.

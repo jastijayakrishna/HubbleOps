@@ -297,6 +297,46 @@ func TestFlagsFirstDerivesBoolFlagsFromFlagSet(t *testing.T) {
 	}
 }
 
+// TestRunPreflightTerraformReceiptWriteFailureExitsInternalError: CI must be
+// able to tell "HubbleOps blocked this" (exit 1) from "HubbleOps itself failed"
+// (exit 4). A receipt write failure is an internal error, not a block.
+func TestRunPreflightTerraformReceiptWriteFailureExitsInternalError(t *testing.T) {
+	dir := t.TempDir()
+	notADir := filepath.Join(dir, "wal-is-a-file")
+	if err := os.WriteFile(notADir, []byte("occupied"), 0600); err != nil {
+		t.Fatalf("write blocker file: %v", err)
+	}
+	var code int
+	stderr := captureStderr(t, func() {
+		code = runPreflightTerraform([]string{
+			"-wal-dir", notADir,
+			"-project", "p", "-session", "s1", "-actor", "agent:x",
+			"-env", "production",
+			"-receipt-secret", "rs",
+			filepath.Join("..", "..", "internal", "preflight", "terraform", "testdata", "datatalks_destroy_plan.json"),
+		})
+	})
+	if code != 4 {
+		t.Fatalf("exit=%d want 4 (internal error: receipt not written); stderr=%s", code, stderr)
+	}
+}
+
+// TestRunPreflightTerraformBlockExitsOne pins the contract: a healthy receipt
+// plus a destructive plan is a real block decision, exit 1.
+func TestRunPreflightTerraformBlockExitsOne(t *testing.T) {
+	dir := t.TempDir()
+	code := runPreflightTerraform([]string{
+		"-wal-dir", filepath.Join(dir, "wal"),
+		"-project", "p", "-session", "s1", "-actor", "agent:x",
+		"-env", "production",
+		"-receipt-secret", "rs",
+		filepath.Join("..", "..", "internal", "preflight", "terraform", "testdata", "datatalks_destroy_plan.json"),
+	})
+	if code != 1 {
+		t.Fatalf("exit=%d want 1 (block decision with healthy receipt)", code)
+	}
+}
+
 // TestRunPreflightDeployUnknownFlagExitsUsageWithoutRunning: a mistyped flag
 // must stop the run with a usage error BEFORE any preflight executes —
 // continuing with half-parsed flags would burn wrong identity into a signed
