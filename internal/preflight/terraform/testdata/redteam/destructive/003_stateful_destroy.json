@@ -1,0 +1,11 @@
+{
+  "resource_changes": [
+    {
+      "address": "aws_s3_bucket.audit_logs_prod",
+      "type": "aws_s3_bucket",
+      "change": {
+        "actions": ["delete"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "resource_changes": [
+    {
+      "address": "null_resource.cache",
+      "type": "null_resource",
+      "change": {
+        "actions": ["delete"]
+      }
+    }
+  ]
+}

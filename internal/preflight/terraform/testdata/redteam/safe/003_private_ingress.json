@@ -1,0 +1,21 @@
+{
+  "resource_changes": [
+    {
+      "address": "aws_security_group.internal",
+      "type": "aws_security_group",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "ingress": [
+            {
+              "protocol": "tcp",
+              "from_port": 5432,
+              "to_port": 5432,
+              "cidr_blocks": ["10.0.0.0/8"]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

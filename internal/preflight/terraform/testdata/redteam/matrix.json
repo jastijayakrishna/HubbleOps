@@ -1,0 +1,314 @@
+{
+  "destructive": [
+    {
+      "name": "stateful_delete",
+      "min_risk": 90,
+      "actions": ["delete"],
+      "types": [
+        "aws_db_instance",
+        "aws_rds_cluster",
+        "aws_s3_bucket",
+        "aws_dynamodb_table",
+        "aws_ebs_volume",
+        "aws_efs_file_system",
+        "aws_elasticache_cluster",
+        "aws_redshift_cluster",
+        "aws_docdb_cluster",
+        "aws_neptune_cluster",
+        "aws_kinesis_stream",
+        "aws_cloudwatch_log_group",
+        "aws_secretsmanager_secret",
+        "aws_route53_zone",
+        "aws_glacier_vault",
+        "aws_kms_key",
+        "google_sql_database_instance",
+        "google_storage_bucket",
+        "google_bigquery_dataset",
+        "azurerm_postgresql_server"
+      ]
+    },
+    {
+      "name": "stateful_replace",
+      "min_risk": 90,
+      "actions": ["delete", "create"],
+      "types": [
+        "aws_db_instance",
+        "aws_rds_cluster",
+        "aws_s3_bucket",
+        "aws_dynamodb_table",
+        "aws_ebs_volume",
+        "aws_efs_file_system",
+        "aws_elasticache_cluster",
+        "aws_redshift_cluster",
+        "aws_docdb_cluster",
+        "aws_neptune_cluster",
+        "aws_kinesis_stream",
+        "aws_cloudwatch_log_group",
+        "aws_secretsmanager_secret",
+        "aws_route53_zone",
+        "aws_glacier_vault",
+        "aws_kms_key",
+        "google_sql_database_instance",
+        "google_storage_bucket",
+        "google_bigquery_dataset",
+        "azurerm_postgresql_server"
+      ]
+    },
+    {
+      "name": "guarded_after_unknown",
+      "min_risk": 70,
+      "actions": ["update"],
+      "before": {"allocated_storage": 1000, "deletion_protection": true},
+      "after": {"tags": {"env": "prod"}},
+      "after_unknown": {"allocated_storage": true},
+      "types": [
+        "aws_db_instance",
+        "aws_rds_cluster",
+        "aws_s3_bucket",
+        "aws_ebs_volume",
+        "google_sql_database_instance",
+        "azurerm_postgresql_server",
+        "aws_dynamodb_table",
+        "aws_elasticache_cluster",
+        "aws_kms_key",
+        "aws_security_group",
+        "aws_iam_policy",
+        "aws_s3_bucket_public_access_block"
+      ]
+    },
+    {
+      "name": "deletion_protection_disabled",
+      "min_risk": 90,
+      "actions": ["update"],
+      "before": {"deletion_protection": true},
+      "after": {"deletion_protection": false},
+      "types": [
+        "aws_db_instance",
+        "aws_rds_cluster",
+        "aws_redshift_cluster",
+        "aws_docdb_cluster",
+        "aws_neptune_cluster",
+        "google_sql_database_instance",
+        "azurerm_postgresql_server",
+        "aws_dynamodb_table"
+      ]
+    },
+    {
+      "name": "force_destroy_enabled",
+      "min_risk": 70,
+      "actions": ["update"],
+      "before": {"force_destroy": false},
+      "after": {"force_destroy": true},
+      "types": [
+        "aws_s3_bucket",
+        "aws_glacier_vault",
+        "google_storage_bucket",
+        "azurerm_storage_account",
+        "aws_cloudwatch_log_group"
+      ]
+    },
+    {
+      "name": "skip_final_snapshot_enabled",
+      "min_risk": 70,
+      "actions": ["update"],
+      "before": {"skip_final_snapshot": false},
+      "after": {"skip_final_snapshot": true},
+      "types": [
+        "aws_db_instance",
+        "aws_rds_cluster",
+        "aws_redshift_cluster",
+        "aws_docdb_cluster",
+        "aws_neptune_cluster"
+      ]
+    },
+    {
+      "name": "storage_shrink",
+      "min_risk": 70,
+      "actions": ["update"],
+      "before": {"allocated_storage": 1000},
+      "after": {"allocated_storage": 100},
+      "types": [
+        "aws_db_instance",
+        "aws_rds_cluster",
+        "aws_ebs_volume",
+        "google_sql_database_instance",
+        "azurerm_postgresql_server",
+        "aws_elasticache_cluster"
+      ]
+    },
+    {
+      "name": "security_group_public_ingress",
+      "min_risk": 90,
+      "actions": ["create"],
+      "after": {"ingress": [{"protocol": "tcp", "from_port": 22, "to_port": 22, "cidr_blocks": ["0.0.0.0/0"]}]},
+      "types": ["aws_security_group", "aws_security_group", "aws_security_group", "aws_security_group"]
+    },
+    {
+      "name": "security_rule_public_ingress",
+      "min_risk": 90,
+      "actions": ["create"],
+      "after": {"type": "ingress", "protocol": "tcp", "from_port": 3389, "to_port": 3389, "cidr_blocks": ["0.0.0.0/0"], "cidr_ipv4": "0.0.0.0/0"},
+      "types": ["aws_security_group_rule", "aws_vpc_security_group_ingress_rule", "aws_security_group_rule", "aws_vpc_security_group_ingress_rule"]
+    },
+    {
+      "name": "iam_wildcard_policy",
+      "min_risk": 90,
+      "actions": ["create"],
+      "after": {"policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}]}"},
+      "types": ["aws_iam_policy", "aws_iam_role_policy", "aws_iam_user_policy", "aws_iam_group_policy"]
+    },
+    {
+      "name": "s3_public_access_block_disabled",
+      "min_risk": 70,
+      "actions": ["update"],
+      "before": {"block_public_acls": true, "block_public_policy": true, "ignore_public_acls": true, "restrict_public_buckets": true},
+      "after": {"block_public_acls": false, "block_public_policy": true, "ignore_public_acls": true, "restrict_public_buckets": true},
+      "types": ["aws_s3_bucket_public_access_block", "aws_s3_bucket_public_access_block", "aws_s3_bucket_public_access_block", "aws_s3_bucket_public_access_block"]
+    },
+    {
+      "name": "s3_public_acl",
+      "min_risk": 70,
+      "actions": ["update"],
+      "after": {"acl": "public-read"},
+      "types": ["aws_s3_bucket_acl", "aws_s3_bucket_acl", "aws_s3_bucket_acl"]
+    },
+    {
+      "name": "s3_public_policy",
+      "min_risk": 70,
+      "actions": ["update"],
+      "after": {"policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::logs/*\"}]}"},
+      "types": ["aws_s3_bucket_policy", "aws_s3_bucket_policy", "aws_s3_bucket_policy"]
+    },
+    {
+      "name": "s3_versioning_disabled",
+      "min_risk": 70,
+      "actions": ["update"],
+      "before": {"versioning_configuration": [{"status": "Enabled"}]},
+      "after": {"versioning_configuration": [{"status": "Suspended"}]},
+      "types": ["aws_s3_bucket_versioning", "aws_s3_bucket_versioning", "aws_s3_bucket_versioning"]
+    }
+  ],
+  "safe": [
+    {
+      "name": "harmless_delete",
+      "min_risk": 0,
+      "actions": ["delete"],
+      "types": ["null_resource", "random_id", "terraform_data", "local_file", "tls_private_key", "time_sleep", "template_file", "external_data", "archive_file", "random_password"]
+    },
+    {
+      "name": "tag_only_update_stateful",
+      "min_risk": 0,
+      "actions": ["update"],
+      "before": {"tags": {"team": "platform"}, "allocated_storage": 100},
+      "after": {"tags": {"team": "platform", "cost_center": "eng"}, "allocated_storage": 200},
+      "types": [
+        "aws_db_instance",
+        "aws_rds_cluster",
+        "aws_s3_bucket",
+        "aws_dynamodb_table",
+        "aws_ebs_volume",
+        "aws_efs_file_system",
+        "aws_elasticache_cluster",
+        "aws_redshift_cluster",
+        "aws_docdb_cluster",
+        "aws_neptune_cluster",
+        "aws_kinesis_stream",
+        "aws_cloudwatch_log_group",
+        "aws_secretsmanager_secret",
+        "aws_route53_zone",
+        "aws_glacier_vault",
+        "aws_kms_key",
+        "google_sql_database_instance",
+        "google_storage_bucket",
+        "google_bigquery_dataset",
+        "azurerm_postgresql_server"
+      ]
+    },
+    {
+      "name": "security_group_private_ingress",
+      "min_risk": 0,
+      "actions": ["create"],
+      "after": {"ingress": [{"protocol": "tcp", "from_port": 5432, "to_port": 5432, "cidr_blocks": ["10.0.0.0/8"]}]},
+      "types": ["aws_security_group", "aws_security_group", "aws_security_group", "aws_security_group"]
+    },
+    {
+      "name": "security_rule_private_ingress",
+      "min_risk": 0,
+      "actions": ["create"],
+      "after": {"type": "ingress", "protocol": "tcp", "from_port": 443, "to_port": 443, "cidr_blocks": ["10.0.0.0/8"], "cidr_ipv4": "10.0.0.0/8"},
+      "types": ["aws_security_group_rule", "aws_vpc_security_group_ingress_rule", "aws_security_group_rule", "aws_vpc_security_group_ingress_rule"]
+    },
+    {
+      "name": "iam_read_only_policy",
+      "min_risk": 0,
+      "actions": ["create"],
+      "after": {"policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::logs/*\"}]}"},
+      "types": ["aws_iam_policy", "aws_iam_role_policy", "aws_iam_user_policy", "aws_iam_group_policy"]
+    },
+    {
+      "name": "s3_public_access_block_retained",
+      "min_risk": 0,
+      "actions": ["update"],
+      "before": {"block_public_acls": true, "block_public_policy": true, "ignore_public_acls": true, "restrict_public_buckets": true},
+      "after": {"block_public_acls": true, "block_public_policy": true, "ignore_public_acls": true, "restrict_public_buckets": true},
+      "types": ["aws_s3_bucket_public_access_block", "aws_s3_bucket_public_access_block", "aws_s3_bucket_public_access_block", "aws_s3_bucket_public_access_block", "aws_s3_bucket_public_access_block"]
+    },
+    {
+      "name": "s3_private_acl",
+      "min_risk": 0,
+      "actions": ["update"],
+      "after": {"acl": "private"},
+      "types": ["aws_s3_bucket_acl", "aws_s3_bucket_acl", "aws_s3_bucket_acl"]
+    },
+    {
+      "name": "s3_versioning_enabled",
+      "min_risk": 0,
+      "actions": ["update"],
+      "before": {"versioning_configuration": [{"status": "Enabled"}]},
+      "after": {"versioning_configuration": [{"status": "Enabled"}]},
+      "types": ["aws_s3_bucket_versioning", "aws_s3_bucket_versioning", "aws_s3_bucket_versioning"]
+    },
+    {
+      "name": "stateful_create_without_risky_attrs",
+      "min_risk": 0,
+      "actions": ["create"],
+      "after": {"tags": {"env": "prod"}},
+      "types": [
+        "aws_db_instance",
+        "aws_rds_cluster",
+        "aws_s3_bucket",
+        "aws_dynamodb_table",
+        "aws_ebs_volume",
+        "aws_efs_file_system",
+        "aws_elasticache_cluster",
+        "aws_redshift_cluster",
+        "aws_docdb_cluster",
+        "aws_neptune_cluster",
+        "aws_kinesis_stream",
+        "aws_cloudwatch_log_group",
+        "aws_secretsmanager_secret",
+        "aws_route53_zone",
+        "aws_glacier_vault",
+        "aws_kms_key",
+        "google_sql_database_instance",
+        "google_storage_bucket",
+        "google_bigquery_dataset",
+        "azurerm_postgresql_server"
+      ]
+    },
+    {
+      "name": "no_op_stateful",
+      "min_risk": 0,
+      "actions": ["no-op"],
+      "types": ["aws_db_instance", "aws_s3_bucket", "aws_dynamodb_table", "aws_ebs_volume", "aws_kms_key", "google_sql_database_instance", "google_storage_bucket", "azurerm_postgresql_server", "aws_redshift_cluster", "aws_rds_cluster"]
+    },
+    {
+      "name": "storage_grow",
+      "min_risk": 0,
+      "actions": ["update"],
+      "before": {"allocated_storage": 100},
+      "after": {"allocated_storage": 1000},
+      "types": ["aws_db_instance", "aws_rds_cluster", "aws_ebs_volume", "google_sql_database_instance", "azurerm_postgresql_server"]
+    }
+  ]
+}

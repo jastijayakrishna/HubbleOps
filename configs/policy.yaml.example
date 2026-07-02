@@ -1,0 +1,86 @@
+version: engineering-gate/v1
+
+protected_resources:
+  - aws_s3_bucket.audit_logs_prod
+  - aws_db_instance.billing_prod
+
+services:
+  billing-api:
+    risk: tier_0
+    owners:
+      - billing-owner
+      - sre
+  docs-api:
+    risk: tier_2
+    owners:
+      - docs-owner
+
+rules:
+  - id: block-prod-destroy
+    if:
+      action: terraform.destroy
+      env: prod
+      touches_any:
+        - aws_s3_bucket.audit_logs_prod
+        - aws_db_instance.billing_prod
+    decision: block
+    risk_score: 99
+    reason: production protected-resource destroy is blocked
+
+  - id: review-terraform-replace-prod
+    if:
+      action: terraform.replace
+      env: prod
+    decision: require_approval
+    required_approvers:
+      - sre
+    risk_score: 85
+    reason: production replacement requires review
+
+  - id: review-destructive-migration
+    if:
+      migration_contains:
+        - DROP_TABLE
+        - TRUNCATE
+        - ALTER_COLUMN
+    decision: require_approval
+    required_approvers:
+      - db-owner
+    risk_score: 90
+    reason: destructive database migration requires review
+
+  - id: review-tier0-prod-deploy
+    if:
+      action: deploy.release
+      env: prod
+      service_risk: tier_0
+    decision: require_approval
+    required_approvers:
+      - sre
+      - billing-owner
+    risk_score: 85
+    reason: tier 0 production deploy requires review
+
+  - id: review-infra-pr
+    if:
+      action: github.pull_request
+      touches_any:
+        - infra/
+        - terraform/
+        - migrations/
+        - deploy/
+        - k8s/
+    decision: require_approval
+    required_approvers:
+      - codeowner
+    risk_score: 80
+    reason: pull request touches protected engineering paths
+
+  - id: review-pr-missing-ticket
+    if:
+      action: github.missing_ticket
+    decision: require_approval
+    required_approvers:
+      - codeowner
+    risk_score: 75
+    reason: pull request needs a linked ticket

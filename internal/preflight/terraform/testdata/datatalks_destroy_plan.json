@@ -1,0 +1,28 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.8.0",
+  "resource_changes": [
+    {
+      "address": "aws_s3_bucket.audit_logs_prod",
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "audit_logs_prod",
+      "change": {
+        "actions": ["delete"],
+        "before_sensitive": {},
+        "after_sensitive": false
+      }
+    },
+    {
+      "address": "aws_iam_role.reader",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "reader",
+      "change": {
+        "actions": ["update"],
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

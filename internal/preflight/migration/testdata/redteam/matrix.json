@@ -1,0 +1,285 @@
+{
+  "destructive": [
+    {
+      "name": "delete_tautologies",
+      "min_risk": 90,
+      "cases": [
+        "DELETE FROM users WHERE 1=1;",
+        "DELETE FROM users WHERE true;",
+        "DELETE FROM users WHERE (1 = 1);",
+        "DELETE FROM users WHERE 1 IS NOT NULL;",
+        "DELETE FROM sessions WHERE true OR user_id = 42;",
+        "DELETE FROM audit_events WHERE (true) OR created_at < now();",
+        "DELETE FROM orders WHERE (1=1) AND (true);",
+        "WITH doomed AS (SELECT id FROM users) DELETE FROM users USING doomed WHERE 1=1;",
+        "DELETE FROM public.users WHERE TRUE;",
+        "DELETE FROM accounts WHERE ((1 = 1));",
+        "DELETE FROM login_events WHERE 1=1 RETURNING id;",
+        "DELETE FROM billing_events WHERE true ORDER BY id;"
+      ]
+    },
+    {
+      "name": "update_tautologies",
+      "min_risk": 70,
+      "cases": [
+        "UPDATE accounts SET balance = 0 WHERE 1=1;",
+        "UPDATE users SET admin = true WHERE true;",
+        "UPDATE orders SET status = 'paid' WHERE (1 = 1);",
+        "UPDATE sessions SET revoked = true WHERE true OR id = 10;",
+        "UPDATE public.accounts SET tier = 'free' WHERE 1 IS NOT NULL;",
+        "UPDATE invoices SET amount = 0 WHERE ((1=1));",
+        "WITH target AS (SELECT id FROM users) UPDATE users SET disabled = true FROM target WHERE true;",
+        "UPDATE customers SET email = lower(email) WHERE 1=1 RETURNING id;",
+        "UPDATE ledger SET posted = false WHERE true AND 1=1;",
+        "UPDATE feature_flags SET enabled = true WHERE (true);"
+      ]
+    },
+    {
+      "name": "drop_truncate_ddl",
+      "min_risk": 70,
+      "cases": [
+        "DROP TABLE users;",
+        "DROP TABLE IF EXISTS audit_events;",
+        "DROP TABLE public.orders CASCADE;",
+        "DROP DATABASE customer_prod;",
+        "TRUNCATE users;",
+        "TRUNCATE TABLE audit_events;",
+        "TRUNCATE public.sessions RESTART IDENTITY;",
+        "DROP TABLE \"Users\";",
+        "DROP TABLE `users`;",
+        "DROP INDEX users_email_idx;",
+        "REINDEX TABLE users;",
+        "ALTER TABLE accounts DETACH PARTITION accounts_2025;"
+      ]
+    },
+    {
+      "name": "risky_alter_table",
+      "min_risk": 70,
+      "cases": [
+        "ALTER TABLE users DROP COLUMN email;",
+        "ALTER TABLE accounts DROP CONSTRAINT accounts_user_id_fkey;",
+        "ALTER TABLE orders RENAME COLUMN total TO amount;",
+        "ALTER TABLE events ALTER COLUMN payload TYPE jsonb;",
+        "ALTER TABLE users ALTER COLUMN email SET DATA TYPE text;",
+        "ALTER TABLE users ALTER COLUMN email SET NOT NULL;",
+        "ALTER TABLE users ALTER COLUMN email DROP NOT NULL;",
+        "ALTER TABLE users ADD COLUMN public_id uuid NOT NULL;",
+        "ALTER TABLE users ADD COLUMN token text NOT NULL DEFAULT gen_random_uuid();",
+        "ALTER TABLE orders ADD CONSTRAINT orders_user_fk FOREIGN KEY (user_id) REFERENCES users(id);",
+        "ALTER TABLE users ADD CONSTRAINT users_email_unique UNIQUE (email);",
+        "ALTER TABLE accounts ADD PRIMARY KEY (id);",
+        "ALTER TABLE users ADD CHECK (length(email) > 3);",
+        "ALTER TABLE users ADD COLUMN created_at timestamp NOT NULL DEFAULT clock_timestamp();",
+        "ALTER TABLE events ALTER COLUMN created_at TYPE timestamptz;"
+      ]
+    },
+    {
+      "name": "locking_indexes",
+      "min_risk": 70,
+      "cases": [
+        "CREATE INDEX idx_users_email ON users(email);",
+        "CREATE UNIQUE INDEX idx_orders_ref ON orders(reference);",
+        "BEGIN; CREATE INDEX CONCURRENTLY idx_users_name ON users(name); COMMIT;",
+        "START TRANSACTION; CREATE INDEX CONCURRENTLY idx_events_kind ON events(kind); COMMIT;",
+        "CREATE INDEX idx_accounts_created_at ON accounts(created_at);",
+        "CREATE INDEX idx_sessions_user_id ON sessions(user_id);",
+        "CREATE UNIQUE INDEX idx_customers_slug ON customers(slug);",
+        "CREATE INDEX idx_audit_events_created_at ON audit_events(created_at);"
+      ]
+    },
+    {
+      "name": "bulk_dml",
+      "min_risk": 70,
+      "cases": [
+        "WITH doomed AS (SELECT id FROM users) DELETE FROM users USING doomed;",
+        "WITH target AS (SELECT id FROM accounts) UPDATE accounts SET disabled = true FROM target;",
+        "WITH scoped AS (SELECT id FROM users WHERE disabled) DELETE FROM users USING scoped WHERE users.id = scoped.id;",
+        "WITH scoped AS (SELECT id FROM accounts WHERE tier = 'free') UPDATE accounts SET archived = true FROM scoped WHERE accounts.id = scoped.id;",
+        "MERGE INTO users USING incoming_users ON users.id = incoming_users.id WHEN MATCHED THEN DELETE;",
+        "MERGE INTO accounts USING incoming_accounts ON accounts.id = incoming_accounts.id WHEN MATCHED THEN UPDATE SET status = 'closed';",
+        "INSERT INTO audit_archive SELECT * FROM audit_events;",
+        "INSERT INTO users_archive SELECT * FROM users WHERE deleted_at IS NOT NULL;",
+        "WITH moved AS (DELETE FROM events RETURNING *) INSERT INTO events_archive SELECT * FROM moved;",
+        "WITH copied AS (SELECT * FROM orders) INSERT INTO orders_archive SELECT * FROM copied;"
+      ]
+    },
+    {
+      "name": "mysql_exec_comments",
+      "min_risk": 70,
+      "cases": [
+        "/*! DROP TABLE users */;",
+        "/*!50000 DROP TABLE accounts */;",
+        "/*! TRUNCATE TABLE sessions */;",
+        "/*! ALTER TABLE users DROP COLUMN email */;",
+        "/*! DELETE FROM users WHERE 1=1 */;",
+        "/*! UPDATE accounts SET balance = 0 WHERE 1=1 */;"
+      ]
+    },
+    {
+      "name": "orm_unanalyzable",
+      "min_risk": 70,
+      "path_ext": ".rb",
+      "cases": [
+        "class DropUsers < ActiveRecord::Migration[7.1]\n  def change\n    drop_table :users\n  end\nend\n",
+        "class RemoveEmail < ActiveRecord::Migration[7.1]\n  def change\n    remove_column :users, :email\n  end\nend\n",
+        "class RewriteAccounts < ActiveRecord::Migration[7.1]\n  def up\n    execute \"UPDATE accounts SET balance = 0\"\n  end\nend\n",
+        "class AddNotNull < ActiveRecord::Migration[7.1]\n  def change\n    add_column :users, :slug, :string, null: false\n  end\nend\n",
+        "class CreateDangerousIndex < ActiveRecord::Migration[7.1]\n  def change\n    add_index :users, :email\n  end\nend\n",
+        "class DropAudit < ActiveRecord::Migration[7.1]\n  def change\n    execute 'DROP TABLE audit_events'\n  end\nend\n",
+        "class TruncateSessions < ActiveRecord::Migration[7.1]\n  def change\n    execute 'TRUNCATE sessions'\n  end\nend\n",
+        "class BackfillAll < ActiveRecord::Migration[7.1]\n  def change\n    execute 'DELETE FROM sessions WHERE 1=1'\n  end\nend\n",
+        "class RenameColumn < ActiveRecord::Migration[7.1]\n  def change\n    rename_column :users, :email, :contact\n  end\nend\n",
+        "class DropConstraint < ActiveRecord::Migration[7.1]\n  def change\n    execute 'ALTER TABLE orders DROP CONSTRAINT orders_user_id_fkey'\n  end\nend\n"
+      ]
+    },
+    {
+      "name": "alembic_unanalyzable",
+      "min_risk": 70,
+      "path_ext": ".py",
+      "cases": [
+        "from alembic import op\n\ndef upgrade():\n    op.drop_table('users')\n",
+        "from alembic import op\n\ndef upgrade():\n    op.execute('DELETE FROM users WHERE 1=1')\n",
+        "from alembic import op\n\ndef upgrade():\n    op.add_column('users', sa.Column('slug', sa.String(), nullable=False))\n",
+        "from alembic import op\n\ndef upgrade():\n    op.execute('CREATE INDEX idx_users_email ON users(email)')\n",
+        "from alembic import op\n\ndef upgrade():\n    op.execute('TRUNCATE audit_events')\n"
+      ]
+    },
+    {
+      "name": "quoted_and_dollar_edge_destructive",
+      "min_risk": 70,
+      "cases": [
+        "DROP TABLE \"user\";",
+        "TRUNCATE \"audit_events\";",
+        "DELETE FROM \"users\" WHERE 1=1;",
+        "UPDATE \"accounts\" SET \"balance\" = 0 WHERE true;",
+        "SELECT $fn$ not executed DROP TABLE users $fn$; DROP TABLE sessions;",
+        "INSERT INTO audit(msg) VALUES ($q$DELETE FROM users WHERE 1=1$q$); DELETE FROM users;",
+        "ALTER TABLE \"Orders\" DROP COLUMN \"legacyCode\";",
+        "CREATE INDEX \"idx_users_email\" ON \"users\"(\"email\");",
+        "ALTER TABLE \"users\" ADD COLUMN \"slug\" text NOT NULL;",
+        "DROP INDEX \"idx_old_users_email\";"
+      ]
+    }
+  ],
+  "safe": [
+    {
+      "name": "literal_and_comment_noops",
+      "cases": [
+        "INSERT INTO audit(msg) VALUES ('DROP TABLE users');",
+        "UPDATE notes SET body = 'TRUNCATE sessions' WHERE id = 1;",
+        "SELECT $tag$ DELETE FROM users WHERE 1=1 $tag$;",
+        "-- DROP TABLE users\nSELECT 1;",
+        "/* TRUNCATE audit_events */ SELECT 1;",
+        "INSERT INTO audit(msg) VALUES ('UPDATE users SET admin=true WHERE 1=1');",
+        "SELECT 'DROP TABLE x', \"DROP TABLE\" FROM t WHERE id = 1;",
+        "INSERT INTO logs(message) VALUES ($$ALTER TABLE users DROP COLUMN email$$);",
+        "UPDATE comments SET body = 'CREATE INDEX idx ON users(email)' WHERE id = 7;",
+        "SELECT '/*! DROP TABLE users */';",
+        "/* nested /* DROP TABLE users */ comment */ SELECT 1;",
+        "INSERT INTO audit(msg) VALUES ('MERGE INTO users WHEN MATCHED THEN DELETE');"
+      ]
+    },
+    {
+      "name": "bounded_dml",
+      "cases": [
+        "DELETE FROM orders WHERE id = 42;",
+        "DELETE FROM sessions WHERE created_at < now() - interval '30 days';",
+        "DELETE FROM users WHERE id IN (SELECT user_id FROM expired_users WHERE tenant_id = 1);",
+        "DELETE FROM audit_events WHERE tenant_id = 7 AND created_at < now();",
+        "UPDATE users SET seen = true WHERE id = 42;",
+        "UPDATE accounts SET touched = true WHERE 1=1 AND id = 42;",
+        "UPDATE orders SET status = 'archived' WHERE tenant_id = 7;",
+        "UPDATE sessions SET revoked = true WHERE user_id IN (SELECT id FROM users WHERE disabled);",
+        "DELETE FROM users WHERE true AND id = 42;",
+        "UPDATE users SET name = lower(name) WHERE true AND id = 42;",
+        "DELETE FROM events WHERE id = ANY($1);",
+        "UPDATE invoices SET exported = true WHERE exported = false AND tenant_id = 9;"
+      ]
+    },
+    {
+      "name": "concurrent_indexes",
+      "cases": [
+        "CREATE INDEX CONCURRENTLY idx_users_email ON users(email);",
+        "CREATE UNIQUE INDEX CONCURRENTLY idx_orders_ref ON orders(reference);",
+        "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sessions_user ON sessions(user_id);",
+        "CREATE INDEX CONCURRENTLY idx_events_created_at ON events(created_at);",
+        "CREATE INDEX CONCURRENTLY idx_accounts_status ON accounts(status);",
+        "CREATE INDEX CONCURRENTLY idx_audit_kind ON audit_events(kind);",
+        "CREATE INDEX CONCURRENTLY idx_customers_org ON customers(org_id);",
+        "CREATE INDEX CONCURRENTLY idx_payments_created_at ON payments(created_at);",
+        "CREATE INDEX CONCURRENTLY idx_users_lower_email ON users(lower(email));",
+        "CREATE INDEX CONCURRENTLY idx_orders_tenant_created ON orders(tenant_id, created_at);"
+      ]
+    },
+    {
+      "name": "new_table_index",
+      "cases": [
+        "CREATE TABLE users_tmp (id bigint); CREATE INDEX idx_users_tmp_id ON users_tmp(id);",
+        "CREATE TABLE \"BookingSeat\" (\"id\" text primary key, \"referenceUid\" text); CREATE UNIQUE INDEX \"BookingSeat_referenceUid_key\" ON \"BookingSeat\"(\"referenceUid\");",
+        "CREATE TEMP TABLE tmp_backfill (id bigint); CREATE INDEX idx_tmp_backfill_id ON tmp_backfill(id);",
+        "CREATE TABLE IF NOT EXISTS audit_archive (id bigint, created_at timestamptz); CREATE INDEX idx_audit_archive_created_at ON audit_archive(created_at);",
+        "CREATE UNLOGGED TABLE staging_users (id bigint); CREATE INDEX idx_staging_users_id ON staging_users(id);",
+        "CREATE TABLE public.new_events (id bigint, kind text); CREATE INDEX idx_new_events_kind ON public.new_events(kind);",
+        "CREATE TABLE reports (id bigint primary key); CREATE UNIQUE INDEX idx_reports_id ON reports(id);",
+        "CREATE TABLE imports (id bigint, tenant_id bigint); CREATE INDEX idx_imports_tenant_id ON imports(tenant_id);",
+        "CREATE TABLE temp_orders (id bigint, ref text); CREATE INDEX idx_temp_orders_ref ON temp_orders(ref);",
+        "CREATE TABLE metrics_daily (day date, value bigint); CREATE INDEX idx_metrics_daily_day ON metrics_daily(day);"
+      ]
+    },
+    {
+      "name": "temporary_table_cleanup",
+      "cases": [
+        "CREATE TEMP TABLE tmp_users (id bigint); DROP TABLE tmp_users;",
+        "CREATE TEMP TABLE tmp_sessions (id bigint); TRUNCATE tmp_sessions;",
+        "CREATE TEMP TABLE tmp_orders (id bigint); TRUNCATE TABLE tmp_orders; DROP TABLE tmp_orders;",
+        "CREATE TEMPORARY TABLE tmp_backfill (id bigint); DROP TABLE tmp_backfill;",
+        "CREATE TEMP TABLE tmp_audit (id bigint); DELETE FROM tmp_audit WHERE id = 1;",
+        "CREATE TEMP TABLE tmp_events (id bigint); UPDATE tmp_events SET id = id WHERE id = 1;",
+        "CREATE TEMP TABLE tmp_metrics (id bigint); CREATE INDEX idx_tmp_metrics_id ON tmp_metrics(id);",
+        "CREATE TEMP TABLE tmp_copy (id bigint); INSERT INTO tmp_copy VALUES (1);"
+      ]
+    },
+    {
+      "name": "safe_alter_table",
+      "cases": [
+        "ALTER TABLE users ADD COLUMN nickname text;",
+        "ALTER TABLE users ADD COLUMN created_by bigint DEFAULT 0;",
+        "ALTER TABLE users ADD CONSTRAINT users_email_check CHECK (email <> '') NOT VALID;",
+        "ALTER TABLE orders ADD CONSTRAINT orders_user_fk FOREIGN KEY (user_id) REFERENCES users(id) NOT VALID;",
+        "ALTER TABLE accounts ADD COLUMN metadata jsonb DEFAULT '{}';",
+        "ALTER TABLE events ADD COLUMN processed_at timestamptz;",
+        "ALTER TABLE users ADD COLUMN active boolean DEFAULT true;",
+        "ALTER TABLE invoices ADD COLUMN exported boolean DEFAULT false;",
+        "ALTER TABLE sessions ADD COLUMN last_seen_at timestamptz;",
+        "ALTER TABLE audit_events ADD COLUMN actor_id bigint;",
+        "ALTER TABLE customers ADD COLUMN country text DEFAULT 'unknown';",
+        "ALTER TABLE feature_flags ADD COLUMN rollout_percent integer DEFAULT 0;"
+      ]
+    },
+    {
+      "name": "misc_safe_sql",
+      "cases": [
+        "SELECT 1;",
+        "INSERT INTO audit_log(id, msg) VALUES (1, 'ok');",
+        "INSERT INTO audit_log(msg) VALUES ('ok'), ('still ok');",
+        "CREATE VIEW active_users AS SELECT id FROM users WHERE active = true;",
+        "CREATE MATERIALIZED VIEW user_counts AS SELECT tenant_id, count(*) FROM users GROUP BY tenant_id;",
+        "ANALYZE users;",
+        "VACUUM ANALYZE users;",
+        "SET lock_timeout = '5s'; SET statement_timeout = '30s';",
+        "COMMENT ON TABLE users IS 'customer users';",
+        "GRANT SELECT ON users TO readonly;"
+      ]
+    },
+    {
+      "name": "mysql_safe_exec_comments",
+      "cases": [
+        "/*! SET sql_mode = 'STRICT_ALL_TABLES' */;",
+        "/*!40101 SET character_set_client = utf8 */;",
+        "/*! CREATE TABLE IF NOT EXISTS audit_log (id bigint) */;",
+        "/*! INSERT INTO audit_log(id) VALUES (1) */;",
+        "/*! SELECT 1 */;"
+      ]
+    }
+  ]
+}

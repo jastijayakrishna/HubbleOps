@@ -1,0 +1,23 @@
+{
+  "resource_changes": [
+    {
+      "address": "aws_db_instance.prod",
+      "type": "aws_db_instance",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "allocated_storage": 1000,
+          "deletion_protection": true
+        },
+        "after": {
+          "tags": {
+            "team": "db"
+          }
+        },
+        "after_unknown": {
+          "allocated_storage": true
+        }
+      }
+    }
+  ]
+}
