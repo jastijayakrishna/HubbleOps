@@ -121,7 +121,7 @@ func TestDrainCrashGapMarker(t *testing.T) {
 		Model:        "_restart",
 		ChainRestart: true,
 	}
-	wal.Chain(&marker, h)
+	chainTestRecord(t, &marker, h)
 	markerLine, _ := json.Marshal(marker)
 	fmt.Fprintf(f, "%s\n", markerLine)
 
@@ -140,7 +140,7 @@ func TestDrainCrashGapMarker(t *testing.T) {
 			Cost:         float64(i) * 0.001,
 			StatusCode:   200,
 		}
-		wal.Chain(&rec, prevHash)
+		chainTestRecord(t, &rec, prevHash)
 		prevHash = rec.RecordHash
 		line, _ := json.Marshal(rec)
 		fmt.Fprintf(f, "%s\n", line)
@@ -381,7 +381,264 @@ func TestDrainBlankLinesCrossFile(t *testing.T) {
 	}
 }
 
+// TestDrainTornTailDoesNotConsumeOrWedge is the crash-tail regression: a torn
+// final line (a partial record write with no trailing newline — exactly what a
+// hard crash in batch fsync mode leaves behind) must NOT be counted into the
+// byte offset. The drain consumes every complete record, stops BEFORE the torn
+// line, and when the line is later completed (an in-flight write that finished)
+// a second drain picks it up with no chain violation.
+func TestDrainTornTailDoesNotConsumeOrWedge(t *testing.T) {
+	walDir := t.TempDir()
+	fileName := "wal-2026-05-25.jsonl"
+	path := filepath.Join(walDir, fileName)
+
+	lastHash := writeChainedWALFile(t, walDir, fileName, 5, "genesis")
+	completeBytes := fileSize(t, path)
+
+	// Build record 6 chained from record 5, but write only the first half of its
+	// line with no newline — a torn tail.
+	rec6 := testWALRecord(fileName, 6)
+	chainTestRecord(t, &rec6, lastHash)
+	line6, _ := json.Marshal(rec6)
+	line6 = append(line6, '\n')
+	tornAt := len(line6) / 2
+	appendBytes(t, path, line6[:tornAt])
+
+	var totalInserted int
+	drainer := &Drainer{
+		walDir: walDir,
+		insert: func(ctx context.Context, records []wal.Record) error {
+			totalInserted += len(records)
+			return nil
+		},
+	}
+
+	if err := drainer.drainOnce(context.Background()); err != nil {
+		t.Fatalf("drainOnce with torn tail: %v", err)
+	}
+	if totalInserted != 5 {
+		t.Fatalf("drained %d records, want 5 complete records before the torn tail", totalInserted)
+	}
+	offset, err := drainer.loadOffset()
+	if err != nil {
+		t.Fatalf("loadOffset: %v", err)
+	}
+	if offset.ByteOffset != completeBytes {
+		t.Fatalf("offset.ByteOffset = %d, want %d (must stop BEFORE the torn line)", offset.ByteOffset, completeBytes)
+	}
+
+	// The in-flight write completes: the rest of line 6 arrives, then record 7.
+	appendBytes(t, path, line6[tornAt:])
+	rec7 := testWALRecord(fileName, 7)
+	chainTestRecord(t, &rec7, rec6.RecordHash)
+	line7, _ := json.Marshal(rec7)
+	appendBytes(t, path, append(line7, '\n'))
+
+	if err := drainer.drainOnce(context.Background()); err != nil {
+		t.Fatalf("drainOnce after tail completed: %v", err)
+	}
+	if totalInserted != 7 {
+		t.Fatalf("drained %d records total, want 7 after the torn line completed", totalInserted)
+	}
+	offset, _ = drainer.loadOffset()
+	if got, want := offset.ByteOffset, fileSize(t, path); got != want {
+		t.Errorf("offset.ByteOffset = %d, want %d (file fully drained)", got, want)
+	}
+}
+
+// TestDrainTornTailThenChainRestartMarker simulates writer crash recovery: the
+// torn line never completes; the restarted writer appends a chain-restart
+// marker (chained from the last valid record it found on disk) and more
+// records. The drain must treat the now newline-terminated torn line as
+// corruption, skip it, and continue through the marker without wedging.
+func TestDrainTornTailThenChainRestartMarker(t *testing.T) {
+	walDir := t.TempDir()
+	fileName := "wal-2026-05-25.jsonl"
+	path := filepath.Join(walDir, fileName)
+
+	lastHash := writeChainedWALFile(t, walDir, fileName, 5, "genesis")
+	completeBytes := fileSize(t, path)
+	appendBytes(t, path, []byte(`{"seq":6,"project":"torn`)) // torn tail, no newline
+
+	var totalInserted int
+	var restartMarkersSeen int
+	drainer := &Drainer{
+		walDir: walDir,
+		insert: func(ctx context.Context, records []wal.Record) error {
+			for _, rec := range records {
+				if rec.ChainRestart {
+					restartMarkersSeen++
+				}
+			}
+			totalInserted += len(records)
+			return nil
+		},
+	}
+
+	if err := drainer.drainOnce(context.Background()); err != nil {
+		t.Fatalf("drainOnce with torn tail: %v", err)
+	}
+	if totalInserted != 5 {
+		t.Fatalf("drained %d records, want 5 before the torn tail", totalInserted)
+	}
+	if offset, _ := drainer.loadOffset(); offset.ByteOffset != completeBytes {
+		t.Fatalf("offset.ByteOffset = %d, want %d (must stop BEFORE the torn line)", offset.ByteOffset, completeBytes)
+	}
+
+	// Crash recovery: newline terminates the torn line, then a restart marker
+	// chained from the last valid record, then 5 more records.
+	appendBytes(t, path, []byte("\n"))
+	marker := wal.Record{
+		Time:         time.Now().UTC(),
+		Project:      "_chain",
+		Provider:     "_system",
+		Model:        "_restart",
+		ChainRestart: true,
+	}
+	chainTestRecord(t, &marker, lastHash)
+	markerLine, _ := json.Marshal(marker)
+	appendBytes(t, path, append(markerLine, '\n'))
+	prevHash := marker.RecordHash
+	for i := 0; i < 5; i++ {
+		rec := testWALRecord(fileName, 100+i)
+		chainTestRecord(t, &rec, prevHash)
+		prevHash = rec.RecordHash
+		line, _ := json.Marshal(rec)
+		appendBytes(t, path, append(line, '\n'))
+	}
+
+	if err := drainer.drainOnce(context.Background()); err != nil {
+		t.Fatalf("drainOnce after crash recovery: %v", err)
+	}
+	if totalInserted != 11 {
+		t.Fatalf("drained %d records total, want 11 (5 + marker + 5)", totalInserted)
+	}
+	if restartMarkersSeen != 1 {
+		t.Errorf("restart markers seen = %d, want 1", restartMarkersSeen)
+	}
+	offset, _ := drainer.loadOffset()
+	if got, want := offset.ByteOffset, fileSize(t, path); got != want {
+		t.Errorf("offset.ByteOffset = %d, want %d (file fully drained past corruption)", got, want)
+	}
+}
+
+// TestDrainAcceptsChainRestartAfterCorruptGap covers a destroyed record in the
+// middle of a file whose successor is a chain-restart marker: the marker's
+// prev_hash points at the record that was destroyed, so the link check fails —
+// but a marker announces a legitimate new chain segment, so the drain must
+// accept it, resynchronize seq, and continue instead of wedging forever.
+func TestDrainAcceptsChainRestartAfterCorruptGap(t *testing.T) {
+	walDir := t.TempDir()
+	fileName := "wal-2026-05-25.jsonl"
+	path := filepath.Join(walDir, fileName)
+
+	lastHash := writeChainedWALFile(t, walDir, fileName, 5, "genesis")
+
+	// A marker chained from record 5, then 3 more records.
+	marker := wal.Record{
+		Time:         time.Now().UTC(),
+		Project:      "_chain",
+		Provider:     "_system",
+		Model:        "_restart",
+		ChainRestart: true,
+	}
+	chainTestRecord(t, &marker, lastHash)
+	markerLine, _ := json.Marshal(marker)
+	appendBytes(t, path, append(markerLine, '\n'))
+	prevHash := marker.RecordHash
+	for i := 0; i < 3; i++ {
+		rec := testWALRecord(fileName, 200+i)
+		chainTestRecord(t, &rec, prevHash)
+		prevHash = rec.RecordHash
+		line, _ := json.Marshal(rec)
+		appendBytes(t, path, append(line, '\n'))
+	}
+
+	// Destroy record 5's line in place (same length, still newline-terminated),
+	// severing the marker's prev_hash link.
+	destroyWALLine(t, path, 4)
+
+	var totalInserted int
+	drainer := &Drainer{
+		walDir: walDir,
+		insert: func(ctx context.Context, records []wal.Record) error {
+			totalInserted += len(records)
+			return nil
+		},
+	}
+
+	if err := drainer.drainOnce(context.Background()); err != nil {
+		t.Fatalf("drainOnce across corrupt gap with restart marker: %v", err)
+	}
+	// 4 intact records + marker + 3 records; the destroyed line is skipped.
+	if totalInserted != 8 {
+		t.Fatalf("drained %d records, want 8 (4 intact + marker + 3)", totalInserted)
+	}
+	offset, _ := drainer.loadOffset()
+	if got, want := offset.ByteOffset, fileSize(t, path); got != want {
+		t.Errorf("offset.ByteOffset = %d, want %d", got, want)
+	}
+}
+
 // --- helpers ---
+
+var testSeqByHash = map[string]uint64{"genesis": 0}
+
+// testWALRecord builds an unchained record with deterministic filler fields.
+func testWALRecord(filename string, i int) wal.Record {
+	return wal.Record{
+		Time:         time.Now().UTC(),
+		Project:      "test-project",
+		Provider:     "openai",
+		Model:        "gpt-4o-mini",
+		PromptHash:   fmt.Sprintf("%s-hash-%d", filename, i),
+		InputTokens:  i * 10,
+		OutputTokens: i * 5,
+		TotalTokens:  i * 15,
+		Cost:         float64(i) * 0.001,
+		StatusCode:   200,
+	}
+}
+
+// appendBytes appends raw bytes to a file without adding anything.
+func appendBytes(t *testing.T, path string, data []byte) {
+	t.Helper()
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		t.Fatalf("open %s for append: %v", path, err)
+	}
+	defer f.Close()
+	if _, err := f.Write(data); err != nil {
+		t.Fatalf("append to %s: %v", path, err)
+	}
+}
+
+// destroyWALLine overwrites line lineIdx with same-length garbage in place,
+// keeping every byte offset in the file identical.
+func destroyWALLine(t *testing.T, path string, lineIdx int) {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(string(data), "\n")
+	if lineIdx >= len(lines) {
+		t.Fatalf("lineIdx %d out of range (file has %d lines)", lineIdx, len(lines))
+	}
+	lines[lineIdx] = strings.Repeat("x", len(lines[lineIdx]))
+	if err := os.WriteFile(path, []byte(strings.Join(lines, "\n")), 0644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func chainTestRecord(t *testing.T, rec *wal.Record, prevHash string) {
+	t.Helper()
+	seq := testSeqByHash[prevHash] + 1
+	if err := wal.Chain(rec, prevHash, seq); err != nil {
+		t.Fatalf("chain: %v", err)
+	}
+	testSeqByHash[rec.RecordHash] = rec.Seq
+}
 
 // fileSize returns the size of a file in bytes.
 func fileSize(t *testing.T, path string) int64 {
@@ -417,7 +674,7 @@ func writeChainedWALFile(t *testing.T, dir, filename string, count int, prevHash
 			Cost:         float64(i) * 0.001,
 			StatusCode:   200,
 		}
-		wal.Chain(&rec, prevHash)
+		chainTestRecord(t, &rec, prevHash)
 		prevHash = rec.RecordHash
 
 		line, _ := json.Marshal(rec)
@@ -449,7 +706,7 @@ func writeChainedWALFileWithBlanks(t *testing.T, dir, filename string, count int
 			Cost:         float64(i) * 0.001,
 			StatusCode:   200,
 		}
-		wal.Chain(&rec, prevHash)
+		chainTestRecord(t, &rec, prevHash)
 		prevHash = rec.RecordHash
 
 		line, _ := json.Marshal(rec)
@@ -484,7 +741,7 @@ func writeChainedWALFileWithMalformed(t *testing.T, dir, filename string, count 
 			Cost:         float64(i) * 0.001,
 			StatusCode:   200,
 		}
-		wal.Chain(&rec, prevHash)
+		chainTestRecord(t, &rec, prevHash)
 		prevHash = rec.RecordHash
 
 		line, _ := json.Marshal(rec)
@@ -554,7 +811,7 @@ func (d *mockDrainer) drainOnce(ctx context.Context) error {
 		// Drain the current file to EOF before moving to the next.
 		// Mirrors the inner loop in main.go's drainOnce.
 		for {
-			batch, bytesConsumed, lastHash, err := d.readBatch(file, startByte)
+			batch, bytesConsumed, lastHash, lastSeq, err := d.readBatch(file, startByte)
 			if err != nil {
 				return err
 			}
@@ -576,7 +833,15 @@ func (d *mockDrainer) drainOnce(ctx context.Context) error {
 			if brokenLink := wal.VerifyChain(batch); brokenLink != -1 {
 				return fmt.Errorf("chain violation at index %d", brokenLink)
 			}
+			expectedSeq := offset.LastSeq + 1
 			for i, rec := range batch {
+				if rec.Seq == 0 {
+					return fmt.Errorf("chain violation: missing seq at index %d", i)
+				}
+				if rec.Seq != expectedSeq {
+					return fmt.Errorf("chain violation: expected seq %d, got %d at index %d", expectedSeq, rec.Seq, i)
+				}
+				expectedSeq++
 				if wal.RecomputeHash(rec) != rec.RecordHash {
 					return fmt.Errorf("chain violation: record hash mismatch at index %d", i)
 				}
@@ -594,6 +859,7 @@ func (d *mockDrainer) drainOnce(ctx context.Context) error {
 				offset.ByteOffset += bytesConsumed
 			}
 			offset.LastHash = lastHash
+			offset.LastSeq = lastSeq
 			startByte = offset.ByteOffset
 
 			if err := d.saveOffset(offset); err != nil {
@@ -607,16 +873,16 @@ func (d *mockDrainer) drainOnce(ctx context.Context) error {
 
 // readBatch mirrors drainFile from main.go: uses file.Seek for O(1) positioning,
 // returns bytes consumed (not line count).
-func (d *mockDrainer) readBatch(path string, startByte int64) (batch []wal.Record, bytesConsumed int64, lastHash string, err error) {
+func (d *mockDrainer) readBatch(path string, startByte int64) (batch []wal.Record, bytesConsumed int64, lastHash string, lastSeq uint64, err error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, 0, "", err
+		return nil, 0, "", 0, err
 	}
 	defer f.Close()
 
 	if startByte > 0 {
 		if _, err := f.Seek(startByte, io.SeekStart); err != nil {
-			return nil, 0, "", err
+			return nil, 0, "", 0, err
 		}
 	}
 
@@ -638,12 +904,13 @@ func (d *mockDrainer) readBatch(path string, startByte int64) (batch []wal.Recor
 		batch = append(batch, rec)
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, 0, "", err
+		return nil, 0, "", 0, err
 	}
 	if len(batch) == 0 {
-		return nil, 0, "", nil
+		return nil, 0, "", 0, nil
 	}
-	return batch, bytesConsumed, batch[len(batch)-1].RecordHash, nil
+	last := batch[len(batch)-1]
+	return batch, bytesConsumed, last.RecordHash, last.Seq, nil
 }
 
 func (d *mockDrainer) loadOffset() (drainOffset, error) {

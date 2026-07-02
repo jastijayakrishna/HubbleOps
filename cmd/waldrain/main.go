@@ -76,6 +76,7 @@ type drainOffset struct {
 	File       string `json:"file"`
 	ByteOffset int64  `json:"byte_offset"`
 	LastHash   string `json:"last_hash"`
+	LastSeq    uint64 `json:"last_seq"`
 }
 
 func main() {
@@ -86,7 +87,7 @@ func main() {
 	// Config
 	cfgPath := os.Getenv("HUBBLEOPS_CONFIG")
 	if cfgPath == "" {
-		cfgPath = "configs/proxy.yaml"
+		cfgPath = "configs/hubbleops.yaml"
 	}
 	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
 		cfgPath = ""
@@ -153,6 +154,16 @@ func main() {
 type Drainer struct {
 	walDir string
 	pool   *pgxpool.Pool
+	// insert overrides the Postgres batch insert; tests inject a fake here so the
+	// real drain/offset/chain logic is what gets exercised.
+	insert func(ctx context.Context, batch []wal.Record) error
+}
+
+func (d *Drainer) insertFn() func(ctx context.Context, batch []wal.Record) error {
+	if d.insert != nil {
+		return d.insert
+	}
+	return d.insertBatch
 }
 
 func (d *Drainer) Run(ctx context.Context) error {
@@ -219,7 +230,7 @@ func (d *Drainer) drainOnce(ctx context.Context) error {
 			default:
 			}
 
-			bytesConsumed, lastHash, err := d.drainFile(ctx, file, startByte, offset.LastHash)
+			bytesConsumed, lastHash, lastSeq, err := d.drainFile(ctx, file, startByte, offset.LastHash, offset.LastSeq)
 			if err != nil {
 				return fmt.Errorf("drain file %s: %w", baseName, err)
 			}
@@ -237,6 +248,7 @@ func (d *Drainer) drainOnce(ctx context.Context) error {
 				offset.ByteOffset += bytesConsumed
 			}
 			offset.LastHash = lastHash
+			offset.LastSeq = lastSeq
 			startByte = offset.ByteOffset
 
 			if err := d.saveOffset(offset); err != nil {
@@ -247,6 +259,7 @@ func (d *Drainer) drainOnce(ctx context.Context) error {
 				Str("file", baseName).
 				Int64("byte_offset", offset.ByteOffset).
 				Str("last_hash", lastHash[:16]+"...").
+				Uint64("last_seq", lastSeq).
 				Msg("batch drained")
 		}
 	}
@@ -254,17 +267,17 @@ func (d *Drainer) drainOnce(ctx context.Context) error {
 	return nil
 }
 
-func (d *Drainer) drainFile(ctx context.Context, path string, startByte int64, prevHash string) (int64, string, error) {
+func (d *Drainer) drainFile(ctx context.Context, path string, startByte int64, prevHash string, prevSeq uint64) (int64, string, uint64, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return 0, "", fmt.Errorf("open file: %w", err)
+		return 0, "", 0, fmt.Errorf("open file: %w", err)
 	}
 	defer file.Close()
 
 	// O(1) seek to the byte offset instead of scanning/skipping lines
 	if startByte > 0 {
 		if _, err := file.Seek(startByte, io.SeekStart); err != nil {
-			return 0, "", fmt.Errorf("seek to offset %d: %w", startByte, err)
+			return 0, "", 0, fmt.Errorf("seek to offset %d: %w", startByte, err)
 		}
 	}
 
@@ -272,56 +285,114 @@ func (d *Drainer) drainFile(ctx context.Context, path string, startByte int64, p
 	scanner.Buffer(make([]byte, 0, 256*1024), 1024*1024)
 
 	// Read batch — track bytes consumed for the caller's offset.
+	//
+	// An unparseable line is NOT consumed immediately: if it is the last line in
+	// the file it is a torn tail — a partial record from a crash or an in-flight
+	// write — and consuming its bytes would make the offset skip into whatever
+	// completes it later, permanently desyncing the chain. Its bytes stay
+	// "pending" until a following line proves it was newline-terminated (then it
+	// is genuine mid-file corruption: consume, count, log) or the scan ends
+	// (leave it for the next drain tick to re-examine).
 	var batch []wal.Record
 	var bytesConsumed int64
+	var pendingBytes int64  // trailing unparseable line, not yet confirmed corrupt
+	var pendingOffset int64 // absolute byte offset of that line
 	for scanner.Scan() && len(batch) < batchSize {
 		line := scanner.Text()
-		// Each line consumed = len(line) + 1 (newline character)
-		bytesConsumed += int64(len(line)) + 1
+		lineBytes := int64(len(line)) + 1 // +1 for the newline character
+		if pendingBytes > 0 {
+			// A line followed the pending one, so the pending line was a complete,
+			// newline-terminated non-record: mid-file corruption, not a torn tail.
+			chainViolations.Inc()
+			log.Error().
+				Str("file", filepath.Base(path)).
+				Int64("byte_offset", pendingOffset).
+				Msg("CHAIN VIOLATION: skipping corrupt WAL line")
+			bytesConsumed += pendingBytes
+			pendingBytes = 0
+		}
 		if strings.TrimSpace(line) == "" {
+			bytesConsumed += lineBytes
 			continue
 		}
 
 		var rec wal.Record
 		if err := json.Unmarshal([]byte(line), &rec); err != nil {
-			log.Warn().Err(err).Int64("byte_offset", startByte+bytesConsumed).Msg("failed to parse WAL record")
+			pendingBytes = lineBytes
+			pendingOffset = startByte + bytesConsumed
 			continue
 		}
 
+		bytesConsumed += lineBytes
 		batch = append(batch, rec)
 	}
 
 	if err := scanner.Err(); err != nil {
-		return 0, "", fmt.Errorf("scanner error: %w", err)
+		return 0, "", 0, fmt.Errorf("scanner error: %w", err)
+	}
+
+	if pendingBytes > 0 {
+		log.Warn().
+			Str("file", filepath.Base(path)).
+			Int64("byte_offset", pendingOffset).
+			Msg("torn or in-flight WAL tail line; leaving unconsumed for the next drain")
+	}
+
+	// The scanner counts +1 for a newline the final token may not have (a write
+	// torn between the record body and its '\n'). Clamp so the offset can never
+	// point past the bytes that exist; the missing newline is re-read next tick.
+	if stat, statErr := file.Stat(); statErr == nil {
+		if max := stat.Size() - startByte; bytesConsumed > max {
+			bytesConsumed = max
+		}
 	}
 
 	if len(batch) == 0 {
-		return 0, prevHash, nil
+		return 0, prevHash, prevSeq, nil
 	}
 
-	// Verify hash chain
-	if prevHash != "" && batch[0].PrevHash != prevHash {
-		chainViolations.Inc()
-		log.Error().
-			Str("expected", prevHash).
-			Str("got", batch[0].PrevHash).
-			Int64("byte_offset", startByte).
-			Msg("CHAIN VIOLATION: prev_hash mismatch at batch start")
-		return 0, "", fmt.Errorf("chain violation: expected prev_hash %s, got %s", prevHash, batch[0].PrevHash)
+	// Verify hash chain, sequence continuity, and per-record hashes in one pass.
+	// A record with ChainRestart=true whose link or seq does not continue the
+	// previous segment announces a legitimate new chain segment (the writer
+	// re-anchored after a crash, and the records bridging to it may have been
+	// lost to corruption) — accept it and resynchronize instead of wedging.
+	// Its own record hash is still verified like any other record.
+	expectedPrev := prevHash
+	if expectedPrev == "" {
+		expectedPrev = "genesis"
 	}
-
-	// Verify internal chain links
-	if brokenLink := wal.VerifyChain(batch); brokenLink != -1 {
-		chainViolations.Inc()
-		log.Error().
-			Int("index", brokenLink).
-			Int64("byte_offset", startByte).
-			Msg("CHAIN VIOLATION: broken link within batch")
-		return 0, "", fmt.Errorf("chain violation at index %d", brokenLink)
-	}
-
-	// Verify each record's hash is computed correctly
+	expectedSeq := prevSeq + 1
 	for i, rec := range batch {
+		if rec.Seq == 0 {
+			chainViolations.Inc()
+			log.Error().
+				Int("index", i).
+				Int64("byte_offset", startByte).
+				Str("decision_id", rec.DecisionID).
+				Msg("CHAIN VIOLATION: missing seq")
+			return 0, "", 0, fmt.Errorf("chain violation: missing seq at index %d decision_id=%s", i, rec.DecisionID)
+		}
+		if rec.PrevHash != expectedPrev || rec.Seq != expectedSeq {
+			if !rec.ChainRestart {
+				chainViolations.Inc()
+				log.Error().
+					Int("index", i).
+					Str("expected_prev", expectedPrev).
+					Str("got_prev", rec.PrevHash).
+					Uint64("expected_seq", expectedSeq).
+					Uint64("got_seq", rec.Seq).
+					Str("decision_id", rec.DecisionID).
+					Int64("byte_offset", startByte).
+					Msg("CHAIN VIOLATION: broken link or seq gap")
+				return 0, "", 0, fmt.Errorf("chain violation: expected prev_hash %s seq %d, got prev_hash %s seq %d at index %d",
+					expectedPrev, expectedSeq, rec.PrevHash, rec.Seq, i)
+			}
+			log.Warn().
+				Int("index", i).
+				Uint64("seq", rec.Seq).
+				Msg("accepting chain restart marker as new segment after gap")
+			expectedSeq = rec.Seq
+		}
 		computed := wal.RecomputeHash(rec)
 		if computed != rec.RecordHash {
 			chainViolations.Inc()
@@ -331,8 +402,10 @@ func (d *Drainer) drainFile(ctx context.Context, path string, startByte int64, p
 				Str("stored", rec.RecordHash).
 				Str("computed", computed).
 				Msg("CHAIN VIOLATION: record hash mismatch")
-			return 0, "", fmt.Errorf("chain violation: record hash mismatch at index %d", i)
+			return 0, "", 0, fmt.Errorf("chain violation: record hash mismatch at index %d", i)
 		}
+		expectedPrev = rec.RecordHash
+		expectedSeq++
 	}
 
 	// Log chain restart markers for audit trail
@@ -348,8 +421,8 @@ func (d *Drainer) drainFile(ctx context.Context, path string, startByte int64, p
 	}
 
 	// Insert batch into Postgres
-	if err := d.insertBatch(ctx, batch); err != nil {
-		return 0, "", fmt.Errorf("insert batch: %w", err)
+	if err := d.insertFn()(ctx, batch); err != nil {
+		return 0, "", 0, fmt.Errorf("insert batch: %w", err)
 	}
 
 	// Update metrics
@@ -362,7 +435,7 @@ func (d *Drainer) drainFile(ctx context.Context, path string, startByte int64, p
 	drainLagSeconds.Set(lag)
 
 	// Return bytes consumed for the caller's byte offset.
-	return bytesConsumed, lastRec.RecordHash, nil
+	return bytesConsumed, lastRec.RecordHash, lastRec.Seq, nil
 }
 
 func (d *Drainer) insertBatch(ctx context.Context, batch []wal.Record) error {
@@ -388,9 +461,12 @@ func (d *Drainer) insertBatch(ctx context.Context, batch []wal.Record) error {
 				resource_id, amount_cents, max_amount_cents, backup_id,
 				recipient_domain, allowed_domain, capability_hash,
 				decision_reason, decision_evidence, receipt_signature, receipt_key_id,
+				actor, human_delegator, action, target, environment,
+				intent_hash, evidence_hashes, blast_radius, risk_score, decision,
+				required_approvers, approvals,
 				prev_hash, record_hash,
 				trajectory_id, detector_version, framework, near_miss, immediate_outcome
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49)
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49::jsonb, $50, $51, $52, $53::jsonb, $54::jsonb, $55, $56, $57, $58, $59, $60, $61)
 			ON CONFLICT (record_hash) DO NOTHING
 		`,
 			rec.ID, rec.Time, rec.Project, rec.Provider, rec.Model, rec.PromptHash,
@@ -404,6 +480,9 @@ func (d *Drainer) insertBatch(ctx context.Context, batch []wal.Record) error {
 			rec.ResourceID, rec.AmountCents, rec.MaxAmountCents, rec.BackupID,
 			rec.RecipientDomain, rec.AllowedDomain, rec.CapabilityHash,
 			rec.DecisionReason, rec.DecisionEvidence, rec.ReceiptSignature, rec.ReceiptKeyID,
+			rec.Actor, rec.HumanDelegator, rec.Action, rec.Target, rec.Environment,
+			rec.IntentHash, jsonStringSlice(rec.EvidenceHashes), rec.BlastRadius, rec.RiskScore, rec.Decision,
+			jsonStringSlice(rec.RequiredApprovers), jsonStringSlice(rec.Approvals),
 			rec.PrevHash, rec.RecordHash,
 			rec.TrajectoryID, rec.DetectorVersion,
 			frameworkOrUnknown(rec.Framework), rec.NearMiss, outcomeOrUnknown(rec.ImmediateOutcome),
@@ -516,4 +595,15 @@ func outcomeOrUnknown(s string) string {
 		return "unknown"
 	}
 	return s
+}
+
+func jsonStringSlice(values []string) []byte {
+	if values == nil {
+		values = []string{}
+	}
+	data, err := json.Marshal(values)
+	if err != nil {
+		return []byte("[]")
+	}
+	return data
 }
