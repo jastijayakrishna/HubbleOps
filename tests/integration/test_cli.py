@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from hubbleops.app.cli import EXIT_FAILED, EXIT_OK, main
+from hubbleops.app.cli import EXIT_FAILED, EXIT_OK, EXIT_UNKNOWN, main
+from hubbleops.core.errors import ToolingTimeout
 from hubbleops.store.sqlite import DATABASE_FILENAME, Store
 from tests.support import fixture_repos
 
@@ -132,3 +133,14 @@ def test_the_mock_pack_runs_the_same_pipeline(
     capsys.readouterr()
     assert main(["exposure", "--state-dir", str(state)]) == EXIT_OK
     assert "MOCK EXPOSURE MAP" in capsys.readouterr().out
+
+
+def test_a_tool_timeout_is_reported_as_unknown_not_as_a_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def timeout(*_: object, **__: object) -> None:
+        raise ToolingTimeout("rg", 600.0)
+
+    monkeypatch.setattr("hubbleops.app.cli.scan_repository", timeout)
+    assert run_scan(tmp_path / "state") == EXIT_UNKNOWN
+    assert "UNKNOWN: rg exceeded its 600s budget" in capsys.readouterr().err

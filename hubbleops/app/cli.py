@@ -11,7 +11,7 @@ from hubbleops import __version__
 from hubbleops.app import exposure, registry
 from hubbleops.closure import source_closure
 from hubbleops.core.canonical import export_bytes
-from hubbleops.core.errors import HubbleOpsError, ToolingMissing
+from hubbleops.core.errors import HubbleOpsError, ToolingMissing, ToolingTimeout
 from hubbleops.core.observer import ObserverContext
 from hubbleops.core.proof_scope import (
     make_proof_scope,
@@ -27,6 +27,7 @@ DEFAULT_STATE_DIR = ".hubbleops"
 EXIT_OK = 0
 EXIT_TOOLING_MISSING = 3
 EXIT_FAILED = 4
+EXIT_UNKNOWN = 5
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -38,6 +39,9 @@ def main(argv: list[str] | None = None) -> int:
     except ToolingMissing as error:
         print(str(error), file=sys.stderr)
         return EXIT_TOOLING_MISSING
+    except ToolingTimeout as error:
+        print(str(error), file=sys.stderr)
+        return EXIT_UNKNOWN
     except HubbleOpsError as error:
         print(f"FAILED: {error}", file=sys.stderr)
         return EXIT_FAILED
