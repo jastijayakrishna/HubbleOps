@@ -13,12 +13,11 @@ class ObserverContext:
     proof_scope_hash: str
     repo_sha: str | None
     dependency_context_hash: str | None
+    surface: SurfaceSpec
 
 
 @runtime_checkable
 class Observer(Protocol):
     name: str
 
-    def scan(
-        self, closure: Any, surface: SurfaceSpec, ctx: ObserverContext
-    ) -> list[dict[str, Any]]: ...
+    def scan(self, closure: Any, ctx: ObserverContext) -> list[dict[str, Any]]: ...

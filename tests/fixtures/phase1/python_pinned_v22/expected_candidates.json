@@ -1,10 +1,22 @@
 {
   "candidates": [
     {
+      "claim_type": "package_reference",
+      "location": "requirements.txt:1",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "sdk_installed",
       "location": "requirements.txt:1",
       "provider_subject": "google-ads",
       "status": "AFFECTED"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "requirements.txt:1",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
     },
     {
       "claim_type": "surface_reference",
@@ -66,9 +78,9 @@
     "excluded_with_evidence": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 10,
+    "total": 12,
     "unexplained": 0,
-    "unknown": 8
+    "unknown": 10
   },
   "fixture": "python_pinned_v22",
   "pack": "google_ads"

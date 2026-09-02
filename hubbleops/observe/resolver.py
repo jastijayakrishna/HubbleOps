@@ -6,6 +6,7 @@ from typing import Any
 
 from hubbleops.core.errors import UnknownClaimType
 from hubbleops.core.records import as_mapping, as_sequence
+from hubbleops.observe.deps import classify_manifest
 
 CLAIM_PRECEDENCE: dict[str, tuple[str, ...]] = {
     "sdk_installed": ("lock", "manifest"),
@@ -319,6 +320,23 @@ def _endpoint_reference(
 def _package_reference(
     chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]
 ) -> Resolution:
+    manifest = classify_manifest(str(chosen["path"]))
+    if manifest is not None:
+        ecosystem, source_kind = manifest
+        return Resolution(
+            status="UNKNOWN",
+            reason=(
+                f"package name {chosen['provider_subject']!r} appears at {_location(chosen)}, "
+                f"a {ecosystem} {source_kind}; the text observer proves the name is written here "
+                "but carries no installed version of its own"
+            ),
+            close_with=(
+                f"read the installed version off the resolved {ecosystem} lock file, which the "
+                "dependency observer claims as its own candidate; or record it with "
+                "`hops decide <candidate_id> --value <version> --by <name>`"
+            ),
+            winner_id=str(chosen["id"]),
+        )
     return Resolution(
         status="UNKNOWN",
         reason=(

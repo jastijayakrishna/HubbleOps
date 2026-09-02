@@ -1,10 +1,46 @@
 {
   "candidates": [
     {
+      "claim_type": "package_reference",
+      "location": "package-lock.json:10",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "package_reference",
+      "location": "package-lock.json:10",
+      "provider_subject": "google-ads-api",
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "sdk_installed",
       "location": "package-lock.json:10",
       "provider_subject": "google-ads-api",
       "status": "AFFECTED"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "package-lock.json:10",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "package_reference",
+      "location": "package.json:5",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "package_reference",
+      "location": "package.json:5",
+      "provider_subject": "google-ads-api",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "package.json:5",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
     },
     {
       "claim_type": "package_reference",
@@ -48,9 +84,9 @@
     "excluded_with_evidence": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 7,
+    "total": 13,
     "unexplained": 0,
-    "unknown": 6
+    "unknown": 12
   },
   "fixture": "js_dynamic_version",
   "pack": "google_ads"

@@ -17,7 +17,6 @@ from hubbleops.core.evidence import make_evidence
 from hubbleops.core.observer import ObserverContext
 from hubbleops.core.records import as_mapping, as_text
 from hubbleops.core.surface import SurfaceSpec
-from hubbleops.observe.deps import is_manifest
 
 NAME = "text"
 RIPGREP = "rg"
@@ -42,7 +41,6 @@ class TextPattern:
     claim_type: str
     fixed: bool
     subject_mode: str
-    skip_manifests: bool
     slot: str | None = None
 
 
@@ -84,7 +82,6 @@ def patterns_for(surface: SurfaceSpec) -> tuple[TextPattern, ...]:
                 claim_type="surface_reference",
                 fixed=True,
                 subject_mode=LITERAL,
-                skip_manifests=True,
             )
         )
     for host in surface.hosts:
@@ -96,7 +93,6 @@ def patterns_for(surface: SurfaceSpec) -> tuple[TextPattern, ...]:
                 claim_type="endpoint_reference",
                 fixed=True,
                 subject_mode=LITERAL,
-                skip_manifests=False,
             )
         )
     for package in surface.package_names:
@@ -108,7 +104,6 @@ def patterns_for(surface: SurfaceSpec) -> tuple[TextPattern, ...]:
                 claim_type="package_reference",
                 fixed=True,
                 subject_mode=LITERAL,
-                skip_manifests=True,
             )
         )
     for key in surface.config_env_keys:
@@ -120,7 +115,6 @@ def patterns_for(surface: SurfaceSpec) -> tuple[TextPattern, ...]:
                 claim_type="config_reference",
                 fixed=True,
                 subject_mode=LITERAL,
-                skip_manifests=False,
             )
         )
     for carrier in surface.version_carriers:
@@ -132,7 +126,6 @@ def patterns_for(surface: SurfaceSpec) -> tuple[TextPattern, ...]:
                 claim_type="call_version",
                 fixed=False,
                 subject_mode=VERSION,
-                skip_manifests=False,
                 slot=carrier.slot,
             )
         )
@@ -146,27 +139,33 @@ def patterns_for(surface: SurfaceSpec) -> tuple[TextPattern, ...]:
                     claim_type="request_text",
                     fixed=False,
                     subject_mode=LANGUAGE,
-                    skip_manifests=False,
                 )
             )
     return tuple(sorted(patterns, key=lambda item: (item.kind, item.name, item.pattern)))
 
 
-def scan(
-    closure: SourceClosure, surface: SurfaceSpec, ctx: ObserverContext
-) -> list[dict[str, Any]]:
+def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
     ripgrep_version()
     patterns = [
-        (pattern, None if pattern.fixed else _compile(pattern)) for pattern in patterns_for(surface)
+        (pattern, None if pattern.fixed else _compile(pattern))
+        for pattern in patterns_for(ctx.surface)
     ]
     scannable = {entry.path: entry for entry in closure.scannable()}
+    enumerated = {entry.path for entry in closure.entries}
     records: dict[str, dict[str, Any]] = {}
     undecodable: set[str] = set()
 
     for hit in _search(closure.root, [pattern for pattern, _ in patterns]):
         entry = scannable.get(hit.path)
         if entry is None:
-            continue
+            if hit.path in enumerated:
+                continue
+            raise ToolingFailed(
+                RIPGREP,
+                f"{hit.path}:{hit.line_number} matched a surface pattern but the source closure "
+                "never enumerated that path; the scan stops rather than dropping an observation "
+                "the closure cannot account for",
+            )
         if hit.line_text is None:
             undecodable.add(hit.path)
             continue
@@ -176,8 +175,6 @@ def scan(
             if not matches:
                 continue
             attributed += 1
-            if pattern.skip_manifests and is_manifest(hit.path):
-                continue
             for subject in _subjects(pattern, regex, hit.line_text):
                 value: dict[str, Any] = {
                     "pattern": pattern.name,

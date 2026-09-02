@@ -109,10 +109,11 @@ def scan_repository(target: Path, pack: registry.LoadedPack) -> ScanResult:
         proof_scope_hash=scope_hash,
         repo_sha=closure.repo_sha,
         dependency_context_hash=resolution.resolution_hash(),
+        surface=pack.surface,
     )
     records = [
-        *text.scan(closure, pack.surface, ctx),
-        *deps.scan(closure, pack.surface, ctx, resolution),
+        *text.scan(closure, ctx),
+        *deps.scan(closure, ctx, resolution),
     ]
     book = ledger.build(
         provider=pack.name,

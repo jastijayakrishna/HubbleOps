@@ -1,9 +1,33 @@
 {
   "candidates": [
     {
+      "claim_type": "package_reference",
+      "location": "composer.json:4",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "package_reference",
+      "location": "composer.json:4",
+      "provider_subject": "googleads/google-ads-php",
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "sdk_installed",
       "location": "composer.json:4",
       "provider_subject": "googleads/google-ads-php",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "composer.json:4",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "composer.json:4",
+      "provider_subject": "googleads",
       "status": "UNKNOWN"
     },
     {
@@ -60,9 +84,9 @@
     "excluded_with_evidence": 5,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 9,
+    "total": 13,
     "unexplained": 0,
-    "unknown": 3
+    "unknown": 7
   },
   "fixture": "vendored_sdk",
   "pack": "google_ads"

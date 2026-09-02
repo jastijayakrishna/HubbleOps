@@ -95,4 +95,37 @@ a frozen schema and let the two drift. Validating the nested ProofScope in a spe
 
 ---
 
-*(no open proposals)*
+## P-003 — `SurfaceSpec` defined in `core/surface.py`, re-exported by `packs/_protocol.py`
+
+| | |
+|---|---|
+| **Raised** | 2026-09-02, Phase 1 gate |
+| **Touches** | `ProviderPack` and its sub-protocols (`docs/ARCHITECTURE.md` §3.1) |
+| **Status** | OPEN |
+
+**What forced this.** Phase 1's DoD item 2 says `packs/_protocol.py` *defines* `SurfaceSpec`.
+`observe/text.py` and `observe/deps.py` name that type in their signatures, and law L5 forbids a
+generic layer from importing `packs/`. Defining the dataclass in `packs/_protocol.py` and importing
+it from `observe/` would break L5 on the first observer; there is no third position that satisfies
+both sentences.
+
+**Proposed change.** The dataclass lives in `hubbleops/core/surface.py`. `packs/_protocol.py`
+re-exports it unchanged and remains the pack-facing name, alongside the `ProviderPack` Protocol.
+Field set, serialization and `surface_hash()` are exactly as DoD 2 lists them; only the definition
+site moves.
+
+**Blast radius.** Import sites only. No field, no hash input and no wire format changes, so
+`surface_hash()` and every ProofScope built from it are unaffected. `packs/_protocol.py` keeps
+exporting the name, so a pack author sees no difference. No existing Receipts.
+
+**Alternatives rejected, and why.** Duplicating the dataclass in both places lets the two drift and
+gives two different `surface_hash()` implementations. Passing the surface into `observe/` as an
+untyped mapping removes the L5 problem by removing the type, which is worse: the observers would
+lose static checking of the one input that decides recall.
+
+**Decision.** Pending — needs the repository owner. The code has shipped this way since Phase 1
+implementation; a REJECTED decision means moving the definition and re-running the Phase 1 gate.
+
+---
+
+*(P-003 open)*

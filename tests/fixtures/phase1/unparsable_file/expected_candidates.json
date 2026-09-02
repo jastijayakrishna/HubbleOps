@@ -7,6 +7,30 @@
       "status": "UNKNOWN"
     },
     {
+      "claim_type": "package_reference",
+      "location": "composer.json:4",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "package_reference",
+      "location": "composer.json:4",
+      "provider_subject": "googleads/google-ads-php",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "composer.json:4",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "composer.json:4",
+      "provider_subject": "googleads",
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "file_unscanned",
       "location": "data/payload.bin",
       "provider_subject": null,
@@ -24,9 +48,9 @@
     "excluded_with_evidence": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 3,
+    "total": 7,
     "unexplained": 0,
-    "unknown": 3
+    "unknown": 7
   },
   "fixture": "unparsable_file",
   "pack": "google_ads"

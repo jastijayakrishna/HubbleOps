@@ -15,7 +15,6 @@ from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.evidence import make_evidence
 from hubbleops.core.observer import ObserverContext
 from hubbleops.core.records import as_mapping, as_sequence, as_text, is_mapping
-from hubbleops.core.surface import SurfaceSpec
 
 NAME = "deps"
 
@@ -247,13 +246,12 @@ def resolve(closure: SourceClosure) -> DependencyResolution:
 
 def scan(
     closure: SourceClosure,
-    surface: SurfaceSpec,
     ctx: ObserverContext,
     resolution: DependencyResolution | None = None,
 ) -> list[dict[str, Any]]:
     state = resolution if resolution is not None else resolve(closure)
     blobs = {entry.path: entry.blob_sha for entry in closure.entries}
-    targets = {normalize_package(name): name for name in surface.package_names}
+    targets = {normalize_package(name): name for name in ctx.surface.package_names}
     records: list[dict[str, Any]] = []
     matched_ecosystems: set[str] = set()
 

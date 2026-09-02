@@ -9,14 +9,6 @@ from hubbleops.core.observer import ObserverContext
 from hubbleops.core.surface import SurfaceSpec
 from hubbleops.observe import deps
 
-CTX = ObserverContext(
-    provider="p",
-    run_id=content_id({"run": 1}),
-    proof_scope_hash=content_id({"scope": 1}),
-    repo_sha=None,
-    dependency_context_hash=None,
-)
-
 SURFACE = SurfaceSpec.from_mapping(
     {
         "name": "p",
@@ -37,6 +29,15 @@ SURFACE = SurfaceSpec.from_mapping(
     }
 )
 
+CTX = ObserverContext(
+    provider="p",
+    run_id=content_id({"run": 1}),
+    proof_scope_hash=content_id({"scope": 1}),
+    repo_sha=None,
+    dependency_context_hash=None,
+    surface=SURFACE,
+)
+
 
 def write(root: Path, files: dict[str, str]) -> source_closure.SourceClosure:
     for relative, content in files.items():
@@ -52,7 +53,7 @@ def resolved(root: Path, files: dict[str, str]) -> dict[str, str | None]:
 
 
 def claims(closure: source_closure.SourceClosure) -> list[dict[str, Any]]:
-    return deps.scan(closure, SURFACE, CTX)
+    return deps.scan(closure, CTX)
 
 
 def test_requirements_pins_and_ranges(tmp_path: Path) -> None:
