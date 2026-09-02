@@ -50,7 +50,7 @@ Distribution and import name `hubbleops`; sensor package `hubbleops-sentinel`. C
 - Fix root causes; never suppress errors, weaken tests, or fake data to pass a check.
 - Evidence over assertion: paste the command and its output for every "done". Never claim a test passed unless you ran it.
 - Determinism: same inputs → byte-identical outputs. Sort, stamp, seed; add a test.
-- Update dev/context.md and dev/tasks.md before ending a session.
+- Update dev/context.md and dev/tasks.md before ending a session; a Stop hook blocks completion if you changed anything and did not. Before a phase closes, move every answered OPEN QUESTION from dev/plan.md into the decisions section of dev/context.md — the next phase overwrites dev/plan.md, and a fresh session inherits nothing but these files.
 
 ## Repo map
 app/ (pack registry + cli)  core/  closure/  observe/  graph/  obligations/  sandbox/  repair/  verify/  proof/  store/  packs/{_protocol.py,_mock,google_ads}  packages/hubbleops-sentinel/  tests/{unit,property,fixtures,adversarial,heldout,integration}  docs/  dev/
