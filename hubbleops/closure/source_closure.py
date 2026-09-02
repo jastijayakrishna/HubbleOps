@@ -168,6 +168,7 @@ class FileProbe:
     size: int | None
     binary: bool
     io_error: str | None
+    head: bytes
 
 
 def build(root: Path) -> SourceClosure:
@@ -198,12 +199,12 @@ def _walk(root: Path, submodules: frozenset[str]) -> Iterator[ClosureEntry]:
             if relative in CONTROL_DIRECTORIES or name in CONTROL_DIRECTORIES:
                 continue
             if child.is_symlink():
-                target = _symlink_target(child)
-                if target is None or not _inside(root, target):
+                escape = _symlink_escape(root, child, "directory ")
+                if escape is not None:
                     yield ClosureEntry(
                         path=relative,
                         classification=Classification.EXTERNAL_BOUNDARY,
-                        reason="directory symlink leaving the closure root; not followed",
+                        reason=escape,
                         blob_sha=None,
                         size=None,
                     )
@@ -227,12 +228,12 @@ def _classify(root: Path, path: Path, relative: str, submodules: frozenset[str])
             size=probe.size,
         )
     if path.is_symlink():
-        target = _symlink_target(path)
-        if target is None or not _inside(root, target):
+        escape = _symlink_escape(root, path, "")
+        if escape is not None:
             return ClosureEntry(
                 path=relative,
                 classification=Classification.EXTERNAL_BOUNDARY,
-                reason="symlink leaving the closure root; not followed",
+                reason=escape,
                 blob_sha=None,
                 size=None,
             )
@@ -279,7 +280,7 @@ def _classify(root: Path, path: Path, relative: str, submodules: frozenset[str])
             blob_sha=probe.blob_sha,
             size=probe.size,
         )
-    generated = _generated_reason(parts, relative, path)
+    generated = _generated_reason(parts, relative, probe.head)
     if generated is not None:
         return ClosureEntry(
             path=relative,
@@ -297,25 +298,20 @@ def _classify(root: Path, path: Path, relative: str, submodules: frozenset[str])
     )
 
 
-def _generated_reason(parts: list[str], relative: str, path: Path) -> str | None:
+def _generated_reason(parts: list[str], relative: str, head: bytes) -> str | None:
     directory = next((part for part in parts[:-1] if part in GENERATED_DIRECTORIES), None)
     if directory is not None:
         return f"generated output under {directory}/"
     for suffix in GENERATED_SUFFIXES:
         if relative.endswith(suffix):
             return f"generated file suffix {suffix}"
-    marker = _generated_marker(path)
+    marker = _generated_marker(head)
     if marker is not None:
         return f"generated-code marker {marker!r} in the file header"
     return None
 
 
-def _generated_marker(path: Path) -> str | None:
-    try:
-        with open(path, "rb") as handle:
-            head = handle.read(SNIFF_BYTES)
-    except OSError:
-        return None
+def _generated_marker(head: bytes) -> str | None:
     for marker in GENERATED_MARKERS:
         if marker in head:
             return marker.decode("ascii")
@@ -326,6 +322,7 @@ def _probe(path: Path) -> FileProbe:
     digest = hashlib.sha256()
     total = 0
     binary = False
+    head = b""
     first = True
     try:
         with open(path, "rb") as handle:
@@ -334,13 +331,14 @@ def _probe(path: Path) -> FileProbe:
                 if not chunk:
                     break
                 if first:
-                    binary = b"\x00" in chunk[:SNIFF_BYTES]
+                    head = chunk[:SNIFF_BYTES]
+                    binary = b"\x00" in head
                     first = False
                 digest.update(chunk)
                 total += len(chunk)
     except OSError as error:
-        return FileProbe(None, None, False, f"{type(error).__name__}: {error}")
-    return FileProbe(digest.hexdigest(), total, binary, None)
+        return FileProbe(None, None, False, f"{type(error).__name__}: {error}", b"")
+    return FileProbe(digest.hexdigest(), total, binary, None, head)
 
 
 def _relative(root: Path, path: Path) -> str:
@@ -351,11 +349,17 @@ def _inside(root: Path, target: Path) -> bool:
     return target == root or root in target.parents
 
 
-def _symlink_target(path: Path) -> Path | None:
+def _symlink_escape(root: Path, path: Path, prefix: str) -> str | None:
     try:
-        return path.resolve(strict=False)
-    except OSError:
+        target = path.resolve(strict=False)
+    except OSError as error:
+        return (
+            f"{prefix}symlink whose target could not be resolved "
+            f"({type(error).__name__}); not followed"
+        )
+    if _inside(root, target):
         return None
+    return f"{prefix}symlink leaving the closure root; not followed"
 
 
 def _under_submodule(relative: str, submodules: frozenset[str]) -> bool:
