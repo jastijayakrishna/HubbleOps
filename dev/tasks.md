@@ -5,9 +5,13 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
-- [ ] Fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
+- [ ] Re-run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
+- [ ] Write the decision line on **P-003** in [dev/proposals.md](proposals.md) (`SurfaceSpec`
+      definition site) — it is the one open proposal
 - [ ] On `GATE: PASS`: merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1`
 - [ ] Install `ast-grep` before Phase 3; rootless docker/podman before Phase 4
+- [x] Fix the first gate audit's findings: recall over manifests, L3 enforcement, and eight
+      non-blocking items
 - [x] Supply `docs/ARCHITECTURE.md` — the frozen build document
 - [x] `git init` this directory
 - [x] Install toolchain: `uv`, `ruff`, `pyright`, `rg`
@@ -15,7 +19,8 @@ Updated before every session ends. Phase-level status lives in
 
 ## Phase gates
 
-- [x] Phase 1 — scan + exposure + ledger *(implemented and green; gate audit not yet run)*
+- [x] Phase 1 — scan + exposure + ledger *(implemented and green; first gate audit returned
+      `GATE: FAIL`, every finding fixed, re-run pending)*
 - [ ] Phase 2 — Google Ads pack + Change Pack *(first real-repo loop after this gate)*
 - [ ] Phase 3 — wrapper engine
 - [ ] Phase 4 — dynamic capture + sentinel

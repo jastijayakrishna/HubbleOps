@@ -9,12 +9,17 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
 | **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none |
-| **Next action** | fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md); on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
+| **Last gate passed** | none — the first Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) returned `GATE: FAIL` on two blocking findings; both are fixed, along with the eight non-blocking ones |
+| **Next action** | fresh-session gate audit re-run; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
 deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all six fixtures.
-146 tests pass; `ruff check` and `pyright` (strict) are clean.
+159 tests pass; `ruff check`, `ruff format --check` and `pyright` (strict) are clean.
+
+The first gate audit found the text observer proving absence over a tree ripgrep had matched, and
+law L3 with no mechanism at all. Both are now enforced in code and covered by tests; the fixture
+expectations grew because the recall layer stopped dropping manifest hits. Fixture candidate counts
+are 13 / 9 / 13 / 12 / 7 / 13, all still fully explained.
 
 ## Blocking
 
@@ -22,6 +27,8 @@ deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all s
 - `docker`/`podman` not installed — Phase 4 needs them.
 - `rg` was not on this machine at the start of Phase 1; the official 14.1.1 binary is now at
   `~/.local/bin/rg.exe`. The scan refuses to run without it (`TOOLING_MISSING`), by design.
+- `pyright` is a dev dependency and pinned in `uv.lock` (1.1.411). It used to run only from a
+  machine-global install, so "pyright is clean" was not a reproducible claim.
 
 ## Decisions that carry forward
 
@@ -36,7 +43,16 @@ deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all s
 - `SurfaceSpec` is **defined in `core/surface.py`** and re-exported by `packs/_protocol.py`.
   DoD 2 asks for it in `_protocol.py`, but law L5 forbids `observe/` from importing `packs/`, and
   `observe/text.py` must name the type in its signature. The law wins; `_protocol.py` stays the
-  pack-facing name and holds the `ProviderPack` Protocol.
+  pack-facing name and holds the `ProviderPack` Protocol. Recorded as **P-003** in
+  `dev/proposals.md`, still awaiting the owner's decision line.
+- An observer's signature is `scan(closure, ctx)` and the surface reaches it on
+  `ObserverContext.surface`. DoD 4 and 5 write it as `scan(closure, surface)`; frozen
+  `ARCHITECTURE.md` §3.2 writes it as `scan(self, closure, ctx)` with "ObserverContext carries only
+  pack-provided parts (surface, rules, hooks) and run metadata". The frozen interface wins — it is
+  the document `CLAUDE.md` says overrides — and the DoD's requirement that the pack's surface be
+  what an observer scans against is satisfied either way. Phase 3's structure observer and Phase 4's
+  dynamic and telemetry observers take the same two arguments; rules and hooks join `surface` on the
+  context rather than growing the parameter list.
 
 **Data model (Phase 1, all inside the frozen schemas).**
 - `Evidence.observer` is the closed six-value §3.2 set. `closure/` is not an observer: it classifies
@@ -84,9 +100,23 @@ deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all s
   the version. A line ripgrep reports that no pattern claims raises `ToolingFailed` rather than being
   dropped. This is ~40× faster than one invocation per pattern and was verified to produce
   byte-identical ledgers across all 12 pack × fixture combinations.
-- The text observer skips identifier and package patterns inside recognised manifests: the
-  dependency observer owns those files, and overlapping recall hits produced contradictory
-  candidates at the same line.
+- The text observer drops nothing. An earlier build skipped identifier and package patterns inside
+  recognised manifests to stop the dependency observer and the recall layer producing two candidates
+  at one line; the Phase 1 gate audit showed that this let a `package.json` naming the surface
+  package in a script string be reported `NOT_AFFECTED_WITH_EVIDENCE` off the lock alone — a proof
+  of absence over a tree ripgrep had already matched. Recall wins: every hit becomes evidence, and
+  the two claims stay separate because they answer different questions. `_package_reference` in the
+  resolver says which of the two a manifest location is, so its `close_with` points at the lock file
+  rather than at a build script.
+- `store/sqlite.py` is where the laws are mechanically enforced on the way to disk, not only in the
+  builder that happens to call it today: an open candidate (`UNKNOWN`, `HUMAN_REQUIRED`) closes only
+  when the write attaches an evidence id the stored row did not have (L3); no write may drop an
+  attached evidence id (L1, and it is what stops L3 being bypassed by shrinking the set first); a
+  record's `proof_scope_hash` must equal its run's (L4); `candidates.status` carries a SQL `CHECK`
+  over the frozen enum so raw SQL cannot write a sixth status; and `PRAGMA user_version` is stamped,
+  so a database written before these constraints existed is refused instead of silently trusted.
+  Phase 7's `hops decide` closes an UNKNOWN by recording the decision as evidence and attaching it —
+  that is the "recorded human decision" half of L3, and it needs no new closing mechanism.
 
 ## Open threads
 
