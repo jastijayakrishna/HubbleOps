@@ -126,10 +126,14 @@ def _plain_block(ledger: Ledger, candidates: Sequence[Mapping[str, Any]]) -> lis
 
 
 def _headline(location: str, reason: str) -> list[str]:
-    padded = location.ljust(LOCATION_WIDTH)
     body = textwrap.wrap(reason, width=BODY_WIDTH - LOCATION_WIDTH - 2) or [""]
-    lines = [f"  {padded}{body[0]}"]
-    for extra in body[1:]:
+    if len(location) > LOCATION_WIDTH:
+        lines = [f"  {location}"]
+        remaining = body
+    else:
+        lines = [f"  {location.ljust(LOCATION_WIDTH)}{body[0]}"]
+        remaining = body[1:]
+    for extra in remaining:
         lines.append(f"  {' ' * LOCATION_WIDTH}{extra}")
     return lines
 
