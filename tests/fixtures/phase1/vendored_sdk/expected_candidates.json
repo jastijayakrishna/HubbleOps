@@ -1,0 +1,69 @@
+{
+  "candidates": [
+    {
+      "claim_type": "sdk_installed",
+      "location": "composer.json:4",
+      "provider_subject": "googleads/google-ads-php",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "call_version",
+      "location": "src/App.php:5",
+      "provider_subject": "V22",
+      "status": "AFFECTED"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "src/App.php:5",
+      "provider_subject": "GoogleAdsService",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "src/App.php:9",
+      "provider_subject": "GoogleAdsService",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "call_version",
+      "location": "vendor/googleads/google-ads-php/src/V22/GoogleAdsClient.php:3",
+      "provider_subject": "V22",
+      "status": "EXCLUDED_WITH_EVIDENCE"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "vendor/googleads/google-ads-php/src/V22/GoogleAdsClient.php:5",
+      "provider_subject": "GoogleAdsClient",
+      "status": "EXCLUDED_WITH_EVIDENCE"
+    },
+    {
+      "claim_type": "call_version",
+      "location": "vendor/googleads/google-ads-php/src/V22/GoogleAdsClient.php:7",
+      "provider_subject": "v22",
+      "status": "EXCLUDED_WITH_EVIDENCE"
+    },
+    {
+      "claim_type": "endpoint_reference",
+      "location": "vendor/googleads/google-ads-php/src/V22/GoogleAdsClient.php:7",
+      "provider_subject": "googleads.googleapis.com",
+      "status": "EXCLUDED_WITH_EVIDENCE"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "vendor/googleads/google-ads-php/src/V22/GoogleAdsClient.php:7",
+      "provider_subject": "googleads",
+      "status": "EXCLUDED_WITH_EVIDENCE"
+    }
+  ],
+  "counts": {
+    "affected": 1,
+    "excluded_with_evidence": 5,
+    "human_required": 0,
+    "not_affected_with_evidence": 0,
+    "total": 9,
+    "unexplained": 0,
+    "unknown": 3
+  },
+  "fixture": "vendored_sdk",
+  "pack": "google_ads"
+}

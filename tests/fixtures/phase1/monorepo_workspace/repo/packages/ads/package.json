@@ -1,0 +1,7 @@
+{
+  "name": "@acme/ads",
+  "version": "0.3.0",
+  "dependencies": {
+    "google-ads-api": "17.1.0"
+  }
+}

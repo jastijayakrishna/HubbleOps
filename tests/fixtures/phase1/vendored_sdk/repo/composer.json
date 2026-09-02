@@ -1,0 +1,6 @@
+{
+  "name": "acme/legacy-ads",
+  "require": {
+    "googleads/google-ads-php": "^22.0"
+  }
+}

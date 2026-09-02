@@ -1,0 +1,51 @@
+{
+  "candidates": [
+    {
+      "claim_type": "sdk_installed",
+      "location": "packages/ads/package.json:5",
+      "provider_subject": "google-ads-api",
+      "status": "AFFECTED"
+    },
+    {
+      "claim_type": "package_reference",
+      "location": "packages/ads/src/index.js:1",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "package_reference",
+      "location": "packages/ads/src/index.js:1",
+      "provider_subject": "google-ads-api",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "packages/ads/src/index.js:1",
+      "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "call_version",
+      "location": "packages/ads/src/index.js:3",
+      "provider_subject": "v22",
+      "status": "AFFECTED"
+    },
+    {
+      "claim_type": "sdk_installed",
+      "location": "services/etl/poetry.lock",
+      "provider_subject": null,
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    }
+  ],
+  "counts": {
+    "affected": 2,
+    "excluded_with_evidence": 0,
+    "human_required": 0,
+    "not_affected_with_evidence": 1,
+    "total": 6,
+    "unexplained": 0,
+    "unknown": 3
+  },
+  "fixture": "monorepo_workspace",
+  "pack": "google_ads"
+}

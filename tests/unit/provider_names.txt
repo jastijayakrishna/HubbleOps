@@ -1,0 +1,6 @@
+google
+googleads
+google_ads
+GoogleAds
+gaql
+ads_api

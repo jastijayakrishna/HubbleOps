@@ -1,0 +1,33 @@
+{
+  "candidates": [
+    {
+      "claim_type": "dependency_state",
+      "location": "composer.json",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "file_unscanned",
+      "location": "data/payload.bin",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "surface_reference",
+      "location": "src/app.py:1",
+      "provider_subject": "googleads",
+      "status": "UNKNOWN"
+    }
+  ],
+  "counts": {
+    "affected": 0,
+    "excluded_with_evidence": 0,
+    "human_required": 0,
+    "not_affected_with_evidence": 0,
+    "total": 3,
+    "unexplained": 0,
+    "unknown": 3
+  },
+  "fixture": "unparsable_file",
+  "pack": "google_ads"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "acme/broken",
+  "require": {
+    "googleads/google-ads-php": "22.1.0",
+  }
+}

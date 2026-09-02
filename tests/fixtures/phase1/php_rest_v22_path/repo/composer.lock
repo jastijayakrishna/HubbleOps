@@ -1,0 +1,15 @@
+{
+  "_readme": ["This file locks the dependencies of your project to a known state"],
+  "content-hash": "0f4a1c2b3d4e5f60718293a4b5c6d7e8",
+  "packages": [
+    {
+      "name": "googleads/google-ads-php",
+      "version": "22.1.0"
+    },
+    {
+      "name": "guzzlehttp/guzzle",
+      "version": "7.8.1"
+    }
+  ],
+  "packages-dev": []
+}

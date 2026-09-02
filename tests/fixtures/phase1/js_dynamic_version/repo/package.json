@@ -1,0 +1,8 @@
+{
+  "name": "ads-worker",
+  "version": "1.0.0",
+  "dependencies": {
+    "google-ads-api": "17.1.0",
+    "pino": "9.4.0"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "@acme/web",
+  "version": "0.3.0",
+  "dependencies": {
+    "pino": "9.4.0"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "acme/ads-sync",
+  "require": {
+    "googleads/google-ads-php": "22.1.0",
+    "guzzlehttp/guzzle": "^7.8"
+  }
+}
