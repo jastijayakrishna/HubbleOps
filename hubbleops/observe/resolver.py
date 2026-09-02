@@ -224,8 +224,9 @@ def _dependency_state(
         return Resolution(
             status="UNKNOWN",
             reason=(
-                "no dependency manifest or lock file was found in the source closure, so the "
-                "installed package set is unknown; a missing manifest is not evidence of absence"
+                "DEPENDENCY_STATE_UNKNOWN: no dependency manifest or lock file was found in the "
+                "source closure, so the installed package set is unknown; a missing manifest is "
+                "not evidence of absence"
             ),
             close_with=(
                 "add the dependency manifest or lock file the build actually uses, or record "
@@ -239,8 +240,8 @@ def _dependency_state(
         return Resolution(
             status="UNKNOWN",
             reason=(
-                f"{ecosystem} declares dependencies in {manifests} but ships no lock file, so "
-                "the absence of a surface package cannot be proven"
+                f"DEPENDENCY_STATE_UNKNOWN: {ecosystem} declares dependencies in {manifests} but "
+                "ships no lock file, so the absence of a surface package cannot be proven"
             ),
             close_with=(
                 f"commit a {ecosystem} lock file so absence can be resolved, or record the "
@@ -252,7 +253,10 @@ def _dependency_state(
     detail = value.get("detail")
     return Resolution(
         status="UNKNOWN",
-        reason=f"{chosen['path']} could not be parsed as a {ecosystem} manifest: {detail}",
+        reason=(
+            f"DEPENDENCY_STATE_UNKNOWN: {chosen['path']} could not be parsed as a {ecosystem} "
+            f"manifest: {detail}"
+        ),
         close_with=(
             f"repair or replace {chosen['path']} so the dependency state resolves, or record "
             "the installed provider SDK with `hops decide <candidate_id> --value <version> "
