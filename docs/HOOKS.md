@@ -33,6 +33,13 @@ The last two conditions are also covered by `tests/unit/test_imports.py` and
 `tests/unit/test_no_provider_leak.py`. The hook catches them at write time; the tests catch them at
 gate time. Keep both — the hook is fast feedback, the tests are the proof.
 
+## PreToolUse (Bash) — reject the command
+
+| Condition | Law it enforces |
+|---|---|
+| `git add -A`, `git add .`, `git add --all`, `git commit -a` | Push only what the project needs — stage explicit paths |
+| a commit message containing `Co-Authored-By`, `Generated with Claude Code`, or an emoji footer | No AI attribution |
+
 ## PostToolUse (Write) — on changed files only
 
 ```
