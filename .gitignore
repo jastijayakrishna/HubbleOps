@@ -21,6 +21,9 @@ artifacts/
 *.sqlite-wal
 *.sqlite-shm
 packs/*/data/sources/cache/
+*.log
+receipts/
+captures/
 
 # NOTE: .hubbleops/ is deliberately NOT ignored. surface.yml, bindings.json,
 # decisions.yml and retired.yml are committed with provenance (Phase 7).
