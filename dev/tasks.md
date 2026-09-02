@@ -5,14 +5,17 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
-- [ ] Supply `docs/ARCHITECTURE.md` — the frozen build document (§1–§9, §16–§19, Memory/Wrapper)
-- [ ] `git init` this directory (currently tracked, unintentionally, by the home-directory repo)
-- [ ] Install toolchain: `uv`, `ruff`, `pyright`, `rg`, `ast-grep`, rootless docker/podman
-- [ ] Activate `.claude/settings.json` per [docs/HOOKS.md](../docs/HOOKS.md) — at the start of Phase 1
+- [ ] Fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
+- [ ] On `GATE: PASS`: merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1`
+- [ ] Install `ast-grep` before Phase 3; rootless docker/podman before Phase 4
+- [x] Supply `docs/ARCHITECTURE.md` — the frozen build document
+- [x] `git init` this directory
+- [x] Install toolchain: `uv`, `ruff`, `pyright`, `rg`
+- [x] Activate `.claude/settings.json` per [docs/HOOKS.md](../docs/HOOKS.md)
 
 ## Phase gates
 
-- [ ] Phase 1 — scan + exposure + ledger
+- [x] Phase 1 — scan + exposure + ledger *(implemented and green; gate audit not yet run)*
 - [ ] Phase 2 — Google Ads pack + Change Pack *(first real-repo loop after this gate)*
 - [ ] Phase 3 — wrapper engine
 - [ ] Phase 4 — dynamic capture + sentinel
@@ -33,4 +36,5 @@ loop (from Phase 2).
 
 ## Blocked / parked
 
-*(with the reason and what would unblock it)*
+- Telemetry and production-services accounting in the Exposure Map print "not in this ProofScope"
+  until Phase 4 supplies a `TelemetryAdapter`; the `Target` line waits on the Phase 2 Change Pack.
