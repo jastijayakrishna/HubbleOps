@@ -9,9 +9,11 @@ import pytest
 from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.errors import (
+    EvidenceNotFound,
     ProofScopeMismatch,
     ProvenanceDropped,
     StoreSchemaMismatch,
+    UnexplainedCandidates,
     UnknownNotConserved,
 )
 from hubbleops.core.evidence import make_evidence
@@ -113,13 +115,17 @@ def test_rerunning_an_identical_scan_is_idempotent(tmp_path: Path) -> None:
     store, same_run, _ = seeded(tmp_path)
     assert same_run == run_id
     assert len(store.evidence_for(run_id)) == 1
-    assert len(store.run(run_id).proof_scope) == 10
+    stored = store.run(run_id)
+    assert stored is not None
+    assert len(stored.proof_scope) == 10
     store.close()
 
 
 def test_the_latest_run_is_findable_by_pack(tmp_path: Path) -> None:
     store, run_id, _ = seeded(tmp_path)
-    assert store.latest_run("p").run_id == run_id
+    latest = store.latest_run("p")
+    assert latest is not None
+    assert latest.run_id == run_id
     assert store.latest_run("other") is None
     store.close()
 
@@ -279,3 +285,60 @@ def test_a_database_written_by_another_store_schema_is_refused(tmp_path: Path) -
     store.close()
     with pytest.raises(StoreSchemaMismatch):
         Store(tmp_path)
+
+
+def test_an_unknown_never_closes_on_an_evidence_id_the_run_never_wrote(tmp_path: Path) -> None:
+    store, run_id, scope_hash = seeded(tmp_path)
+    held = store.evidence_for(run_id)[0]["id"]
+    store.write_candidates(
+        [
+            open_candidate(
+                run_id,
+                scope_hash,
+                [held],
+                "UNKNOWN",
+                "capture the executed call, or record it with `hops decide`",
+            )
+        ]
+    )
+
+    closing = make_candidate(
+        candidate_id=candidate_identity("p", "call_version", "src/open.py:1"),
+        run_id=run_id,
+        proof_scope_hash=scope_hash,
+        provider="p",
+        evidence_ids=[held, "f" * 64],
+        status="AFFECTED",
+        reason="closed by an id that references nothing",
+        close_with=None,
+    )
+    with pytest.raises(EvidenceNotFound):
+        store.write_candidates([closing])
+    assert held_status(store, run_id, candidate_identity("p", "call_version", "src/open.py:1")) == (
+        "UNKNOWN"
+    )
+    store.close()
+
+
+def test_a_run_cannot_finish_while_evidence_is_attached_to_no_candidate(tmp_path: Path) -> None:
+    store, run_id, scope_hash = seeded(tmp_path)
+    orphan = make_evidence(
+        run_id=run_id,
+        proof_scope_hash=scope_hash,
+        claim_type="file_unscanned",
+        observer="text",
+        repo_sha=None,
+        path="ghost.bin",
+        line_start=None,
+        line_end=None,
+        source_hash=EMPTY_SHA256,
+        value={"reason": "binary_opaque"},
+        provider_subject=None,
+        dependency_context_hash=None,
+        derivation="OBSERVED",
+        confidence="RAW",
+    )
+    store.write_evidence([orphan])
+    with pytest.raises(UnexplainedCandidates):
+        store.finish_run(run_id, "2026-01-01T00:01:00+00:00")
+    store.close()

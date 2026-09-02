@@ -51,6 +51,7 @@ class UnexplainedCandidates(HubbleOpsError):
     def __init__(self, count: int, detail: str) -> None:
         super().__init__(f"UNEXPLAINED_CANDIDATES={count} (law L1): {detail}")
         self.count = count
+        self.detail = detail
 
 
 class UnknownNotConserved(HubbleOpsError):
@@ -64,6 +65,18 @@ class UnknownNotConserved(HubbleOpsError):
         self.candidate_id = candidate_id
         self.was = was
         self.now = now
+
+
+class EvidenceNotFound(HubbleOpsError):
+    def __init__(self, candidate_id: str, missing: tuple[str, ...]) -> None:
+        super().__init__(
+            f"EVIDENCE_NOT_FOUND (law L1): candidate {candidate_id} attaches {len(missing)} "
+            f"evidence id(s) this run never persisted, starting with {missing[0]}. A candidate "
+            "cites evidence that exists; an id that references nothing is not provenance and "
+            "cannot carry a status or close an UNKNOWN."
+        )
+        self.candidate_id = candidate_id
+        self.missing = missing
 
 
 class ProvenanceDropped(HubbleOpsError):

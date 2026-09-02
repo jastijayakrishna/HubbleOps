@@ -11,9 +11,11 @@ from typing import Any
 from hubbleops.core.candidate import OPEN_STATUSES, STATUSES
 from hubbleops.core.canonical import canonical_text
 from hubbleops.core.errors import (
+    EvidenceNotFound,
     ProofScopeMismatch,
     ProvenanceDropped,
     StoreSchemaMismatch,
+    UnexplainedCandidates,
     UnknownNotConserved,
 )
 from hubbleops.core.schema import validate
@@ -202,6 +204,7 @@ class Store:
         self.connection.commit()
 
     def finish_run(self, run_id: str, finished_at: str) -> None:
+        self._guard_every_evidence_is_explained(run_id)
         self.connection.execute(
             "UPDATE runs SET finished_at = ? WHERE run_id = ?", (finished_at, run_id)
         )
@@ -226,6 +229,20 @@ class Store:
         if run_scope is not None and run_scope != scope:
             raise ProofScopeMismatch(kind, record_id, run_scope, scope)
 
+    def _guard_evidence_exists(self, record: dict[str, Any]) -> None:
+        cited = sorted({str(eid) for eid in record["evidence_ids"]})
+        if not cited:
+            return
+        placeholders = ", ".join("?" for _ in cited)
+        cursor = self.connection.execute(
+            f"SELECT id FROM evidence WHERE run_id = ? AND id IN ({placeholders})",
+            (record["run_id"], *cited),
+        )
+        stored = {str(row["id"]) for row in cursor.fetchall()}
+        missing = tuple(eid for eid in cited if eid not in stored)
+        if missing:
+            raise EvidenceNotFound(str(record["id"]), missing)
+
     def _guard_candidate_transition(self, record: dict[str, Any]) -> None:
         cursor = self.connection.execute(
             "SELECT record_json FROM candidates WHERE run_id = ? AND id = ?",
@@ -243,6 +260,28 @@ class Store:
             raise ProvenanceDropped(str(record["id"]), tuple(sorted(held - offered)))
         if was in OPEN_STATUSES and now not in OPEN_STATUSES and held == offered:
             raise UnknownNotConserved(str(record["id"]), was, now)
+
+    def _guard_every_evidence_is_explained(self, run_id: str) -> None:
+        cursor = self.connection.execute(
+            """
+            SELECT evidence.id FROM evidence
+            WHERE evidence.run_id = ?
+              AND NOT EXISTS (
+                SELECT 1 FROM candidates, json_each(candidates.record_json, '$.evidence_ids')
+                WHERE candidates.run_id = evidence.run_id
+                  AND json_each.value = evidence.id
+              )
+            ORDER BY evidence.id
+            """,
+            (run_id,),
+        )
+        orphaned = [str(row["id"]) for row in cursor.fetchall()]
+        if orphaned:
+            raise UnexplainedCandidates(
+                len(orphaned),
+                f"run {run_id} persisted evidence attached to no candidate: "
+                f"{', '.join(orphaned[:5])}",
+            )
 
     def write_evidence(self, records: Sequence[dict[str, Any]]) -> None:
         rows: list[tuple[Any, ...]] = []
@@ -290,6 +329,7 @@ class Store:
                 str(record["proof_scope_hash"]),
             )
             self._guard_candidate_transition(record)
+            self._guard_evidence_exists(record)
             rows.append(
                 (
                     record["id"],
