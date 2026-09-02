@@ -32,11 +32,19 @@ REPAIR_FORBIDDEN = (
 )
 COMMENT_EXCEPTIONS = ("# noqa", "# type: ignore", "# pragma: no cover")
 PROTOCOL_FILE = "hubbleops/packs/_protocol.py"
-MARKDOWN_ALWAYS_ALLOWED = ("dev/", "docs/FAILURE_ATLAS.md", ".claude/")
+MARKDOWN_ALWAYS_ALLOWED = ("dev/", "docs/FAILURE_ATLAS.md")
 
 STAGE_ALL = (
     re.compile(r"\bgit\s+add\s+(-A\b|--all\b|\.(\s|$))"),
     re.compile(r"\bgit\s+commit\b[^\n]*\s-[a-zA-Z]*a"),
+)
+
+GUARDED_SUFFIXES = "py|md|json|ya?ml"
+GUARDED_PATH = rf"[^\s'\"|;&><]+\.(?:{GUARDED_SUFFIXES})"
+SHELL_WRITE = (
+    re.compile(rf"(?:^|[^0-9<>&])>>?\s*['\"]?(?P<path>{GUARDED_PATH})\b"),
+    re.compile(rf"\btee\b(?:\s+-\w+)*\s+['\"]?(?P<path>{GUARDED_PATH})\b"),
+    re.compile(rf"\bsed\b[^|;&]*?\s-i[^|;&]*?(?P<path>{GUARDED_PATH})\b"),
 )
 ATTRIBUTION = ("co-authored-by", "generated with claude code", "🤖")
 EMOJI = re.compile("[\U0001f000-\U0001faff☀-➿]")
@@ -108,6 +116,14 @@ def _check_command(command: str) -> int:
             return _block(
                 "Stage explicit paths. Run `git status --short`, then `git add <path>` for each "
                 "file you actually changed."
+            )
+    for pattern in SHELL_WRITE:
+        found = pattern.search(command)
+        if found is not None:
+            return _block(
+                f"{found.group('path')} would be written by the shell, where none of the "
+                "write-side guards run. Use Write or Edit so the frozen-schema, pack-import, "
+                "provider-leak, markdown and comment checks apply to the content."
             )
     lowered = command.lower()
     if "git commit" in lowered or "gh pr" in lowered:
