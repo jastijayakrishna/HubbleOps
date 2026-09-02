@@ -2,5 +2,16 @@ google
 googleads
 google_ads
 GoogleAds
+googleapis
 gaql
 ads_api
+adsapi
+adwords
+developer_token
+developer-token
+login_customer_id
+login-customer-id
+mockprov
+MockProv
+v22
+v25
