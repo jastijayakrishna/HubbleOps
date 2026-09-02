@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tokenize
 from pathlib import Path
+from typing import cast
 
 REPO = Path(__file__).resolve().parent.parent.parent
 PACKAGE = REPO / "hubbleops"
@@ -65,20 +66,25 @@ def main() -> int:
     return 0
 
 
+def _as_dict(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        return {}
+    return {str(key): item for key, item in cast("dict[object, object]", value).items()}
+
+
 def _payload() -> dict[str, object]:
     raw = sys.stdin.read()
     if not raw.strip():
         return {}
     try:
-        loaded = json.loads(raw)
+        loaded: object = json.loads(raw)
     except json.JSONDecodeError:
         return {}
-    return loaded if isinstance(loaded, dict) else {}
+    return _as_dict(loaded)
 
 
 def _tool_input(payload: dict[str, object]) -> dict[str, object]:
-    value = payload.get("tool_input")
-    return value if isinstance(value, dict) else {}
+    return _as_dict(payload.get("tool_input"))
 
 
 def _pre_tool_use(payload: dict[str, object]) -> int:
@@ -103,7 +109,7 @@ def _written_text(tool: str, data: dict[str, object]) -> str:
         edits = data.get("edits")
         if isinstance(edits, list):
             return "\n".join(
-                str(edit.get("new_string", "")) for edit in edits if isinstance(edit, dict)
+                str(_as_dict(edit).get("new_string", "")) for edit in cast("list[object]", edits)
             )
     if tool == "NotebookEdit":
         return str(data.get("new_source", ""))

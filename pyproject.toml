@@ -43,7 +43,8 @@ pythonpath = ["."]
 addopts = "--strict-markers"
 
 [tool.pyright]
-include = ["hubbleops"]
+include = ["hubbleops", "tests", ".claude"]
+exclude = ["**/__pycache__", "**/.venv", "tests/fixtures"]
 venvPath = "."
 venv = ".venv"
 pythonVersion = "3.12"

@@ -56,7 +56,7 @@ def test_the_frozen_claim_tables_are_present_verbatim() -> None:
 
 
 def test_every_claim_type_has_its_own_table() -> None:
-    assert set(resolver.CLAIM_PRECEDENCE) == set(resolver._HANDLERS) | {"production_version"}
+    assert set(resolver.CLAIM_PRECEDENCE) == set(resolver.HANDLERS) | {"production_version"}
 
 
 def test_rank_reads_only_the_table_of_the_claim_it_is_given() -> None:
@@ -82,7 +82,7 @@ def test_every_claim_type_the_observers_emit_has_a_rule(google_pack: Any) -> Non
     emitted = {pattern.claim_type for pattern in patterns_for(google_pack.surface)}
     emitted |= {"sdk_installed", "dependency_state", "file_unscanned", "external_boundary"}
     assert emitted <= set(resolver.CLAIM_PRECEDENCE)
-    assert emitted <= set(resolver._HANDLERS)
+    assert emitted <= set(resolver.HANDLERS)
 
 
 def test_an_unregistered_claim_type_raises_rather_than_defaulting() -> None:

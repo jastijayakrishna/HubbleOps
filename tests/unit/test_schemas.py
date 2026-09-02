@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import pytest
 
@@ -17,7 +18,7 @@ SCOPE_HASH = content_id({"scope": 1})
 REQUIRED_SCHEMAS = ("evidence", "candidate", "obligation", "proof_scope", "receipt")
 
 
-def sample_evidence() -> dict[str, object]:
+def sample_evidence() -> dict[str, Any]:
     return make_evidence(
         run_id=RUN_ID,
         proof_scope_hash=SCOPE_HASH,
@@ -167,7 +168,7 @@ def test_a_receipt_cannot_record_a_non_zero_unexplained_count() -> None:
         dependency_resolution_hash=None,
         scanner_version="test",
     )
-    receipt = {
+    receipt: dict[str, Any] = {
         "proof_scope": scope,
         "candidates_summary": {
             "total": 1,

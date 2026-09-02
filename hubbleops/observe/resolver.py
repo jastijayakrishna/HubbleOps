@@ -98,7 +98,7 @@ def resolve_claim(
     records: Sequence[Mapping[str, Any]],
     classifications: Mapping[str, str],
 ) -> Resolution:
-    handler = _HANDLERS.get(claim_type)
+    handler = HANDLERS.get(claim_type)
     if handler is None:
         raise UnknownClaimType(claim_type)
     chosen = winner(records)
@@ -389,7 +389,7 @@ def _request_text(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]
     )
 
 
-_HANDLERS = {
+HANDLERS = {
     "call_version": _call_version,
     "config_reference": _config_reference,
     "dependency_state": _dependency_state,
