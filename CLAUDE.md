@@ -40,6 +40,9 @@ Distribution and import name `hubbleops`; sensor package `hubbleops-sentinel`. C
 - One commit per logical change. Never bundle unrelated work into one commit; never split a single change across commits that do not each stand on their own.
 - Write commit messages like a person: say what changed, and why if it is not obvious. "Add dependency observer for lockfile formats", "Fix version resolution when the lock file is missing". Never "fix stuff", "update code", "changes", "fix so on".
 - NEVER put `Co-Authored-By: Claude`, "Generated with Claude Code", an emoji footer, or any AI attribution in a commit message, tag, or PR body. Not once, not in any phase.
+- PUSH ONLY WHAT THE PROJECT NEEDS. Stage explicit paths. Never `git add -A`, never `git add .`, never `git commit -a`. Run `git status --short` first and stage the files you actually changed, one by one.
+- Committed: source, schemas, prompts, docs the phases name, tests, fixtures, and pack data that carries a source hash. Plus `.hubbleops/{surface.yml,bindings.json,decisions.yml,retired.yml}`, which Phase 7 commits with provenance.
+- Never committed: run output of any kind — artifacts/, ledgers, receipts, capture events, SQLite files, coverage, logs, sandbox output, worktrees, caches — plus credentials, editor and OS files, scratch, and anything a tool regenerates. If it appears in `git status` and is not part of the change you are making, ignore it or delete it. Never commit a file "just in case".
 
 ## How to work
 - Plan before editing. Write open questions to dev/plan.md and stop; never guess on design-changing questions.
