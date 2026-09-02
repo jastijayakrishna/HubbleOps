@@ -25,7 +25,11 @@ GENERIC_LAYERS = (
 )
 SENTINEL_ROOT = "packages/hubbleops-sentinel/"
 SCHEMA_ROOT = "hubbleops/core/schemas/"
-REPAIR_FORBIDDEN = ("hubbleops/verify/", "hubbleops/sandbox/verifier_image.py", ".hubbleops/decisions.yml")
+REPAIR_FORBIDDEN = (
+    "hubbleops/verify/",
+    "hubbleops/sandbox/verifier_image.py",
+    ".hubbleops/decisions.yml",
+)
 COMMENT_EXCEPTIONS = ("# noqa", "# type: ignore", "# pragma: no cover")
 PROTOCOL_FILE = "hubbleops/packs/_protocol.py"
 MARKDOWN_ALWAYS_ALLOWED = ("dev/", "docs/FAILURE_ATLAS.md", ".claude/")
@@ -90,7 +94,9 @@ def _written_text(tool: str, data: dict[str, object]) -> str:
     if tool == "MultiEdit":
         edits = data.get("edits")
         if isinstance(edits, list):
-            return "\n".join(str(edit.get("new_string", "")) for edit in edits if isinstance(edit, dict))
+            return "\n".join(
+                str(edit.get("new_string", "")) for edit in edits if isinstance(edit, dict)
+            )
     if tool == "NotebookEdit":
         return str(data.get("new_source", ""))
     return ""
@@ -107,7 +113,9 @@ def _check_command(command: str) -> int:
     if "git commit" in lowered or "gh pr" in lowered:
         for marker in ATTRIBUTION:
             if marker in lowered:
-                return _block(f"No AI attribution in commit messages or PR bodies: found {marker!r}.")
+                return _block(
+                    f"No AI attribution in commit messages or PR bodies: found {marker!r}."
+                )
         if EMOJI.search(command):
             return _block("No emoji footer in commit messages or PR bodies.")
     return 0
@@ -131,14 +139,18 @@ def _check_write(target: str, text: str) -> int:
                     "that judges it."
                 )
 
-    if relative.startswith(SENTINEL_ROOT) and re.search(r"\bimport\s+hubbleops\b|\bfrom\s+hubbleops\b", text):
+    if relative.startswith(SENTINEL_ROOT) and re.search(
+        r"\bimport\s+hubbleops\b|\bfrom\s+hubbleops\b", text
+    ):
         return _block(
             "packages/hubbleops-sentinel must never import hubbleops.*; its output is "
             "observational evidence, never a verdict."
         )
 
     if _in_generic_layer(relative):
-        if re.search(r"\bfrom\s+hubbleops\.packs\b|\bimport\s+hubbleops\.packs\b|\bfrom\s+packs\b", text):
+        if re.search(
+            r"\bfrom\s+hubbleops\.packs\b|\bimport\s+hubbleops\.packs\b|\bfrom\s+packs\b", text
+        ):
             return _block(
                 f"{relative} is a generic layer; it receives pack parts as parameters and never "
                 "imports packs/."

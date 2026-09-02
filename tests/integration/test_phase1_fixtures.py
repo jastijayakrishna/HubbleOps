@@ -81,9 +81,7 @@ def test_every_open_candidate_prints_a_closing_instruction(
 def test_a_pinned_dependency_and_an_explicit_literal_are_both_affected(
     google_pack: registry.LoadedPack,
 ) -> None:
-    book = scan_repository(
-        Path("tests/fixtures/phase1/python_pinned_v22/repo"), google_pack
-    ).ledger
+    book = scan_repository(Path("tests/fixtures/phase1/python_pinned_v22/repo"), google_pack).ledger
     affected = {
         (book.location_of(candidate).claim_type, book.location_of(candidate).provider_subject)
         for candidate in book.by_status("AFFECTED")
@@ -93,7 +91,9 @@ def test_a_pinned_dependency_and_an_explicit_literal_are_both_affected(
 
 
 def test_a_runtime_version_key_is_unknown_not_affected(google_pack: registry.LoadedPack) -> None:
-    book = scan_repository(Path("tests/fixtures/phase1/js_dynamic_version/repo"), google_pack).ledger
+    book = scan_repository(
+        Path("tests/fixtures/phase1/js_dynamic_version/repo"), google_pack
+    ).ledger
     unknown = {
         book.location_of(candidate).provider_subject for candidate in book.by_status("UNKNOWN")
     }

@@ -12,7 +12,9 @@ def build_tree(root: Path) -> None:
     (root / "src").mkdir(parents=True)
     (root / "src" / "app.py").write_text("value = 1\n", encoding="utf-8")
     (root / "node_modules" / "pkg").mkdir(parents=True)
-    (root / "node_modules" / "pkg" / "index.js").write_text("module.exports = {};\n", encoding="utf-8")
+    (root / "node_modules" / "pkg" / "index.js").write_text(
+        "module.exports = {};\n", encoding="utf-8"
+    )
     (root / "build").mkdir()
     (root / "build" / "out.js").write_text("var x = 1;\n", encoding="utf-8")
     (root / "src" / "schema_pb2.py").write_text("SERIALIZED = b''\n", encoding="utf-8")
@@ -76,7 +78,9 @@ def test_submodule_paths_are_classified_from_gitmodules(tmp_path: Path) -> None:
 
 def test_a_gitlink_directory_is_a_submodule(tmp_path: Path) -> None:
     (tmp_path / "vendored-repo").mkdir()
-    (tmp_path / "vendored-repo" / ".git").write_text("gitdir: ../.git/modules/x\n", encoding="utf-8")
+    (tmp_path / "vendored-repo" / ".git").write_text(
+        "gitdir: ../.git/modules/x\n", encoding="utf-8"
+    )
     (tmp_path / "vendored-repo" / "main.py").write_text("value = 1\n", encoding="utf-8")
     by_path = source_closure.build(tmp_path).by_path()
     assert by_path["vendored-repo/main.py"].classification is Classification.SUBMODULE

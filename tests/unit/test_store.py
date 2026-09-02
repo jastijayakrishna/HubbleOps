@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.candidate import candidate_identity, make_candidate
+from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.evidence import make_evidence
 from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash
 from hubbleops.store.artifacts import write_atomic

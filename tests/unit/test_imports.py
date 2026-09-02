@@ -41,7 +41,9 @@ def test_generic_layers_never_import_packs_or_repair() -> None:
             for module in imported_modules(source):
                 for prefix in FORBIDDEN_PREFIXES:
                     if module == prefix or module.startswith(f"{prefix}."):
-                        offences.append(f"{source.relative_to(PACKAGE_ROOT.parent)} imports {module}")
+                        offences.append(
+                            f"{source.relative_to(PACKAGE_ROOT.parent)} imports {module}"
+                        )
     assert offences == [], "law L5: generic layers must receive pack parts as parameters"
 
 

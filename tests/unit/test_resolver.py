@@ -148,9 +148,7 @@ def test_a_version_carrier_without_a_literal_is_unknown_not_affected() -> None:
 
 
 def test_non_inside_regions_are_excluded_with_the_classification_as_evidence() -> None:
-    resolution = resolver.resolve_claim(
-        "call_version", [record()], {"src/app.py": "VENDORED"}
-    )
+    resolution = resolver.resolve_claim("call_version", [record()], {"src/app.py": "VENDORED"})
     assert resolution.status == "EXCLUDED_WITH_EVIDENCE"
     assert "VENDORED" in resolution.reason
 

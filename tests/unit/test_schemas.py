@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.candidate import candidate_identity, make_candidate
+from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.errors import SchemaViolation
 from hubbleops.core.evidence import make_evidence
 from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash

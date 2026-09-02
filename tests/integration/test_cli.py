@@ -37,12 +37,36 @@ def test_two_consecutive_exports_have_the_same_digest(tmp_path: Path) -> None:
     state = tmp_path / "state"
     first = tmp_path / "first.json"
     second = tmp_path / "second.json"
-    assert main(
-        ["scan", str(FIXTURE), "--pack", "google_ads", "--state-dir", str(state), "--export", str(first)]
-    ) == EXIT_OK
-    assert main(
-        ["scan", str(FIXTURE), "--pack", "google_ads", "--state-dir", str(state), "--export", str(second)]
-    ) == EXIT_OK
+    assert (
+        main(
+            [
+                "scan",
+                str(FIXTURE),
+                "--pack",
+                "google_ads",
+                "--state-dir",
+                str(state),
+                "--export",
+                str(first),
+            ]
+        )
+        == EXIT_OK
+    )
+    assert (
+        main(
+            [
+                "scan",
+                str(FIXTURE),
+                "--pack",
+                "google_ads",
+                "--state-dir",
+                str(state),
+                "--export",
+                str(second),
+            ]
+        )
+        == EXIT_OK
+    )
     digest = hashlib.sha256(first.read_bytes()).hexdigest()
     assert digest == hashlib.sha256(second.read_bytes()).hexdigest()
 
@@ -86,7 +110,9 @@ def test_exposure_without_a_run_fails_rather_than_printing_an_empty_map(
 
 
 def test_an_unknown_pack_is_refused(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["scan", str(FIXTURE), "--pack", "nope", "--state-dir", str(tmp_path)]) == EXIT_FAILED
+    assert (
+        main(["scan", str(FIXTURE), "--pack", "nope", "--state-dir", str(tmp_path)]) == EXIT_FAILED
+    )
     assert "no pack named" in capsys.readouterr().err
 
 

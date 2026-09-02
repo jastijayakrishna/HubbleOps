@@ -115,7 +115,11 @@ def test_yarn_and_pnpm_locks(tmp_path: Path) -> None:
     assert yarn == {"probe-sdk": "17.1.0"}
     pnpm = resolved(
         tmp_path / "b",
-        {"pnpm-lock.yaml": "lockfileVersion: '6.0'\npackages:\n  /probe-sdk/17.1.0:\n    dev: false\n"},
+        {
+            "pnpm-lock.yaml": (
+                "lockfileVersion: '6.0'\npackages:\n  /probe-sdk/17.1.0:\n    dev: false\n"
+            )
+        },
     )
     assert pnpm == {"probe-sdk": "17.1.0"}
 
@@ -163,7 +167,11 @@ def test_maven_gradle_and_dotnet(tmp_path: Path) -> None:
 def test_go_and_ruby(tmp_path: Path) -> None:
     go = resolved(
         tmp_path / "a",
-        {"go.mod": "module example.test/x\n\ngo 1.22\n\nrequire (\n\tprobe.example/sdk v22.1.0\n)\n"},
+        {
+            "go.mod": (
+                "module example.test/x\n\ngo 1.22\n\nrequire (\n\tprobe.example/sdk v22.1.0\n)\n"
+            )
+        },
     )
     assert go == {"probe.example/sdk": "v22.1.0"}
     ruby = resolved(
@@ -185,7 +193,10 @@ def test_a_lock_proves_absence_but_a_manifest_does_not(tmp_path: Path) -> None:
             tmp_path / "a",
             {
                 "package.json": '{"dependencies": {"left-pad": "1.3.0"}}',
-                "package-lock.json": '{"lockfileVersion": 3, "packages": {"node_modules/left-pad": {"version": "1.3.0"}}}',
+                "package-lock.json": (
+                    '{"lockfileVersion": 3, "packages": '
+                    '{"node_modules/left-pad": {"version": "1.3.0"}}}'
+                ),
             },
         )
     )
