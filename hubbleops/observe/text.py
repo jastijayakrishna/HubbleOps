@@ -248,8 +248,6 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
 def _closure_records(closure: SourceClosure, ctx: ObserverContext) -> Iterator[dict[str, Any]]:
     for entry in closure.entries:
         if entry.classification is Classification.UNSCANNED:
-            if entry.reason.startswith("binary_media"):
-                continue
             yield make_evidence(
                 run_id=ctx.run_id,
                 proof_scope_hash=ctx.proof_scope_hash,

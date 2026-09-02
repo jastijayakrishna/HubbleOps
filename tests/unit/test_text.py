@@ -152,3 +152,26 @@ def test_a_match_the_closure_marked_unscannable_is_left_to_the_closure_record(
     monkeypatch.setattr(text, "_search", stray)
     claims = {record["claim_type"] for record in text.scan(closure, ctx)}
     assert claims == {"file_unscanned"}
+
+
+def test_a_media_suffix_never_removes_a_file_from_the_ledger(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    (tmp_path / "logo.png").write_bytes(b"mockprov MockProvClient\x00 in a png")
+    (tmp_path / "blob.dat").write_bytes(b"opaque\x00")
+    book = scan_repository(tmp_path, mock_pack).ledger
+
+    accounted = {record["path"] for record in book.evidence}
+    assert {"logo.png", "blob.dat"} <= accounted, (
+        "a suffix is not evidence about content; every unscanned path stays in the ledger"
+    )
+    unscanned = {
+        book.location_of(candidate).display(): candidate["status"]
+        for candidate in book.candidates
+        if book.location_of(candidate).claim_type == "file_unscanned"
+    }
+    assert unscanned == {"logo.png": "UNKNOWN", "blob.dat": "UNKNOWN"}
+    assert book.counts()["unexplained"] == 0
+    for candidate in book.candidates:
+        if book.location_of(candidate).claim_type == "file_unscanned":
+            assert candidate["close_with"]

@@ -260,7 +260,10 @@ def _classify(root: Path, path: Path, relative: str, submodules: frozenset[str])
             return ClosureEntry(
                 path=relative,
                 classification=Classification.UNSCANNED,
-                reason=f"binary_media: {suffix} cannot carry an executable provider call",
+                reason=(
+                    f"binary_media: not decodable as text, and the {suffix} suffix claims a "
+                    "media container the scanner cannot read"
+                ),
                 blob_sha=probe.blob_sha,
                 size=probe.size,
             )
