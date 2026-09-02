@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hubbleops.dev/schemas/proof_scope.json",
+  "title": "ProofScope",
+  "description": "The inputs a verdict is a function of (ARCHITECTURE.md 2 axiom 1, 5). FROZEN. The SHA-256 of this record is the proof key; it therefore carries neither run_id nor its own hash. A field is null when the phase that binds it has not run: null means 'not yet bound', never 'bound to nothing'.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "repo_sha",
+    "tree_hash",
+    "dependency_resolution_hash",
+    "build_command",
+    "build_config_hash",
+    "provider_contract_hash",
+    "rules_hash",
+    "scanner_version",
+    "verifier_version",
+    "verifier_image_hash"
+  ],
+  "properties": {
+    "repo_sha": {
+      "description": "Git HEAD of the scanned tree, or null when the target is not a git repository. The tree_hash binds the content either way.",
+      "oneOf": [{ "$ref": "#/$defs/git_sha" }, { "type": "null" }]
+    },
+    "tree_hash": {
+      "$ref": "#/$defs/sha256",
+      "description": "SHA-256 over the sorted (path, blob hash) pairs of the whole source closure. Always present, git or not."
+    },
+    "dependency_resolution_hash": {
+      "description": "SHA-256 over the resolved dependency set. Null only when no dependency resolution was attempted.",
+      "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+    },
+    "build_command": { "type": ["string", "null"] },
+    "build_config_hash": {
+      "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+    },
+    "provider_contract_hash": {
+      "description": "Hash of the Change Pack the verdict is bound to (Phase 2).",
+      "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+    },
+    "rules_hash": {
+      "description": "Hash of the pack rule set used by the structure observer (Phase 3).",
+      "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+    },
+    "scanner_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Version of hubbleops and of every external binary whose output entered the scan. A tool upgrade changes the scope, and therefore kills the proof."
+    },
+    "verifier_version": { "type": ["string", "null"] },
+    "verifier_image_hash": { "type": ["string", "null"] }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+  }
+}

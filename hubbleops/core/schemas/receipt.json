@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hubbleops.dev/schemas/receipt.json",
+  "title": "Receipt",
+  "description": "The machine-readable Proof Pack (ARCHITECTURE.md 5, 16). FROZEN. Written only by verify/; no Phase 1 code path produces one. Sub-record internals are left open where the phase that fills them defines their shape.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proof_scope",
+    "candidates_summary",
+    "obligations",
+    "changed_files",
+    "migration_audit",
+    "oracle_results",
+    "blast_radius",
+    "request_shape_differential",
+    "response_consumer_check",
+    "frozen_baseline_tests",
+    "candidate_tests",
+    "falsifiers",
+    "unknowns",
+    "unknown_conservation",
+    "verdict",
+    "reasons"
+  ],
+  "properties": {
+    "proof_scope": {
+      "$ref": "https://hubbleops.dev/schemas/proof_scope.json",
+      "description": "The scope this receipt is bound to. A new SHA kills this receipt; a new proof is required (law L4)."
+    },
+    "candidates_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "affected",
+        "not_affected_with_evidence",
+        "unknown",
+        "human_required",
+        "excluded_with_evidence",
+        "unexplained"
+      ],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "affected": { "type": "integer", "minimum": 0 },
+        "not_affected_with_evidence": { "type": "integer", "minimum": 0 },
+        "unknown": { "type": "integer", "minimum": 0 },
+        "human_required": { "type": "integer", "minimum": 0 },
+        "excluded_with_evidence": { "type": "integer", "minimum": 0 },
+        "unexplained": {
+          "type": "integer",
+          "const": 0,
+          "description": "Law L1 made mechanical: a receipt carrying a non-zero unexplained count is not a representable record."
+        }
+      }
+    },
+    "obligations": { "type": "array", "items": { "type": "object" } },
+    "changed_files": { "type": "array", "items": { "type": "string" } },
+    "migration_audit": { "type": "object" },
+    "oracle_results": { "type": "array", "items": { "type": "object" } },
+    "blast_radius": { "type": "object" },
+    "request_shape_differential": { "type": "object" },
+    "response_consumer_check": { "type": "object" },
+    "frozen_baseline_tests": {
+      "type": "object",
+      "description": "Tests copied from the base SHA. These are the proof (law L11)."
+    },
+    "candidate_tests": {
+      "type": "object",
+      "description": "Tests as they exist on the candidate SHA. These are evidence only (law L11)."
+    },
+    "falsifiers": { "type": "array", "items": { "type": "object" } },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["candidate_id", "close_with"],
+        "properties": {
+          "candidate_id": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "close_with": { "type": "string", "minLength": 1 }
+        }
+      },
+      "description": "Every preserved UNKNOWN with its closing instruction. An UNKNOWN without one is not a representable record."
+    },
+    "unknown_conservation": { "type": "object" },
+    "verdict": {
+      "enum": ["VERIFIED_FOR_SCOPE", "HUMAN_REQUIRED", "UNKNOWN", "FAILED"],
+      "description": "Never SAFE (law L8). VERIFIED_FOR_SCOPE is scoped to proof_scope and nothing wider."
+    },
+    "reasons": { "type": "array", "items": { "type": "string" } }
+  }
+}

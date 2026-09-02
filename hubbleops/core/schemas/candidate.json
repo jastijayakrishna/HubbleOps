@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hubbleops.dev/schemas/candidate.json",
+  "title": "Candidate",
+  "description": "One place that may need to change, carrying every observation made about it. FROZEN (ARCHITECTURE.md 5). A candidate is never deleted; it gets a status (law L1). 'status' is required at schema level so an unexplained candidate cannot be persisted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "run_id",
+    "proof_scope_hash",
+    "provider",
+    "evidence_ids",
+    "status",
+    "reason",
+    "close_with"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/sha256",
+      "description": "SHA-256 of the canonical JSON of the identity tuple {provider, claim_type, claim_key}, not of the whole record. Attaching further evidence must never change the identity, or the candidate would disappear and a new one appear."
+    },
+    "run_id": { "$ref": "#/$defs/sha256" },
+    "proof_scope_hash": { "$ref": "#/$defs/sha256" },
+    "provider": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the ProviderPack whose SurfaceSpec produced this candidate."
+    },
+    "evidence_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/sha256" },
+      "description": "Every observation attached to this candidate, sorted. Append-only: deduplication attaches, it never discards provenance."
+    },
+    "status": {
+      "enum": [
+        "AFFECTED",
+        "NOT_AFFECTED_WITH_EVIDENCE",
+        "UNKNOWN",
+        "HUMAN_REQUIRED",
+        "EXCLUDED_WITH_EVIDENCE"
+      ],
+      "description": "The explanation. There is no 'unexplained' member: a candidate without a status is unrepresentable."
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Why this status, in terms a reviewer can check against the attached evidence."
+    },
+    "close_with": {
+      "type": ["string", "null"],
+      "description": "The precise action that would resolve this candidate. Required to be non-empty for UNKNOWN and HUMAN_REQUIRED (ARCHITECTURE.md 4: every UNKNOWN prints a close-with instruction)."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "enum": ["UNKNOWN", "HUMAN_REQUIRED"] } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": { "close_with": { "type": "string", "minLength": 1 } }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

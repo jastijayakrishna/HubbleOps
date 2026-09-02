@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hubbleops.dev/schemas/evidence.json",
+  "title": "Evidence",
+  "description": "One observation made by one observer at one location. FROZEN (ARCHITECTURE.md 5). Evidence is never deleted or mutated; a later observation is a new record.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "run_id",
+    "proof_scope_hash",
+    "claim_type",
+    "observer",
+    "repo_sha",
+    "path",
+    "line_start",
+    "line_end",
+    "source_hash",
+    "value",
+    "provider_subject",
+    "dependency_context_hash",
+    "derivation",
+    "confidence"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/sha256",
+      "description": "SHA-256 of the canonical JSON of this record with 'id' removed."
+    },
+    "run_id": {
+      "$ref": "#/$defs/sha256",
+      "description": "Run that produced this record. Derived from the ProofScope hash, so it is stable across reruns of an unchanged tree."
+    },
+    "proof_scope_hash": {
+      "$ref": "#/$defs/sha256",
+      "description": "The proof this record is bound to. A new tree SHA yields a new hash and therefore new records; old records are never reused."
+    },
+    "claim_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "What is being claimed, e.g. sdk_installed, call_version, production_version, request_text, dependency_state, file_unscanned. Resolution precedence is defined per claim_type; there is no global precedence."
+    },
+    "observer": {
+      "enum": ["text", "deps", "structure", "dynamic", "telemetry", "sentinel"],
+      "description": "The observer channel. Closed set (ARCHITECTURE.md 3.2). Completeness depends on these channels failing independently."
+    },
+    "repo_sha": {
+      "description": "Git HEAD of the scanned tree, or null when the target is not a git repository. Never substituted with another value.",
+      "oneOf": [{ "$ref": "#/$defs/git_sha" }, { "type": "null" }]
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Slash-separated path relative to the closure root. '.' for a repository-level claim."
+    },
+    "line_start": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "description": "1-based first line of the observation, or null for a repository-level claim."
+    },
+    "line_end": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "description": "1-based last line of the observation, or null for a repository-level claim."
+    },
+    "source_hash": {
+      "$ref": "#/$defs/sha256",
+      "description": "SHA-256 of the bytes of the file this observation was made in; the blob hash the fact cache and binding store are keyed on (ARCHITECTURE.md 14). For a repository-level claim, the SHA-256 of the empty string."
+    },
+    "value": {
+      "description": "The observed content, shaped by claim_type. Any JSON value, including null."
+    },
+    "provider_subject": {
+      "type": ["string", "null"],
+      "description": "The provider-side subject this observation is about, e.g. a version literal, a package name, a host. Null when the observation names no subject."
+    },
+    "dependency_context_hash": {
+      "description": "The resolved dependency state this observation was made under, so an observation is never read back under a different dependency context.",
+      "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+    },
+    "derivation": {
+      "enum": ["OBSERVED", "DERIVED_DETERMINISTIC", "DERIVED_AI_EVIDENCE"],
+      "description": "DERIVED_AI_EVIDENCE can never alone change a candidate status or close an UNKNOWN (law L10)."
+    },
+    "confidence": {
+      "enum": ["RAW", "PROVEN", "DOCUMENTED", "INFERRED"],
+      "description": "RAW is the recall layer (text). PROVEN requires a structural or executed observation."
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+  }
+}

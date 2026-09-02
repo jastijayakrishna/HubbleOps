@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hubbleops.dev/schemas/obligation.json",
+  "title": "Obligation",
+  "description": "One required change derived from a provider change and the evidence for it. FROZEN (ARCHITECTURE.md 5). Built by the Obligation Engine in Phase 6; no Phase 1 code path writes one.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "run_id",
+    "proof_scope_hash",
+    "provider_change_id",
+    "evidence_ids",
+    "current_state",
+    "required_state",
+    "repair_class",
+    "verification_method",
+    "status"
+  ],
+  "properties": {
+    "id": { "$ref": "#/$defs/sha256" },
+    "run_id": { "$ref": "#/$defs/sha256" },
+    "proof_scope_hash": { "$ref": "#/$defs/sha256" },
+    "provider_change_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the Change Pack entry this obligation discharges."
+    },
+    "evidence_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/sha256" }
+    },
+    "current_state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What is there now, at file:line."
+    },
+    "required_state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What must be there for the target version. An agent receives this, never 'upgrade the repo'."
+    },
+    "repair_class": {
+      "enum": ["DETERMINISTIC", "PROVIDER_TOOL", "AGENT", "HUMAN", "PRESERVE_UNKNOWN"],
+      "description": "Who may perform the repair. PRESERVE_UNKNOWN carries an UNKNOWN forward rather than forcing it closed."
+    },
+    "verification_method": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The check that proves this obligation was discharged, named before the repair is attempted."
+    },
+    "status": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "description": "Lifecycle state. Left as a pattern rather than an enum because the Phase 6 repair loop defines the members."
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}
