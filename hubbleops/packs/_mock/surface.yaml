@@ -1,0 +1,48 @@
+name: _mock
+
+identifiers:
+  - mockprov
+  - MockProvClient
+  - mockprov_client
+  - MockProvError
+
+hosts:
+  - api.mockprov.test
+
+package_names:
+  - mockprov
+  - mockprov/sdk
+  - mockprov-client
+  - MockProv.Sdk
+
+version_carriers:
+  - name: rest_endpoint_version
+    regex: 'api\.mockprov\.test/(?P<version>v[0-9]+)'
+    slot: per_call
+    languages: [any]
+  - name: client_version_argument
+    regex: 'MockProvClient\([^)]*version\s*=\s*["''](?P<version>v[0-9]+)["'']'
+    slot: client_init
+    languages: [python]
+  - name: namespace_version
+    regex: 'mockprov\.(?P<version>v[0-9]+)'
+    slot: sdk_default
+    languages: [any]
+
+request_languages:
+  - name: keyvalue
+    anchors:
+      - 'mockprov_query\s*=\s*"[a-z_]+=[a-z_]+"'
+      - 'resource=(campaigns|accounts)\b'
+
+sink_argument_positions:
+  - sink: MockProvClient
+    argument: version
+    position: 1
+  - sink: call
+    argument: request
+    position: 0
+
+config_env_keys:
+  - MOCKPROV_API_VERSION
+  - MOCKPROV_TOKEN

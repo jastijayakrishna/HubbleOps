@@ -1,0 +1,118 @@
+name: google_ads
+
+identifiers:
+  - google-ads
+  - googleads
+  - google_ads
+  - google.ads.googleads
+  - GoogleAdsClient
+  - GoogleAdsService
+  - GoogleAdsFieldService
+  - GoogleAdsFailure
+  - GoogleAdsException
+  - SearchGoogleAdsRequest
+  - SearchGoogleAdsStreamRequest
+  - MutateGoogleAdsRequest
+  - google-ads.yaml
+  - developer_token
+  - login_customer_id
+
+hosts:
+  - googleads.googleapis.com
+
+package_names:
+  - google-ads
+  - googleads/google-ads-php
+  - google-ads-api
+  - google-ads-node
+  - Google.Ads.GoogleAds
+  - com.google.api-ads:google-ads
+  - com.google.api-ads:google-ads-stubs-v22
+  - google-ads-googleads
+  - google.golang.org/genproto/googleapis/ads/googleads
+
+version_carriers:
+  - name: rest_endpoint_version
+    regex: 'googleads\.googleapis\.com/(?P<version>v[0-9]+)'
+    slot: per_call
+    languages: [any]
+  - name: rest_path_version
+    regex: '/(?P<version>v[0-9]+)/customers/'
+    slot: per_call
+    languages: [any]
+  - name: python_service_version
+    regex: 'get_service\([^)]*version\s*=\s*["''](?P<version>v[0-9]+)["'']'
+    slot: per_call
+    languages: [python]
+  - name: python_type_version
+    regex: 'get_type\([^)]*version\s*=\s*["''](?P<version>v[0-9]+)["'']'
+    slot: per_call
+    languages: [python]
+  - name: python_client_version
+    regex: 'GoogleAdsClient[^)]*version\s*=\s*["''](?P<version>v[0-9]+)["'']'
+    slot: client_init
+    languages: [python]
+  - name: python_namespace_version
+    regex: 'google\.ads\.googleads\.(?P<version>v[0-9]+)'
+    slot: sdk_default
+    languages: [python]
+  - name: php_namespace_version
+    regex: 'Google\\Ads\\GoogleAds\\(?P<version>V[0-9]+)'
+    slot: sdk_default
+    languages: [php]
+  - name: dotnet_namespace_version
+    regex: 'Google\.Ads\.GoogleAds\.(?P<version>V[0-9]+)'
+    slot: sdk_default
+    languages: [csharp]
+  - name: java_namespace_version
+    regex: 'com\.google\.ads\.googleads\.(?P<version>v[0-9]+)'
+    slot: sdk_default
+    languages: [java]
+  - name: go_namespace_version
+    regex: 'googleapis/ads/googleads/(?P<version>v[0-9]+)'
+    slot: sdk_default
+    languages: [go]
+  - name: node_api_version
+    regex: 'apiVersion\s*:\s*["''](?P<version>v[0-9]+)["'']'
+    slot: client_init
+    languages: [javascript, typescript]
+
+request_languages:
+  - name: gaql
+    anchors:
+      - 'FROM\s+(campaign|campaign_budget|ad_group|ad_group_ad|ad_group_criterion|customer|customer_client|keyword_view|search_term_view|change_event|asset|asset_group)\b'
+      - 'SELECT\s+(campaign|ad_group|customer|metrics|segments)\.[a-z_]+'
+      - 'metrics\.(impressions|clicks|cost_micros|conversions)'
+      - 'segments\.(date|device|conversion_action)'
+
+sink_argument_positions:
+  - sink: get_service
+    argument: version
+    position: 1
+  - sink: get_type
+    argument: version
+    position: 1
+  - sink: GoogleAdsClient.load_from_storage
+    argument: version
+    position: 1
+  - sink: search
+    argument: request
+    position: 0
+  - sink: search_stream
+    argument: request
+    position: 0
+  - sink: mutate
+    argument: request
+    position: 0
+
+config_env_keys:
+  - GOOGLE_ADS_API_VERSION
+  - GOOGLE_ADS_VERSION
+  - ADS_API_VERSION
+  - GOOGLE_ADS_DEVELOPER_TOKEN
+  - GOOGLE_ADS_LOGIN_CUSTOMER_ID
+  - GOOGLE_ADS_CLIENT_ID
+  - GOOGLE_ADS_CLIENT_SECRET
+  - GOOGLE_ADS_REFRESH_TOKEN
+  - GOOGLE_ADS_CONFIGURATION_FILE_PATH
+  - GOOGLE_ADS_JSON_KEY_FILE_PATH
