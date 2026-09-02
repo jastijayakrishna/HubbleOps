@@ -31,6 +31,8 @@ EXIT_UNKNOWN = 5
 
 
 def main(argv: list[str] | None = None) -> int:
+    _use_utf8(sys.stdout)
+    _use_utf8(sys.stderr)
     parser = _parser()
     args = parser.parse_args(argv)
     try:
@@ -45,6 +47,12 @@ def main(argv: list[str] | None = None) -> int:
     except HubbleOpsError as error:
         print(f"FAILED: {error}", file=sys.stderr)
         return EXIT_FAILED
+
+
+def _use_utf8(stream: Any) -> None:
+    reconfigure = getattr(stream, "reconfigure", None)
+    if reconfigure is not None:
+        reconfigure(encoding="utf-8")
 
 
 def _parser() -> argparse.ArgumentParser:

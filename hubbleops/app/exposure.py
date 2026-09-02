@@ -8,7 +8,7 @@ from hubbleops.core.proof_scope import short_scope
 from hubbleops.core.records import as_mapping, as_text
 from hubbleops.observe.ledger import Ledger
 
-RULE = "-" * 72
+RULE = "─" * 56
 LOCATION_WIDTH = 26
 BODY_WIDTH = 100
 DETAIL_INDENT = "    "
@@ -26,7 +26,7 @@ def render(
     counts = ledger.counts()
     detected = _detected_versions(ledger)
     lines: list[str] = []
-    lines.append(f"HubbleOps - {pack_name.replace('_', ' ').upper()} EXPOSURE MAP")
+    lines.append(f"HubbleOps — {pack_name.replace('_', ' ').upper()} EXPOSURE MAP")
     lines.append("")
     lines.append(
         f"Repository   {_fit(_repo_label(target), 24)}"
@@ -151,8 +151,8 @@ def _provenance(records: Sequence[Mapping[str, Any]]) -> str:
     observers = sorted({str(record["observer"]) for record in records})
     confidences = sorted({str(record["confidence"]) for record in records})
     return (
-        f"evidence: {'+'.join(claims)} - observer: {'+'.join(observers)} "
-        f"- confidence: {'+'.join(confidences)}"
+        f"evidence: {'+'.join(claims)} · observer: {'+'.join(observers)} "
+        f"· confidence: {'+'.join(confidences)}"
     )
 
 

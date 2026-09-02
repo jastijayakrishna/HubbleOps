@@ -128,4 +128,45 @@ implementation; a REJECTED decision means moving the definition and re-running t
 
 ---
 
-*(P-003 open)*
+## P-004 — two status lines added to the frozen DISCOVERY block
+
+| | |
+|---|---|
+| **Raised** | 2026-09-02, Phase 1 gate remediation |
+| **Touches** | Exposure Map (`docs/ARCHITECTURE.md` §4, FROZEN) |
+| **Status** | OPEN |
+
+**What forced this.** §4's DISCOVERY block lists `Candidates found`, `Affected`,
+`Not affected (evidence)`, `UNKNOWN` and `Unexplained`. The frozen Candidate schema in §5 carries
+five statuses, and two of them — `EXCLUDED_WITH_EVIDENCE` and `HUMAN_REQUIRED` — have no line in
+that block. A repository whose candidates land in either status renders a DISCOVERY block whose
+listed counts do not sum to `Candidates found`, and a customer reading the map cannot see where the
+missing candidates went. Law L1 says a candidate never disappears; a status the map cannot print is
+a candidate that disappears from the customer-facing artefact.
+
+**Proposed change.** Two lines in the DISCOVERY block, between `Not affected (evidence)` and
+`UNKNOWN`:
+
+```
+  Excluded (evidence)     <n>
+  Human required          <n>
+```
+
+Nothing else in §4 changes. The remaining glyph and layout deviations found at the gate — an ASCII
+`-` for the em dash in the title, `-` x 72 for the `─` x 56 rule, `-` for the `·` separator in the
+provenance line — were defects, not proposals, and are now corrected to the frozen format.
+
+**Blast radius.** `app/exposure.py` only, plus the CLI reconfiguring stdout to UTF-8 so the frozen
+glyphs survive a Windows console. No record, hash or wire format changes, so no ProofScope moves and
+no Receipt is affected.
+
+**Alternatives rejected, and why.** Printing §4 verbatim and omitting the two counts hides
+candidates from the one artefact the customer actually reads. Folding `EXCLUDED_WITH_EVIDENCE` into
+`Not affected (evidence)` merges two statuses the frozen schema deliberately separates: one is
+proven irrelevant, the other is proven outside first-party repair.
+
+**Decision.** Pending — needs the repository owner.
+
+---
+
+*(P-003, P-004 open)*
