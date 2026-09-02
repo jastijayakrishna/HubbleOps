@@ -6,11 +6,8 @@ Updated before every session ends. Phase-level status lives in
 ## Now
 
 - [ ] Re-run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
-- [ ] Write the decision line on **P-003** in [dev/proposals.md](proposals.md) (`SurfaceSpec`
-      definition site) — code has shipped this way since Phase 1 implementation
-- [ ] Write the decision line on **P-004** in [dev/proposals.md](proposals.md) (two status lines
-      added to the frozen §4 DISCOVERY block so `EXCLUDED_WITH_EVIDENCE` and `HUMAN_REQUIRED`
-      candidates are visible to the customer)
+- [x] Write the decision lines on **P-003** and **P-004** in [dev/proposals.md](proposals.md) —
+      both ACCEPTED; no proposal is open
 - [ ] On `GATE: PASS`: merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1`
 - [ ] Install `ast-grep` before Phase 3; rootless docker/podman before Phase 4
 - [x] Fix the second gate audit's findings: silent media binaries, evidence-existence at the store

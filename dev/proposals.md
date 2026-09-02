@@ -101,7 +101,7 @@ a frozen schema and let the two drift. Validating the nested ProofScope in a spe
 |---|---|
 | **Raised** | 2026-09-02, Phase 1 gate |
 | **Touches** | `ProviderPack` and its sub-protocols (`docs/ARCHITECTURE.md` §3.1) |
-| **Status** | OPEN |
+| **Status** | ACCEPTED |
 
 **What forced this.** Phase 1's DoD item 2 says `packs/_protocol.py` *defines* `SurfaceSpec`.
 `observe/text.py` and `observe/deps.py` name that type in their signatures, and law L5 forbids a
@@ -123,8 +123,16 @@ gives two different `surface_hash()` implementations. Passing the surface into `
 untyped mapping removes the L5 problem by removing the type, which is worse: the observers would
 lose static checking of the one input that decides recall.
 
-**Decision.** Pending — needs the repository owner. The code has shipped this way since Phase 1
-implementation; a REJECTED decision means moving the definition and re-running the Phase 1 gate.
+**Decision.** Accepted by the repository owner on 2026-09-02.
+
+Law L5 outranks a checklist sentence. The dependency direction is not an internal tidiness
+preference — it is what lets a customer believe the engine that scanned their repository was not
+shaped around one provider's answers. A generic layer that cannot import a pack cannot be tuned to
+a pack, and that is the property the proof rests on. DoD 2's wording describes where a pack author
+*finds* the type, and that is still true: `packs/_protocol.py` re-exports `SurfaceSpec`,
+`VersionCarrier`, `RequestLanguage` and `SinkArgument` in its `__all__`, so
+`from hubbleops.packs._protocol import SurfaceSpec` works and a pack author sees no difference.
+Only the definition site moved, and no field, hash input or wire format changed with it.
 
 ---
 
@@ -134,7 +142,7 @@ implementation; a REJECTED decision means moving the definition and re-running t
 |---|---|
 | **Raised** | 2026-09-02, Phase 1 gate remediation |
 | **Touches** | Exposure Map (`docs/ARCHITECTURE.md` §4, FROZEN) |
-| **Status** | OPEN |
+| **Status** | ACCEPTED |
 
 **What forced this.** §4's DISCOVERY block lists `Candidates found`, `Affected`,
 `Not affected (evidence)`, `UNKNOWN` and `Unexplained`. The frozen Candidate schema in §5 carries
@@ -165,8 +173,14 @@ candidates from the one artefact the customer actually reads. Folding `EXCLUDED_
 `Not affected (evidence)` merges two statuses the frozen schema deliberately separates: one is
 proven irrelevant, the other is proven outside first-party repair.
 
-**Decision.** Pending — needs the repository owner.
+**Decision.** Accepted by the repository owner on 2026-09-02.
+
+The Exposure Map is the one artefact a customer reads, and the product's whole claim is that no
+candidate ever disappears. A DISCOVERY block whose counts do not sum to `Candidates found` breaks
+that claim in the most visible place there is, and a customer who cannot see where the missing
+candidates went has no reason to trust the ones they can see. Two lines is a smaller price than a
+map that silently under-reports. §4 is otherwise rendered exactly as frozen.
 
 ---
 
-*(P-003, P-004 open)*
+*(no open proposals)*

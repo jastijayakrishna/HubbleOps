@@ -9,8 +9,8 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
 | **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none — the second Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) returned `GATE: FAIL` on two blocking findings (F1 silent media binaries, F2 fabricated evidence id) and eleven non-blocking ones; all are fixed except P-003 and P-004, which need a human decision |
-| **Next action** | fresh-session gate audit re-run; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
+| **Last gate passed** | none — the second Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) returned `GATE: FAIL` on two blocking findings (F1 silent media binaries, F2 fabricated evidence id) and eleven non-blocking ones; every one is fixed, and both frozen-surface proposals are decided |
+| **Next action** | fresh-session gate audit re-run with nothing outstanding; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
 deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all six fixtures.
@@ -36,6 +36,18 @@ evidence and closed an UNKNOWN. Both are now enforced and covered by tests.
 ## Decisions that carry forward
 
 *(record here anything a later phase must not re-litigate — with the phase it was decided in)*
+
+**Frozen-surface decisions (Phase 1).**
+- **P-003 ACCEPTED.** `SurfaceSpec` is defined in `core/surface.py`, not `packs/_protocol.py` as
+  Phase 1 DoD 2 words it. Law L5 outranks a checklist sentence: a generic layer that cannot import
+  a pack cannot be shaped around one provider, and that is the property the proof rests on.
+  `packs/_protocol.py` re-exports it in `__all__`, so a pack author still writes
+  `from hubbleops.packs._protocol import SurfaceSpec`. Do not re-litigate this in a later phase.
+- **P-004 ACCEPTED.** The §4 DISCOVERY block gains `Excluded (evidence)` and `Human required`.
+  The frozen layout lists only three of the five candidate statuses, so a repository with
+  candidates in the other two renders counts that do not sum to `Candidates found` — a candidate
+  disappearing from the one artefact the customer reads. Everything else in §4 renders exactly as
+  frozen, glyphs included.
 
 **Layout and naming (Phase 1).**
 - The Python package is `hubbleops/` at the repo root, containing `app/ core/ closure/ observe/
