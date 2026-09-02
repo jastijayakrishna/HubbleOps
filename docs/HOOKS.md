@@ -6,14 +6,36 @@ The Laws in [CLAUDE.md](../CLAUDE.md) are prose. Prose does not stop an agent. T
 targets a tree that hasn't been created (`tests/`, `verify/`, `core/schemas/`). Switch it on as the
 first act of Phase 1, once those paths exist. Until then this file is the spec.
 
-## Stop — block completion on a red suite
+## Stop — block completion on a red suite or a stale context
+
+Both checks must pass before the agent may report completion.
+
+**1. The suite is green.**
 
 ```
 uv run pytest tests/unit tests/property -q
 ```
 
-Non-zero exit blocks the agent from reporting completion. This is the "evidence over assertion" Law
-made mechanical.
+Non-zero exit blocks completion. This is the "evidence over assertion" Law made mechanical.
+
+**2. `dev/context.md` is current.** A fresh session inherits nothing but the files in this repo, so
+a session that changed the build and did not write down what it changed has broken the handoff.
+
+Enforce only when the session actually produced a change — a dirty working tree or a new commit.
+A read-only session (plan review, gate audit, spec-drift audit) legitimately changes nothing and
+must not be blocked. When it does apply, `dev/context.md` counts as current if it is modified in the
+working tree, or touched by a commit on this branch:
+
+```
+git status --porcelain dev/context.md
+git log main..HEAD --name-only -- dev/context.md
+```
+
+Either non-empty passes. Both empty blocks, with:
+
+> `dev/context.md` not updated this session. Write where the build stands, what is blocking, and
+> every decision a later phase must not re-litigate — including each answered OPEN QUESTION from
+> `dev/plan.md`, which the next phase overwrites.
 
 ## PreToolUse (Edit, Write) — reject the edit
 
