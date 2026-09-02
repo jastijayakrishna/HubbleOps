@@ -117,14 +117,17 @@ starts. Delete none; answer them inline.)*
 
 4. **What content is a Candidate's ID the SHA-256 of?**
    **ANSWERED: the identity tuple, not the whole record.**
-   `candidate.id = sha256(canonical({provider, claim_type, path, line_start, line_end,
-   provider_subject}))`. Evidence IDs hash the full record minus `id`. If a candidate's ID covered
+   `candidate.id = sha256(canonical({provider, claim_type, claim_key}))`, where `claim_key` is the
+   per-`claim_type` identity string `observe/resolver.py` builds — a location for the location-bound
+   claims, `{ecosystem}:{package}` for `sdk_installed`, a path for the closure claims. Encoding the
+   location directly would give one claim type's key to all of them.
+   Evidence IDs hash the full record minus `id`. If a candidate's ID covered
    `evidence_ids`, attaching a second observer's evidence would change the ID — the candidate would
    "disappear" and a new one appear, breaking L1's *a candidate never disappears*. Deduplication is
    therefore attachment to a stable key, and `evidence_ids` is an append-only sorted set (trap 3).
 
 5. **Is `run_id` random or derived? Determinism (DoD 11b) says the ledger export must be byte-identical across runs.**
-   **ANSWERED: derived.** `run_id = sha256(canonical({proof_scope_hash, pack, verb, target}))`.
+   **ANSWERED: derived.** `run_id = sha256(canonical({proof_scope_hash, provider, verb, target}))`.
    Wall-clock timestamps exist only in the `runs` row, never in the ledger export or in any hashed
    record, so two consecutive scans of an unchanged tree produce identical `run_id`, identical rows
    (idempotent upsert) and a byte-identical export. This also makes `hops replay <run_id>` meaningful
