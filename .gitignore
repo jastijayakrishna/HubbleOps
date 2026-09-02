@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Tooling caches
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# HubbleOps run state — regenerated, never proof
+artifacts/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+packs/*/data/sources/cache/
+
+# NOTE: .hubbleops/ is deliberately NOT ignored. surface.yml, bindings.json,
+# decisions.yml and retired.yml are committed with provenance (Phase 7).
+
+# Secrets / local
+.env
+.env.local
+*.pem
+*.json.credentials
+
+# Claude Code — agents and hooks are part of the build system and ARE committed.
+# Only machine-local overrides are ignored.
+.claude/settings.local.json
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
