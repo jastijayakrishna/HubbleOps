@@ -8,10 +8,22 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any
 
+from hubbleops.core.candidate import OPEN_STATUSES, STATUSES
 from hubbleops.core.canonical import canonical_text
+from hubbleops.core.errors import (
+    ProofScopeMismatch,
+    ProvenanceDropped,
+    StoreSchemaMismatch,
+    UnknownNotConserved,
+)
 from hubbleops.core.schema import validate
 
 DATABASE_FILENAME = "hubbleops.sqlite"
+SCHEMA_VERSION = 1
+
+TABLE_NAMES = frozenset({"runs", "evidence", "candidates", "obligations", "checks", "artifacts"})
+
+STATUS_VALUES = ", ".join(f"'{status}'" for status in STATUSES)
 
 SCHEMA_STATEMENTS = (
     """
@@ -43,13 +55,13 @@ SCHEMA_STATEMENTS = (
         PRIMARY KEY (run_id, id)
     )
     """,
-    """
+    f"""
     CREATE TABLE IF NOT EXISTS candidates (
         id TEXT NOT NULL,
         run_id TEXT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
         proof_scope_hash TEXT NOT NULL,
         provider TEXT NOT NULL,
-        status TEXT NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ({STATUS_VALUES})),
         record_json TEXT NOT NULL,
         PRIMARY KEY (run_id, id)
     )
@@ -115,14 +127,26 @@ class Store:
         self.directory = directory
         self.directory.mkdir(parents=True, exist_ok=True)
         self.path = directory / DATABASE_FILENAME
+        self._scopes: dict[str, str] = {}
         self.connection = sqlite3.connect(self.path)
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA journal_mode=WAL")
         self.connection.execute("PRAGMA foreign_keys=ON")
         self.connection.execute("PRAGMA synchronous=FULL")
+        self._guard_schema_version()
         for statement in SCHEMA_STATEMENTS:
             self.connection.execute(statement)
+        self.connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
         self.connection.commit()
+
+    def _guard_schema_version(self) -> None:
+        found = int(self.connection.execute("PRAGMA user_version").fetchone()[0])
+        if found == SCHEMA_VERSION:
+            return
+        cursor = self.connection.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        if TABLE_NAMES & {str(row[0]) for row in cursor.fetchall()}:
+            self.connection.close()
+            raise StoreSchemaMismatch(str(self.path), found, SCHEMA_VERSION)
 
     def __enter__(self) -> Store:
         return self
@@ -183,10 +207,53 @@ class Store:
         )
         self.connection.commit()
 
+    def _run_scope(self, run_id: str) -> str | None:
+        held = self._scopes.get(run_id)
+        if held is not None:
+            return held
+        cursor = self.connection.execute(
+            "SELECT proof_scope_hash FROM runs WHERE run_id = ?", (run_id,)
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        scope = str(row["proof_scope_hash"])
+        self._scopes[run_id] = scope
+        return scope
+
+    def _bind_to_run(self, kind: str, record_id: str, run_id: str, scope: str) -> None:
+        run_scope = self._run_scope(run_id)
+        if run_scope is not None and run_scope != scope:
+            raise ProofScopeMismatch(kind, record_id, run_scope, scope)
+
+    def _guard_candidate_transition(self, record: dict[str, Any]) -> None:
+        cursor = self.connection.execute(
+            "SELECT record_json FROM candidates WHERE run_id = ? AND id = ?",
+            (record["run_id"], record["id"]),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return
+        stored: dict[str, Any] = json.loads(row["record_json"])
+        held = set(stored["evidence_ids"])
+        offered = set(record["evidence_ids"])
+        was = str(stored["status"])
+        now = str(record["status"])
+        if not held <= offered:
+            raise ProvenanceDropped(str(record["id"]), tuple(sorted(held - offered)))
+        if was in OPEN_STATUSES and now not in OPEN_STATUSES and held == offered:
+            raise UnknownNotConserved(str(record["id"]), was, now)
+
     def write_evidence(self, records: Sequence[dict[str, Any]]) -> None:
         rows: list[tuple[Any, ...]] = []
         for record in records:
             validate("evidence", record)
+            self._bind_to_run(
+                "evidence",
+                str(record["id"]),
+                str(record["run_id"]),
+                str(record["proof_scope_hash"]),
+            )
             rows.append(
                 (
                     record["id"],
@@ -216,6 +283,13 @@ class Store:
         rows: list[tuple[Any, ...]] = []
         for record in records:
             validate("candidate", record)
+            self._bind_to_run(
+                "candidate",
+                str(record["id"]),
+                str(record["run_id"]),
+                str(record["proof_scope_hash"]),
+            )
+            self._guard_candidate_transition(record)
             rows.append(
                 (
                     record["id"],
@@ -249,6 +323,7 @@ class Store:
         sha256: str,
         size: int,
     ) -> None:
+        self._bind_to_run("artifact", sha256, run_id, proof_scope_hash)
         self.connection.execute(
             """
             INSERT INTO artifacts (id, run_id, proof_scope_hash, kind, path, sha256, size)

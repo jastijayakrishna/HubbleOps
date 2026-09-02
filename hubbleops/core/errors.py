@@ -51,3 +51,53 @@ class UnexplainedCandidates(HubbleOpsError):
     def __init__(self, count: int, detail: str) -> None:
         super().__init__(f"UNEXPLAINED_CANDIDATES={count} (law L1): {detail}")
         self.count = count
+
+
+class UnknownNotConserved(HubbleOpsError):
+    def __init__(self, candidate_id: str, was: str, now: str) -> None:
+        super().__init__(
+            f"UNKNOWN_CONSERVATION (law L3): candidate {candidate_id} is {was} and this write "
+            f"closes it to {now} without attaching evidence that was not already there. "
+            "An UNKNOWN closes only with new evidence or a recorded human decision "
+            "(`hops decide <candidate_id> --value <value> --by <name>`)."
+        )
+        self.candidate_id = candidate_id
+        self.was = was
+        self.now = now
+
+
+class ProvenanceDropped(HubbleOpsError):
+    def __init__(self, candidate_id: str, missing: tuple[str, ...]) -> None:
+        super().__init__(
+            f"PROVENANCE_DROPPED (law L1): this write of candidate {candidate_id} omits "
+            f"{len(missing)} evidence id(s) already attached to it, starting with "
+            f"{missing[0]}. evidence_ids is append-only: deduplication attaches, it never "
+            "discards provenance."
+        )
+        self.candidate_id = candidate_id
+        self.missing = missing
+
+
+class ProofScopeMismatch(HubbleOpsError):
+    def __init__(self, kind: str, record_id: str, run_scope: str, record_scope: str) -> None:
+        super().__init__(
+            f"PROOF_SCOPE_MISMATCH (law L4): {kind} {record_id} carries proof_scope_hash "
+            f"{record_scope} but run's scope is {run_scope}. A new scope needs a new run; "
+            "evidence is never carried across a scope boundary."
+        )
+        self.kind = kind
+        self.record_id = record_id
+        self.run_scope = run_scope
+        self.record_scope = record_scope
+
+
+class StoreSchemaMismatch(HubbleOpsError):
+    def __init__(self, path: str, found: int, expected: int) -> None:
+        super().__init__(
+            f"STORE_SCHEMA_MISMATCH: {path} was written by store schema v{found}, this build "
+            f"expects v{expected}. Its rows are not covered by the constraints this build "
+            "relies on. Delete the state directory and rescan."
+        )
+        self.path = path
+        self.found = found
+        self.expected = expected
