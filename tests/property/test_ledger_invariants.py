@@ -6,7 +6,7 @@ from typing import Any
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from hubbleops.closure.source_closure import SourceClosure
+from hubbleops.closure.source_closure import Classification, ClosureEntry, SourceClosure
 from hubbleops.core.candidate import OPEN_STATUSES, STATUSES
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.evidence import make_evidence
@@ -14,9 +14,23 @@ from hubbleops.observe import ledger
 
 RUN_ID = content_id({"run": 1})
 SCOPE_HASH = content_id({"scope": 1})
-EMPTY_CLOSURE = SourceClosure(root=Path("."), repo_sha=None, entries=(), control_directories=())
-
 PATHS = ("a.py", "b/c.js", "d/e/f.php", "requirements.txt")
+
+SCANNED_CLOSURE = SourceClosure(
+    root=Path("."),
+    repo_sha=None,
+    entries=tuple(
+        ClosureEntry(
+            path=path,
+            classification=Classification.INSIDE,
+            reason="first-party source",
+            blob_sha=EMPTY_SHA256,
+            size=0,
+        )
+        for path in PATHS
+    ),
+    control_directories=(),
+)
 SUBJECTS = ("v22", "v23", "sdk-name", "API_VERSION")
 ECOSYSTEMS = ("python", "javascript", "php")
 
@@ -119,7 +133,7 @@ def build(records: list[dict[str, Any]]) -> ledger.Ledger:
         run_id=RUN_ID,
         proof_scope_hash=SCOPE_HASH,
         evidence=records,
-        closure=EMPTY_CLOSURE,
+        closure=SCANNED_CLOSURE,
     )
 
 

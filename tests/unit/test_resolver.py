@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
-from hubbleops.core.errors import UnknownClaimType
+from hubbleops.core.errors import PathNotInClosure, UnknownClaimType
 from hubbleops.core.evidence import make_evidence
 from hubbleops.observe import resolver
 from hubbleops.observe.text import patterns_for
@@ -18,6 +18,14 @@ FROZEN_TABLES = {
     "call_version": ("per_call", "client_init", "sdk_default", "UNKNOWN"),
     "production_version": ("telemetry", "sentinel", "dynamic", "static"),
     "request_text": ("dynamic", "structure", "text"),
+}
+
+
+CLOSURE_TREE = {
+    "src/app.py": "INSIDE",
+    "package.json": "INSIDE",
+    "package-lock.json": "INSIDE",
+    "vendor/sdk/composer.json": "VENDORED",
 }
 
 
@@ -82,7 +90,7 @@ def test_an_unregistered_claim_type_raises_rather_than_defaulting() -> None:
     with pytest.raises(UnknownClaimType):
         resolver.claim_key(unregistered)
     with pytest.raises(UnknownClaimType):
-        resolver.resolve_claim("invented_claim", [unregistered], {})
+        resolver.resolve_claim("invented_claim", [unregistered], CLOSURE_TREE)
 
 
 def test_a_lock_outranks_a_manifest_for_the_installed_sdk() -> None:
@@ -114,7 +122,7 @@ def test_a_lock_outranks_a_manifest_for_the_installed_sdk() -> None:
             "source_kind": "lock",
         },
     )
-    resolution = resolver.resolve_claim("sdk_installed", [manifest, lock], {})
+    resolution = resolver.resolve_claim("sdk_installed", [manifest, lock], CLOSURE_TREE)
     assert resolution.status == "AFFECTED"
     assert resolution.winner_id == lock["id"]
     assert "17.1.0" in resolution.reason
@@ -128,7 +136,7 @@ def test_a_per_call_override_outranks_an_sdk_default() -> None:
         value={"pattern": "call", "slot": "per_call"},
         provider_subject="v22",
     )
-    resolution = resolver.resolve_claim("call_version", [default, override], {})
+    resolution = resolver.resolve_claim("call_version", [default, override], CLOSURE_TREE)
     assert resolution.status == "AFFECTED"
     assert "v22" in resolution.reason
 
@@ -136,13 +144,15 @@ def test_a_per_call_override_outranks_an_sdk_default() -> None:
 def test_disagreeing_literals_at_one_location_stay_unknown() -> None:
     first = record(provider_subject="v22")
     second = record(provider_subject="v23", value={"pattern": "other", "slot": "per_call"})
-    resolution = resolver.resolve_claim("call_version", [first, second], {})
+    resolution = resolver.resolve_claim("call_version", [first, second], CLOSURE_TREE)
     assert resolution.status == "UNKNOWN"
     assert resolution.close_with
 
 
 def test_a_version_carrier_without_a_literal_is_unknown_not_affected() -> None:
-    resolution = resolver.resolve_claim("call_version", [record(provider_subject=None)], {})
+    resolution = resolver.resolve_claim(
+        "call_version", [record(provider_subject=None)], CLOSURE_TREE
+    )
     assert resolution.status == "UNKNOWN"
     assert resolution.close_with
 
@@ -192,7 +202,7 @@ def test_every_open_status_carries_a_closing_instruction() -> None:
         ("external_boundary", record(claim_type="external_boundary", value={"reason": "symlink"})),
     ]
     for claim_type, sample in samples:
-        resolution = resolver.resolve_claim(claim_type, [sample], {})
+        resolution = resolver.resolve_claim(claim_type, [sample], CLOSURE_TREE)
         if resolution.status in ("UNKNOWN", "HUMAN_REQUIRED"):
             assert resolution.close_with, claim_type
 
@@ -201,3 +211,8 @@ def test_the_winner_is_stable_when_ranks_tie() -> None:
     first = record(provider_subject="v22")
     second = record(provider_subject="v22", value={"pattern": "z", "slot": "per_call"})
     assert resolver.winner([first, second]) == resolver.winner([second, first])
+
+
+def test_a_location_bound_claim_off_the_closure_stops_rather_than_assuming_first_party() -> None:
+    with pytest.raises(PathNotInClosure):
+        resolver.resolve_claim("call_version", [record(path="ghost.py")], CLOSURE_TREE)

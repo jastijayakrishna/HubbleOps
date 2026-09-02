@@ -91,6 +91,17 @@ class ProvenanceDropped(HubbleOpsError):
         self.missing = missing
 
 
+class PathNotInClosure(HubbleOpsError):
+    def __init__(self, claim_type: str, path: str) -> None:
+        super().__init__(
+            f"PATH_NOT_IN_CLOSURE: {claim_type} evidence cites {path}, which the source closure "
+            "never classified. Resolution stops rather than assuming the path is first-party "
+            "source and repairable."
+        )
+        self.claim_type = claim_type
+        self.path = path
+
+
 class ProofScopeMismatch(HubbleOpsError):
     def __init__(self, kind: str, record_id: str, run_scope: str, record_scope: str) -> None:
         super().__init__(

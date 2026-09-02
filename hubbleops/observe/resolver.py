@@ -4,7 +4,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from hubbleops.core.errors import UnknownClaimType
+from hubbleops.core.errors import PathNotInClosure, UnknownClaimType
 from hubbleops.core.records import as_mapping, as_sequence
 from hubbleops.observe.deps import classify_manifest
 
@@ -103,7 +103,10 @@ def resolve_claim(
         raise UnknownClaimType(claim_type)
     chosen = winner(records)
     if claim_type in LOCATION_BOUND_CLAIMS:
-        classification = classifications.get(str(chosen["path"]), "INSIDE")
+        path = str(chosen["path"])
+        classification = classifications.get(path)
+        if classification is None:
+            raise PathNotInClosure(claim_type, path)
         if classification != "INSIDE":
             return Resolution(
                 status="EXCLUDED_WITH_EVIDENCE",
