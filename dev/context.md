@@ -9,17 +9,20 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
 | **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none — the first Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) returned `GATE: FAIL` on two blocking findings; both are fixed, along with the eight non-blocking ones |
+| **Last gate passed** | none — the second Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) returned `GATE: FAIL` on two blocking findings (F1 silent media binaries, F2 fabricated evidence id) and eleven non-blocking ones; all are fixed except P-003 and P-004, which need a human decision |
 | **Next action** | fresh-session gate audit re-run; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
 deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all six fixtures.
-159 tests pass; `ruff check`, `ruff format --check` and `pyright` (strict) are clean.
+165 tests pass, 1 skips; `ruff check`, `ruff format --check` and `pyright` (strict) are clean.
+`pyright` now covers `tests/` and `.claude/` as well as `hubbleops/`, excluding `tests/fixtures/`,
+which is deliberately-broken third-party sample code and an input to the scanner rather than source.
 
-The first gate audit found the text observer proving absence over a tree ripgrep had matched, and
-law L3 with no mechanism at all. Both are now enforced in code and covered by tests; the fixture
-expectations grew because the recall layer stopped dropping manifest hits. Fixture candidate counts
-are 13 / 9 / 13 / 12 / 7 / 13, all still fully explained.
+The second gate audit found two ways the ledger could lose a candidate. The text observer skipped
+`file_unscanned` evidence for any path whose suffix looked like media, so a `.png` carrying provider
+strings produced no candidate at all — absence as silence, which §6.1 forbids. And the store's L3
+guard compared only evidence-id *sets*, so a 64-hex string referencing no stored row counted as new
+evidence and closed an UNKNOWN. Both are now enforced and covered by tests.
 
 ## Blocking
 
@@ -117,6 +120,21 @@ are 13 / 9 / 13 / 12 / 7 / 13, all still fully explained.
   so a database written before these constraints existed is refused instead of silently trusted.
   Phase 7's `hops decide` closes an UNKNOWN by recording the decision as evidence and attaching it —
   that is the "recorded human decision" half of L3, and it needs no new closing mechanism.
+  Two guards were added after the second gate audit: every `evidence_id` a candidate cites must
+  already exist in the `evidence` table for that run (an id that references nothing is not
+  provenance and cannot close an UNKNOWN), and `finish_run` refuses to mark a run complete while any
+  persisted evidence row is attached to no candidate. L1 now holds at the store boundary, not only
+  in `observe/ledger.py`.
+- A file's suffix is never evidence about its content. The closure still tells `binary_media` and
+  `binary_opaque` apart, because the reason a customer reads should say which it is, but both emit
+  `file_unscanned` evidence and both resolve to `UNKNOWN` with a closing instruction. The media
+  reason no longer claims the file "cannot carry an executable provider call" — that is the very
+  thing the scanner could not check.
+- `observe/resolver.py` fails closed when a location-bound claim cites a path the closure never
+  classified (`PathNotInClosure`). It used to default the classification to `INSIDE`, which is a
+  silent assumption on a safety question: first-party and therefore repairable.
+- A tool timeout exits `5` (`EXIT_UNKNOWN`) and prints `UNKNOWN: <reason>`. It used to exit `4`
+  alongside real failures, which contradicted L9's "timeout → UNKNOWN with reason".
 
 ## Open threads
 
