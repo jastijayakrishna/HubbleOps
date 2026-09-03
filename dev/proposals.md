@@ -183,4 +183,113 @@ map that silently under-reports. §4 is otherwise rendered exactly as frozen.
 
 ---
 
+## P-005 — Version lattice: per-candidate versions, computed Change Pack diffs, `latest` default target
+
+| | |
+|---|---|
+| **Raised** | 2026-09-03, pre-Phase-2 design decision |
+| **Touches** | §2 (completeness-math prose, no law text changed), §3.1 `ProviderPack` contract (`ContractOracle.diff` semantics, add `versions()`), §4 Exposure Map (`Detected` line) |
+| **Status** | ACCEPTED |
+
+**What forced this.** v22→v25 was the first commercial target, not the design. Real repos run
+several versions at once — per-call overrides, two services pinned to different SDK lines, a REST
+integration nobody has touched since v19. A single repo-wide "current version" cannot represent
+that, and hand-building one Change Pack per commercial pair does not scale against a provider that
+ships monthly: Google Ads adds a new API version roughly every quarter and every version stays
+queryable for a supported window, so the set of versions a real fleet of repos actually runs against
+is a lattice, not a pair.
+
+**Proposed change.**
+1. **Per-candidate version, not per-repo version.** Every candidate already carries its effective
+   version through the existing claim table (`per_call > client_init > sdk_default > UNKNOWN`,
+   §5). Obligations are generated per `(candidate, its_effective_version, target)`. A repo with v20,
+   v22 and v24 call sites gets three obligation sets against one target; the SDK bump itself is an
+   obligation like any other.
+2. **Change Pack = per-version catalogs + computed diffs, not one hand-built pair.** The pack stores
+   a catalog per supported version (protos from the googleapis git history +
+   `GoogleAdsFieldService` catalog per version). `diff(v_from, v_to)` is *computed* by set
+   difference over subjects and cached by hash rather than hand-authored. Renames and replacements
+   across a gap are resolved by composing consecutive mappings (v22→v23→v24→v25); anything that
+   does not compose cleanly is `UNKNOWN_PROVIDER_CONTRACT`, never guessed. Ingestion of a new
+   version is a scheduled job, not a project, because the lattice grows monthly.
+3. **Default target is `latest` supported by the resolved SDK line**, overridable per run. Sunset
+   versions (v19–v21) are ordinary lattice nodes, not a special case — those repos are already
+   broken today.
+
+**Blast radius.** No Receipt exists yet — Phase 1 ships only `scan`/`exposure`, and
+`ContractOracle`/`ChangeCompiler` are still unimplemented stub Protocols in `packs/_protocol.py`, so
+no working code regresses. `proof_scope.json`'s `provider_contract_hash` already hashes "the Change
+Pack" generically; a lattice-shaped Change Pack still reduces to one hash, so the frozen
+`ProofScope` schema needs no field change. `obligation.json` will need an
+effective-version-carrying field before Phase 6 writes a real obligation — noted here for that
+phase's planning, not changed now, since the schema is FROZEN and an unbuilt phase is not a forcing
+case for touching it yet. Downstream: Phase 2's DoD is rewritten to build the lattice instead of one
+pair; Phase 6's DoD is rewritten for per-effective-version obligations and a `--target` flag; Phase
+10's report gains per-version site counts.
+
+**Alternatives rejected, and why.** Keep one hand-picked pair per phase and re-run a full Phase 2
+gate for every future commercial target — does not scale at a monthly release cadence, and forces
+an artificial single "current version" onto repos that are provably running several at once, which
+is the exact kind of false confidence Axiom 1 exists to prevent.
+
+**Decision.** Accepted by the repository owner (Jaya Krishna J) on 2026-09-03.
+
+---
+
+## P-006 — Language-agnostic channels: wire signature, sentinel proxy mode, `STRUCTURE_UNSUPPORTED`
+
+| | |
+|---|---|
+| **Raised** | 2026-09-03, pre-Phase-3/4 design decision |
+| **Touches** | §2 (orthogonal-channel list, no law text changed), §3.1 `ProviderPack` contract (add `wire_signature`) |
+| **Status** | ACCEPTED |
+
+**What forced this.** No universal semantic analyzer exists. GitHub built stack graphs on
+Tree-sitter specifically so name-binding rules for any language could be written in a declarative
+DSL with no build dependency — and still shipped rules for only four languages, and the project is
+no longer maintained. Sourcegraph, Semgrep and Kythe converge on the same shape: one shared engine,
+thin per-language rule files, and a fallback channel for everything the rules do not cover.
+"Fully language-agnostic" and "reliable" are only compatible if the reliability comes from channels
+that read no source code at all. One such channel already sits in every request the customer's code
+makes: the gRPC method path (`/google.ads.googleads.v24.services.GoogleAdsService/SearchStream`),
+the REST path (`/vNN/...`), and the `x-goog-api-client` header all name the version — and, unlike
+source text, are identical in shape no matter which client language produced them.
+
+**Proposed change.**
+1. `ProviderPack` gains `wire_signature`: regexes that parse a request's path and headers into
+   `(service, method, version)`, requiring zero per-language work.
+2. The sentinel (§15) and the dynamic-capture event schema (§6.5) gain **proxy mode** — an egress
+   proxy or the client library's own request logging, parsed via `wire_signature` — alongside the
+   existing SDK-hook mode. Proxy mode is the default recommendation because it needs no per-language
+   code; SDK hooks stay available where a proxy cannot sit in the path.
+3. The structure observer (§6.4) reports `STRUCTURE_UNSUPPORTED` evidence for every `INSIDE` file in
+   a language with no rule set, rather than the file silently contributing nothing. The Exposure Map
+   shows per-language structural coverage. A missing per-language rule set becomes an explicit,
+   visible gap instead of a silent one.
+
+Order of per-language rule work stays bounded and customer-driven: Google Ads' actual client-library
+ecosystem is Python, Java, .NET, PHP, Ruby, Perl, plus Node via REST — so Python/PHP/JS/TS first,
+Java/C# second, nothing else until a customer needs it.
+
+**Blast radius.** The Observer contract (§3.2) is unchanged: proxy mode is realized as
+`observer="sentinel"` evidence (or the existing dynamic-capture schema), not a seventh observer
+name, so the frozen `name` comment in §3.2 stays as written. The dynamic-capture event schema
+(versioned, defined in Phase 4) will need an optional wire-sourced provenance field — noted here for
+that phase's planning, not changed now. `STRUCTURE_UNSUPPORTED` is a new claim type the resolver
+handles like any other unresolved claim (§6.7); it does not touch the frozen Candidate schema.
+Downstream: Phase 2's DoD gains `wire_signature` tests against real logged request paths; Phase 3's
+DoD gains the `STRUCTURE_UNSUPPORTED` requirement and restricts initial rules to Python/PHP/JS/TS;
+Phase 4's DoD makes proxy mode the primary sentinel path and SDK hooks secondary; Phase 10's report
+gains per-language structural coverage.
+
+**Alternatives rejected, and why.** Lead with per-language structural coverage and treat the wire
+channel as a later enhancement — every project surveyed above still ships a non-structural fallback
+for languages its rules do not cover, and leading with structure risks a silent gap precisely where
+a customer's actual client library is not yet supported, which is the one failure mode (`FALSE
+VERIFIED`) the product exists to prevent.
+
+**Decision.** Accepted by the repository owner (Jaya Krishna J) on 2026-09-03.
+
+---
+
 *(no open proposals)*
