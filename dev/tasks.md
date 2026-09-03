@@ -12,6 +12,10 @@ Updated before every session ends. Phase-level status lives in
       entry (N-6), one unreadable file aborts the whole scan instead of becoming `FILE_UNSCANNED`
       (N-7), the `_mock` map header has a double space (N-8), and the guard hook allows
       `# pragma: no cover`, which is not one of CLAUDE.md's four comment exceptions (N-9)
+- [ ] **Phase 3, before the AI residue filter ships**: raise a proposal for evidence provenance
+      (**F-6**). The store proves an evidence id matches its content but cannot prove `derivation`
+      is truthful, so a caller can label AI-derived evidence `OBSERVED` and close an UNKNOWN. Needs
+      attestation, which touches the frozen Evidence schema or the Observer contract
 - [ ] Fix **M-7**: `write_evidence` commits before any candidate exists and `latest_run` does not
       exclude `finished_at IS NULL`, so a committed state can carry unexplained evidence (L1 letter).
       Wants an atomic evidence+candidate write or an unfinished-run filter
@@ -19,6 +23,8 @@ Updated before every session ends. Phase-level status lives in
       ProofScope when a `run_id` restarts under a second one (m-2), and every `close_with` names
       `hops decide`, a verb that does not exist until Phase 7 (m-3)
 - [ ] Re-run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
+- [x] Fix **F-5**/**F-7**: every surface field is tested to reach the proof key, and one unreadable
+      file no longer throws the whole scan away
 - [x] Fix **F-4**/**m-1**: the fingerprint covers the module that chooses the observers and keys by
       path, not basename
 - [x] Fix **M-5**/**M-6**: an evidence id is verified to be the hash of its content; P-007 reaches

@@ -9,7 +9,7 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
 | **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none — the fifth Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) confirmed F-3, M-2 and M-4 fixed and blocked on F-4, a hole in the M-3 fix itself. F-4, M-5, M-6 and m-1 are now fixed and the re-run is pending |
+| **Last gate passed** | none — the sixth Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) blocked on F-5, F-6 and F-7. F-5 and F-7 are fixed; **F-6 is open by judgement** and belongs to Phase 3 (see below). Re-run pending |
 | **Next action** | re-run the gate audit; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
@@ -76,6 +76,29 @@ added for M-4. An evidence id is now verified to be the hash of its own content.
 recorded in proposals and ARCHITECTURE.md but the two artefacts a Phase 2 session actually reads —
 `core/schemas/proof_scope.json` and the Phase 2 prompt — still described `provider_contract_hash` as
 the Change Pack hash alone, the reading P-007 rejected; both now carry the composition rule.
+
+The sixth gate audit blocked on **F-5**, **F-6** and **F-7**. F-5 and F-7 are fixed. F-5 was the
+F-2/F-4 class a third time, as an unguarded invariant: `surface_hash()` hashes `to_mapping()`, which
+was hand-synced with the dataclass and covered by no test, so dropping one line from it let two
+surfaces differing only in that field share a proof key with the whole suite green. There is now a
+test that changes each declared field in turn and names the one that fails to reach the hash, and
+`core/surface.py` is in the scanner fingerprint. F-7 was one unreadable file aborting the whole
+scan: `rg` exits 2 on a per-file read error and the observer discarded the run, so a single locked
+file anywhere in a repo produced no ledger at all — fatal for the Phase 2 real-repo loop. The
+observer now reconciles with the closure, proceeding when every path `rg` names is already
+classified UNSCANNED and still failing closed when `rg` names a path the closure thought it could
+read.
+
+**F-6 is open by judgement, not oversight.** The audit closed the M-5 attack that rewrote an
+evidence row under its own id, then found a second one: relabel `DERIVED_AI_EVIDENCE` as `OBSERVED`,
+re-derive a matching id, close the UNKNOWN. The id check proves *integrity* — a record matches its
+own id — and no store-layer check can prove *provenance*, that `derivation` truthfully describes how
+the record was produced. A caller that constructs a record labelled `OBSERVED` is asserting it
+observed something; distinguishing a true assertion from a false one needs an attestation mechanism
+the architecture does not have. Phase 1's INVARIANTS forbid AI calls and no code path emits
+`DERIVED_AI_EVIDENCE`, so the attack needs a caller that does not exist. This is a Phase 3 design
+question, to be raised in `dev/proposals.md` when the AI residue filter first produces such evidence
+— not a quiet code change, because it touches the frozen Evidence schema or the Observer contract.
 
 **M-7 is still open and deliberately deferred**: `write_evidence` commits before any candidate
 exists and `latest_run` does not exclude runs with `finished_at IS NULL`, so there is a committed
