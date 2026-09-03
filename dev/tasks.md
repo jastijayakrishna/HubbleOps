@@ -8,6 +8,9 @@ Updated before every session ends. Phase-level status lives in
 - [ ] Re-run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
 - [x] Write the decision lines on **P-003** and **P-004** in [dev/proposals.md](proposals.md) —
       both ACCEPTED; no proposal is open
+- [x] Record **P-005** (version lattice) and **P-006** (language-agnostic wire channel) in
+      [dev/proposals.md](proposals.md), both ACCEPTED, and apply them to
+      `docs/ARCHITECTURE.md` and the Phase 2/3/4/6/10 prompts
 - [ ] On `GATE: PASS`: merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1`
 - [ ] Install `ast-grep` before Phase 3; rootless docker/podman before Phase 4
 - [x] Fix the second gate audit's findings: silent media binaries, evidence-existence at the store
@@ -23,7 +26,7 @@ Updated before every session ends. Phase-level status lives in
 
 - [x] Phase 1 — scan + exposure + ledger *(implemented and green; two gate audits have returned
       `GATE: FAIL`, every code finding fixed, re-run pending on the two open proposals)*
-- [ ] Phase 2 — Google Ads pack + Change Pack *(first real-repo loop after this gate)*
+- [ ] Phase 2 — Google Ads pack + Change Pack version lattice *(first real-repo loop after this gate)*
 - [ ] Phase 3 — wrapper engine
 - [ ] Phase 4 — dynamic capture + sentinel
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*

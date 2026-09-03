@@ -49,6 +49,31 @@ evidence and closed an UNKNOWN. Both are now enforced and covered by tests.
   disappearing from the one artefact the customer reads. Everything else in §4 renders exactly as
   frozen, glyphs included.
 
+**Pre-Phase-2 design decisions (2026-09-03) — read before starting Phase 2.**
+- **P-005 ACCEPTED.** The version model is a lattice, not a pair. v22→v25 was the first commercial
+  target, not the design: real repos run several versions at once. Obligations key off
+  `(candidate, candidate's own effective version, target)`, never one repo-wide "current version".
+  The Change Pack is a catalog per supported version plus a *computed*, cached, hash-addressed diff
+  between any two — composed across consecutive versions for a multi-hop gap, `UNKNOWN_PROVIDER_
+  CONTRACT` where a mapping does not compose — not one hand-built `changes_v22_v25.jsonl`. Default
+  `--target` is `latest` supported by the resolved SDK line. `docs/ARCHITECTURE.md` §3.1, §4, §7.1,
+  §7.2 and Phase 2/6/10 prompts are updated to match. `obligation.json` will need an
+  effective-version field before Phase 6 writes a real obligation — not added yet; that schema
+  change needs its own proposal when Phase 6 starts.
+- **P-006 ACCEPTED.** No universal semantic analyzer exists (stack graphs, Sourcegraph, Semgrep,
+  Kythe all converge on shared-engine + thin per-language rules + a non-structural fallback), so
+  "language-agnostic" and "reliable" are only compatible if completeness comes from channels that
+  read no source at all. `ProviderPack` gains `wire_signature` — regexes over a request's path and
+  headers into `(service, method, version)`, zero per-language work. The sentinel and dynamic
+  capture gain **proxy mode** (egress proxy or the client library's own request logging, parsed by
+  `wire_signature`) as the *default* alongside per-language hook mode. The structure observer emits
+  `STRUCTURE_UNSUPPORTED` for every `INSIDE` file in a language with no rule set, rather than
+  silence — a coverage gap changes how much lands in `UNKNOWN`, never whether a usage is missed.
+  Initial rule languages stay Python/PHP/JS/TS (Google Ads' actual client-library order); Java/C#
+  later; nothing else until a customer needs it. `docs/ARCHITECTURE.md` §2, §3.1, §6.4, §6.5, §6.6,
+  §15 and Phase 2/3/4/10 prompts are updated to match. The Observer contract (§3.2) is unchanged —
+  proxy mode is `observer="sentinel"` evidence, not a seventh observer name.
+
 **Layout and naming (Phase 1).**
 - The Python package is `hubbleops/` at the repo root, containing `app/ core/ closure/ observe/
   store/ packs/`; `tests/ docs/ dev/ packages/` are its siblings. This is `ARCHITECTURE.md` §10's
