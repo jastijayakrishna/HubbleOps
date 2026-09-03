@@ -25,6 +25,7 @@ from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
 
 OBSERVATION_SOURCES = (
+    Path(__file__),
     Path(source_closure.__file__),
     Path(deps.__file__),
     Path(ledger.__file__),

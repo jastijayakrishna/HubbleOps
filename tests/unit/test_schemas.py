@@ -249,3 +249,16 @@ def test_the_scanner_fingerprint_moves_when_a_source_it_covers_changes(tmp_path:
 def test_the_scanner_fingerprint_refuses_a_source_it_cannot_read(tmp_path: Path) -> None:
     with pytest.raises(OSError):
         scanner_fingerprint([tmp_path / "absent.py"])
+
+
+def test_the_scanner_fingerprint_separates_sources_that_share_a_basename(tmp_path: Path) -> None:
+    first = tmp_path / "closure" / "text.py"
+    second = tmp_path / "observe" / "text.py"
+    first.parent.mkdir(parents=True)
+    second.parent.mkdir(parents=True)
+    first.write_text("value = 1\n", encoding="utf-8")
+    second.write_text("value = 2\n", encoding="utf-8")
+    before = scanner_fingerprint([first, second])
+
+    first.write_text("value = 3\n", encoding="utf-8")
+    assert scanner_fingerprint([first, second]) != before

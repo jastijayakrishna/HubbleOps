@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
@@ -12,8 +13,17 @@ PROOF_SCOPE_PREFIX = "ps_"
 
 
 def scanner_fingerprint(sources: Iterable[Path]) -> str:
+    paths = sorted(sources)
+    root = (
+        Path(os.path.commonpath([str(path) for path in paths]))
+        if len(paths) > 1
+        else paths[0].parent
+    )
     return content_id(
-        {str(path.name): hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(sources)}
+        {
+            path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in paths
+        }
     )
 
 

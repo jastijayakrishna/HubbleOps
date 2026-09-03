@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from hubbleops.app import registry
+from hubbleops.app import cli, registry
 from hubbleops.app.cli import (
     EXIT_FAILED,
     EXIT_OK,
@@ -116,6 +116,10 @@ def test_the_scanner_version_binds_the_observation_pipeline_that_ran() -> None:
     result = scan_repository(FIXTURE, registry.load_pack("google_ads"))
     assert scanner_fingerprint(OBSERVATION_SOURCES) in result.scanner_version
     assert result.proof_scope["scanner_version"] == result.scanner_version
+
+
+def test_the_scanner_version_binds_the_module_that_chooses_the_observers() -> None:
+    assert Path(cli.__file__) in OBSERVATION_SOURCES
 
 
 def test_exposure_reports_the_surface_the_run_recorded_not_the_one_on_disk(
