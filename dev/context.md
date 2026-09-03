@@ -179,3 +179,10 @@ evidence and closed an UNKNOWN. Both are now enforced and covered by tests.
   Phase 2 gate.
 - The Exposure Map prints `Target` and the production-services line as "not in this ProofScope"
   because Phase 1 has no Change Pack and no telemetry observer. Phase 2 and Phase 4 fill them.
+- The `Detected` line lists every version literal found (it already refuses to collapse a
+  multi-version repo into one label) but not yet per-version site counts or an explicit
+  `UNKNOWN (n)` bucket, unlike the amended §4 example (P-005/P-006). `ledger.location_of(candidate)`
+  already resolves each candidate's winning version, so the data exists; `_detected_versions()` in
+  `app/exposure.py` just doesn't group by it yet. Same status as `Target` — aspirational until a
+  phase that touches `exposure.py` for another reason picks it up. Checked against a live scan
+  (2026-09-03): current output is `v22, sdk 17.1.0`, not wrong, just uncounted.
