@@ -7,8 +7,16 @@ from pathlib import Path
 import pytest
 
 from hubbleops.app import registry
-from hubbleops.app.cli import EXIT_FAILED, EXIT_OK, EXIT_UNKNOWN, main
+from hubbleops.app.cli import (
+    EXIT_FAILED,
+    EXIT_OK,
+    EXIT_UNKNOWN,
+    OBSERVATION_SOURCES,
+    main,
+    scan_repository,
+)
 from hubbleops.core.errors import ToolingTimeout
+from hubbleops.core.proof_scope import scanner_fingerprint
 from hubbleops.store.sqlite import DATABASE_FILENAME, Store
 from tests.support import fixture_repos
 
@@ -102,6 +110,12 @@ def test_exposure_prints_the_map_for_the_latest_run(
     assert "AFFECTED" in out
     assert "UNKNOWN" in out
     assert "close with:" in out
+
+
+def test_the_scanner_version_binds_the_observation_pipeline_that_ran() -> None:
+    result = scan_repository(FIXTURE, registry.load_pack("google_ads"))
+    assert scanner_fingerprint(OBSERVATION_SOURCES) in result.scanner_version
+    assert result.proof_scope["scanner_version"] == result.scanner_version
 
 
 def test_exposure_reports_the_surface_the_run_recorded_not_the_one_on_disk(

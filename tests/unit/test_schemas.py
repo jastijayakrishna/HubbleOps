@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -9,7 +10,7 @@ from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.errors import SchemaViolation
 from hubbleops.core.evidence import make_evidence
-from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash
+from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash, scanner_fingerprint
 from hubbleops.core.schema import SCHEMA_DIR, schema_names, validate
 
 RUN_ID = content_id({"run": 1})
@@ -231,3 +232,20 @@ def test_proof_scope_requires_every_frozen_field() -> None:
         partial = {key: value for key, value in scope.items() if key != field}
         with pytest.raises(SchemaViolation):
             validate("proof_scope", partial)
+
+
+def test_the_scanner_fingerprint_moves_when_a_source_it_covers_changes(tmp_path: Path) -> None:
+    first = tmp_path / "closure.py"
+    second = tmp_path / "observer.py"
+    first.write_text("BINARY_SNIFF = 8192\n", encoding="utf-8")
+    second.write_text("value = 1\n", encoding="utf-8")
+    before = scanner_fingerprint([first, second])
+
+    assert scanner_fingerprint([second, first]) == before
+    first.write_text("BINARY_SNIFF = 4096\n", encoding="utf-8")
+    assert scanner_fingerprint([first, second]) != before
+
+
+def test_the_scanner_fingerprint_refuses_a_source_it_cannot_read(tmp_path: Path) -> None:
+    with pytest.raises(OSError):
+        scanner_fingerprint([tmp_path / "absent.py"])

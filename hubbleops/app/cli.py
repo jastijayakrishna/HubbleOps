@@ -17,11 +17,20 @@ from hubbleops.core.proof_scope import (
     make_proof_scope,
     proof_scope_hash,
     run_id_for,
+    scanner_fingerprint,
     short_scope,
 )
-from hubbleops.observe import deps, ledger, text
+from hubbleops.observe import deps, ledger, resolver, text
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
+
+OBSERVATION_SOURCES = (
+    Path(source_closure.__file__),
+    Path(deps.__file__),
+    Path(ledger.__file__),
+    Path(resolver.__file__),
+    Path(text.__file__),
+)
 
 DEFAULT_STATE_DIR = ".hubbleops"
 EXIT_OK = 0
@@ -104,7 +113,11 @@ def scan_repository(target: Path, pack: registry.LoadedPack) -> ScanResult:
     resolved = target.resolve()
     closure = source_closure.build(resolved)
     resolution = deps.resolve(closure)
-    scanner_version = f"hubbleops={__version__};rg={text.ripgrep_version()}"
+    scanner_version = (
+        f"hubbleops={__version__}"
+        f";pipeline={scanner_fingerprint(OBSERVATION_SOURCES)}"
+        f";rg={text.ripgrep_version()}"
+    )
     scope = make_proof_scope(
         repo_sha=closure.repo_sha,
         tree_hash=closure.tree_hash(),

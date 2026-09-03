@@ -1,11 +1,20 @@
 from __future__ import annotations
 
+import hashlib
+from collections.abc import Iterable
+from pathlib import Path
 from typing import Any
 
 from hubbleops.core.canonical import content_id
 from hubbleops.core.schema import validate
 
 PROOF_SCOPE_PREFIX = "ps_"
+
+
+def scanner_fingerprint(sources: Iterable[Path]) -> str:
+    return content_id(
+        {str(path.name): hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(sources)}
+    )
 
 
 def make_proof_scope(
