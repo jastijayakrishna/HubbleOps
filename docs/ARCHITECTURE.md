@@ -232,7 +232,10 @@ than one release are resolved by composing the consecutive diffs (v22→v23→v2
 does not compose cleanly across every hop is `UNKNOWN_PROVIDER_CONTRACT`, not a guess. Ingesting a
 newly released version is a scheduled job against this same pipeline, not a one-off project, because
 the lattice grows on the provider's own release cadence. Offline-reproducible from cached sources;
-the hash of the full lattice enters ProofScope as `provider_contract_hash`.
+the hash of the surface and the full lattice enters ProofScope as `provider_contract_hash`, which
+carries the provider contract in force: the SurfaceSpec alone until the lattice exists, and the two
+composed thereafter (P-007). The lattice never replaces the surface in that hash — a proof key that
+stops moving when the surface is edited is a proof key two different recall surfaces can share.
 
 ### §7.2 Obligation Engine
 `build(change_pack, ledger, oracle) → Obligation[]`. Obligations are keyed by `(candidate,

@@ -298,7 +298,7 @@ VERIFIED`) the product exists to prevent.
 |---|---|
 | **Raised** | 2026-09-03, Phase 1 |
 | **Touches** | `ProofScope` schema (`core/schemas/proof_scope.json`), `docs/ARCHITECTURE.md` §5, §7.1 |
-| **Status** | OPEN |
+| **Status** | ACCEPTED |
 
 **What forced this.** The third Phase 1 gate audit blocked on two different recall surfaces sharing
 one proof key: `app/cli.py` left `provider_contract_hash` null, so scanning one tree with
@@ -328,8 +328,9 @@ key and disambiguate by `provider` name alone — the name does not move when th
 which is precisely the F-2 failure. Put the surface in `rules_hash` — that field has its own frozen
 meaning for the Phase 3 RuleSet and would collide there.
 
-**Decision.** *(open — awaiting the repository owner)*
+**Decision.** Accepted by the repository owner (Jaya Krishna J) on 2026-09-03. Phase 2 composes the
+lattice into `provider_contract_hash` alongside the surface; it never replaces it.
 
 ---
 
-*(no other open proposals)*
+*(no open proposals)*
