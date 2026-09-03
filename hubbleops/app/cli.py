@@ -10,7 +10,6 @@ from typing import Any
 from hubbleops import __version__
 from hubbleops.app import exposure, registry
 from hubbleops.closure import source_closure
-from hubbleops.core import surface
 from hubbleops.core.canonical import export_bytes
 from hubbleops.core.errors import HubbleOpsError, ToolingMissing, ToolingTimeout
 from hubbleops.core.observer import ObserverContext
@@ -21,19 +20,12 @@ from hubbleops.core.proof_scope import (
     scanner_fingerprint,
     short_scope,
 )
-from hubbleops.observe import deps, ledger, resolver, text
+from hubbleops.observe import deps, ledger, text
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
 
-OBSERVATION_SOURCES = (
-    Path(__file__),
-    Path(surface.__file__),
-    Path(source_closure.__file__),
-    Path(deps.__file__),
-    Path(ledger.__file__),
-    Path(resolver.__file__),
-    Path(text.__file__),
-)
+PACKAGE_ROOT = Path(__file__).resolve().parent.parent
+OBSERVATION_SOURCES = tuple(sorted(PACKAGE_ROOT.rglob("*.py")))
 
 DEFAULT_STATE_DIR = ".hubbleops"
 EXIT_OK = 0

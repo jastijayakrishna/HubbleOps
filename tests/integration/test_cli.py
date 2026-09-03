@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+import hubbleops
 from hubbleops.app import cli, registry
 from hubbleops.app.cli import (
     EXIT_FAILED,
@@ -120,6 +121,19 @@ def test_the_scanner_version_binds_the_observation_pipeline_that_ran() -> None:
 
 def test_the_scanner_version_binds_the_module_that_chooses_the_observers() -> None:
     assert Path(cli.__file__) in OBSERVATION_SOURCES
+
+
+def test_the_scanner_version_binds_every_module_that_shapes_a_record() -> None:
+    root = Path(hubbleops.__file__).resolve().parent
+    uncovered = sorted(
+        path.relative_to(root).as_posix()
+        for path in root.rglob("*.py")
+        if path not in set(OBSERVATION_SOURCES)
+    )
+    assert uncovered == [], (
+        "these modules can change what a scan finds without moving the proof key, "
+        "so two disagreeing builds would share one"
+    )
 
 
 def test_exposure_reports_the_surface_the_run_recorded_not_the_one_on_disk(
