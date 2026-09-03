@@ -22,7 +22,9 @@ Updated before every session ends. Phase-level status lives in
 - [ ] Fix the three minor findings from the fifth audit: `start_run` silently keeps the first
       ProofScope when a `run_id` restarts under a second one (m-2), and every `close_with` names
       `hops decide`, a verb that does not exist until Phase 7 (m-3)
-- [ ] Re-run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
+- [ ] Run the [gate audit](../prompts/cross-cutting/gate-audit.md) against `main`. Phase 1 merged
+      and tagged `v0.1` without a passing gate, by the repository owner's decision after seven
+      `GATE: FAIL` runs; the eighth was never run against the tree that fixes F-8
 - [x] Fix **F-8**: the scanner fingerprint covers every module in the package, discovered not listed
 - [x] Fix **F-5**/**F-7**: every surface field is tested to reach the proof key, and one unreadable
       file no longer throws the whole scan away
@@ -42,7 +44,8 @@ Updated before every session ends. Phase-level status lives in
 - [x] Record **P-005** (version lattice) and **P-006** (language-agnostic wire channel) in
       [dev/proposals.md](proposals.md), both ACCEPTED, and apply them to
       `docs/ARCHITECTURE.md` and the Phase 2/3/4/6/10 prompts
-- [ ] On `GATE: PASS`: merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1`
+- [x] Merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1` — done 2026-09-03 with the
+      gate waived, not passed
 - [ ] Install `ast-grep` before Phase 3; rootless docker/podman before Phase 4
 - [x] Fix the second gate audit's findings: silent media binaries, evidence-existence at the store
       boundary, and eleven non-blocking items

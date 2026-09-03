@@ -8,9 +8,9 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | | |
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
-| **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none — the seventh Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) confirmed F-5 and F-7 fixed, agreed F-6 is correctly deferred to Phase 3, and blocked on F-8: the scanner fingerprint covered 7 of 29 modules. Fixed by removing the hand-maintained list. Re-run pending |
-| **Next action** | re-run the gate audit; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
+| **Branch** | merged to `main` and tagged `v0.1` on 2026-09-03 |
+| **Last gate passed** | none. Seven Phase 1 [gate audits](../prompts/cross-cutting/gate-audit.md) ran; every one returned `GATE: FAIL`. The seventh confirmed F-5 and F-7 fixed, agreed F-6 is correctly deferred to Phase 3, and blocked on F-8 alone; F-8 is fixed and verified, but **no audit has been run against the fixed tree**. The repository owner waived the gate and directed the merge |
+| **Next action** | run the Phase 1 gate audit against `main` before Phase 2 work lands; treat a `GATE: FAIL` there as a Phase 2 blocker, since `v0.1` is tagged without one |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
 deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all six fixtures.
