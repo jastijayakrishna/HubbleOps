@@ -31,7 +31,7 @@ Cost(FALSE_VERIFIED) ≫ Cost(UNKNOWN) > Cost(HUMAN_REQUIRED) > Cost(correct rep
 
 **Axiom 2 — Rice's theorem bounds static analysis.** Runtime-selected versions and dynamically built requests are undecidable statically. UNKNOWN is a required output; dynamic and provider-side evidence are structural, not optional.
 
-**Completeness math.** For a usage `u`, `P(miss u) = Π_i P(miss u | observer i)` only if observers fail independently; therefore observers must span orthogonal channels (text, structure, dependencies, execution, provider telemetry). The completeness claim is: *every provider-observed (service, method, version) tuple maps to ≥1 explained candidate, and every candidate has a status.*
+**Completeness math.** For a usage `u`, `P(miss u) = Π_i P(miss u | observer i)` only if observers fail independently; therefore observers must span orthogonal channels (text, structure, dependencies, wire, execution, provider telemetry). The completeness claim is: *every provider-observed (service, method, version) tuple maps to ≥1 explained candidate, and every candidate has a status.* Text, dependencies, wire and provider telemetry need no per-language work at all — the wire channel reads the version out of the request itself (method path, URL path, client header), identical in shape regardless of which language issued it — so structural coverage gaps change how much lands in `UNKNOWN`, never whether a usage is missed silently (§6.4, §15, P-006).
 
 **Blast-radius math.** `Δ` = changed symbols; `R = reach(G, Δ)` over the import/call graph; `C: test → files` from coverage; `UNKNOWN_BLAST = R \ ⋃C(passing frozen tests)`.
 
@@ -74,9 +74,12 @@ class ProviderPack(Protocol):
     name: str
     surface: SurfaceSpec                      # identifiers, hosts, package names, version carriers,
                                               # request languages, sink arg positions, config/env keys
+    wire_signature: WireSignature             # request path/header regexes → (service, method, version); zero language work
+    def versions(self) -> tuple[Version, ...]           # supported version lattice: id, catalog_hash, released_at, sunset_at
     def rules(self, language: str) -> RuleSet          # ast-grep YAML rule files: sinks, version carriers, request-string sinks
-    contract: ContractOracle                  # catalog(version), diff(v_from, v_to), validate(request, version)
-    changes: ChangeCompiler                   # sources → Change Pack (JSONL, hashed, provenance, cross-checked)
+    contract: ContractOracle                  # catalog(version); diff(v_from, v_to) computed + cached + hashed, composed
+                                              # across consecutive versions; validate(request, version)
+    changes: ChangeCompiler                   # sources → per-version catalogs + computed diffs (JSONL, hashed, provenance)
     telemetry: TelemetryAdapter               # provider usage export → [(service, method, version)]
     def capture_hooks(self, language: str) -> CaptureHooks   # interceptor/patch code loaded by observe/dynamic loaders
     def repair_transforms(self) -> list[Transform]           # deterministic, precondition-checked
@@ -88,11 +91,13 @@ class ProviderPack(Protocol):
 |---|---|---|
 | Identifiers / hosts | `google-ads`, `googleads.googleapis.com` | `mockprov`, `api.mockprov.test` |
 | Version carriers | `get_service(version=)`, `get_type(version=)`, URL `/vNN/`, namespace `google.ads.googleads.vNN`, env/config keys | `client(version=)`, URL `/vN/` |
+| Wire signature | gRPC method path `/google\.ads\.googleads\.v(\d+)\.services\.(\w+)Service/`, REST path `/v(\d+)/`, header `x-goog-api-client` | REST path `/v(\d+)/` |
+| Version lattice | v19…current, monthly ingestion; catalog + computed diff per consecutive pair | two fixed versions, for composition tests |
 | Request language | GAQL | key=value strings |
 | Contract source | googleapis protos + GoogleAdsFieldService catalog + guides + release notes | hand-written JSON |
 | Validation oracle | `validate_only` on Search / mutate; catalog field checks | in-memory validator with one known-bad request |
 | Telemetry | Cloud Console methods/versions export | CSV |
-| Capture hooks | gRPC interceptor + HTTP patch (py/php/node) | function patch |
+| Capture hooks | gRPC interceptor + HTTP patch (py/php/node); proxy mode via wire signature | function patch |
 | Repair transforms | version literal, SDK pin, namespace rename, REST path | version literal |
 | Repair tools | Google Ads API Developer Assistant plugin | none |
 
@@ -115,7 +120,7 @@ class Observer(Protocol):
 HubbleOps — GOOGLE ADS EXPOSURE MAP
 
 Repository   acme/ad-platform        Commit  84ea29d
-Detected     Google Ads API v22      Target  v25
+Detected     v20 (3), v22 (17), v24 (1), UNKNOWN (2)   Target  latest (v25)
 ProofScope   ps_3f9a…                Pack    google_ads@<changes_hash>
 
 ────────────────────────────────────────────────────────
@@ -123,6 +128,8 @@ DISCOVERY
   Candidates found        67
   Affected                21
   Not affected (evidence) 39
+  Excluded (evidence)     0
+  Human required          0
   UNKNOWN                  7
   Unexplained              0
   Production services accounted for   7 / 7
@@ -148,7 +155,7 @@ UNKNOWN
 NOT AFFECTED (with evidence)   39   [expand]
 ```
 
-Rules: every UNKNOWN prints a *close with* instruction; counts always include `Unexplained`; the map is deterministic for a given ProofScope.
+Rules: every UNKNOWN prints a *close with* instruction; counts always include `Unexplained`; the map is deterministic for a given ProofScope. `Detected` lists every effective version found, each with its site count, because a repo runs a version lattice, not one version (P-005); `Target` is `latest` supported by the resolved SDK line unless overridden.
 
 ---
 
@@ -193,13 +200,15 @@ Generic lockfile/manifest parsers (Python, JS, PHP, Java, C#, Go, Ruby) resolve 
 - **Boundaries:** internal HTTP/queue/RPC hops carrying a request or version → `EXTERNAL_BOUNDARY` candidate naming the payload.
 - **AI residue filter:** only for candidates unresolved after the walk; ≤ 2 files of context; one question; output `DERIVED_AI_EVIDENCE`.
 - **Promotion:** wrappers confirmed by dynamic/sentinel stack traces are written to `.hubbleops/surface.yml` as repo-local rules; next scan resolves them in one hop (§19).
+- **Coverage, not correctness, is per-language.** Rules exist for a bounded, customer-ordered set of languages; every `INSIDE` file in a language with no rule set gets `STRUCTURE_UNSUPPORTED` evidence instead of silently contributing nothing to the ledger. The Exposure Map shows structural coverage per language. This channel therefore only ever affects how much lands in `UNKNOWN` — the text, dependency, wire and telemetry channels (§2, §6.2, §6.3, §6.6) still cover every language with zero per-language work (P-006).
 
 ### §6.5 Observer D — Dynamic capture (test time)
-The customer's own test suite runs in the sandbox (§8.1) with pack-supplied capture hooks loaded by generic per-language loaders (Python `sitecustomize`, PHP `auto_prepend_file`, Node `--require`). Events (versioned schema): `{version, service, method, request_text, request_type, stack[], ts}`. Each stack is an observed wrapper chain; chains absent statically → `OBSERVED_NOT_STATIC` candidates. No events with call sites present → `UNKNOWN_DYNAMIC`.
+The customer's own test suite runs in the sandbox (§8.1). Events (versioned schema): `{version, service, method, request_text, request_type, stack[], ts}` are populated by either of two independent modes: **hook mode** — pack-supplied capture hooks loaded by generic per-language loaders (Python `sitecustomize`, PHP `auto_prepend_file`, Node `--require`) — or **proxy mode** — an egress proxy in front of the sandbox parses outbound requests with the pack's `wire_signature` into `(service, method, version)`, needing no per-language code at all. Each stack is an observed wrapper chain; chains absent statically → `OBSERVED_NOT_STATIC` candidates. No events with call sites present → `UNKNOWN_DYNAMIC`.
 
 ### §6.6 Observer E — Provider telemetry and sentinel
 - **Telemetry:** the pack's adapter parses the provider's usage export (Google: Cloud Console methods/versions) into `(service, method, version)`. Reconciliation: each tuple ↦ ≥1 explained candidate; unmatched → `TELEMETRY_UNEXPLAINED`.
-- **Sentinel (production sensor, §15):** customer-installed package emitting the same event schema from production; `observer="sentinel"`.
+- **Wire (production or test, language-independent):** the pack's `wire_signature` parses a request's path and headers directly — no SDK, no language-specific code, no dependency on which client library issued the call. This is what makes proxy mode (§6.5, §15) possible.
+- **Sentinel (production sensor, §15):** customer-installed package emitting the same event schema from production; `observer="sentinel"`, in either hook mode or proxy mode.
 
 ### §6.7 Candidate Ledger and resolver
 All observers feed one ledger. A candidate is never deleted; it is explained. The resolver applies §5 claim tables. Deterministic categorizers run before any AI. Output: Exposure Map (§4).
@@ -209,10 +218,32 @@ All observers feed one ledger. A candidate is never deleted; it is explained. Th
 ## §7. Provider intelligence
 
 ### §7.1 Change Pack
-Per provider, per version pair: `data/changes_<from>_<to>.jsonl`. Sources for Google Ads: (a) googleapis proto diff; (b) GoogleAdsFieldService catalogs for both versions (selectable, filterable, sortable, data_type, selectable_with); (c) upgrade guides + release notes as structured claims; (d) client-library compatibility. Every fact: `source_url, retrieved_at, sha256, confidence`. Cross-check: (a)∧(b) → `PROVEN`; only (c) → `DOCUMENTED`; disagreement → `UNKNOWN_PROVIDER_CONTRACT`. No LLM adjudication. Offline-reproducible from cached sources; hash enters ProofScope.
+A Change Pack is per-version catalogs plus computed diffs, not one hand-built pair (P-005). Per
+provider, per supported version: `data/catalog_<version>.jsonl`, built from (a) the googleapis
+proto diff against the previous version; (b) the GoogleAdsFieldService catalog for that version
+(selectable, filterable, sortable, data_type, selectable_with); (c) that version's upgrade guide and
+release notes as structured claims; (d) client-library compatibility. Every fact: `source_url,
+retrieved_at, sha256, confidence`. Cross-check: (a)∧(b) → `PROVEN`; only (c) → `DOCUMENTED`;
+disagreement → `UNKNOWN_PROVIDER_CONTRACT`. No LLM adjudication.
+
+`diff(v_from, v_to)` is *computed* — set difference over the two catalogs' subjects — and cached by
+the hash of the pair, never hand-authored. Renames and replacements across a gap that spans more
+than one release are resolved by composing the consecutive diffs (v22→v23→v24→v25); a mapping that
+does not compose cleanly across every hop is `UNKNOWN_PROVIDER_CONTRACT`, not a guess. Ingesting a
+newly released version is a scheduled job against this same pipeline, not a one-off project, because
+the lattice grows on the provider's own release cadence. Offline-reproducible from cached sources;
+the hash of the full lattice enters ProofScope as `provider_contract_hash`.
 
 ### §7.2 Obligation Engine
-`build(change_pack, ledger, oracle) → Obligation[]`. Every AFFECTED candidate → ≥ 1 obligation with `file:line, current_state, required_state, repair_class, verification_method`. Request-skeleton literals are validated against the target catalog via the injected oracle here, not in observers. UNKNOWNs → `PRESERVE_UNKNOWN` obligations. Agents receive obligations, never "upgrade the repo".
+`build(change_pack, ledger, oracle) → Obligation[]`. Obligations are keyed by `(candidate,
+candidate.effective_version, target)` — a candidate's version comes from the claim table the ledger
+already resolved it against (§5), never from one repo-wide "current version". Every AFFECTED
+candidate → ≥ 1 obligation with `file:line, current_state, required_state, repair_class,
+verification_method`; the target version's catalog is reached by composing the Change Pack's
+consecutive diffs from `effective_version` to `target`. `target` defaults to `latest` supported by
+the resolved SDK line, overridable per run (`--target`, P-005). Request-skeleton literals are
+validated against the target catalog via the injected oracle here, not in observers. UNKNOWNs →
+`PRESERVE_UNKNOWN` obligations. Agents receive obligations, never "upgrade the repo".
 
 ---
 
@@ -336,7 +367,7 @@ Cost targets: `repo update ≈ |changed blobs| + |fanout|`; `provider update ≈
 
 ## §15. Sticky mode (production sensor and compounding assets)
 
-- **Sentinel** (`packages/hubbleops-sentinel`) — standalone, provider adapters inside it (Google: gRPC interceptor or logging-config install), emits the §6.5 event schema from production. Never imports `hubbleops.*`; output is observational evidence, never a verdict.
+- **Sentinel** (`packages/hubbleops-sentinel`) — standalone, emits the §6.5 event schema from production in one of two modes: **hook mode**, a provider adapter inside it (Google: gRPC interceptor or logging-config install); or **proxy mode**, an egress proxy or the client library's own request logging parsed via the pack's `wire_signature`, needing no per-language adapter. Proxy mode is the default recommendation — it works for any client language the moment traffic flows through it. Never imports `hubbleops.*`; output is observational evidence, never a verdict.
 - **Live API inventory** — what actually calls the provider, by version/method/wrapper chain, always current.
 - **Growing surface memory** — `.hubbleops/` rules, bindings, decisions make migration *n+1* cheaper only with the engine that reads them.
 - **Cumulative backslide guard** — every retired construct ever migrated stays guarded (§18).
