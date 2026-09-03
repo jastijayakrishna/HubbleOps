@@ -9,12 +9,12 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
 | **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none — the sixth Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) blocked on F-5, F-6 and F-7. F-5 and F-7 are fixed; **F-6 is open by judgement** and belongs to Phase 3 (see below). Re-run pending |
+| **Last gate passed** | none — the seventh Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) confirmed F-5 and F-7 fixed, agreed F-6 is correctly deferred to Phase 3, and blocked on F-8: the scanner fingerprint covered 7 of 29 modules. Fixed by removing the hand-maintained list. Re-run pending |
 | **Next action** | re-run the gate audit; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
 deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all six fixtures.
-165 tests pass, 1 skips; `ruff check`, `ruff format --check` and `pyright` (strict) are clean.
+188 tests pass, 1 skips; `ruff check`, `ruff format --check` and `pyright` (strict) are clean.
 `pyright` now covers `tests/` and `.claude/` as well as `hubbleops/`, excluding `tests/fixtures/`,
 which is deliberately-broken third-party sample code and an input to the scanner rather than source.
 
@@ -88,6 +88,16 @@ file anywhere in a repo produced no ledger at all — fatal for the Phase 2 real
 observer now reconciles with the closure, proceeding when every path `rg` names is already
 classified UNSCANNED and still failing closed when `rg` names a path the closure thought it could
 read.
+
+The seventh audit blocked on **F-8**, the same class a fourth time and inside the mechanism meant to
+close it: `OBSERVATION_SOURCES` was a hand-maintained tuple of seven modules while the scan leans on
+twenty-nine, so `core/records.py` and `core/canonical.py` — which shapes every id — could change what
+a scan found while the ProofScope and `run_id` stood still and the store merged two disagreeing
+builds. Each earlier fix had added one more entry to the list; the list was the defect. The
+fingerprint now covers every `.py` in the package, discovered rather than listed, and a test names
+any module that escapes. This over-binds — editing a module the scan never reaches forces a re-proof
+it did not need — which is the safe direction: missing a module costs a false proof, binding a
+spare one costs a rerun. **Do not reintroduce a curated list here.**
 
 **F-6 is open by judgement, not oversight.** The audit closed the M-5 attack that rewrote an
 evidence row under its own id, then found a second one: relabel `DERIVED_AI_EVIDENCE` as `OBSERVED`,

@@ -23,6 +23,7 @@ Updated before every session ends. Phase-level status lives in
       ProofScope when a `run_id` restarts under a second one (m-2), and every `close_with` names
       `hops decide`, a verb that does not exist until Phase 7 (m-3)
 - [ ] Re-run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
+- [x] Fix **F-8**: the scanner fingerprint covers every module in the package, discovered not listed
 - [x] Fix **F-5**/**F-7**: every surface field is tested to reach the proof key, and one unreadable
       file no longer throws the whole scan away
 - [x] Fix **F-4**/**m-1**: the fingerprint covers the module that chooses the observers and keys by
