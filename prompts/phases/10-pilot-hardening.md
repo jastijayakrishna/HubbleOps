@@ -33,7 +33,8 @@ PROCESS:
 2. For each UNKNOWN, assign exactly one of the four outcomes above; for (2) use `hops decide`; for (4) run fixture-writer.
 3. `hops migrate --target v25`, `hops verify`; paste receipt.md. HUMAN_REQUIRED with a named untested-radius list is an acceptable pilot outcome; report it, do not manufacture coverage.
 4. Update docs/FAILURE_ATLAS.md with every new pattern, fixture id, and which observer caught it.
+5. Report per-language structural coverage (which languages in this repo have rules vs. STRUCTURE_UNSUPPORTED, per P-006) and per-version site counts (how many candidates at each detected effective version, per P-005) alongside the UNKNOWN disposition table.
 INVARIANTS: no rule or fixture tuned to a single repo's names; rules pass must-not-match snippets; frozen architecture unchanged.
-EVIDENCE REQUIRED: all command outputs; new fixture list; adversarial suite still 100% rejected after rule changes; the UNKNOWN disposition table.
+EVIDENCE REQUIRED: all command outputs; new fixture list; adversarial suite still 100% rejected after rule changes; the UNKNOWN disposition table; the per-language structural coverage table; the per-version site-count table.
 TRAPS: repo-specific hacks in packs; closing UNKNOWNs by assertion; treating UNKNOWN count as the score.
 ```
