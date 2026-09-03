@@ -9,8 +9,8 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
 | **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none — the third Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) returned `GATE: FAIL` on two new blocking findings (F-1 NUL past the sniff window, F-2 ProofScope does not bind the surface) and five non-blocking ones. The first and second audits' findings are all confirmed fixed |
-| **Next action** | fix F-1 and F-2, then re-run the gate audit; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
+| **Last gate passed** | none — the fourth Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) confirmed F-1 fixed and blocked on F-3, the read half of F-2. F-3 and the four MAJOR findings beside it are now fixed, P-007 is decided, and the re-run is pending |
+| **Next action** | re-run the gate audit; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
 deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all six fixtures.
@@ -43,6 +43,24 @@ The third gate audit confirmed every earlier finding fixed and found two more, b
   report the 12-candidate union and attribute all 12 to a surface that could only produce 7.
   `dev/context.md` recorded leaving these fields null as a decision; this consequence was not
   recorded, and it goes live the moment Phase 2 edits `surface.yaml`.
+
+The fourth gate audit confirmed F-1 fixed across an eight-case NUL/encoding matrix and a 24-path
+closure↔ripgrep differential, and confirmed F-2's write side fixed. It blocked on **F-3**, the read
+half of the same finding: `hops exposure` re-derived the pack hash by loading `surface.yaml` at
+render time, so every map over a stored run printed whichever surface was on disk rather than the
+one the run recorded — a false provenance claim, printed silently beside the correct ProofScope. The
+read path now uses the run's stored `provider_contract_hash` and never consults the pack.
+
+Four MAJOR findings beside it are also fixed. **M-1**: binding the surface loaded a frozen field
+with a meaning §7.1 gives the Change Pack lattice — raised and decided as P-007 (compose, never
+replace). **M-3**: `scanner_version` was the package version, which nobody bumps per commit, so the
+F-1 fix changed what the scanner reported for a tree while its ProofScope hash and run id stood
+still and the store merged two disagreeing builds under one key; it now carries a fingerprint of the
+sources that decide recall. **M-2**: the L3 guard read only committed rows, so a single
+`write_candidates` call carrying an UNKNOWN and its closure for one id closed it with no new
+evidence; the guard now sees earlier records in its own batch. **M-4**: L10 was documented in the
+evidence schema and enforced nowhere, so `DERIVED_AI_EVIDENCE` alone could close an UNKNOWN; a
+closure whose new evidence is entirely AI-derived is now refused.
 
 Five non-blocking findings also stand: the `Detected` line still lacks per-version site counts and
 `UNKNOWN (n)` (P-005); `Pack google_ads@<hash>` prints the surface hash where §4/§16 specify

@@ -5,16 +5,21 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
-- [ ] Fix **F-1**: reconcile the closure's 8192-byte NUL sniff with `rg`'s whole-file binary
-      quarantine, so a file `rg` refuses to search always yields a candidate
-- [ ] Fix **F-2**: bind the pack surface into the ProofScope (`provider_contract_hash`) and into
-      `run_id_for`, so two surfaces cannot share one proof key
-- [ ] Fix the third gate audit's five non-blocking findings: `Detected` site counts (P-005),
-      `<changes_hash>` label, the extra `EXCLUDED` line (P-004), `wire_signature`/`versions()` on the
-      `ProviderPack` Protocol, and the discarded `rg` hit in `observe/text.py`
+- [ ] Fix the five non-blocking findings carried since the third audit: `Detected` site counts
+      (P-005), `<changes_hash>` label, the extra `EXCLUDED` line (P-004), `wire_signature`/
+      `versions()` on the `ProviderPack` Protocol, and the discarded `rg` hit in `observe/text.py`
+- [ ] Fix the four new minor findings from the fourth audit: a symlinked directory yields no closure
+      entry (N-6), one unreadable file aborts the whole scan instead of becoming `FILE_UNSCANNED`
+      (N-7), the `_mock` map header has a double space (N-8), and the guard hook allows
+      `# pragma: no cover`, which is not one of CLAUDE.md's four comment exceptions (N-9)
 - [ ] Re-run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
-- [x] Third gate audit run — `GATE: FAIL` on F-1 and F-2; all first/second-audit findings confirmed
-      fixed
+- [x] Fix **F-3**: the Exposure Map renders the surface the run recorded, not the pack on disk
+- [x] Fix **M-1**/**M-3**/**M-2**/**M-4**: P-007 decided; `scanner_version` fingerprints the
+      observation pipeline; the store's transition guard enforces L3 within a batch and L10 against
+      AI-only closures
+- [x] Fix **F-1** (NUL anywhere, not just in the sniff window) and **F-2** (the surface binds into
+      the ProofScope)
+- [x] Third gate audit run — `GATE: FAIL` on F-1 and F-2; fourth — `GATE: FAIL` on F-3 alone
 - [x] Write the decision lines on **P-003** and **P-004** in [dev/proposals.md](proposals.md) —
       both ACCEPTED; no proposal is open
 - [x] Record **P-005** (version lattice) and **P-006** (language-agnostic wire channel) in
