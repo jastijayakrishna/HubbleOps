@@ -35,7 +35,7 @@
       "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
     },
     "provider_contract_hash": {
-      "description": "Hash of the Change Pack the verdict is bound to (Phase 2).",
+      "description": "Hash of the provider contract in force: the SurfaceSpec alone until the Change Pack lattice exists, and the SurfaceSpec composed with that lattice thereafter. The lattice never replaces the surface here, because a proof key that stops moving when the surface is edited is one two different recall surfaces can share (P-007).",
       "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
     },
     "rules_hash": {

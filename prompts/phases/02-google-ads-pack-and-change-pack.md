@@ -33,7 +33,7 @@ DEFINITION OF DONE:
 7. Change Pack build is idempotent and reproducible without network from data/sources/ (hashed); `hops pack verify google_ads` passes offline over the full lattice.
 8. tests/fixtures/google_ads/: known v25 removals (e.g., CustomerLifecycleGoal, CampaignLifecycleGoal) and known field changes appear with PROVEN confidence; a composed diff across a 3+ version gap matches the hand-checked expected mapping.
 
-INVARIANTS: packs/ imported only by app/ and tests. Change Pack hash (over the full lattice) enters ProofScope. Every network fetch cached with sha256 before use. Phase gate does not require live credentials.
+INVARIANTS: packs/ imported only by app/ and tests. Change Pack hash (over the full lattice) enters ProofScope as `provider_contract_hash` composed with the SurfaceSpec hash Phase 1 already puts there — it never replaces it (P-007); a proof key that stops moving when the surface is edited is one two different recall surfaces can share. Every network fetch cached with sha256 before use. Phase gate does not require live credentials.
 OPEN MIDDLE: proto parsing approach, guide parsing heuristics, data layout, how many versions back v19 practically reaches.
 APPROVAL BOUNDARIES: any non-read-only / non-validate_only Google call; new dependency for proto parsing.
 EVIDENCE REQUIRED: pack build log with source hashes for every ingested version; `hops pack verify google_ads` offline; conformance output for google_ads and _mock; 10 sample Change Pack entries with provenance; a composed multi-hop diff example; fake-transport safety test output; wire_signature test output against logged request paths.
