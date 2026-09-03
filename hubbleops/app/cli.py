@@ -109,6 +109,7 @@ def scan_repository(target: Path, pack: registry.LoadedPack) -> ScanResult:
         repo_sha=closure.repo_sha,
         tree_hash=closure.tree_hash(),
         dependency_resolution_hash=resolution.resolution_hash(),
+        provider_contract_hash=pack.surface.surface_hash(),
         scanner_version=scanner_version,
     )
     scope_hash = proof_scope_hash(scope)
