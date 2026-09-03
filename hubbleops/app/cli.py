@@ -10,6 +10,7 @@ from typing import Any
 from hubbleops import __version__
 from hubbleops.app import exposure, registry
 from hubbleops.closure import source_closure
+from hubbleops.core import surface
 from hubbleops.core.canonical import export_bytes
 from hubbleops.core.errors import HubbleOpsError, ToolingMissing, ToolingTimeout
 from hubbleops.core.observer import ObserverContext
@@ -26,6 +27,7 @@ from hubbleops.store.sqlite import Store
 
 OBSERVATION_SOURCES = (
     Path(__file__),
+    Path(surface.__file__),
     Path(source_closure.__file__),
     Path(deps.__file__),
     Path(ledger.__file__),

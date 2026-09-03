@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
 
 import pytest
 
 from hubbleops.app import registry
 from hubbleops.app.cli import scan_repository
+from hubbleops.core.surface import SurfaceSpec
 from tests.support import fixture_repos
 
 
@@ -43,6 +45,18 @@ def test_two_surfaces_over_one_tree_never_share_a_proof_key(fixture: Path) -> No
     assert other.proof_scope["provider_contract_hash"] == mock.surface.surface_hash()
     assert provider.proof_scope_hash != other.proof_scope_hash
     assert provider.run_id != other.run_id
+
+
+def test_changing_any_surface_field_moves_the_surface_hash() -> None:
+    base = registry.load_pack("google_ads").surface
+    for item in dataclasses.fields(SurfaceSpec):
+        current = getattr(base, item.name)
+        altered = f"{current}_x" if isinstance(current, str) else (*current, current[0])
+        variant = dataclasses.replace(base, **{item.name: altered})
+        assert variant.surface_hash() != base.surface_hash(), (
+            f"{item.name} does not reach surface_hash(), so two surfaces differing only in it "
+            "would share one proof key"
+        )
 
 
 def test_the_two_packs_declare_different_surfaces() -> None:
