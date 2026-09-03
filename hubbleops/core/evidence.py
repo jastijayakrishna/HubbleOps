@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from hubbleops.core.canonical import content_id
@@ -9,6 +10,10 @@ OBSERVERS = ("text", "deps", "structure", "dynamic", "telemetry", "sentinel")
 AI_DERIVATION = "DERIVED_AI_EVIDENCE"
 DERIVATIONS = ("OBSERVED", "DERIVED_DETERMINISTIC", AI_DERIVATION)
 CONFIDENCES = ("RAW", "PROVEN", "DOCUMENTED", "INFERRED")
+
+
+def evidence_identity(record: Mapping[str, Any]) -> str:
+    return content_id({key: value for key, value in record.items() if key != "id"})
 
 
 def make_evidence(

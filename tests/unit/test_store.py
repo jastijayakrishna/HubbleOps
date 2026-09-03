@@ -10,6 +10,7 @@ from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.errors import (
     AiEvidenceAlone,
+    EvidenceIdentityMismatch,
     EvidenceNotFound,
     ProofScopeMismatch,
     ProvenanceDropped,
@@ -237,6 +238,29 @@ def test_ai_evidence_alone_does_not_close_an_unknown(tmp_path: Path) -> None:
     with pytest.raises(AiEvidenceAlone):
         store.write_candidates([closing])
     assert held_status(store, run_id, closing["id"]) == "UNKNOWN"
+    store.close()
+
+
+def test_evidence_whose_id_is_not_its_content_is_refused(tmp_path: Path) -> None:
+    store, run_id, scope_hash = seeded(tmp_path)
+    forged = {**evidence_at(run_id, scope_hash, "src/forged.py"), "id": EMPTY_SHA256}
+
+    with pytest.raises(EvidenceIdentityMismatch):
+        store.write_evidence([forged])
+    assert [item for item in store.evidence_for(run_id) if item["id"] == EMPTY_SHA256] == []
+    store.close()
+
+
+def test_stored_evidence_cannot_be_relabelled_under_its_own_id(tmp_path: Path) -> None:
+    store, run_id, scope_hash = seeded(tmp_path)
+    derived = evidence_at(run_id, scope_hash, "src/guess.py", derivation="DERIVED_AI_EVIDENCE")
+    store.write_evidence([derived])
+    relabelled = {**derived, "derivation": "OBSERVED"}
+
+    with pytest.raises(EvidenceIdentityMismatch):
+        store.write_evidence([relabelled])
+    held = [item for item in store.evidence_for(run_id) if item["id"] == derived["id"]]
+    assert held[0]["derivation"] == "DERIVED_AI_EVIDENCE"
     store.close()
 
 

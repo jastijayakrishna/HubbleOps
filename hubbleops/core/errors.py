@@ -91,6 +91,18 @@ class ProvenanceDropped(HubbleOpsError):
         self.missing = missing
 
 
+class EvidenceIdentityMismatch(HubbleOpsError):
+    def __init__(self, offered: str, derived: str) -> None:
+        super().__init__(
+            f"EVIDENCE_IDENTITY_MISMATCH: evidence offered under id {offered} hashes to "
+            f"{derived}. An evidence id is the hash of its own content, so a record cannot be "
+            "rewritten under an id it no longer matches, and no record may be persisted under an "
+            "id that is not its own."
+        )
+        self.offered = offered
+        self.derived = derived
+
+
 class AiEvidenceAlone(HubbleOpsError):
     def __init__(self, candidate_id: str, was: str, now: str) -> None:
         super().__init__(

@@ -12,6 +12,7 @@ from hubbleops.core.candidate import OPEN_STATUSES, STATUSES
 from hubbleops.core.canonical import canonical_text
 from hubbleops.core.errors import (
     AiEvidenceAlone,
+    EvidenceIdentityMismatch,
     EvidenceNotFound,
     ProofScopeMismatch,
     ProvenanceDropped,
@@ -19,7 +20,7 @@ from hubbleops.core.errors import (
     UnexplainedCandidates,
     UnknownNotConserved,
 )
-from hubbleops.core.evidence import AI_DERIVATION
+from hubbleops.core.evidence import AI_DERIVATION, evidence_identity
 from hubbleops.core.schema import validate
 
 DATABASE_FILENAME = "hubbleops.sqlite"
@@ -308,6 +309,9 @@ class Store:
         rows: list[tuple[Any, ...]] = []
         for record in records:
             validate("evidence", record)
+            derived = evidence_identity(record)
+            if str(record["id"]) != derived:
+                raise EvidenceIdentityMismatch(str(record["id"]), derived)
             self._bind_to_run(
                 "evidence",
                 str(record["id"]),
