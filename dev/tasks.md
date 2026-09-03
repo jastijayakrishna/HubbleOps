@@ -12,7 +12,17 @@ Updated before every session ends. Phase-level status lives in
       entry (N-6), one unreadable file aborts the whole scan instead of becoming `FILE_UNSCANNED`
       (N-7), the `_mock` map header has a double space (N-8), and the guard hook allows
       `# pragma: no cover`, which is not one of CLAUDE.md's four comment exceptions (N-9)
+- [ ] Fix **M-7**: `write_evidence` commits before any candidate exists and `latest_run` does not
+      exclude `finished_at IS NULL`, so a committed state can carry unexplained evidence (L1 letter).
+      Wants an atomic evidence+candidate write or an unfinished-run filter
+- [ ] Fix the three minor findings from the fifth audit: `start_run` silently keeps the first
+      ProofScope when a `run_id` restarts under a second one (m-2), and every `close_with` names
+      `hops decide`, a verb that does not exist until Phase 7 (m-3)
 - [ ] Re-run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on Phase 1
+- [x] Fix **F-4**/**m-1**: the fingerprint covers the module that chooses the observers and keys by
+      path, not basename
+- [x] Fix **M-5**/**M-6**: an evidence id is verified to be the hash of its content; P-007 reaches
+      the schema description and the Phase 2 prompt
 - [x] Fix **F-3**: the Exposure Map renders the surface the run recorded, not the pack on disk
 - [x] Fix **M-1**/**M-3**/**M-2**/**M-4**: P-007 decided; `scanner_version` fingerprints the
       observation pipeline; the store's transition guard enforces L3 within a batch and L10 against

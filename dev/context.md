@@ -9,7 +9,7 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
 | **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none — the fourth Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) confirmed F-1 fixed and blocked on F-3, the read half of F-2. F-3 and the four MAJOR findings beside it are now fixed, P-007 is decided, and the re-run is pending |
+| **Last gate passed** | none — the fifth Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) confirmed F-3, M-2 and M-4 fixed and blocked on F-4, a hole in the M-3 fix itself. F-4, M-5, M-6 and m-1 are now fixed and the re-run is pending |
 | **Next action** | re-run the gate audit; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
@@ -61,6 +61,27 @@ sources that decide recall. **M-2**: the L3 guard read only committed rows, so a
 evidence; the guard now sees earlier records in its own batch. **M-4**: L10 was documented in the
 evidence schema and enforced nowhere, so `DERIVED_AI_EVIDENCE` alone could close an UNKNOWN; a
 closure whose new evidence is entirely AI-derived is now refused.
+
+The fifth gate audit confirmed F-3, M-2 and M-4 fixed and blocked on **F-4**, a hole in the M-3 fix
+itself: `OBSERVATION_SOURCES` left out the module that composes the observer list, so deleting an
+observer from the scan left the ProofScope and `run_id` byte-identical while the ledger lost a
+candidate — F-2 reopened one layer up. The fingerprint also keyed its dict by basename, so two
+sources sharing a filename collided and one silently left the proof key (**m-1**). Both are fixed:
+the composing module is in the set, and the key is the path relative to the sources' common root.
+
+Two further MAJOR findings from that audit are fixed. **M-5**: the store upserted evidence on
+conflict and never re-derived the id, so a row could be rewritten under its own id with a different
+derivation — relabelling `DERIVED_AI_EVIDENCE` as `OBSERVED` and walking straight past the L10 guard
+added for M-4. An evidence id is now verified to be the hash of its own content. **M-6**: P-007 was
+recorded in proposals and ARCHITECTURE.md but the two artefacts a Phase 2 session actually reads —
+`core/schemas/proof_scope.json` and the Phase 2 prompt — still described `provider_contract_hash` as
+the Change Pack hash alone, the reading P-007 rejected; both now carry the composition rule.
+
+**M-7 is still open and deliberately deferred**: `write_evidence` commits before any candidate
+exists and `latest_run` does not exclude runs with `finished_at IS NULL`, so there is a committed
+persisted state carrying unexplained evidence, which violates the letter of L1. It fails loud rather
+than silent — the map prints `Unexplained 1` — but it wants either an atomic evidence+candidate
+write or an unfinished-run filter before Phase 2 leans on the store.
 
 Five non-blocking findings also stand: the `Detected` line still lacks per-version site counts and
 `UNKNOWN (n)` (P-005); `Pack google_ads@<hash>` prints the surface hash where §4/§16 specify
