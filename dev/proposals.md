@@ -292,4 +292,44 @@ VERIFIED`) the product exists to prevent.
 
 ---
 
-*(no open proposals)*
+## P-007 — `provider_contract_hash` carries the surface as well as the change lattice
+
+| | |
+|---|---|
+| **Raised** | 2026-09-03, Phase 1 |
+| **Touches** | `ProofScope` schema (`core/schemas/proof_scope.json`), `docs/ARCHITECTURE.md` §5, §7.1 |
+| **Status** | OPEN |
+
+**What forced this.** The third Phase 1 gate audit blocked on two different recall surfaces sharing
+one proof key: `app/cli.py` left `provider_contract_hash` null, so scanning one tree with
+`google_ads` and with `_mock` produced the same ProofScope hash and the same `run_id`. The ledger
+export was overwritten in place while the database kept the union of both, and the Exposure Map
+attributed every candidate to a surface that could only have produced some of them. The SurfaceSpec
+is the single input that decides recall, so leaving it outside the proof key contradicts Axiom 1 and
+L4. Phase 1 has no Change Pack, so no other frozen field carries a provider input.
+
+**Proposed change.** `provider_contract_hash` is the hash of the provider contract in force, which
+is the SurfaceSpec in Phase 1 and, from Phase 2, the SurfaceSpec composed with the full version
+lattice — not the lattice alone. `docs/ARCHITECTURE.md:235` changes from "the hash of the full
+lattice enters ProofScope as `provider_contract_hash`" to "the hash of the surface and the full
+lattice enters ProofScope as `provider_contract_hash`". No schema field is added, renamed, or
+removed; the field's type and required-ness are unchanged.
+
+**Blast radius.** Phase 2 must compose rather than replace when it introduces the lattice; if it
+replaces, F-2 reopens the moment a surface is edited. Every Phase 1 ProofScope hash and `run_id`
+moves relative to the pre-fix code, which is correct — those runs were produced by an unbound
+surface. No Receipts exist yet, so none are invalidated. `hops exposure` must keep rendering the
+stored value rather than re-deriving it from disk (the read-side fix committed with this proposal).
+
+**Alternatives rejected, and why.** Add a separate `surface_hash` field to ProofScope — a real
+frozen-schema change with a wider blast radius, and it splits one question ("which provider contract
+produced this?") across two fields that must then never disagree. Leave the surface out of the proof
+key and disambiguate by `provider` name alone — the name does not move when the surface is edited,
+which is precisely the F-2 failure. Put the surface in `rules_hash` — that field has its own frozen
+meaning for the Phase 3 RuleSet and would collide there.
+
+**Decision.** *(open — awaiting the repository owner)*
+
+---
+
+*(no other open proposals)*
