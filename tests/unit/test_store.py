@@ -9,6 +9,7 @@ import pytest
 from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.errors import (
+    AiEvidenceAlone,
     EvidenceNotFound,
     ProofScopeMismatch,
     ProvenanceDropped,
@@ -154,7 +155,9 @@ def test_an_artifact_row_records_its_digest(tmp_path: Path) -> None:
     store.close()
 
 
-def evidence_at(run_id: str, scope_hash: str, path: str) -> dict[str, Any]:
+def evidence_at(
+    run_id: str, scope_hash: str, path: str, derivation: str = "OBSERVED"
+) -> dict[str, Any]:
     return make_evidence(
         run_id=run_id,
         proof_scope_hash=scope_hash,
@@ -168,7 +171,7 @@ def evidence_at(run_id: str, scope_hash: str, path: str) -> dict[str, Any]:
         value={"pattern": "c", "slot": "per_call"},
         provider_subject="v22",
         dependency_context_hash=None,
-        derivation="OBSERVED",
+        derivation=derivation,
         confidence="RAW",
     )
 
@@ -222,6 +225,45 @@ def test_an_unknown_does_not_close_by_being_called_affected(tmp_path: Path) -> N
         store.write_candidates(
             [open_candidate(run_id, scope_hash, [first["id"]], "AFFECTED", None)]
         )
+    store.close()
+
+
+def test_ai_evidence_alone_does_not_close_an_unknown(tmp_path: Path) -> None:
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    derived = evidence_at(run_id, scope_hash, "src/guess.py", derivation="DERIVED_AI_EVIDENCE")
+    store.write_evidence([derived])
+    closing = open_candidate(run_id, scope_hash, [first["id"], derived["id"]], "AFFECTED", None)
+
+    with pytest.raises(AiEvidenceAlone):
+        store.write_candidates([closing])
+    assert held_status(store, run_id, closing["id"]) == "UNKNOWN"
+    store.close()
+
+
+def test_ai_evidence_beside_an_observation_closes_an_unknown(tmp_path: Path) -> None:
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    derived = evidence_at(run_id, scope_hash, "src/guess.py", derivation="DERIVED_AI_EVIDENCE")
+    observed = evidence_at(run_id, scope_hash, "src/seen.py")
+    store.write_evidence([derived, observed])
+    closing = open_candidate(
+        run_id, scope_hash, [first["id"], derived["id"], observed["id"]], "AFFECTED", None
+    )
+
+    store.write_candidates([closing])
+    assert held_status(store, run_id, closing["id"]) == "AFFECTED"
+    store.close()
+
+
+def test_an_unknown_does_not_close_inside_the_batch_that_opens_it(tmp_path: Path) -> None:
+    store, run_id, scope_hash = seeded(tmp_path)
+    first = evidence_at(run_id, scope_hash, "src/open.py")
+    store.write_evidence([first])
+    opening = open_candidate(run_id, scope_hash, [first["id"]], "UNKNOWN", "capture the call")
+    closing = open_candidate(run_id, scope_hash, [first["id"]], "AFFECTED", None)
+
+    with pytest.raises(UnknownNotConserved):
+        store.write_candidates([opening, closing])
+    assert [item for item in store.candidates_for(run_id) if item["id"] == opening["id"]] == []
     store.close()
 
 

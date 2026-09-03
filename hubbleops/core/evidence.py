@@ -6,7 +6,8 @@ from hubbleops.core.canonical import content_id
 from hubbleops.core.schema import validate
 
 OBSERVERS = ("text", "deps", "structure", "dynamic", "telemetry", "sentinel")
-DERIVATIONS = ("OBSERVED", "DERIVED_DETERMINISTIC", "DERIVED_AI_EVIDENCE")
+AI_DERIVATION = "DERIVED_AI_EVIDENCE"
+DERIVATIONS = ("OBSERVED", "DERIVED_DETERMINISTIC", AI_DERIVATION)
 CONFIDENCES = ("RAW", "PROVEN", "DOCUMENTED", "INFERRED")
 
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from types import TracebackType
@@ -11,6 +11,7 @@ from typing import Any
 from hubbleops.core.candidate import OPEN_STATUSES, STATUSES
 from hubbleops.core.canonical import canonical_text
 from hubbleops.core.errors import (
+    AiEvidenceAlone,
     EvidenceNotFound,
     ProofScopeMismatch,
     ProvenanceDropped,
@@ -18,6 +19,7 @@ from hubbleops.core.errors import (
     UnexplainedCandidates,
     UnknownNotConserved,
 )
+from hubbleops.core.evidence import AI_DERIVATION
 from hubbleops.core.schema import validate
 
 DATABASE_FILENAME = "hubbleops.sqlite"
@@ -243,23 +245,42 @@ class Store:
         if missing:
             raise EvidenceNotFound(str(record["id"]), missing)
 
-    def _guard_candidate_transition(self, record: dict[str, Any]) -> None:
-        cursor = self.connection.execute(
-            "SELECT record_json FROM candidates WHERE run_id = ? AND id = ?",
-            (record["run_id"], record["id"]),
-        )
-        row = cursor.fetchone()
-        if row is None:
-            return
-        stored: dict[str, Any] = json.loads(row["record_json"])
+    def _guard_candidate_transition(
+        self, record: dict[str, Any], pending: Mapping[tuple[str, str], dict[str, Any]]
+    ) -> None:
+        stored = pending.get((str(record["run_id"]), str(record["id"])))
+        if stored is None:
+            cursor = self.connection.execute(
+                "SELECT record_json FROM candidates WHERE run_id = ? AND id = ?",
+                (record["run_id"], record["id"]),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                return
+            stored = json.loads(row["record_json"])
         held = set(stored["evidence_ids"])
         offered = set(record["evidence_ids"])
         was = str(stored["status"])
         now = str(record["status"])
         if not held <= offered:
             raise ProvenanceDropped(str(record["id"]), tuple(sorted(held - offered)))
-        if was in OPEN_STATUSES and now not in OPEN_STATUSES and held == offered:
-            raise UnknownNotConserved(str(record["id"]), was, now)
+        if was in OPEN_STATUSES and now not in OPEN_STATUSES:
+            if held == offered:
+                raise UnknownNotConserved(str(record["id"]), was, now)
+            if self._every_derivation_is_ai(str(record["run_id"]), offered - held):
+                raise AiEvidenceAlone(str(record["id"]), was, now)
+
+    def _every_derivation_is_ai(self, run_id: str, evidence_ids: set[str]) -> bool:
+        if not evidence_ids:
+            return False
+        placeholders = ",".join("?" for _ in evidence_ids)
+        cursor = self.connection.execute(
+            "SELECT json_extract(record_json, '$.derivation') AS derivation "
+            f"FROM evidence WHERE run_id = ? AND id IN ({placeholders})",
+            (run_id, *sorted(evidence_ids)),
+        )
+        derivations = [str(row["derivation"]) for row in cursor.fetchall()]
+        return bool(derivations) and all(item == AI_DERIVATION for item in derivations)
 
     def _guard_every_evidence_is_explained(self, run_id: str) -> None:
         cursor = self.connection.execute(
@@ -320,6 +341,7 @@ class Store:
 
     def write_candidates(self, records: Sequence[dict[str, Any]]) -> None:
         rows: list[tuple[Any, ...]] = []
+        pending: dict[tuple[str, str], dict[str, Any]] = {}
         for record in records:
             validate("candidate", record)
             self._bind_to_run(
@@ -328,8 +350,9 @@ class Store:
                 str(record["run_id"]),
                 str(record["proof_scope_hash"]),
             )
-            self._guard_candidate_transition(record)
+            self._guard_candidate_transition(record, pending)
             self._guard_evidence_exists(record)
+            pending[(str(record["run_id"]), str(record["id"]))] = record
             rows.append(
                 (
                     record["id"],

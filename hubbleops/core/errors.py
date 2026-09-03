@@ -91,6 +91,20 @@ class ProvenanceDropped(HubbleOpsError):
         self.missing = missing
 
 
+class AiEvidenceAlone(HubbleOpsError):
+    def __init__(self, candidate_id: str, was: str, now: str) -> None:
+        super().__init__(
+            f"AI_EVIDENCE_ALONE (law L10): candidate {candidate_id} is {was} and this write "
+            f"closes it to {now} on evidence that is entirely DERIVED_AI_EVIDENCE. "
+            "AI-derived evidence cannot alone change a candidate's status or close an UNKNOWN; "
+            "attach an observation, or record a human decision "
+            "(`hops decide <candidate_id> --value <value> --by <name>`)."
+        )
+        self.candidate_id = candidate_id
+        self.was = was
+        self.now = now
+
+
 class PathNotInClosure(HubbleOpsError):
     def __init__(self, claim_type: str, path: str) -> None:
         super().__init__(
