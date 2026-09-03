@@ -201,12 +201,12 @@ def _exposure(args: argparse.Namespace) -> int:
             evidence=store.evidence_for(row.run_id),
             candidates=store.candidates_for(row.run_id),
         )
-        pack = registry.load_pack(row.provider)
+        recorded_surface = row.proof_scope["provider_contract_hash"]
     print(
         exposure.render(
             ledger=book,
-            pack_name=pack.name,
-            surface_hash=pack.surface.surface_hash(),
+            pack_name=row.provider,
+            surface_hash=recorded_surface,
             target=row.target,
             repo_sha=row.repo_sha,
             expand_not_affected=args.expand,

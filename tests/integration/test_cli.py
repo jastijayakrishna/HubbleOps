@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from hubbleops.app import registry
 from hubbleops.app.cli import EXIT_FAILED, EXIT_OK, EXIT_UNKNOWN, main
 from hubbleops.core.errors import ToolingTimeout
 from hubbleops.store.sqlite import DATABASE_FILENAME, Store
@@ -101,6 +102,22 @@ def test_exposure_prints_the_map_for_the_latest_run(
     assert "AFFECTED" in out
     assert "UNKNOWN" in out
     assert "close with:" in out
+
+
+def test_exposure_reports_the_surface_the_run_recorded_not_the_one_on_disk(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    state = tmp_path / "state"
+    run_scan(state)
+    capsys.readouterr()
+    recorded = registry.load_pack("google_ads").surface.surface_hash()
+
+    def refuse(name: str) -> registry.LoadedPack:
+        raise AssertionError("the map must render from the stored run, not the pack on disk")
+
+    monkeypatch.setattr(registry, "load_pack", refuse)
+    assert main(["exposure", "--state-dir", str(state)]) == EXIT_OK
+    assert recorded[:8] in capsys.readouterr().out
 
 
 def test_exposure_without_a_run_fails_rather_than_printing_an_empty_map(
