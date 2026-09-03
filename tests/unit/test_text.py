@@ -175,3 +175,21 @@ def test_a_media_suffix_never_removes_a_file_from_the_ledger(
     for candidate in book.candidates:
         if book.location_of(candidate).claim_type == "file_unscanned":
             assert candidate["close_with"]
+
+
+def test_a_call_site_ripgrep_quarantines_as_binary_still_raises_a_candidate(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    padding = "".join(f"# padding line {index:05d}\n" for index in range(700)).encode()
+    (tmp_path / "src").mkdir(parents=True)
+    (tmp_path / "src" / "late.py").write_bytes(padding + b'\x00\nMockProvClient(version="v22")\n')
+
+    book = scan_repository(tmp_path, mock_pack).ledger
+
+    unscanned = {
+        book.location_of(candidate).display(): candidate["status"]
+        for candidate in book.candidates
+        if book.location_of(candidate).claim_type == "file_unscanned"
+    }
+    assert unscanned["src/late.py"] == "UNKNOWN"
+    assert book.counts()["unexplained"] == 0

@@ -124,3 +124,14 @@ def test_scannable_excludes_unscanned_entries(tmp_path: Path) -> None:
 def test_a_missing_root_is_an_error_not_an_empty_closure(tmp_path: Path) -> None:
     with pytest.raises((NotADirectoryError, FileNotFoundError)):
         source_closure.build(tmp_path / "absent")
+
+
+def test_a_nul_byte_past_the_sniff_window_still_reads_as_binary(tmp_path: Path) -> None:
+    padding = "".join(f"# padding line {index:05d}\n" for index in range(700)).encode()
+    assert len(padding) > source_closure.SNIFF_BYTES
+    (tmp_path / "src").mkdir(parents=True)
+    (tmp_path / "src" / "late.py").write_bytes(padding + b'\x00\nvalue = "v22"\n')
+
+    by_path = {entry.path: entry for entry in source_closure.build(tmp_path).entries}
+    assert by_path["src/late.py"].classification is Classification.UNSCANNED
+    assert by_path["src/late.py"].reason.startswith("binary_opaque")

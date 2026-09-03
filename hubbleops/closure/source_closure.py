@@ -335,8 +335,8 @@ def _probe(path: Path) -> FileProbe:
                     break
                 if first:
                     head = chunk[:SNIFF_BYTES]
-                    binary = b"\x00" in head
                     first = False
+                binary = binary or b"\x00" in chunk
                 digest.update(chunk)
                 total += len(chunk)
     except OSError as error:
