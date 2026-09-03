@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -39,6 +41,22 @@ SCRIPT_ONLY_MANIFEST = {
     )
     + "\n",
 }
+
+
+def deny_read(path: Path) -> None:
+    account = os.environ.get("USERNAME")
+    if os.name != "nt" or not account:
+        pytest.skip("read denial in this test is expressed with Windows ACLs")
+    done = subprocess.run(
+        ["icacls", str(path), "/deny", f"{account}:(R)"], capture_output=True, check=False
+    )
+    if done.returncode != 0:
+        pytest.skip(f"icacls refused to deny read: {done.stderr.decode(errors='replace').strip()}")
+
+
+def allow_read(path: Path) -> None:
+    account = os.environ.get("USERNAME", "")
+    subprocess.run(["icacls", str(path), "/remove:d", account], capture_output=True, check=False)
 
 
 def build(root: Path, files: dict[str, str]) -> source_closure.SourceClosure:
@@ -175,6 +193,34 @@ def test_a_media_suffix_never_removes_a_file_from_the_ledger(
     for candidate in book.candidates:
         if book.location_of(candidate).claim_type == "file_unscanned":
             assert candidate["close_with"]
+
+
+def test_the_paths_ripgrep_could_not_read_are_taken_from_its_stderr() -> None:
+    stderr = (
+        "rg: .\\src\\locked.py: Access is denied. (os error 5)\n"
+        "rg: src/other.py: Permission denied (os error 13)\n"
+        "rg: something with no path\n"
+    )
+    assert text.unreadable_paths(stderr) == ("src/locked.py", "src/other.py")
+
+
+def test_a_file_ripgrep_cannot_read_does_not_throw_the_whole_scan_away(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    build(tmp_path, {"src/seen.py": 'MockProvClient(version="v22")\n'})
+    locked = tmp_path / "src" / "locked.py"
+    locked.write_text('MockProvClient(version="v22")\n', encoding="utf-8")
+    deny_read(locked)
+
+    try:
+        book = scan_repository(tmp_path, mock_pack).ledger
+    finally:
+        allow_read(locked)
+
+    located = {book.location_of(candidate).display() for candidate in book.candidates}
+    assert any(display.startswith("src/seen.py") for display in located)
+    assert "src/locked.py" in located
+    assert book.counts()["unexplained"] == 0
 
 
 def test_a_call_site_ripgrep_quarantines_as_binary_still_raises_a_candidate(

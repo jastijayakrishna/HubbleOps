@@ -155,7 +155,8 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
     records: dict[str, dict[str, Any]] = {}
     undecodable: set[str] = set()
 
-    for hit in _search(closure.root, [pattern for pattern, _ in patterns]):
+    accounted = frozenset(entry.path for entry in closure.unscanned())
+    for hit in _search(closure.root, [pattern for pattern, _ in patterns], accounted):
         entry = scannable.get(hit.path)
         if entry is None:
             if hit.path in enumerated:
@@ -336,7 +337,22 @@ def _ripgrep_pattern(pattern: TextPattern) -> str:
     return NAMED_GROUP.sub("(?:", pattern.pattern)
 
 
-def _search(root: Path, patterns: Sequence[TextPattern]) -> Iterator[TextHit]:
+def unreadable_paths(stderr: str) -> tuple[str, ...]:
+    prefix = f"{RIPGREP}: "
+    found: list[str] = []
+    for line in stderr.splitlines():
+        text = line.strip()
+        if not text.startswith(prefix):
+            continue
+        head, separator, _ = text[len(prefix) :].partition(": ")
+        if separator and head:
+            found.append(_normalize(head))
+    return tuple(found)
+
+
+def _search(
+    root: Path, patterns: Sequence[TextPattern], accounted: frozenset[str]
+) -> Iterator[TextHit]:
     if not patterns:
         return
     args = [
@@ -364,9 +380,12 @@ def _search(root: Path, patterns: Sequence[TextPattern]) -> Iterator[TextHit]:
         raise ToolingMissing(RIPGREP, f"disappeared from PATH mid-scan: {error}") from error
     except subprocess.TimeoutExpired as error:
         raise ToolingTimeout(RIPGREP, RIPGREP_TIMEOUT_SECONDS) from error
+    stderr = completed.stderr.decode("utf-8", errors="replace")
     if completed.returncode not in (0, 1):
-        detail = completed.stderr.decode("utf-8", errors="replace").strip()
-        raise ToolingFailed(RIPGREP, f"exit {completed.returncode}: {detail}")
+        unreadable = unreadable_paths(stderr)
+        unexpected = tuple(path for path in unreadable if path not in accounted)
+        if unexpected or not unreadable:
+            raise ToolingFailed(RIPGREP, f"exit {completed.returncode}: {stderr.strip()}")
     for line in completed.stdout.decode("utf-8", errors="replace").splitlines():
         if not line.strip():
             continue
