@@ -9,8 +9,8 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 |---|---|
 | **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
 | **Branch** | `phase-01-source-closure-and-ledger` (not merged; nothing lands on `main` until the gate audit says `GATE: PASS`) |
-| **Last gate passed** | none — the second Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) returned `GATE: FAIL` on two blocking findings (F1 silent media binaries, F2 fabricated evidence id) and eleven non-blocking ones; every one is fixed, and both frozen-surface proposals are decided |
-| **Next action** | fresh-session gate audit re-run with nothing outstanding; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
+| **Last gate passed** | none — the third Phase 1 [gate audit](../prompts/cross-cutting/gate-audit.md) returned `GATE: FAIL` on two new blocking findings (F-1 NUL past the sniff window, F-2 ProofScope does not bind the surface) and five non-blocking ones. The first and second audits' findings are all confirmed fixed |
+| **Next action** | fix F-1 and F-2, then re-run the gate audit; on `GATE: PASS`, merge to `main` and tag `v0.1`, then start Phase 2 |
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
 deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all six fixtures.
@@ -23,6 +23,33 @@ The second gate audit found two ways the ledger could lose a candidate. The text
 strings produced no candidate at all — absence as silence, which §6.1 forbids. And the store's L3
 guard compared only evidence-id *sets*, so a 64-hex string referencing no stored row counted as new
 evidence and closed an UNKNOWN. Both are now enforced and covered by tests.
+
+The third gate audit confirmed every earlier finding fixed and found two more, both blocking:
+
+- **F-1 — a call site vanishes with no candidate.** `closure/source_closure.py` decides "binary"
+  from the first `SNIFF_BYTES = 8192` only, while `rg` scans the whole file and silently quarantines
+  anything with a NUL anywhere. `observe/text.py` passes no `--text`/`--binary` and drops the `end`
+  event carrying `binary_offset`, so the two disagree in silence. Reproduced: a 14756-byte file with
+  a NUL at 14700 and a `v22` call at line 702 is classified INSIDE, searched by `rg` for
+  `bytes_searched: 0`, and yields no AFFECTED, no UNKNOWN and no `FILE_UNSCANNED`. Same class as the
+  second audit's F1 — that fix closed the closure-says-UNSCANNED side, this is the
+  closure-says-scannable / rg-says-binary side.
+- **F-2 — two different recall surfaces share one proof key.** `app/cli.py` builds the ProofScope
+  from `repo_sha, tree_hash, dependency_resolution_hash, scanner_version` only; the SurfaceSpec, the
+  one input that decides recall, never enters, and `run_id_for` takes the pack *name*, not its hash.
+  `provider_contract_hash` and `rules_hash` are `required` in the frozen schema and are left `None`.
+  Editing `surface.yaml` between two scans of the same tree yields the identical ProofScope and
+  `run_id`: `ledger.json` is overwritten in place at 7 candidates while the DB and Exposure Map
+  report the 12-candidate union and attribute all 12 to a surface that could only produce 7.
+  `dev/context.md` recorded leaving these fields null as a decision; this consequence was not
+  recorded, and it goes live the moment Phase 2 edits `surface.yaml`.
+
+Five non-blocking findings also stand: the `Detected` line still lacks per-version site counts and
+`UNKNOWN (n)` (P-005); `Pack google_ads@<hash>` prints the surface hash where §4/§16 specify
+`<changes_hash>`, unlabelled; the extra `EXCLUDED (with evidence)` line exceeds P-004's "nothing else
+in §4 changes"; the `ProviderPack` Protocol is missing `wire_signature` and `versions()` added to
+frozen §3.1 by P-005/P-006; and `observe/text.py` silently `continue`s an `rg` hit on an
+enumerated-but-unscannable path, discarding the matched content with no record of its own.
 
 ## Blocking
 
