@@ -150,17 +150,14 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
         (pattern, None if pattern.fixed else _compile(pattern))
         for pattern in patterns_for(ctx.surface)
     ]
-    scannable = {entry.path: entry for entry in closure.scannable()}
-    enumerated = {entry.path for entry in closure.entries}
+    entries = closure.by_path()
     records: dict[str, dict[str, Any]] = {}
-    undecodable: set[str] = set()
+    undecodable: dict[str, str] = {}
 
-    accounted = frozenset(entry.path for entry in closure.unscanned())
-    for hit in _search(closure.root, [pattern for pattern, _ in patterns], accounted):
-        entry = scannable.get(hit.path)
+    enumerated = frozenset(entries)
+    for hit in _search(closure.root, [pattern for pattern, _ in patterns], enumerated):
+        entry = entries.get(hit.path)
         if entry is None:
-            if hit.path in enumerated:
-                continue
             raise ToolingFailed(
                 RIPGREP,
                 f"{hit.path}:{hit.line_number} matched a surface pattern but the source closure "
@@ -168,7 +165,9 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
                 "the closure cannot account for",
             )
         if hit.line_text is None:
-            undecodable.add(hit.path)
+            undecodable[hit.path] = (
+                hit.reason or "non_utf8: matched content is not decodable as UTF-8"
+            )
             continue
         attributed = 0
         for pattern, regex in patterns:
@@ -212,7 +211,7 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
             )
 
     for path in sorted(undecodable):
-        entry = scannable[path]
+        entry = entries[path]
         record = make_evidence(
             run_id=ctx.run_id,
             proof_scope_hash=ctx.proof_scope_hash,
@@ -223,7 +222,7 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
             line_start=None,
             line_end=None,
             source_hash=entry.blob_sha or EMPTY_SHA256,
-            value={"reason": "non_utf8: matched content is not decodable as UTF-8"},
+            value={"reason": undecodable[path]},
             provider_subject=None,
             dependency_context_hash=ctx.dependency_context_hash,
             derivation="OBSERVED",
@@ -289,6 +288,7 @@ class TextHit:
     path: str
     line_number: int
     line_text: str | None
+    reason: str | None = None
 
 
 def _compile(pattern: TextPattern) -> re.Pattern[str]:
@@ -337,17 +337,21 @@ def _ripgrep_pattern(pattern: TextPattern) -> str:
     return NAMED_GROUP.sub("(?:", pattern.pattern)
 
 
-def unreadable_paths(stderr: str) -> tuple[str, ...]:
+def unreadable_failures(stderr: str) -> dict[str, str]:
     prefix = f"{RIPGREP}: "
-    found: list[str] = []
+    found: dict[str, str] = {}
     for line in stderr.splitlines():
         text = line.strip()
         if not text.startswith(prefix):
             continue
-        head, separator, _ = text[len(prefix) :].partition(": ")
+        head, separator, detail = text[len(prefix) :].partition(": ")
         if separator and head:
-            found.append(_normalize(head))
-    return tuple(found)
+            found[_normalize(head)] = detail
+    return found
+
+
+def unreadable_paths(stderr: str) -> tuple[str, ...]:
+    return tuple(unreadable_failures(stderr))
 
 
 def _search(
@@ -382,7 +386,7 @@ def _search(
         raise ToolingTimeout(RIPGREP, RIPGREP_TIMEOUT_SECONDS) from error
     stderr = completed.stderr.decode("utf-8", errors="replace")
     if completed.returncode not in (0, 1):
-        unreadable = unreadable_paths(stderr)
+        unreadable = unreadable_failures(stderr)
         unexpected = tuple(path for path in unreadable if path not in accounted)
         if unexpected or not unreadable:
             raise ToolingFailed(RIPGREP, f"exit {completed.returncode}: {stderr.strip()}")
@@ -401,6 +405,14 @@ def _search(
             line_number=int(data["line_number"]),
             line_text=_decode(data.get("lines")),
         )
+    for path, detail in sorted(unreadable_failures(stderr).items()):
+        if path in accounted:
+            yield TextHit(
+                path=path,
+                line_number=0,
+                line_text=None,
+                reason=f"ripgrep_read_error: {detail}",
+            )
 
 
 def _decode(payload: Any) -> str | None:

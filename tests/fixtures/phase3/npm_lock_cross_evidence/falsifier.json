@@ -1,0 +1,29 @@
+{
+  "fixture_id": "npm_lock_cross_evidence",
+  "phase": 3,
+  "failure_class": "manifest_unknown_survives_resolved_lock_or_target_is_guessed",
+  "should_be_caught_by": [
+    "observe.deps",
+    "app.registry"
+  ],
+  "must_match": [
+    {
+      "path": "yarn.lock",
+      "assertion": "The lock entry resolves the manifest range to google-ads-node 24.1.0 and closes only that dependency-state uncertainty."
+    },
+    {
+      "path": "yarn.lock",
+      "assertion": "Target compatibility remains UNKNOWN without an evidence-backed third-party SDK mapping."
+    }
+  ],
+  "must_not_match": [
+    {
+      "path": "package.json",
+      "assertion": "The manifest range must not remain as a duplicate unresolved SDK state after the lock entry is accepted."
+    },
+    {
+      "path": "yarn.lock",
+      "assertion": "Matching package and API major numbers must not be used as an inferred compatibility mapping."
+    }
+  ]
+}

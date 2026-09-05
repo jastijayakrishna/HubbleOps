@@ -1,0 +1,46 @@
+{
+  "fixture_id": "python_imported_wrapper",
+  "phase": 3,
+  "candidates": [
+    {
+      "id": "imported_wrapper_query",
+      "path": "scheduled_report.py",
+      "language": "python",
+      "claim_type": "request_text",
+      "provider_subject": "gaql",
+      "status": "UNKNOWN",
+      "observer": "structure",
+      "confidence": "PROVEN",
+      "required_shape": [
+        "import_edge",
+        "wrapper_parameter",
+        "inline_query_literal",
+        "http_sink"
+      ],
+      "wrapper_chain": [
+        "run_report",
+        "submit_report",
+        "requests.post"
+      ],
+      "literal_fragments": [
+        "SELECT campaign.id FROM campaign"
+      ],
+      "holes": []
+    },
+    {
+      "id": "wrapper_rest_version",
+      "path": "provider_bridge.py",
+      "language": "python",
+      "claim_type": "call_version",
+      "provider_subject": "v24",
+      "status": "AFFECTED",
+      "observer": "structure",
+      "confidence": "PROVEN",
+      "required_shape": [
+        "rest_endpoint_literal",
+        "http_sink"
+      ]
+    }
+  ],
+  "must_not_emit": []
+}

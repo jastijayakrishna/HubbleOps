@@ -290,6 +290,10 @@ VERIFIED`) the product exists to prevent.
 
 **Decision.** Accepted by the repository owner (Jaya Krishna J) on 2026-09-03.
 
+**Amendment.** P-008, accepted on 2026-09-04, corrects the sentence above that treated
+`x-goog-api-client` as endpoint-version authority. The request target carries the Google Ads API
+version; that header is retained only as client metadata, and ambiguous parsing yields typed UNKNOWN.
+
 ---
 
 ## P-007 — `provider_contract_hash` carries the surface as well as the change lattice
@@ -333,4 +337,42 @@ lattice into `provider_contract_hash` alongside the surface; it never replaces i
 
 ---
 
-*(no open proposals)*
+## P-008 — Wire endpoint version comes from the request target, not client-library metadata
+
+| | |
+|---|---|
+| **Raised** | 2026-09-04, Phase 2 plan review |
+| **Touches** | §3.1 `ProviderPack.wire_signature` comment/table and P-006 wire-source wording |
+| **Status** | ACCEPTED |
+
+**What forced this.** P-006 says the gRPC path, REST path, and `x-goog-api-client` header all name
+the Google Ads API endpoint version. The first two do. The third does not reliably do so: Google's
+[request logging documentation](https://developers.google.com/google-ads/api/docs/productionize/logging)
+shows the endpoint version in `google.ads.googleads.vNN.services...`, while
+`x-goog-api-client` is a standard client-information header carrying runtime and library-version
+tokens. Treating a client library major as an endpoint major can manufacture a false call-version
+observation. The fresh Phase 2 plan review correctly rejected silently changing this frozen text.
+
+**Proposed change.** Keep the frozen `wire_signature` capability and its language-independent
+path-plus-headers input, but clarify its output as a typed `MATCH(service, method, version)` or
+`UNKNOWN(reason)` result. For Google Ads, endpoint version is derived from the versioned gRPC/REST
+request target. `x-goog-api-client` remains captured provenance and may corroborate client identity,
+but never supplies endpoint version by itself. Missing components, header-only input, and conflicting
+version signals produce explicit UNKNOWN evidence rather than `None` or silence. Remove the factual
+claim that this header itself names the endpoint version; add no replacement undocumented header.
+
+**Blast radius.** No frozen schema, Candidate status, verdict, or observer name changes. The
+ProviderPack slot remains `wire_signature`; only its previously underspecified failure result and
+the Google Ads carrier description are corrected. Phase 4 proxy capture receives an explicit
+unknown parse issue it can conserve instead of losing the request. `_mock` is unchanged.
+
+**Alternatives rejected, and why.** Parse the major from `gapic/<semver>` or another client token —
+client release and endpoint version are different facts. Ignore ambiguous inputs — violates L9 and
+creates a silent miss. Invent `x-goog-api-version` as a replacement — no retained Google Ads source
+in this phase establishes it as a request carrier. Remove headers from the wire input entirely —
+unnecessary; they remain valuable provenance and may detect contradictions.
+
+**Decision.** Accepted by the repository owner (Jaya Krishna J) on 2026-09-04 through the explicit
+instruction to execute Phase 2 completely after this proposal was presented as the sole blocker.
+
+---

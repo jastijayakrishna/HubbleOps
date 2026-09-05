@@ -199,15 +199,7 @@ def _walk(root: Path, submodules: frozenset[str]) -> Iterator[ClosureEntry]:
             if relative in CONTROL_DIRECTORIES or name in CONTROL_DIRECTORIES:
                 continue
             if child.is_symlink():
-                escape = _symlink_escape(root, child, "directory ")
-                if escape is not None:
-                    yield ClosureEntry(
-                        path=relative,
-                        classification=Classification.EXTERNAL_BOUNDARY,
-                        reason=escape,
-                        blob_sha=None,
-                        size=None,
-                    )
+                yield _directory_symlink(root, child, relative)
                 continue
             kept.append(name)
         dirnames[:] = kept
@@ -298,6 +290,37 @@ def _classify(root: Path, path: Path, relative: str, submodules: frozenset[str])
         reason="first-party source",
         blob_sha=probe.blob_sha,
         size=probe.size,
+    )
+
+
+def _directory_symlink(root: Path, path: Path, relative: str) -> ClosureEntry:
+    escape = _symlink_escape(root, path, "directory ")
+    if escape is not None:
+        return ClosureEntry(
+            path=relative,
+            classification=Classification.EXTERNAL_BOUNDARY,
+            reason=escape,
+            blob_sha=None,
+            size=None,
+        )
+    target = path.resolve(strict=False)
+    if not target.is_dir():
+        return ClosureEntry(
+            path=relative,
+            classification=Classification.UNSCANNED,
+            reason="directory symlink target is unavailable; not followed",
+            blob_sha=None,
+            size=None,
+        )
+    target_relative = _relative(root, target)
+    return ClosureEntry(
+        path=relative,
+        classification=Classification.INSIDE,
+        reason=(
+            f"directory symlink aliases {target_relative}; target is enumerated at its real path"
+        ),
+        blob_sha=content_id({"directory_symlink_target": target_relative}),
+        size=0,
     )
 
 

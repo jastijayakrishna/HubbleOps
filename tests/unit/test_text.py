@@ -52,6 +52,12 @@ def deny_read(path: Path) -> None:
     )
     if done.returncode != 0:
         pytest.skip(f"icacls refused to deny read: {done.stderr.decode(errors='replace').strip()}")
+    probe = subprocess.run(
+        ["rg", "--line-number", "MockProvClient", str(path)], capture_output=True, check=False
+    )
+    if probe.returncode != 2:
+        allow_read(path)
+        pytest.skip("the current Windows token can still read a file with the deny ACL")
 
 
 def allow_read(path: Path) -> None:
@@ -149,7 +155,7 @@ def test_a_match_the_closure_never_enumerated_stops_the_scan(
     assert "never enumerated" in str(raised.value)
 
 
-def test_a_match_the_closure_marked_unscannable_is_left_to_the_closure_record(
+def test_a_match_in_a_closure_marked_unscannable_file_is_not_discarded(
     tmp_path: Path, mock_pack: registry.LoadedPack, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     closure = build(tmp_path, {"blob.bin": "mockprov\x00\n"})
@@ -169,7 +175,7 @@ def test_a_match_the_closure_marked_unscannable_is_left_to_the_closure_record(
 
     monkeypatch.setattr(text, "_search", stray)
     claims = {record["claim_type"] for record in text.scan(closure, ctx)}
-    assert claims == {"file_unscanned"}
+    assert claims == {"file_unscanned", "package_reference", "surface_reference"}
 
 
 def test_a_media_suffix_never_removes_a_file_from_the_ledger(

@@ -41,8 +41,8 @@ def test_two_surfaces_over_one_tree_never_share_a_proof_key(fixture: Path) -> No
     other = scan_repository(repo, mock)
 
     assert provider.closure.tree_hash() == other.closure.tree_hash()
-    assert provider.proof_scope["provider_contract_hash"] == google.surface.surface_hash()
-    assert other.proof_scope["provider_contract_hash"] == mock.surface.surface_hash()
+    assert provider.proof_scope["provider_contract_hash"] == google.contract_hash()
+    assert other.proof_scope["provider_contract_hash"] == mock.contract_hash()
     assert provider.proof_scope_hash != other.proof_scope_hash
     assert provider.run_id != other.run_id
 

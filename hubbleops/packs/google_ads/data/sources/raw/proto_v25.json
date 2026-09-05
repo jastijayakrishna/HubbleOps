@@ -1,0 +1,4587 @@
+{
+  "commit": "64aa30b277168edd20efee0c9ceb4ca01248931d",
+  "files": [
+    {
+      "path": "google/ads/googleads/v25/actions/book_campaigns.proto",
+      "sha256": "11eb74cf1043dfddfee96aad8d8b7022bd2763de42317b54bce831476c4073d7",
+      "size": 2436
+    },
+    {
+      "path": "google/ads/googleads/v25/actions/generate_shareable_previews.proto",
+      "sha256": "68c025fdc58355271859180053e08cd5d38d5cdf151f5b04407aac712b4a5ad0",
+      "size": 4075
+    },
+    {
+      "path": "google/ads/googleads/v25/actions/quote_campaigns.proto",
+      "sha256": "ac573d9b36fa4f84a4dabcdeb9bc5097c226624d7e2b36acb8100f455b86a46e",
+      "size": 2597
+    },
+    {
+      "path": "google/ads/googleads/v25/common/ad_asset.proto",
+      "sha256": "ddf90e14da3247689e98bd3af03eaa30f30fc9c36dafe92055fdbb7a6f7b7ce8",
+      "size": 5163
+    },
+    {
+      "path": "google/ads/googleads/v25/common/ad_type_infos.proto",
+      "sha256": "6754f6ddcd111c2b08f7b23ef203e77051a11c41179b4f9845fd45013d5f6ef5",
+      "size": 29092
+    },
+    {
+      "path": "google/ads/googleads/v25/common/additional_application_info.proto",
+      "sha256": "79430294971c8a56982106db691753ead698458e606f63bb7a0d82537d9c4676",
+      "size": 2153
+    },
+    {
+      "path": "google/ads/googleads/v25/common/asset_policy.proto",
+      "sha256": "255c402196f4acaab804a169c83ce880a6a2adf5cc8aa2c2fdc3890c3dca5f9c",
+      "size": 3643
+    },
+    {
+      "path": "google/ads/googleads/v25/common/asset_set_types.proto",
+      "sha256": "4d96c77cdde402c5692230fa6cad2b3a1ba8231ccdde37801e93208714ac383c",
+      "size": 7915
+    },
+    {
+      "path": "google/ads/googleads/v25/common/asset_types.proto",
+      "sha256": "575c834c24d0a930ced5a339de5f09ae14f84aaffeaebac6f89b2e328de1bcb0",
+      "size": 46845
+    },
+    {
+      "path": "google/ads/googleads/v25/common/asset_usage.proto",
+      "sha256": "5b01e8e312d5420c8f39b8f33d6338d7e9651747ece87f483867f568948afd06",
+      "size": 1538
+    },
+    {
+      "path": "google/ads/googleads/v25/common/audience_insights_attribute.proto",
+      "sha256": "d2fd9ff44e58ec8bd493c7e1a41748469da0ce58bb9fc27a101560acf74d70cb",
+      "size": 10414
+    },
+    {
+      "path": "google/ads/googleads/v25/common/audiences.proto",
+      "sha256": "a2cdbccc78fa48e1cdf0c23c5f6cb815b3075bfc1eaf30f77cc0ad846394fa56",
+      "size": 5906
+    },
+    {
+      "path": "google/ads/googleads/v25/common/bidding.proto",
+      "sha256": "52fbf5508525fa903d3636a0862743c2d0c46290f2b3d520328af378878d678f",
+      "size": 11977
+    },
+    {
+      "path": "google/ads/googleads/v25/common/campaign_goal_settings.proto",
+      "sha256": "14f4a2440746bed2a926a9e705ae86516d6ea9c3128aa44a5d1416aa69153a2d",
+      "size": 3035
+    },
+    {
+      "path": "google/ads/googleads/v25/common/campaign_reservation_quote.proto",
+      "sha256": "d57ab86fc859f2c5dec0f27520bdb00c5e34a6694fe08b4c9d84d4f4477c757d",
+      "size": 1956
+    },
+    {
+      "path": "google/ads/googleads/v25/common/click_location.proto",
+      "sha256": "6b1ed7767163debe63b10130edaf7f182bdad31032b59ffb458798a4627ca014",
+      "size": 1771
+    },
+    {
+      "path": "google/ads/googleads/v25/common/consent.proto",
+      "sha256": "4e537b2321856dc1c53c1e026dd3f82934f2fe17f9dc1e6265e4213ec40c25fe",
+      "size": 1659
+    },
+    {
+      "path": "google/ads/googleads/v25/common/criteria.proto",
+      "sha256": "2b9710ca8ae454780d8aa1c9007a62702466eb1857607d5e1f27d495ba7ad7ff",
+      "size": 34474
+    },
+    {
+      "path": "google/ads/googleads/v25/common/criterion_category_availability.proto",
+      "sha256": "9b9ebaad62d584df97f1238d2a74ab3ab8ffcfc4686ef7a8cb67136d2585e7ce",
+      "size": 4096
+    },
+    {
+      "path": "google/ads/googleads/v25/common/custom_parameter.proto",
+      "sha256": "eb2f9842084fd35949a9a481639f0b9aa7657c179d56c2d3f1601e055b86a001",
+      "size": 1497
+    },
+    {
+      "path": "google/ads/googleads/v25/common/customizer_value.proto",
+      "sha256": "a4994e67800ee4aba4b73ce4745d56ace3cc41fc45ded0aa1ae45d0e26d37273",
+      "size": 2026
+    },
+    {
+      "path": "google/ads/googleads/v25/common/dates.proto",
+      "sha256": "8721985231f93fe8d77d9554e6e036f223028949c71d78dfa2e07038631b4244",
+      "size": 2011
+    },
+    {
+      "path": "google/ads/googleads/v25/common/effective_automatic_goal.proto",
+      "sha256": "72eddf6a6309824bba7a8ab0864844e9c07baa7f1069a948522892fa8a870c1c",
+      "size": 1690
+    },
+    {
+      "path": "google/ads/googleads/v25/common/experiment_types.proto",
+      "sha256": "590205f84fa1091c5f2d76b385008880c62a492356de4a9ef6cbad5dd4ad7c0b",
+      "size": 1912
+    },
+    {
+      "path": "google/ads/googleads/v25/common/extensions.proto",
+      "sha256": "cf8f51ec8708222f978373efe583fdf30c17775634b907d7e0e651323e77d501",
+      "size": 4189
+    },
+    {
+      "path": "google/ads/googleads/v25/common/feed_common.proto",
+      "sha256": "86860ae57ebb5bfb0bbb759adc3c02327823bcad7eacceaf0273d08031005f89",
+      "size": 1445
+    },
+    {
+      "path": "google/ads/googleads/v25/common/final_app_url.proto",
+      "sha256": "9a48dcee3f2411bd8a4fc16f165c774a205e5599907418b6668c1fe057e0fc39",
+      "size": 2003
+    },
+    {
+      "path": "google/ads/googleads/v25/common/frequency_cap.proto",
+      "sha256": "a8a002c980aa5f0b98fb302722ced4c80af8d93a32e4d12e74492a721f091c90",
+      "size": 2634
+    },
+    {
+      "path": "google/ads/googleads/v25/common/goal_common.proto",
+      "sha256": "3e281cae360d6c9086395347c2a97bf41294778fc66c918861801fbb9eae058c",
+      "size": 2375
+    },
+    {
+      "path": "google/ads/googleads/v25/common/goal_setting.proto",
+      "sha256": "722b2332d672a351cc0cdc53c82be53c9c3321e44276100f676aa03663401c88",
+      "size": 1863
+    },
+    {
+      "path": "google/ads/googleads/v25/common/keyword_plan_common.proto",
+      "sha256": "b959633647d54d646d8818ec1be25e8106aef7c3762fc54b589cc5ea33ad8a36",
+      "size": 5863
+    },
+    {
+      "path": "google/ads/googleads/v25/common/local_services.proto",
+      "sha256": "b65687f96b7dbc73bdf7b55602998243f535ccd4a5c6c4f925a7f3d302c77f26",
+      "size": 1908
+    },
+    {
+      "path": "google/ads/googleads/v25/common/metric_goal.proto",
+      "sha256": "781501e937f5eabf477351c7ca6f8b3aa7474f76d126b8325099a72b8f6d808d",
+      "size": 1782
+    },
+    {
+      "path": "google/ads/googleads/v25/common/metrics.proto",
+      "sha256": "308f24eef66b278e54e5860ea82d209c6f8f5be2b5663052e9dfd8f07392ad54",
+      "size": 107600
+    },
+    {
+      "path": "google/ads/googleads/v25/common/offline_user_data.proto",
+      "sha256": "31d711f8a6173e6d84f56bf097df0b3ce5b5b23c6809697d5a18637aa2ef6dda",
+      "size": 14677
+    },
+    {
+      "path": "google/ads/googleads/v25/common/policy.proto",
+      "sha256": "e86352400edefbb191193b62fddc08c54aae22b502be311a22cf193d8d897887",
+      "size": 9491
+    },
+    {
+      "path": "google/ads/googleads/v25/common/policy_summary.proto",
+      "sha256": "205e849592f9fbf626580ee7601524fa6c02c870a22b214b1cc3f6267bac3fab",
+      "size": 1924
+    },
+    {
+      "path": "google/ads/googleads/v25/common/real_time_bidding_setting.proto",
+      "sha256": "adbe023d8bd8cecea8c41dcf0931bcb6813fd88257c9d5dbcb2e6b19a5789cd8",
+      "size": 1438
+    },
+    {
+      "path": "google/ads/googleads/v25/common/segments.proto",
+      "sha256": "3575c8d3146325316b850cfc122470be59c98a1b27b1864f54f52c2a64384c74",
+      "size": 30140
+    },
+    {
+      "path": "google/ads/googleads/v25/common/simulation.proto",
+      "sha256": "7cb117fe28847ffc8c53f694edbf40764faad8489c69780ca965fada6f5c8021",
+      "size": 10879
+    },
+    {
+      "path": "google/ads/googleads/v25/common/synthetic_content_info.proto",
+      "sha256": "555b6a8985be0500fed05c61e24452bb3f224223f9fff3cddf1644cfd1a4e6d1",
+      "size": 2284
+    },
+    {
+      "path": "google/ads/googleads/v25/common/tag_snippet.proto",
+      "sha256": "2a060d931dcc7febb36bf62f5d509f7eb73399fcb8104042e0d28d8a8f287724",
+      "size": 2091
+    },
+    {
+      "path": "google/ads/googleads/v25/common/targeting_setting.proto",
+      "sha256": "3d66388f09a57fbde5e424609210d3a1a8cdcc737eab3c39524f138715a7fea7",
+      "size": 3354
+    },
+    {
+      "path": "google/ads/googleads/v25/common/text_label.proto",
+      "sha256": "762502bc6a90d164cb60b5ed94c88be2891e78d546a1b1894e969f1948b71414",
+      "size": 1607
+    },
+    {
+      "path": "google/ads/googleads/v25/common/third_party_integration_partners.proto",
+      "sha256": "0220077f52b43ca7f41ae4c8bc593de10506e3cdcd4158e5f6bf83ed37cf0c07",
+      "size": 9964
+    },
+    {
+      "path": "google/ads/googleads/v25/common/url_collection.proto",
+      "sha256": "b7f5ced52860fe56afe53677d4eec7e0a6d297df7d39d3b30628ffe87e89fd58",
+      "size": 1627
+    },
+    {
+      "path": "google/ads/googleads/v25/common/user_lists.proto",
+      "sha256": "865b17478930adb21b695f7a05fd0eaa4cc5743d34f094792e785a84df74ce86",
+      "size": 12532
+    },
+    {
+      "path": "google/ads/googleads/v25/common/value.proto",
+      "sha256": "61840a991a57cc5fc97f636f2f23637f7fa0416f880f760979ce2b79f71a2ab6",
+      "size": 1500
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/access_invitation_status.proto",
+      "sha256": "d8bf49e22302f130b12fa27a99375924806df0115b3799cf87807aee3a010d7b",
+      "size": 1916
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/access_reason.proto",
+      "sha256": "ddb8a949854f6c8d3f60178717b4ab0cd9b15709b0552a6614ee178647f47298",
+      "size": 1783
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/access_role.proto",
+      "sha256": "0ae41d4447d53dd8e20629c177fdd5906c396fcf87641c4f08d69e2e9fa2f9f0",
+      "size": 1823
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/account_budget_proposal_status.proto",
+      "sha256": "274a3ca88d282d1327a23e01be705fa53dd02e35d727330d4c988d7b7ff841eb",
+      "size": 2145
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/account_budget_proposal_type.proto",
+      "sha256": "9f7a426e6dfd7d8994310baf4576d27704ca2248ca51b756829119f913b53f4d",
+      "size": 1860
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/account_budget_status.proto",
+      "sha256": "93e4aa56846f551875395ea25fbab21fc12ff2a872a1a143b0fb66c34a130e37",
+      "size": 1716
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/account_link_status.proto",
+      "sha256": "ae97264252f60e72d6c900efd987c1bf898a7ff8cdbc74000e7f838893d0f188",
+      "size": 2142
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_destination_type.proto",
+      "sha256": "e3d50adcf62b04dda45a67dfd07329f53e3a61053917bb126eb11dc8e597104b",
+      "size": 2095
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_format_type.proto",
+      "sha256": "c941ee07c14df3a1166e2fb41b5fac889df28ec071854b297f9cbf481100091e",
+      "size": 3875
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_ad_primary_status.proto",
+      "sha256": "0ac570808d0983cb95321a3a2039114f33c4991f3787c4c92f0ef5b9a934b3d3",
+      "size": 2024
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_ad_primary_status_reason.proto",
+      "sha256": "26654ab1e19af94900e75ba0fdba66f304fab7973d00386dbcf61464319fa634",
+      "size": 3877
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_ad_rotation_mode.proto",
+      "sha256": "13b0db0de36198512c992288e41cba1ff6ddff59c18c8a6c38e1b02a67e698bb",
+      "size": 1755
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_ad_status.proto",
+      "sha256": "3e06b64e808b6d284542d2232f1538fe3e6eba07045087833926b577aa633c4d",
+      "size": 1705
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_criterion_approval_status.proto",
+      "sha256": "b133cad2bbee8b90a0a6d490934e6b4808c1685ccad475bf0d2b06f988f723aa",
+      "size": 1730
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_criterion_primary_status.proto",
+      "sha256": "785f9d8850a6436466807ee4446bdb532051a02157d8e465ff6a3c2d74f4697f",
+      "size": 2039
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_criterion_primary_status_reason.proto",
+      "sha256": "2fbbf05da18175667304dfcdb4fcaa626185ad5a72c95a0ca1ae4d417ba38c0c",
+      "size": 4799
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_criterion_status.proto",
+      "sha256": "9e723e60335a6918e19555d8d35a34cf56b0201398ce010811c9080378b03fc2",
+      "size": 1745
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_primary_status.proto",
+      "sha256": "319544cdafe84b9ee4d26be95fe84748a644eebb989cc4b51c6d78752f087246",
+      "size": 1935
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_primary_status_reason.proto",
+      "sha256": "4b0d9cf6d1f4c598db573ac9260abdadc1291ec1ab17267e7377ff7149f087d1",
+      "size": 4075
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_status.proto",
+      "sha256": "fae4b3268f2c619e195c482e0b39dc9091b18582baa9b323336029daa5de9bf5",
+      "size": 1694
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_group_type.proto",
+      "sha256": "b99e09dc7841417ec8fab1be3ea56ce2ee71c7dbf90ea7557111b48585dca72c",
+      "size": 3078
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_network_type.proto",
+      "sha256": "1878f8ece22af9e8c7b26dfa7f605d0b02901ed3dc227ed5e89dd6d3b40e91eb",
+      "size": 2144
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_serving_optimization_status.proto",
+      "sha256": "287becc44dd0622ab2a4217e68ba71de37299c80b3eca791be3bdbdb743e4dea",
+      "size": 2175
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_strength.proto",
+      "sha256": "e3e48815b592e86d94b071fd6ff484babcf5565d7dedd4c938d6ec09feb8be44",
+      "size": 1766
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_strength_action_item_type.proto",
+      "sha256": "18e923982db9a3c7d42520ac3fe72faeebc0aaca26b2a100ee1991e7282caa49",
+      "size": 1630
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_sub_format_type.proto",
+      "sha256": "9ceb9c615065acf48c97fadf551bc8e9a430d56cef3f30b6c450073f7a284c23",
+      "size": 1899
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_sub_network_type.proto",
+      "sha256": "8b0683ed62c2bbd2cae4447c7609a31d53c89289fc8711a3c8e8231e272aefe9",
+      "size": 1802
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/ad_type.proto",
+      "sha256": "62eedffccc9482f187e5a8f8e0bde987f492595725bdcae1cbf4dc1bcabf77dd",
+      "size": 3753
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/advertising_channel_sub_type.proto",
+      "sha256": "8dd0bc5b28cc38c824a349eb8ea0f772920b62191736643835fe169f20bcc759",
+      "size": 3579
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/advertising_channel_type.proto",
+      "sha256": "90f1c7b4ee969c82e5ccaa2c01b8b1ede69b05e44b026205ff7ac5b471bb34de",
+      "size": 2334
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/age_range_type.proto",
+      "sha256": "5b7ef9089312792c0b00edfe60ba74a0eac0ec01a46f03b401b3d229b96dcb84",
+      "size": 2025
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/android_privacy_interaction_type.proto",
+      "sha256": "ff670e073aa74538c69e78311e077c73a97b13b2213f871e4f3c667f7be1112a",
+      "size": 1720
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/android_privacy_network_type.proto",
+      "sha256": "5eef74afa91b9f2563184ad8605d196e40c707d443f47db5e585df3b2b830ecb",
+      "size": 1619
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/app_bidding_goal.proto",
+      "sha256": "0ae01845f98d674a274ae235cd14427fd8b56bb4876d587d4fe7a62e1b8164aa",
+      "size": 2986
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/app_campaign_app_store.proto",
+      "sha256": "b688ce7914c4c4aa50dc94e90d51d4478ea3bf25d6f93c7ed89cf6e2b9f4c056",
+      "size": 1617
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/app_campaign_bidding_strategy_goal_type.proto",
+      "sha256": "b32c6e7ecc1c8f1f479040a41735063cb8ef706c28b4753825707e9b9e283532",
+      "size": 3270
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/app_payment_model_type.proto",
+      "sha256": "240ac03f4975db7368a77606a47fe9867045e2ab94c03c37c3cfc94656321bfc",
+      "size": 1551
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/app_url_operating_system_type.proto",
+      "sha256": "5c8ac967c3add67697ad810ec141d9902e4f1a353822319ef4fc48ffda919c97",
+      "size": 1625
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/application_instance.proto",
+      "sha256": "927e7d9e1914edc3f1b5455b3c1b027f604259cbe7da02383e455155bd3c2c6c",
+      "size": 1666
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_automation_status.proto",
+      "sha256": "b9bb18517d5187c416da85d4d93f7973c343baaed7ca4a6f9e8acfee5daeb16f",
+      "size": 1729
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_automation_type.proto",
+      "sha256": "e871a9057102bc3bd0f0703c9a61f1073da560297677b1600e7a3851c231bb9f",
+      "size": 5151
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_coverage_video_aspect_ratio_requirement.proto",
+      "sha256": "ee834cf69c3a19e251061e7be2f594a2f7a2169943e05f4e0f6235037860822a",
+      "size": 1854
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_field_type.proto",
+      "sha256": "682786122e097753ff7cf0500749d9a3dc9d30dbd154a1d4ea0d3f71643a135b",
+      "size": 4755
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_group_primary_status.proto",
+      "sha256": "7e20ff059143f14ad0baf82a1339b92c3ce4a886516b108d61002181cdc7d638",
+      "size": 2059
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_group_primary_status_reason.proto",
+      "sha256": "e64d77001c65df948b1b9740b66c576c9b3508ca4f1b3f74b41306719ae27454",
+      "size": 3130
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_group_signal_approval_status.proto",
+      "sha256": "b9b44d3b9e1bbcc31cfa4ca04b094a3a0cb8189723199f3ca35a2c9faa4909c1",
+      "size": 2142
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_group_status.proto",
+      "sha256": "6b90298d5729a972fb69de73a379bcb2bf9d4e92d57d50d8b8298e246584d757",
+      "size": 1674
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_link_primary_status.proto",
+      "sha256": "f8b100cf8356b7a3b1eb6b6e6396df55474a9e01d74265374fc3822405c56a74",
+      "size": 2390
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_link_primary_status_reason.proto",
+      "sha256": "2e006cbad0752e139f94e1e6a7d6c1e599cc7363ae4db6614d1d41eb161b1c8c",
+      "size": 2692
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_link_status.proto",
+      "sha256": "ec882a95cde117a5719773f75bdb422c516e81398a302adabbc46fae3e8a45ea",
+      "size": 1669
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_offline_evaluation_error_reasons.proto",
+      "sha256": "ccb74a521f3555394f0ea0988b0e8ceca59d24563bec09d16fcca3928499230b",
+      "size": 2529
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_orientation.proto",
+      "sha256": "e190866e67e04f1d786ae84d0985108b999ba8cea18f7265a5fdaefad95a4493",
+      "size": 1662
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_performance_label.proto",
+      "sha256": "f32ee1ff7aabd99ce6dfd235259935b3d9a15c882eaa9b03d95b4748661af404",
+      "size": 2221
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_set_asset_status.proto",
+      "sha256": "29735b066726883f9820caa9006abc2695762a961f05e3d6f7073845f7b320b5",
+      "size": 1682
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_set_link_status.proto",
+      "sha256": "ca47796938cabf1a34682f9a6d84f2297354230944ff644c3f66194366a03429",
+      "size": 1797
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_set_status.proto",
+      "sha256": "2dbba37799d031f74077d353729e2232781200c08e01e4fe154b72819b4ba366",
+      "size": 1643
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_set_type.proto",
+      "sha256": "710aa83822e111bdb8f189ba7f5ef40a557a7d3b9d2c6c6dcc8ac1d6b7fbeaf1",
+      "size": 2904
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_source.proto",
+      "sha256": "31791ddd4076dba9582556babfbdf76a4b6cdd54d92dd94934cf37ebf3b728aa",
+      "size": 1712
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/asset_type.proto",
+      "sha256": "1672cd5b4b863206db9f732449ebceb09ec7a3ad82b647949b2855d3ece2e40d",
+      "size": 3109
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/async_action_status.proto",
+      "sha256": "3094f54eb900574971ff543d6f950750bcefb602be83b0f08d24157f36430589",
+      "size": 1807
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/attribution_model.proto",
+      "sha256": "37741a241108684eae263d0c37bf94091fedcf3b1408a40bccb8b7d78bb7a1a1",
+      "size": 2813
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/audience_insights_dimension.proto",
+      "sha256": "30e6e6366b04736f38be58c2269730a7ed30d33823cd4ce7dd3a0394b9c4e9e5",
+      "size": 2544
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/audience_insights_marketing_objective.proto",
+      "sha256": "19bb227873ab9b063a1077fdea98a3f6fc462bc1c5e83757650d0d25fc9f66aa",
+      "size": 1977
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/audience_scope.proto",
+      "sha256": "a40df396d264aa814b10a84dcca87e2a94a164aebded26e18eb0f950ef424a72",
+      "size": 1639
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/audience_status.proto",
+      "sha256": "008444a2695baeb19e9626a82f8483ba01e0c119d3149bf9aef56e9a36b0d9fb",
+      "size": 1657
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/batch_job_status.proto",
+      "sha256": "8c840e828f1ef4330b71cdda23ea3f15ed9fab3145463e806ee81ae458327f51",
+      "size": 1630
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/benchmarks_marketing_objective.proto",
+      "sha256": "53317956216e29ab1307dd88a01fae1005caa34782462e301e34be1ea041d954",
+      "size": 1832
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/benchmarks_source_type.proto",
+      "sha256": "a53422303303d67c10fb7afd111f5a3869834495f804e6b7835d8d84d619dd9b",
+      "size": 1688
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/benchmarks_time_granularity.proto",
+      "sha256": "bdb09bb173dfa80685b3172cbd6458b5dd2a070abbf32b18875c267aae31e879",
+      "size": 1749
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/bid_modifier_source.proto",
+      "sha256": "4c31b52c1fd095c1374818f92535cfca9520445b49fafb056ecc591f64b69ec4",
+      "size": 1731
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/bidding_source.proto",
+      "sha256": "c19aa56153c9049e8f17041f02b5c7931ce74441735eed8839b4db17a7cefb5e",
+      "size": 1901
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/bidding_strategy_status.proto",
+      "sha256": "a1b481c4d97625e975b9854fece4e523c476e797dfcff606d93ebcaf6ec5e640",
+      "size": 1673
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/bidding_strategy_system_status.proto",
+      "sha256": "1a47d8cee9154ab80ad2623db8095d298370572d94078fa6a9eec6a575bd757c",
+      "size": 5233
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/bidding_strategy_type.proto",
+      "sha256": "be921b92d39a7d4073585a7426fa6537d29497b51660c0b2f06af0b55aa6edf6",
+      "size": 5351
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/billing_setup_status.proto",
+      "sha256": "68681c6b15c1ee8163efe75d5f71f16725b68f31a1c1c473a9eb93c26107c299",
+      "size": 1923
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/booking_status.proto",
+      "sha256": "a96809090d6b0f59f62e85e9ea63db007254c0de7d55a7fc2cd0ebe8abbb74cd",
+      "size": 1952
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/brand_lift_measurement_type.proto",
+      "sha256": "8fd21ed6c498e2eae828c996ec1b409f92e12d46c70e9395c3afea538a430cc0",
+      "size": 1815
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/brand_request_rejection_reason.proto",
+      "sha256": "a1fca1c80903fb640668fcd873ea0207f8f0450d77e1f1924faf737b07df99c5",
+      "size": 2008
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/brand_safety_suitability.proto",
+      "sha256": "f35b6b81e746f841d70e7f097809bb661276e464e2f6dad5bf6081cbd1018459",
+      "size": 3305
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/brand_state.proto",
+      "sha256": "d12003f463090ef2f3d608f3e9a74984f9e341bb34f095ad115ecf7cea0f5350",
+      "size": 2408
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/budget_campaign_association_status.proto",
+      "sha256": "5b4bdd16d1407dc0e415829dc85ffd79ac80ea9c66e26f4582ab0de136d7177c",
+      "size": 1774
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/budget_delivery_method.proto",
+      "sha256": "038fc528a46c834255d59e1a8fbfb3baef8a77bf72c18976ba171b3c7bd1eff5",
+      "size": 1813
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/budget_period.proto",
+      "sha256": "5bdf5bf99b3f35ff83a5c9093de2476c0c3097e8d531fc186b7d50e62355b7da",
+      "size": 1739
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/budget_status.proto",
+      "sha256": "0ffe71c37c955509ca8461d1a934bd7d1ea82aabb013b6e66ccfa43dc816c06b",
+      "size": 1545
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/budget_type.proto",
+      "sha256": "2cebb3db619d7b3999298e46334a48e04cb4f3ded5cb24af721a1988b3b1e2a6",
+      "size": 2591
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/business_message_call_to_action_type.proto",
+      "sha256": "89ca60e3a84ed8c1442cbac14e2e8689fa5a7516e1031e808e9c10b9c7df09b5",
+      "size": 1872
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/business_message_provider.proto",
+      "sha256": "10f4aa2e40ee5506994661361d906ccf8d764c3f299b9144bebe6071db42fe92",
+      "size": 1710
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/call_conversion_reporting_state.proto",
+      "sha256": "a4b58b4deb4832b351e688238718018d9e3f4f40e2edb9e8863db5b704572851",
+      "size": 1992
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/call_to_action_type.proto",
+      "sha256": "f3bc87d3d44ff5b46825fda03e1fc2b349c8a7f6211754eee7e757a5dfef1362",
+      "size": 2663
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/call_tracking_display_location.proto",
+      "sha256": "253c73e0896e03572c3a6078c1494293b04912ce3a7e7d251d4c83092990226e",
+      "size": 1709
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/call_type.proto",
+      "sha256": "f171a404459dc9e586cf767c543293f407233605f77d3dcf9dc2d000c8a814c6",
+      "size": 1675
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_criterion_status.proto",
+      "sha256": "fcf02dc89d7252146142a2099ab0afc13b817dbb3022b4c85ec53e7dfe46636e",
+      "size": 1750
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_draft_status.proto",
+      "sha256": "344b0728b857f491bc35dc9b2c6b4fa6ce2719e1716c81f68bebe9d36c7acbf1",
+      "size": 2313
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_experiment_type.proto",
+      "sha256": "3523cbee15c224bb4e48d023d205aa1a591fc237aae2ae5c481f00db2cb07e62",
+      "size": 2050
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_group_status.proto",
+      "sha256": "50bd6b8de52a023cceb8adb8078d4ad15b017405073b0c0eced73ff0748d24f1",
+      "size": 1618
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_keyword_match_type.proto",
+      "sha256": "bbec429309c8fa8eb37bdbf447e1bef930dd65acdae90c3cd961d530846427b8",
+      "size": 1597
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_primary_status.proto",
+      "sha256": "c0a1ee61931c1bd1eab2b22281217afb6aaa305f2bbe52dd05635ac7d51ab184",
+      "size": 2563
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_primary_status_reason.proto",
+      "sha256": "e89e348d8af0de15bf620856723872e7b2d9254c2355991018e6e8fe41d4fe58",
+      "size": 6721
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_serving_status.proto",
+      "sha256": "9b2bbc608bfb7e4a516811df95cd6174e26c9de403ce10f22c1a856a27d7823f",
+      "size": 1729
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_shared_set_status.proto",
+      "sha256": "66d58c69580398a80d0b22f7e951577a24eddcfa61e273c68f881564403c3c34",
+      "size": 1711
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/campaign_status.proto",
+      "sha256": "91619d44b6ab3caf5287e51537d161a342d65e5d5ce0abb3dd622c9bf18a1dc1",
+      "size": 1673
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/chain_relationship_type.proto",
+      "sha256": "4dcaf7490c0326cfb2e002696c6ac60d7ca866331b8876df6ebccf3bb64c61b7",
+      "size": 1641
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/change_client_type.proto",
+      "sha256": "7cad01b7040eef80f03a4674287f7ce9bdff47011e28b3591ed49281b43ff3c4",
+      "size": 3097
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/change_event_resource_type.proto",
+      "sha256": "5c4940e1a01a33b00027d947ae76ca3910b335084ef8a95d339b7506de559aa7",
+      "size": 2890
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/change_status_operation.proto",
+      "sha256": "33889960d8a5802b5d7f24b794ecc88897313a1506bccced2cc3108cfb334261",
+      "size": 1731
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/change_status_resource_type.proto",
+      "sha256": "48cfc8292982e77dc8d001a240ed3c00daa6a545ce677fc8c202f788d81cd08a",
+      "size": 3057
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/click_type.proto",
+      "sha256": "6fe4aa08077ed72a9197f1b42ec2e2d318c74c264fadbfcf9420f12c3bec0d7a",
+      "size": 5840
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/combined_audience_status.proto",
+      "sha256": "abe6260f4ec0cc5f33c32097634f576dc333237ed0a8c18b2f98ba2b52b680c5",
+      "size": 1726
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/consent_status.proto",
+      "sha256": "5bb7fb0e7a23db1b482e007d41555a06b87f3f3ebb89d0a0421ea2e3e4dd3ac8",
+      "size": 1504
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/content_creator_insights_supplemental_data.proto",
+      "sha256": "a8a5453741895e7815ce7d970fc63c5ae7c78c07d7501ea87531e6d3294cf086",
+      "size": 3758
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/content_label_type.proto",
+      "sha256": "2b2f70988dd509b7890d6d2152acf99dd0157260cbe7ef71a1b980c6678098e4",
+      "size": 4406
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_action_category.proto",
+      "sha256": "775bbc87ee4304c60e18d46806ea1712989366501d6e1d7dc1a56f306156f459",
+      "size": 4058
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_action_counting_type.proto",
+      "sha256": "dc0e6a753a9f1d58bda41b72934f2e2f56235e83c81d7aa5198be8fbd1acc1ab",
+      "size": 1828
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_action_status.proto",
+      "sha256": "83883d37ba367c84dd27bd45f9b6362ccc7cda90f62e747f9ae59729360fca04",
+      "size": 1780
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_action_type.proto",
+      "sha256": "b4ec769025d2f43c08c1b359a5961f8d9da1fa338741eec469ea30ccaccd221d",
+      "size": 8952
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_adjustment_type.proto",
+      "sha256": "20144c84e215fbc72159cbb14ff2d8a9179d37df5e7d2b60c9746ec5a415ed9f",
+      "size": 2004
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_attribution_event_type.proto",
+      "sha256": "d406e5bd0bdceb2db6c79a05219fbf7386337dea19ef70982b80c8350b6267f4",
+      "size": 1742
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_custom_variable_status.proto",
+      "sha256": "1054fb0b6e8a5900af8026098b5357b28178bc13de294088a4811b29e45c8719",
+      "size": 2037
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_customer_type.proto",
+      "sha256": "10cd30891f11545a4fa94251ae9d3ea25af11855668ad0d8546ce13f56429b3a",
+      "size": 1766
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_environment_enum.proto",
+      "sha256": "0ac5dd38c55f0a26a7a9c0315f5da5292592aa8d0aa5a23dfe13f53d5596c77e",
+      "size": 1680
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_lag_bucket.proto",
+      "sha256": "1082b87bdf1c9b178c49e09283a1cbec0a0d804af79d2fb1553c9ae6d49f9440",
+      "size": 3907
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_lift_included_conversion_action_types.proto",
+      "sha256": "5b76245d69c13148312e16b11979c825f93be8b52ae1d80e610cc708f687399e",
+      "size": 1895
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_or_adjustment_lag_bucket.proto",
+      "sha256": "aa9166f74971dae0dcf534c2dbf12756abd5f9aad739c147ad34d0fafac7925a",
+      "size": 7625
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_origin.proto",
+      "sha256": "689769aa37b7a9cc27982004a6e47e1b57785600f26cec0095730413faa301dd",
+      "size": 2503
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_tracking_status_enum.proto",
+      "sha256": "1a7550e7223d07aa4ab5097d66c80c8a205a6e8c1c312aeb9b6f219515ca3fda",
+      "size": 2132
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_value_rule_primary_dimension.proto",
+      "sha256": "c75f5d66d44a670e005fd2e56126eb9d0a81987dbb7fd1de256c8806df1899cb",
+      "size": 2407
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_value_rule_set_status.proto",
+      "sha256": "a25583c5ecdca82dd7f74cea336cc579221e41ca561d144ec23b388a4ce7f79d",
+      "size": 1887
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/conversion_value_rule_status.proto",
+      "sha256": "dcc05666f725d3d78a9023ce0429b750f88bc85e2564fadf8378c2bf57f96573",
+      "size": 1819
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/converting_user_prior_engagement_type_and_ltv_bucket.proto",
+      "sha256": "4f276f7f939599177df020bad0fe922bc63a2e30ae4d1d3f109117f0abf308cf",
+      "size": 2066
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/criterion_category_channel_availability_mode.proto",
+      "sha256": "ef812b3ed4f6c6e6194730ad4d2b3a035b178514d31e6aa1f73a3158cee90206",
+      "size": 2243
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/criterion_category_locale_availability_mode.proto",
+      "sha256": "e2cec06c2219e572d3dbbba7a77422e5d1f23cb4f5bd512a1d30c70100db7250",
+      "size": 2300
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/criterion_system_serving_status.proto",
+      "sha256": "c95eaaccf45c901b8ca77a3a056080359eca93f186ccc1a36cebe9b1348f10ae",
+      "size": 1632
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/criterion_type.proto",
+      "sha256": "63ee6a942b0272f28cf46ebcdfb555421dae5cf634f999f96e65ebc3e40cd4bb",
+      "size": 4362
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/custom_audience_member_type.proto",
+      "sha256": "869a1d4fd1a5f95f32be9552182c6a42cc656c13e9b3d41d80be38778ea0d79f",
+      "size": 1854
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/custom_audience_status.proto",
+      "sha256": "dda7c9899ede9e4fad843520ce651dc4dd1cac34ae0c826b8f40fb10eb5bb1a8",
+      "size": 1706
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/custom_audience_type.proto",
+      "sha256": "aeea401c10ba74cbfed0ab1663e0ae5fed4796d906e2208fb8f92b482741f92a",
+      "size": 1869
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/custom_conversion_goal_status.proto",
+      "sha256": "9d402ddf28396369d59ad11ace295cf4c1f183f7ae1547311dda44bc2732c0dd",
+      "size": 1703
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/custom_interest_member_type.proto",
+      "sha256": "99242f511da07dd70c3ff68f3d490443121bc8a85b781d66ac6b02eeb7e56608",
+      "size": 1671
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/custom_interest_status.proto",
+      "sha256": "4c77a4d564587ef1563150d49df698c32f4a7d947d2c3b2c40b313f0c6c2e497",
+      "size": 1706
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/custom_interest_type.proto",
+      "sha256": "be00777a46e8cb6b216882da81502f15684dc7997248ffc4d2e8d7fedbc0a77b",
+      "size": 1683
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/customer_lifecycle_optimization_goal_sub_type.proto",
+      "sha256": "e5eb3310d0883e5d58740f631654882c8a9f67a70799f736800a2703e72ddb3c",
+      "size": 2015
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/customer_lifecycle_optimization_mode.proto",
+      "sha256": "82560f7c266a1081cb050ed270e47a9763224f90e8e25ad29a6eac1fdaa782b4",
+      "size": 1902
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/customer_match_upload_key_type.proto",
+      "sha256": "d65590a9b14a514d60ffce0392943b607f53517afbb8bf0f39872fbdd5a90374",
+      "size": 1851
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/customer_pay_per_conversion_eligibility_failure_reason.proto",
+      "sha256": "6fc642b49a40590af8b47d6ab6c255b8ab46b32ee862f9137e313fdffd649cc6",
+      "size": 2405
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/customer_status.proto",
+      "sha256": "d73d2565c46767972b628358c8cd187be4baa07d7ac8fc9abc070e65691a41cd",
+      "size": 1951
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/customizer_attribute_status.proto",
+      "sha256": "03867520288c42b89dd682d473f95755c54a2965192a5ad8475541a1d24359dd",
+      "size": 1690
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/customizer_attribute_type.proto",
+      "sha256": "bb82864d0f2cc38fd0d4b532cbd8812f72ca1fbcb457694fa52c922ad899e779",
+      "size": 1800
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/customizer_value_status.proto",
+      "sha256": "47c0c0ded5eab8a7e9f17e44c05f197bce132d7de7852586fcc7d5d13f9bede4",
+      "size": 1658
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/data_driven_model_status.proto",
+      "sha256": "b17d2acbe06ce2de5b023d035339edad4762171a86fc9032ed97fadbe564059c",
+      "size": 2236
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/data_link_status.proto",
+      "sha256": "ef3fb5bac747f9d303e0b8003c4c7b65831658f8826a00fe6a3da53f800c9b84",
+      "size": 1963
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/data_link_type.proto",
+      "sha256": "102b216afd2f380b1e7e4ece46571d89aa8ab844ed0de283355331949c08429c",
+      "size": 1466
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/day_of_week.proto",
+      "sha256": "b321b1bd8f7d513464893066033fb635441607a882f8b065e0684c838c5077c7",
+      "size": 1725
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/demand_gen_channel_config.proto",
+      "sha256": "b01c0a0f8107319e05f5ef00cbbe7739d1ebcec0da03f46e9961008c763e6eba",
+      "size": 1832
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/demand_gen_channel_strategy.proto",
+      "sha256": "ccaefd7d3cd9bb39f870e01351d64d2f6f8d145709e9207d457f2d572b918e8b",
+      "size": 1720
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/device.proto",
+      "sha256": "cb0965b9c896835e69089847b98bf684f93abb7fbd35c4a0cb9762e993e62c38",
+      "size": 1720
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/display_ad_format_setting.proto",
+      "sha256": "6b23d6751a7e5fc1325bb036aaa8942164546eccea712bf966ad6d6e2d3fd8ab",
+      "size": 1729
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/display_upload_product_type.proto",
+      "sha256": "eecb36c0925b21a76428761de000de6b9e10b876fdb9e4744f8a049cc0512305",
+      "size": 3918
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/distance_bucket.proto",
+      "sha256": "d9a9cf6d465a3316715dbdc3ef6da8bbc3533c2c19013a5a3627a0b7856fab3e",
+      "size": 3557
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/eu_political_advertising_status.proto",
+      "sha256": "a97a7a377abb26b9e1a1df72f4d56c51305b0f446ca19a54ac5b031270648e1d",
+      "size": 2094
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/experiment_asset_detail_operation.proto",
+      "sha256": "603705c4a80454dd2d3cfa943018748b72bc7202f342088d4a1aee958a80922a",
+      "size": 1664
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/experiment_metric.proto",
+      "sha256": "e8d711c3c4decd1572d69f09c2f0dc316312db84c12ad1f85af31caa4d764a07",
+      "size": 2532
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/experiment_metric_direction.proto",
+      "sha256": "5460bf8e177c3742b10b7364e56aefa43492aec79d60f4e460ab7ad8cde01f47",
+      "size": 2019
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/experiment_status.proto",
+      "sha256": "9f9d2f679988d97d4c6b09594bbd2361586999d33d95c6c6d79836efe1f25f92",
+      "size": 2052
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/experiment_type.proto",
+      "sha256": "a6e90920a694630f5cf0a17a0abced8b740bdf518f4e2a14149481e36adc1f10",
+      "size": 3372
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/external_conversion_source.proto",
+      "sha256": "552dbf5f0b629cd9edad80072c8e84319349ed8981e26437d0ee036e07ab427a",
+      "size": 6048
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/fixed_cpm_goal.proto",
+      "sha256": "08b187540ff3cfaab006dca8a14288e698b2e315494aa81c138855a1e31e5064",
+      "size": 1798
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/fixed_cpm_target_frequency_time_unit.proto",
+      "sha256": "12b6d4bf57ac24006e2c30de79f484d0a263e620957b8a8b27d815d5a5059762",
+      "size": 1803
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/frequency_cap_event_type.proto",
+      "sha256": "1afa65e312fe0aa6cecdbbe401b00b822602cecaf3e773fc0366627cf36cbb39",
+      "size": 1686
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/frequency_cap_level.proto",
+      "sha256": "697ce9bd05a089242f9ec5b3e638e87fd9b067501ef82a7a16072fe85318c970",
+      "size": 1824
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/frequency_cap_time_unit.proto",
+      "sha256": "e0a5d290eed3023c5f6ddb463781e878c263b3cc715c02524c5689245f8e1176",
+      "size": 1738
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/gender_type.proto",
+      "sha256": "05a3fafc59e8c75928ee5ade64aabdf4ce8f73d0eb7e419cc84626696dbd15aa",
+      "size": 1618
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/geo_target_constant_status.proto",
+      "sha256": "4b6da6b41c1bc91184dc7ca4ac449248881a8cf99b862d7bc6738147d0274c99",
+      "size": 1737
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/geo_targeting_type.proto",
+      "sha256": "86ae04e48fafff0c405acae53bce80a808cc41f8930a3baeef1e8cdc38fff54f",
+      "size": 1641
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/gls_phone_number_type.proto",
+      "sha256": "8a1a8fc1f4c02eb1d32d0b9a041712908a0cf7917d864977d5cf2f30e4066f42",
+      "size": 1920
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/goal_config_level.proto",
+      "sha256": "c9af8b15e55aff6e192b9474bdcdfead8fd629f4057e59a21b8f043fb5871dae",
+      "size": 1825
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/goal_optimization_eligibility.proto",
+      "sha256": "b2a54fa6b6bb59337f0528dbe688cfdf26c04ee3b86b27c622d68eeb77cbb873",
+      "size": 1746
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/goal_type.proto",
+      "sha256": "1d258dcd27aa2fe34dd22dccef49ff5325a69cec0c83c2dc11e098732723e993",
+      "size": 1978
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/google_ads_field_category.proto",
+      "sha256": "9a27de9f81cc348b3f6250945b0992d233a5675c486ca7596ef26dc0562deefb",
+      "size": 2105
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/google_ads_field_data_type.proto",
+      "sha256": "c675d4674cd42f391343f43cff1dc8aeaaf438be20d599231bfc75f7b18d5141",
+      "size": 3171
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/google_voice_call_status.proto",
+      "sha256": "252f317d6fb3249a3289e1dfcbcd9c733d737a3f1aabcd3e4428ef198c1360ab",
+      "size": 1636
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/hotel_asset_suggestion_status.proto",
+      "sha256": "f8219894a5cd527a4defba7406a9ed30e30a0c2f089ddb91879b0edab4f693ed",
+      "size": 1795
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/hotel_date_selection_type.proto",
+      "sha256": "e3bc29681009f608c7e0464d1dca521a443bd813d34b9db0f76c71448cc7f14d",
+      "size": 1675
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/hotel_price_bucket.proto",
+      "sha256": "3ac937be697d5bb0210dda6f4c3e5b1f384e1612d06e1f75d8de09836820056c",
+      "size": 1955
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/hotel_rate_type.proto",
+      "sha256": "f6d9f2eed26d8349006904b60fe7b6e972566ce39fcc65df181b53ba091072d4",
+      "size": 2178
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/hotel_reconciliation_status.proto",
+      "sha256": "e48c160bb306f63c4df6859b8d6323d82553eb1492a840396739f7fe3854a146",
+      "size": 2305
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/identity_verification_program.proto",
+      "sha256": "922ffeeea368ff4841c68830d11e8866fa8562994d74092474041b8cfc62f126",
+      "size": 1611
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/identity_verification_program_status.proto",
+      "sha256": "cdd137a6482230c4a69ceeec2eabf33899d4785437cc6d5838ae6f6d5a63c9e7",
+      "size": 1794
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/incentive_offer_type.proto",
+      "sha256": "89530a0c76dbed821b72e96e5fc08d8f1d2f1c3efe160994c5a37f4c475354bf",
+      "size": 1562
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/incentive_state.proto",
+      "sha256": "298fa17e95338e32568c3f14811a4149e9a96050939bfc158d32b2dec923af1a",
+      "size": 2049
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/incentive_type.proto",
+      "sha256": "b1a90b085dcb03944128ffb86df06c4cd2c00a4470c31f46eab17b707ecea985",
+      "size": 1477
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/income_range_type.proto",
+      "sha256": "564c5af0949e5f7dee382a2c348bc2ffd5f75ed42f4819f974db15fd5e1d3ed2",
+      "size": 1954
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/insights_knowledge_graph_entity_capabilities.proto",
+      "sha256": "899078c8662f2710469e9b1d9c95dbb789dcc6957e2eaf3770e3faacd5353789",
+      "size": 2864
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/insights_trend.proto",
+      "sha256": "78720fa7fb013410db7dc35cd7d40fc4c6b800d886de3cef187949961467a294",
+      "size": 1691
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/interaction_event_type.proto",
+      "sha256": "58a0d4d87b9c2f7448e98543367e31e5d2c3216d383f59b0bf6713185dbc9482",
+      "size": 2279
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/interaction_type.proto",
+      "sha256": "91ea9ad59baf4c1761c1e30aacb32b8f22e10f54da416bf80e28e4bc8335ac26",
+      "size": 1535
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/invoice_type.proto",
+      "sha256": "5c9cdf96f68fb9595e7d75754a7dda16fdc57d0d292872df428980148ab33763",
+      "size": 1653
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/keyword_match_type.proto",
+      "sha256": "31135a9db8b45b99dc858cbfe1f39716f65cd792bc3f0c6c3e9d7cdd782bec10",
+      "size": 1591
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/keyword_plan_aggregate_metric_type.proto",
+      "sha256": "9a1175d5697ab098cb310bcc5872ba2365fff996744bb665cdb0243c8f697c68",
+      "size": 1578
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/keyword_plan_competition_level.proto",
+      "sha256": "883e20e63a51d2268f0c31868e3476806495fb676a42dd47b448405279b144d4",
+      "size": 2096
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/keyword_plan_concept_group_type.proto",
+      "sha256": "ac8881505db7dfabe7329f2ce38ca8b45ef59338735b6aa05ed4f68043432302",
+      "size": 2164
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/keyword_plan_forecast_interval.proto",
+      "sha256": "b967e0be361ad0b76c12843134cff5234f5d02436a4acc86104207725d8941ca",
+      "size": 1876
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/keyword_plan_keyword_annotation.proto",
+      "sha256": "08abc7a1acc9828696d84ee7dfc49cc9952d7f4aabf7b3b4af6b3a5422ab68f9",
+      "size": 1636
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/keyword_plan_network.proto",
+      "sha256": "12c772ceacd8b31ab5004464a124bfbe3be0076856668666989e4393c3fadf6b",
+      "size": 1650
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/label_status.proto",
+      "sha256": "fee1940d6d70ff06faa850de2d4e0b782fe4cf797c4272d538e386b935355a4a",
+      "size": 1518
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/landing_page_source.proto",
+      "sha256": "1a3eeab53f8e7c1a7e468df82c2019cae7b2d5f1a18a9db61783e8a3d7397a1d",
+      "size": 1902
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/lead_form_call_to_action_type.proto",
+      "sha256": "bfc439fd26cc5e323dbe8080d1557b56f7eac9072295018bf4c5ceebb62bcc13",
+      "size": 2087
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/lead_form_desired_intent.proto",
+      "sha256": "bca6010e9ac3c11ef5dcf053a216883d4493e57a80677c6cac9f7505feaeeeb5",
+      "size": 1641
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/lead_form_field_user_input_type.proto",
+      "sha256": "106ed8ea29c200e04b29fcb93c22705297a9f09ba799a67ff3f179312e90cd4c",
+      "size": 28890
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/lead_form_post_submit_call_to_action_type.proto",
+      "sha256": "c7d93f5c4029ac1dd91792b98df5fec1019d11b32d0dc1b51808fd122aa626b3",
+      "size": 1731
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/legacy_app_install_ad_app_store.proto",
+      "sha256": "9bd764ebd8510b7b1d9ee9dcafba2ad0d60e9b30e19163acba9f2c6d756b40a5",
+      "size": 1852
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/lift_measurement_flight_status.proto",
+      "sha256": "43236c4cf88857e09495f0ba83e94c70ed6e1409843f9505898d1e61d0bd2013",
+      "size": 1598
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/lift_metric_type.proto",
+      "sha256": "7136c675301ef718232583a64db34fc4d02486b696943c366bcd89f8e54ee70c",
+      "size": 1687
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/linked_account_type.proto",
+      "sha256": "e706aca8b34163fcf7a4ec5136309b963fc17c60c52afd3a31244acd1d36a1d3",
+      "size": 1609
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/linked_product_type.proto",
+      "sha256": "4bc5e4082abac24309de2c9c56df7d3a5e38c7667031ac11464522a687cfcf7a",
+      "size": 1862
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_group_filter_custom_attribute_index.proto",
+      "sha256": "f82d16e5e8b58747d9ec73d9bb378c4ed8855139c23f4cebaf393317fcf7c539",
+      "size": 1962
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_group_filter_listing_source.proto",
+      "sha256": "88aee54314a51c381c1937fd9c9862ff3f861613a1d0cb0a2a69f527c76bc165",
+      "size": 1925
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_group_filter_product_category_level.proto",
+      "sha256": "d4a5664e870ee21b52f4672bb38b35dbd3179416c15ac80acf47d840930ef300",
+      "size": 1801
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_group_filter_product_channel.proto",
+      "sha256": "03ecaa3de19ce161e78444546c9682ddfe05bc11766c0f70cdcb651609590982",
+      "size": 1635
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_group_filter_product_condition.proto",
+      "sha256": "fe597a4ff96b4ffff0e878d358696df7176e89a77ff10990c0c57fab0afdcc9e",
+      "size": 1711
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_group_filter_product_type_level.proto",
+      "sha256": "d9a78cdc38f658fbf69978ce7853b993a29902d04aa1d05a2fe7c163263b30ed",
+      "size": 1727
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_group_filter_type_enum.proto",
+      "sha256": "c4c2448465a49a90c175e88df5243b164ee7c5a4e8988ac343fbe8270122915a",
+      "size": 1773
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_group_type.proto",
+      "sha256": "d877ac3c6a1cb309b113e395102324baa2da83295a97094f2fe9e69c4e3ad4c2",
+      "size": 1769
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/listing_type.proto",
+      "sha256": "34977932a7d598b8aa9d4a995dea6a239248b4fccec38b73e9a5820df817a62a",
+      "size": 1521
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_business_registration_check_rejection_reason.proto",
+      "sha256": "dca030c1ebdb69f8a2481f16a2f1f6898c3307c9d666763b093c241e92f3f91b",
+      "size": 2526
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_business_registration_type.proto",
+      "sha256": "98e393bf853ace6e433f3fa101f28e41bb3daabaadbebc29c2f34d4b3e101c11",
+      "size": 1757
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_conversation_type.proto",
+      "sha256": "1723be4b840ce7086334209d5c7f8d0d1741ab5816d85d371778c864d1fc8e87",
+      "size": 1953
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_employee_status.proto",
+      "sha256": "c157c8140e44e6466912f7cb758acdf1809c5967425dfc2080f58b3eb08acf0a",
+      "size": 1690
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_employee_type.proto",
+      "sha256": "bc93bf20f8cfbc4c8787b2259df437ef4c23ab3b36c5e6c1f6b37e7a4dbd20b6",
+      "size": 1643
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_insurance_rejection_reason.proto",
+      "sha256": "3e074d867d99b0c85173714b9096df77d40ca4fa0dd391123d6f1329d97e49eb",
+      "size": 3085
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_lead_credit_issuance_decision.proto",
+      "sha256": "cf57c1f31dcc062e26cfa1e36b8ee5b23a4a84046ca5f1ef2fbda64491cce3ec",
+      "size": 2192
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_lead_credit_state.proto",
+      "sha256": "dfc3eed46fd7d7ce80376e6d9b1dd76bb075e1e4c21cce3a335de570f8ab04d6",
+      "size": 1686
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_lead_status.proto",
+      "sha256": "f88c774bc9d6be6bbc00506fc18f02826b888944614c626a754226743283a2bd",
+      "size": 2050
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_lead_survey_answer.proto",
+      "sha256": "472a432605aed00791969c1682b6e332b068ed5a8d6c4c1ad5112cd761d5ed95",
+      "size": 1849
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_lead_survey_dissatisfied_reason.proto",
+      "sha256": "21e8734233f516c99ed164e8bf27225014c449c76a13e75a599f87493362a93a",
+      "size": 2327
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_lead_survey_satisfied_reason.proto",
+      "sha256": "5b2e2a838f4b26400c80eb13258d2527146e93b874b0c8964d73e0353e0e5ab3",
+      "size": 2033
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_lead_type.proto",
+      "sha256": "9aba20234eb691087ebbe6db40574b8f01955add22550369f401c372199aee37",
+      "size": 1638
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_license_rejection_reason.proto",
+      "sha256": "cae627ad1c3d1a4f651d37bb4a6fa2e36ef0ea5357c4aa62146d956274e74431",
+      "size": 2219
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_participant_type.proto",
+      "sha256": "35565e24eb58779913c1274bb1a2aa1c8247b48c39e6d112ad868f9526e35f54",
+      "size": 1713
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_verification_artifact_status.proto",
+      "sha256": "eaef11e0db39967dd3f0f737b03bb6ddd01c3e26cb20cfecae5e4bb8f577aca0",
+      "size": 1941
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_verification_artifact_type.proto",
+      "sha256": "9e179da4ef5f042e4f2ad34a836aff9e707cfead91cdbe29e7c9a239b1786423",
+      "size": 1871
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/local_services_verification_status.proto",
+      "sha256": "dcb9b6b60f0c37cce7d8f22683922c6d7babb404285cb4c5f805d13832ba4058",
+      "size": 2149
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/location_group_radius_units.proto",
+      "sha256": "2f53ffc854cb4e14fbc6bd7ffea638cf76bf748936f3031675a4a0ee801c0b39",
+      "size": 1675
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/location_ownership_type.proto",
+      "sha256": "0528eb754b6110976ccbb73c07633baef5abf152f6b3643dbede4f17d1dedd9b",
+      "size": 1714
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/location_source_type.proto",
+      "sha256": "115339c0ec0ef85b6c18716bb6d3928f667ace7f595a86cd329cb894f48ef90e",
+      "size": 1720
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/location_string_filter_type.proto",
+      "sha256": "2f2997fb42a8995318f341ce70faf5a84181d1c8494ff284b46779a9d04730bb",
+      "size": 1621
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/lookalike_expansion_level.proto",
+      "sha256": "018fd2f6a1c2040d1f630439611c7f250017f6745de96179d15e8b7c1584c877",
+      "size": 1846
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/loyalty_membership.proto",
+      "sha256": "e2b658052f0c4db5147d8438e95b6cd08bce91e8a1f51fe13024297856784d1d",
+      "size": 2000
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/manager_link_status.proto",
+      "sha256": "73feb3e2780c80943063b5100af53985eb9b144080a0e65d052a9e83edb577bf",
+      "size": 1933
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/match_type.proto",
+      "sha256": "03301d9639676c1ba754069f6871a5abfe051f321a7c47f1e9793aa567053c4d",
+      "size": 1688
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/media_type.proto",
+      "sha256": "46a333116502fdd6649de481f9659288e057aad5c0e70aec032d9df85f41c6f1",
+      "size": 1829
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/messaging_restriction_type.proto",
+      "sha256": "4fb5239751f1630d143d3e182bb58955cd9b7ef677e78b80c9a798fddf76a87c",
+      "size": 1607
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/mime_type.proto",
+      "sha256": "8b09c67b125412877308b7e2f6c7f8248c7fb6807b74efdfd6de463cbbfcd51e",
+      "size": 2187
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/minute_of_hour.proto",
+      "sha256": "19213d5e4a7766c75a273c7a5924c1c0d59846f031b27a7eca4010208b2ee70e",
+      "size": 1681
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/mobile_app_vendor.proto",
+      "sha256": "c524c79081d890b9318dc97aae9469b85ef674dd455dc41470645c8a69159d89",
+      "size": 1601
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/mobile_device_platform.proto",
+      "sha256": "21d475c8a853527618c0d4f615b5889fb84a2c6452f5a5fb3f39b4fa166ad7ed",
+      "size": 1811
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/mobile_device_type.proto",
+      "sha256": "1063e84233c3e09d06756baa6f9315e107747ad7e6a3a662938aacd8cf8c45b5",
+      "size": 1565
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/month_of_year.proto",
+      "sha256": "0e155a2a9d8b15b63f8e296057be291cbf33e729d0fdf38f2c847a21624193c0",
+      "size": 1904
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/multi_party_auth_operation_type.proto",
+      "sha256": "b549d2b7ca3949504ef91684e9dd901b047b3f387ca498b62453e8c9e9c8d891",
+      "size": 1694
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/multi_party_auth_review_status.proto",
+      "sha256": "efb4efa368b6d08f57beb1954f8e5cf30cf2b57f28283449576cbf197253d63b",
+      "size": 1968
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/multi_party_auth_review_target_resource.proto",
+      "sha256": "d88dff2e2058699a71111fd21a02b0438b785a9d9abd9b795f3e2702e17dff5d",
+      "size": 1636
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/negative_geo_target_type.proto",
+      "sha256": "24923352d61f1623193965a8c8b6304e5589c3b560f0567d4ca5b93e7fd3eab4",
+      "size": 1807
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/non_skippable_max_duration.proto",
+      "sha256": "d1a993444a5a89eb9416ece13903ced0db77c7dd51a2feef0ffde08f8370c48d",
+      "size": 2077
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/non_skippable_min_duration.proto",
+      "sha256": "9a969bc79369a90593405b7c81b37dcb4569ee052ff5f4f9cf878120ae3cef3f",
+      "size": 2195
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/offline_conversion_diagnostic_status_enum.proto",
+      "sha256": "e96fbe6a630eb682d5ae78213a882a66ae1d1ff71eba6a81916bafcd4f9dc1ca",
+      "size": 2051
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/offline_event_upload_client_enum.proto",
+      "sha256": "f2b096b36aad4ab729f5f418f17a44bc07954a4b18ad74dfdcfef2e657418b85",
+      "size": 1692
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/offline_user_data_job_failure_reason.proto",
+      "sha256": "71f2e889819649302efd2ab00e49212de74666c15d44aa3cddb9e72d686b8d45",
+      "size": 2644
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/offline_user_data_job_match_rate_range.proto",
+      "sha256": "bdae06ebe09ddc8ecb367d60bbce6e474801e857f9f6f61004b07d48bd049a91",
+      "size": 2547
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/offline_user_data_job_status.proto",
+      "sha256": "d10d5248fbd364ebd2c228f9be81d9f74fc705f74f03dbf81e589716afc8358a",
+      "size": 2142
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/offline_user_data_job_type.proto",
+      "sha256": "266e3d469bf484dadb50bd15b828ad583968b1d7d7eefa506687e8463555b3a4",
+      "size": 1879
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/operating_system_version_operator_type.proto",
+      "sha256": "e607fff4c00598d32a4236482cb89c4ae1f9cf7a909e905d9704ae38ebb9eb11",
+      "size": 1725
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/optimization_goal_type.proto",
+      "sha256": "31469f1ee0b485234f2cb8af47ff916971078ed5616afc8f47e19a8299d70776",
+      "size": 2089
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/optimize_assets_experiment_subtype.proto",
+      "sha256": "c6b344afc7abf49ca748f576d094fe1bf2bd60b2ff925be2aeeb1c885ae57659",
+      "size": 1867
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/parental_status_type.proto",
+      "sha256": "fd1b62e72a33ec27d8ba66e3363ff420c2c662f161b02acb691ed379823a254e",
+      "size": 1692
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/partnership_opportunity.proto",
+      "sha256": "0e1f4d90bae60763b616c1571625adf004514d200291f2a474db7b2e6438ed6f",
+      "size": 2542
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/payment_mode.proto",
+      "sha256": "5c0e004646c04149ba2ea829887e0255694aa88852002683805690168d9c6e42",
+      "size": 2317
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/performance_max_upgrade_status.proto",
+      "sha256": "46a5727587dc78d02fd703ed06c2150b8318880a9e7aa6fa5e015931712cc77f",
+      "size": 1993
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/placement_type.proto",
+      "sha256": "5a2ce0566608a535b42ef42533a557420c06905202c09d659dabed8e9bbe6373",
+      "size": 2078
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/policy_approval_status.proto",
+      "sha256": "a76b2c8ccff8fed1c3a10f785f4b17a5ae723d25dfa37b124a18ea021090901d",
+      "size": 2097
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/policy_review_status.proto",
+      "sha256": "3cdc59b7493707372fc94f7f7df93ca8fd63c8e05ce8a8c7340fd82b0813217c",
+      "size": 1962
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/policy_topic_entry_type.proto",
+      "sha256": "c0ee25e14203555cc6e8945d143b02504a7783cfa6ad9a792394ad8ad26b3b00",
+      "size": 2149
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/policy_topic_evidence_destination_mismatch_url_type.proto",
+      "sha256": "6727f9c31aece5f744ba0146276a2bfe9d215023258e00e78a306f4571a0e20e",
+      "size": 2065
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/policy_topic_evidence_destination_not_working_device.proto",
+      "sha256": "0457ede7c1672cdec1121cb0e1604f6921a8f8acedd69d7cbee905ae8b638644",
+      "size": 1949
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/policy_topic_evidence_destination_not_working_dns_error_type.proto",
+      "sha256": "7fc32ddd331ee151edd279fd76b7a411745d0446b2bf2997266c0c662efb0203",
+      "size": 2088
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/positive_geo_target_type.proto",
+      "sha256": "c2f6b50da404caa8d709000c9233bae65def057b03c0d46a702a7c87a94351ef",
+      "size": 2011
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/preview_type.proto",
+      "sha256": "372b20bd5779e49749034dd9e33dddc0863f845ddb601495c23f7bbf7c61461a",
+      "size": 1657
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/price_extension_price_qualifier.proto",
+      "sha256": "fdb2c205b09ef2fb70098dd8f176ecbf63b91235d25ff1ad936ad273cfbbe472",
+      "size": 1741
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/price_extension_price_unit.proto",
+      "sha256": "f21f762e2f625fe69cd27b533bb523b0c253f2987a8519c996e0bcfd77d9dd3e",
+      "size": 1752
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/price_extension_type.proto",
+      "sha256": "4e902240a3feb8fc75e7a4ef9ef6b61f711bcd0c8ffcb4263cc191628a7ad476",
+      "size": 2297
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_availability.proto",
+      "sha256": "40aee1f0d91455fb5578ff017ee05dcaf0e2d1a9bfaedd430ae8a640628eb8ee",
+      "size": 1663
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_category_level.proto",
+      "sha256": "f791aa356fe1617a57931da3952e24c07be8893a2061f37bd6acbfbbe6894043",
+      "size": 1625
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_category_state.proto",
+      "sha256": "6c14a4291bcf2a0486ac3bc8fe46626ae2574d01a15b1fe7722bf36f971d13b2",
+      "size": 1589
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_channel.proto",
+      "sha256": "aaf0ab32069bcd5f5851c68063d7133b1fc8a76f7f069c16cbd41956abceb995",
+      "size": 1582
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_channel_exclusivity.proto",
+      "sha256": "1352a1662e196ba49d41dfede95d89aeeed04a8369953971f4a3dba6ba3d412c",
+      "size": 1841
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_condition.proto",
+      "sha256": "78a0c161b53c392075bd85ffffd860cc8049c849f73073ce3f92e6e43432ee91",
+      "size": 1658
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_custom_attribute_index.proto",
+      "sha256": "0a2843c9d9554df1e9b97fa2a8b6a66263f5433071e92616d34b60008a1aee04",
+      "size": 1856
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_issue_severity.proto",
+      "sha256": "b508a2d59b6eda2ac98b0924c451a7a24f7346b9c3f4ffed8fad9121b7e3ab54",
+      "size": 1645
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_link_invitation_status.proto",
+      "sha256": "f1686ff9010747666c6a65859ee4cab7021e4140a6f9465d958fac17f65c706b",
+      "size": 2272
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_status.proto",
+      "sha256": "5015e3e6db67f24eaf784f25c2211bf4d5ae26aca7a3efcdc7e264f7762176d5",
+      "size": 1773
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/product_type_level.proto",
+      "sha256": "4d370d1b150b2c4f05b6857962476fc25a6ef4784df77244574d6f5ab4974c01",
+      "size": 1676
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/promotion_barcode_type.proto",
+      "sha256": "43ef8fa29172aee90217e1f75ec1a39fce1a68773019131691cf6056b74dae7a",
+      "size": 2951
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/promotion_extension_discount_modifier.proto",
+      "sha256": "da03005e13bc55e0ee0d90c6d33a0c2a18d6120e79d4c3109565de3fce3d9b1d",
+      "size": 1634
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/promotion_extension_occasion.proto",
+      "sha256": "29c36424c29621c4b0031f6f2fc54639227e4b1c1dedf7af83dd06d897f02d00",
+      "size": 3410
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/proximity_radius_units.proto",
+      "sha256": "4c57f3f5e230f88019d03f941685791cfebf4b0b8c653217048f28eafcfa17dc",
+      "size": 1612
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/quality_score_bucket.proto",
+      "sha256": "673b7cef6edb861fb2704f09b0817c826c8364f0bb0d266d29478c54acd89689",
+      "size": 1731
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reach_plan_age_range.proto",
+      "sha256": "b8dae19e71da0d5dfe216b1fb605de37c895a350b8d8bfd9c6a19238268ae96f",
+      "size": 3539
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reach_plan_buying_method.proto",
+      "sha256": "3be8668ee50c9120040e8dbea1e4f4cfc53efdac80f8f2b0884ad1a7b5930e43",
+      "size": 1610
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reach_plan_conversion_rate_model.proto",
+      "sha256": "5f97f774d6ff960dfc2053be85e6478aa3e7f66d5c2eba2ddd9f034576beac23",
+      "size": 2185
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reach_plan_cost_model.proto",
+      "sha256": "dcd9ff969501589cabedc508843a0b26d5045b426a98e08e9de58bb978518858",
+      "size": 1639
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reach_plan_marketing_objective.proto",
+      "sha256": "82a17ed441afab64d07ef15238da730d45bac1ce7e1e974e9bab75630585389b",
+      "size": 2069
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reach_plan_network.proto",
+      "sha256": "e3d249c6c8e36fbc87ceb6b693a5fc2bf06653ea9f5567ffadda8c4cde41811b",
+      "size": 1750
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reach_plan_plannable_user_list_status.proto",
+      "sha256": "0a89ad0fa5410c17e3d8ef3f5d156854592c2a7fcd901c3b4db6d7246db21194",
+      "size": 1682
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reach_plan_surface.proto",
+      "sha256": "8ed51329a415e938f0fd916e98e8598158922e41b74bdef5ee7e7af2348274a9",
+      "size": 2154
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/recommendation_subscription_status.proto",
+      "sha256": "f1e572160e00f3db42621d2697d0efba605d212ad745db1eb1ed3f1e500fa8a0",
+      "size": 1927
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/recommendation_type.proto",
+      "sha256": "a16bb19e3b7fc51515135f80707ef0d61b761c42ff5d1a9335264581a2a75603",
+      "size": 9312
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/regulatory_fee_type.proto",
+      "sha256": "87a72f6db32af8097f08c8e08312abe151055c7702a8200e560c2b8de854695d",
+      "size": 2338
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/reservation_request_type.proto",
+      "sha256": "5cbeb6e1c88c706a514e986d6175fff4939f02bf52146dece0d834fd1ab61c48",
+      "size": 1798
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/resource_change_operation.proto",
+      "sha256": "bf045603f7194eb2eb28f73c47e50e2c252d629d4093404057fbb3e8c9f71bb8",
+      "size": 1806
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/resource_limit_type.proto",
+      "sha256": "68d1a5ad3659159ed5ade0af675f860aa4002e96956429368454947e27cbf277",
+      "size": 19275
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/response_content_type.proto",
+      "sha256": "2e4baa0f347923af7893822af2859696c8c84daa0c8bf030aa37ff910fb18d0f",
+      "size": 1770
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/search_engine_results_page_type.proto",
+      "sha256": "367bf217a69be27d930ecae5d5bb29a4c0ac31d386c8eee2ea02bbb43f1bc2ed",
+      "size": 1851
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/search_term_match_source.proto",
+      "sha256": "43c39a49090086b0b3337e4b2fcdf6dcf14024af8e98e6abc259a7cafba71ffe",
+      "size": 2154
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/search_term_match_type.proto",
+      "sha256": "29f1d07da306f6749f1e3d13ff9d8e2b095ea8df6ce63295eb7cd9ddda9b66e1",
+      "size": 1938
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/search_term_targeting_status.proto",
+      "sha256": "1a20729f0819ec9b6c0bdaa38b46277aa6729be96b68672a3d5acfcbf664827e",
+      "size": 1918
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/seasonality_event_scope.proto",
+      "sha256": "12e1880371c0daaed8fe5633d57baa36bddf2e2ea741320212fc6e397ddef9b0",
+      "size": 2080
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/seasonality_event_status.proto",
+      "sha256": "13c6ecd37dac754200c5216a0cae5b85ffcad749478b1200ac61a67b5c7b70fd",
+      "size": 1783
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/sentiment.proto",
+      "sha256": "c51001109030c21e1d7def1801d962395ac9510a5a2c847d3a75648ae34aa42a",
+      "size": 1789
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/served_asset_field_type.proto",
+      "sha256": "14050501d8d72b7a900650c680ec5caaf8d0f7486bec8876aa537feebd119c28",
+      "size": 4696
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/shared_set_status.proto",
+      "sha256": "146a3ddb92aa7de36315d150ec288afa4e782630985d8182e4abf3f4cfcbd7bb",
+      "size": 1642
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/shared_set_type.proto",
+      "sha256": "5caac9243b2e778eb90b0a75f07638426e784203ac49a6235ba367420f501b8c",
+      "size": 2347
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/shopping_add_products_to_campaign_recommendation_enum.proto",
+      "sha256": "be616f7099b3a85eee349500b994962a4cbbc1269498f8c32c827b2a4a7ac4f6",
+      "size": 2270
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/simulation_modification_method.proto",
+      "sha256": "a632e9149cbae55c48c29daf63f3f551f24600c4fe24999e4050724b44b9ba87",
+      "size": 2210
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/simulation_type.proto",
+      "sha256": "1a2e86a016a8a99b0db00a42fc2eb44ece2443781b0a6de56d3dfd0c3e0362ec",
+      "size": 2064
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/sk_ad_network_ad_event_type.proto",
+      "sha256": "100ef1b4b45b591ff9d8ce46bed9cb6e943819c2ae27034fccefeaf733e0d343",
+      "size": 1733
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/sk_ad_network_attribution_credit.proto",
+      "sha256": "f1b71c2e62c89d0d2b3c46ed026cea455c3878f0885a2e635d63fde9a371b499",
+      "size": 1940
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/sk_ad_network_coarse_conversion_value.proto",
+      "sha256": "501bc25c715b5f5977f5ee441ee4b800b5ec6e13912f47d267801797918f4fa5",
+      "size": 1923
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/sk_ad_network_source_type.proto",
+      "sha256": "a8a66368c8a897240a67c320c59220c1eb77f501226b29ea4077f7092edf30ac",
+      "size": 1761
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/sk_ad_network_user_type.proto",
+      "sha256": "cbacd40d553e4917d3a986823bfc007d0688e354cee7f91c225f09e77c330186",
+      "size": 1754
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/slot.proto",
+      "sha256": "816b0be33605fa34ccc62962d675f0288f13bed3293430942a5aeff1d3301e11",
+      "size": 1798
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/smart_campaign_not_eligible_reason.proto",
+      "sha256": "62e8bbcb980a2fe8b04333255fe06de3cf81606ba5b11569e067fe6ec8b0cb4f",
+      "size": 2223
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/smart_campaign_status.proto",
+      "sha256": "ebc0b8b7f0590b49dd9d2610a2f371b008f3d2a1fd02cbaaeb70598372bc6259",
+      "size": 1985
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/spending_limit_type.proto",
+      "sha256": "56f917abb06f490c5b77c6d9a578a852f10c4f89823d1c6e645c58618c2c9817",
+      "size": 1641
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/summary_row_setting.proto",
+      "sha256": "ab3ecee3214c9dfc1863d8cf334f16f9aaa1a1fb97dd231c2a8fb11fb4d02fb5",
+      "size": 1813
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/survey_intended_action.proto",
+      "sha256": "8ae3be3afaf047724e7018d74af171fd048ba4eb7287bdfbe001568ee3c8b5fe",
+      "size": 2833
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/survey_lift_flight_target_response_mode.proto",
+      "sha256": "083e72168fcd8d9eb20b4df18156466ace4aebb5ec6dd048076a401c4f6b53e4",
+      "size": 1782
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/survey_subject_type.proto",
+      "sha256": "725fe88dfcbcb80d12301d81c10bebb64fb0edb8de182bb8595e8df378298340",
+      "size": 17345
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/synthetic_content_attestation_status.proto",
+      "sha256": "9c9c6a1d4a48dd0fae7bc2a47651b6576f6fe6bc23ee1dfed52eec0648038723",
+      "size": 1738
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/synthetic_content_source.proto",
+      "sha256": "359ae0932b4adc7af324e5e370b9f9d7d4c1afa3510369aa7f7c23d42d54fd02",
+      "size": 1862
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/system_managed_entity_source.proto",
+      "sha256": "f3dec86cb187cba375a8f617c89489d48ba0d56ee3e2ca517bbde131528390dc",
+      "size": 1643
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/target_cpa_opt_in_recommendation_goal.proto",
+      "sha256": "975c11cdc11df87c08cbf61369e4ba95fdb154954593342f6376b6fb38ba11e5",
+      "size": 2035
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/target_frequency_time_unit.proto",
+      "sha256": "4167724817813c752aa7f0625e9cd5876f2e08e37e7fa6574205595c191e2cb9",
+      "size": 1754
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/target_impression_share_location.proto",
+      "sha256": "c32920ae8af7696faaa38728be1eb7439bb8071205e60513a15a4bbb6e6f9dc0",
+      "size": 1850
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/targeting_dimension.proto",
+      "sha256": "f7f6019f686f14764d340038c0f4a0bca0b95d6dd6c98f6d1bf340ba5e5bb191",
+      "size": 2515
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/third_party_brand_lift_integration_partner.proto",
+      "sha256": "634900a3e477d19e14225b678d50a9e0e298dadfe9e6a7ebe586b7cd2669d6e7",
+      "size": 1877
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/third_party_brand_safety_integration_partner.proto",
+      "sha256": "7073cd51bd7029dc3c8b301a7626e7f018fb4052c9cf404684d9a1510d5ef819",
+      "size": 1872
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/third_party_conversion_attribution_integration_partner.proto",
+      "sha256": "bc5506a71fb7a31283f8b355113049fdf1a76d721ee0026d42f5634b9aa60eb3",
+      "size": 1859
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/third_party_reach_integration_partner.proto",
+      "sha256": "7ac43ff73d2bfdcc5f043c3a93eee7a094533b05522a2ee015082bc0fb33f61d",
+      "size": 2080
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/third_party_viewability_integration_partner.proto",
+      "sha256": "993453eb89c7dcfc196b9b72c9c3dfe8b9d74420af2a6c84f82f7be4c666f9b5",
+      "size": 1893
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/time_type.proto",
+      "sha256": "94808e1479e80f9b341bfd0f6f54f0789591bcc14a02dc8d3b8c2b24107149b6",
+      "size": 1608
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/tracking_code_page_format.proto",
+      "sha256": "d57488fba0a46069a50e196a35863b90c57c4a6d5f3df26423224e6421cda95e",
+      "size": 1673
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/tracking_code_type.proto",
+      "sha256": "c5e713814847b86ca1709a2f1ea304565d6e1a46aeb75ea65d01dc4c531aa4fc",
+      "size": 2142
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/unit_of_measure.proto",
+      "sha256": "614bd5455b7671eaaebf712ef7a2d086791606afab4ef1d61afea0b3a331db86",
+      "size": 2210
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_identifier_source.proto",
+      "sha256": "a719b76c46f712224c3cd7839f3e68d595960db56198f04d76972e7a519eb4f9",
+      "size": 1919
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_interest_taxonomy_type.proto",
+      "sha256": "758c8c253d2dd86c05176b7e901f447d592c5691c4776ff8416a414ee7df074d",
+      "size": 1968
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_access_status.proto",
+      "sha256": "79d990a9624a49b2429029dca7614c7793cae0bd74ea5b3e1f1efbe3d90a6f88",
+      "size": 1629
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_closing_reason.proto",
+      "sha256": "392e57e8ed6d0acf6439ad79db70f6ac1f33e153aa00b26c33f5e4150aaf1088",
+      "size": 1689
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_crm_data_source_type.proto",
+      "sha256": "ec868c61ee74ad828ae6b7d99aa24afe584c1ca02996e866be0032b65c17ef12",
+      "size": 1833
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_customer_type_category.proto",
+      "sha256": "0e26203672c488e756ee3e9cda775bf5686fe05b9f9d1eb5e69691155bf96722",
+      "size": 2816
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_date_rule_item_operator.proto",
+      "sha256": "74b48e429b9dd9ef3e688c455f6b53cc4db57d8fa643ce7b52c365a75e91f5e9",
+      "size": 1635
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_flexible_rule_operator.proto",
+      "sha256": "1fd8097b2dea3b76f7b7d923d7aa08aff082a1acd2363e073414d2a3e2fda227",
+      "size": 1552
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_logical_rule_operator.proto",
+      "sha256": "9be89160ac91310cc736fc801fe84c99989879a47d92d1afdd0163b73d4f4291",
+      "size": 1642
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_membership_status.proto",
+      "sha256": "ea45a8c6c4770309ef6e67413c83c22aa298d4f2321ca7475b2b55f13a2b0e34",
+      "size": 1851
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_number_rule_item_operator.proto",
+      "sha256": "77559befe19d9f4b4f8c4b45b4533c2c993b48f99bc722ba3385c771c23e2931",
+      "size": 1789
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_prepopulation_status.proto",
+      "sha256": "0a443b6ed8188b1c3207f18ea20c553d1813b2cdae5b97e06abd9db1a717ba4f",
+      "size": 1666
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_rule_type.proto",
+      "sha256": "cf4325f09927dc30dc51edcad793480f2c47cc00e7a68019df1eca9bf2d2cab8",
+      "size": 1544
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_size_range.proto",
+      "sha256": "f2869bb46f11a49098d0b616add14accf82e32ce2239b0a9ea6d9e3b0d77deba",
+      "size": 3245
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_string_rule_item_operator.proto",
+      "sha256": "edd6c37600b12c4ee731deba9ed6dfc9ab19733cd44c5715d10e9804bf8a2239",
+      "size": 1851
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/user_list_type.proto",
+      "sha256": "95da3359b279309aee0219c456c07133a7d8405a90f6e8714890210bb48c0253",
+      "size": 2146
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/value_rule_device_type.proto",
+      "sha256": "7775b7a9b7bc4a6e0447f5265bda0a4effb964ca73854366a2747d7ca35078a6",
+      "size": 1695
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/value_rule_geo_location_match_type.proto",
+      "sha256": "2be89d4d3820479d4d0b4759260b62f807db8a3d47b76586eb25ce4f35a25fb1",
+      "size": 1806
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/value_rule_operation.proto",
+      "sha256": "9208ded020a1d0c77a8c9153bd6542da79dc4c850d7baa60f3ede2bc9528ff4d",
+      "size": 1799
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/value_rule_set_attachment_type.proto",
+      "sha256": "1fd0a047f888a0eae21941e87e26b2f071732d9c0e323340eb3ef11bcdaa8edf",
+      "size": 1681
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/value_rule_set_dimension.proto",
+      "sha256": "3155eaef6a28a63908e5b32375ee0c3ba2f6bcda79773d0cf9b56722a4ae71c7",
+      "size": 1878
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/vanity_pharma_display_url_mode.proto",
+      "sha256": "2789060957c8a80365d8f29ebd83450913a030e71e75c3bd1533183c058ed89b",
+      "size": 1749
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/vanity_pharma_text.proto",
+      "sha256": "05c34f57d09bb7fd3722575659019f367a49e333ad4f2b149e6eb4b2ce203fbd",
+      "size": 3216
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/vertical_ads_item_vertical_type.proto",
+      "sha256": "bd63c6862a82cbbca1aba66c373dd7075ff29fd7d20cf561565f65ca11325958",
+      "size": 2098
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/video_ad_format_restriction.proto",
+      "sha256": "dfd752696a2e2750252a810f23d3e3118ff510658a7bf65ce6c79cc5ef2bc3cd",
+      "size": 1737
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/video_ad_sequence_interaction_type.proto",
+      "sha256": "a1438311fdc0a3db99a8eb021717c1b2ce9641f269a6244c4471e1e766e36d97",
+      "size": 2355
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/video_ad_sequence_minimum_duration.proto",
+      "sha256": "b4ec599afaeebb107dfc4317c916f2abc29d5013ea5d8868beb7751d5f843279",
+      "size": 2174
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/video_enhancement_source.proto",
+      "sha256": "22dd7ae6258e42ef9601ecf3764542764434eb86ac015a91d9a9720b1bc00275",
+      "size": 1704
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/video_experiment_subtype.proto",
+      "sha256": "975f8c801c1dc68166c0ae2f44f2d21ab112837cc5ea2f30f42ed5ae719c0f0a",
+      "size": 2377
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/video_thumbnail.proto",
+      "sha256": "4e12752ff55f019c9dc6834309244ec71f43b106c46eab62c1315db8fdf3401f",
+      "size": 1979
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/webpage_condition_operand.proto",
+      "sha256": "f1cf1673362870e49b92ada9c954d1ebd631722149d6e7f663b951ff8c69b10e",
+      "size": 1989
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/webpage_condition_operator.proto",
+      "sha256": "8db4b7f6f8dd91cf413104cb4fd8a101d5b7249ff3ac25f1f3ca0dd40eab02f1",
+      "size": 1758
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/youtube_video_privacy.proto",
+      "sha256": "d0d179198df54b9b588ba716db1ed938434a028961e4e7daac56acff24a910e1",
+      "size": 1591
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/youtube_video_property.proto",
+      "sha256": "a045c57e307f1f9dcc6a583b7bb7d9595eb5d9f539ce5e3788e6460f09fa01ee",
+      "size": 1600
+    },
+    {
+      "path": "google/ads/googleads/v25/enums/youtube_video_upload_state.proto",
+      "sha256": "a276bfb273b0bca82ab4ffb884019117d9c1d6d02430f4651eb49a2b7ffe339b",
+      "size": 2338
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/access_invitation_error.proto",
+      "sha256": "9ca407d201e541bc9a98f6a99d60229dd3d568ec3640faa13bbdb879e59b01b4",
+      "size": 2384
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/account_budget_proposal_error.proto",
+      "sha256": "2c917dd5c5e82f38b9af8ef4279230d41b82d670aa122baffd783e2a4fe6daa3",
+      "size": 4668
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/account_link_error.proto",
+      "sha256": "34c20e1cf70c0f116ea3fe9e766cbddefeaa5d1ca1bf660958073d4c72b4a9dc",
+      "size": 1675
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/action_error.proto",
+      "sha256": "ce9b62a4aee600eb945c869f7dc1fecce8f883cfc8889fe06ebb582340e07c6a",
+      "size": 1638
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_customizer_error.proto",
+      "sha256": "4cd0943ae70d02bc51717e4b345ae6ca30db2f7f3284919f27cee5f28c37f944",
+      "size": 1982
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_error.proto",
+      "sha256": "57af7c630a50cfc1639e1df789859c4a6ba6d77d732cb014c82c34d755d7735e",
+      "size": 17970
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_group_ad_error.proto",
+      "sha256": "36367282832c8c98744c91a5eb5c57366e1209965abd3f0cae6dda6e05e6e060",
+      "size": 2836
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_group_bid_modifier_error.proto",
+      "sha256": "e14bf9182dad1d762c4b57f1651d0785443a93145a82ff89aa05c648e7871bbd",
+      "size": 1854
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_group_criterion_customizer_error.proto",
+      "sha256": "44d41afb07973cc7fe55ab42225e7f4f1f719062b3675fe6a76a68ad7c6b6f37",
+      "size": 1712
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_group_criterion_error.proto",
+      "sha256": "a4a03848bce7fbd8aa5c0ac311bd652695109e77f223938cc8e0b0130d4b48ec",
+      "size": 5146
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_group_customizer_error.proto",
+      "sha256": "cade3663b2359e04f526fdfe1af1fcc2e5361d0e30d749941272bdbcde98681c",
+      "size": 1541
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_group_error.proto",
+      "sha256": "158ffa4ac5e60c379f7e22c8405d0fa231329d11c1204ec9a0478d1ec5847540",
+      "size": 4689
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_group_feed_error.proto",
+      "sha256": "a2fd33c6b7f30aad799a9dc069ddc32a20adde47ffbfbbea5dfffd8b5bee7ddc",
+      "size": 2327
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_parameter_error.proto",
+      "sha256": "8dd60f6552a76144b52cfaad277519860f3c587dea79aceb20e0f3c418d58f49",
+      "size": 1690
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/ad_sharing_error.proto",
+      "sha256": "05d3bc7ad21d0a378417fd42e852d1ccedec525934c8d5fd13e6736f805cc057",
+      "size": 1830
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/adx_error.proto",
+      "sha256": "68ccd3c002df6fa482b50ac8232affa1b6bd98167b58daff1d647215da62c2d2",
+      "size": 1539
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_error.proto",
+      "sha256": "0f359c20ec80c10e25350ce93a04dc81ee21ea92ce2d63315761db4e5d197ae0",
+      "size": 6653
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_generation_error.proto",
+      "sha256": "ac8b7b92ce8ce1bded762926d82e8f23258cabd905cd0ed23724c3d9d881f0f8",
+      "size": 5715
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_group_asset_error.proto",
+      "sha256": "d99e758887668f5a3184f8f473fcdbdd430c1ace266211e207cb8a691d162558",
+      "size": 2033
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_group_error.proto",
+      "sha256": "9cad0a84fac9a121f88a630bfcd7562acac27a0a15fa24a25555c98e87189461",
+      "size": 3380
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_group_listing_group_filter_error.proto",
+      "sha256": "6b1c3581d40fd941c2a779343944d8d33cb1d5a97012f6fdbc80b478ef5faa83",
+      "size": 4557
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_group_signal_error.proto",
+      "sha256": "bad89c2b9461f8104f3e660d4b88b74b8cff0b0e08574c9cdc01afc055a50914",
+      "size": 2337
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_link_error.proto",
+      "sha256": "0fe6730f58c7f5433e7693c0ade585e0aa68278fd1df9dace75832cfb057e6eb",
+      "size": 5519
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_set_asset_error.proto",
+      "sha256": "4da3b5eb8ea5b9df8fc4e9a02d12257fc158f4ff55a01f2cb016bc5ff3e4a9b2",
+      "size": 2135
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_set_error.proto",
+      "sha256": "3795fb8236312a7ac9789647217cfaea449b9b57c949d9d45ffa299b999cfdab",
+      "size": 3008
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/asset_set_link_error.proto",
+      "sha256": "b4e73b99de100dc170dc1445c28017b7cc8eba0343cae98b61a6bed0ff8e2edc",
+      "size": 2211
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/audience_error.proto",
+      "sha256": "f97981046185e39eafbda2fd53d97262f49fe9ad1d6f718415099bcc92e03cc6",
+      "size": 2590
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/audience_insights_error.proto",
+      "sha256": "8148189e4ce1b18dbb7b1b2285496c621997506238e0b8e2619e7fa2ac2214cd",
+      "size": 1732
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/authentication_error.proto",
+      "sha256": "11b5c8aa581f198a1ad593281538240262d4bca51148af1d2803e6e7b6a4d062",
+      "size": 4268
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/authorization_error.proto",
+      "sha256": "dc71eafb5b3b0080a5da3d578fcb1d5779bbb4732106b189fdd05386e852986e",
+      "size": 4061
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/automatically_created_asset_removal_error.proto",
+      "sha256": "c354166d9ac6789254071a0787c4c8781aea2a4d6e90d84cda53a5e28fd4fd06",
+      "size": 2053
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/batch_job_error.proto",
+      "sha256": "f54d5f545f77e5abc43d8521fc4a69c2faa4504421dbcc939dacd96bbef1f9b4",
+      "size": 4328
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/benchmarks_error.proto",
+      "sha256": "19b2a74f69055bf0fa79ca9f7e70c3e2337aa671697c1ac3348fab54556a0ab0",
+      "size": 1810
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/bidding_error.proto",
+      "sha256": "4ae14b120f135d4ab7ebcc92add9e3ae81aa4a22db935fb497a1323226e585a8",
+      "size": 4785
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/bidding_strategy_error.proto",
+      "sha256": "0b937e87bf72ba725ea1fa907daf02bcc212a1b46ccd43dcdc24fef66dfa506a",
+      "size": 2130
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/billing_setup_error.proto",
+      "sha256": "035ae3a77511675d49f79b918c9463f8ef0b671cd54e69b94d6e546d389ab103",
+      "size": 4409
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/brand_guidelines_migration_error.proto",
+      "sha256": "674605d98a64d21a3e3dc1716248f2383afeb66e4835f263b6b27f9054c34e10",
+      "size": 2439
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_budget_error.proto",
+      "sha256": "15c1ed43253d9a1c5f0d11d242dd3d08fa306f3352aaf295da4dc6cb3bb2aa6d",
+      "size": 4098
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_conversion_goal_error.proto",
+      "sha256": "9e8757e9d7a42386125b9524d1f78dd458f445a62027a304edd377699bf2acd5",
+      "size": 1863
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_criterion_error.proto",
+      "sha256": "625271aa9155ff77bd7753c2c3930d39f624612fc2eccf89fe4a0e97de07a0f1",
+      "size": 5872
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_customizer_error.proto",
+      "sha256": "48eca292be15d14828daca1545784585ad3f91b0a80d664a75d1120a8210128d",
+      "size": 1544
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_draft_error.proto",
+      "sha256": "e5563facd0b505a3cc2982701c443b0d4ff794c6f43796d514004d9f84c5a834",
+      "size": 2875
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_error.proto",
+      "sha256": "55db242dc4600c5127247a7abbe39cdf43236961f9b87c0917d1fef55d93a5ae",
+      "size": 16565
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_experiment_error.proto",
+      "sha256": "eb60e80160cc144e77a6e23a9eb9ab6d547cb1f73b0993cd561a8766e95fa554",
+      "size": 2973
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_feed_error.proto",
+      "sha256": "6c5550696eddd6d9d61c128c0a0a9bf6c4751c8450b269dfb4783d5f045ac2a3",
+      "size": 2401
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_goal_config_error.proto",
+      "sha256": "3a2b69e35e9a07a5ac182fa3003cc4006ff8dfb9abd59314d6944d069a070519",
+      "size": 3097
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/campaign_shared_set_error.proto",
+      "sha256": "f56cc0156b6a1ddb2fdfa3f58b874268786887d6d856defdb968ab246272e875",
+      "size": 1659
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/change_event_error.proto",
+      "sha256": "cc315b934802539344d29c739be7bb3e6b3e26ae6a4d855f9e53a187b002bf34",
+      "size": 2206
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/change_status_error.proto",
+      "sha256": "db431ab9a2a785b2e1ef0d832f49dd294d51eeb26f3b7db7375ee00ae72f2ab3",
+      "size": 2188
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/click_view_error.proto",
+      "sha256": "73fb8858198895af7812980ad05db3cf9cb43b80e2cf6e4825db8b8515150902",
+      "size": 1638
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/collection_size_error.proto",
+      "sha256": "653743f67df8b593bc1252d7916ab3f0495036737e108694bfa0d28f871f544a",
+      "size": 1596
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/content_creator_insights_error.proto",
+      "sha256": "718127564a2c719b453b21ad14c897ae60a6d6085516a33e0c702d7784978f8a",
+      "size": 1753
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/context_error.proto",
+      "sha256": "5722836a4a77918c4fe2be9322226b25c9bed7a82566c555294f6d1f990fb421",
+      "size": 1700
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/conversion_action_error.proto",
+      "sha256": "10a7a38fe542b08796d2c69a60e42467d4a3df8ab99e18eb333293a902f6210c",
+      "size": 3142
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/conversion_adjustment_upload_error.proto",
+      "sha256": "3632c64886f2f6b18ff668fdb73048f35967b330b74ab02195ee9bac1d86fd1b",
+      "size": 6500
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/conversion_custom_variable_error.proto",
+      "sha256": "6c0d55495cb2acd533355e5cf9f62df2ede8e7fe92059917d437ef3b6458e35e",
+      "size": 1910
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/conversion_goal_campaign_config_error.proto",
+      "sha256": "bdda94180fab95b149dd3a8042f0a11311230a0f3f65f5e92cc76f03c213caf4",
+      "size": 2556
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/conversion_upload_error.proto",
+      "sha256": "558c5253cbfb0cf5a37e7b4d36c5d7dc2ec06810d7770e1bbaccef28f8f15891",
+      "size": 10371
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/conversion_value_rule_error.proto",
+      "sha256": "a50ec91dda78aff7fbc01bd120d0e7220d6a3df6239e9b5c54d65ac6d2bda282",
+      "size": 3792
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/conversion_value_rule_set_error.proto",
+      "sha256": "c7255fdd5fa5eceb4b15baed5fbd77d4a5dc004f2c40aa62323cd20e721e3861",
+      "size": 4486
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/country_code_error.proto",
+      "sha256": "3279291e498936242a31c210fc1d0ea00452780850c7ebf384d2510e2f835030",
+      "size": 1554
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/criterion_error.proto",
+      "sha256": "72eb442c016ab93a3236a1f367c5e549d24529254ba946e009b24b3ae853df9f",
+      "size": 23235
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/currency_code_error.proto",
+      "sha256": "af5211a9f4b8b4a451dcc6a07ad227c446f6b7d3556178d3ef134f04c91822ce",
+      "size": 1576
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/currency_error.proto",
+      "sha256": "ef3480acbda90b865a4466710894ae08e83944a565b4c4a9d77a1ae17c59c004",
+      "size": 1578
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/custom_audience_error.proto",
+      "sha256": "63ab7bf5bf4219dd264945e5f418ebb019809a4b5130c8845ac59b67052daa91",
+      "size": 2313
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/custom_conversion_goal_error.proto",
+      "sha256": "27a71ea21d9b399bc553547be792d7c25aa7f2234174e3620f3d6ac52193ffe9",
+      "size": 2339
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/custom_interest_error.proto",
+      "sha256": "eb0c5340271320e818171da118d3b71f9c816e2eeeb7374a6233cde394a8aff7",
+      "size": 2286
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/customer_client_link_error.proto",
+      "sha256": "70f0508fbe6fa11d27894167fc9cbcae5e1cbc5ed7233a14283d79cd68efdffb",
+      "size": 2694
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/customer_customizer_error.proto",
+      "sha256": "863bf60a898d75a4b0184272016d91c4df1134a2e63a203dd0bf7c1ea5085008",
+      "size": 1544
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/customer_error.proto",
+      "sha256": "ea8a5479783f3b70e9c2b8dc26775d61e0044a2f79b27b27f0ae9d65a12b2bf6",
+      "size": 2022
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/customer_feed_error.proto",
+      "sha256": "f1080e70b02abbd1a0e3edd1d6824d89b9042d14c5be9101604b32be855772ad",
+      "size": 2279
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/customer_manager_link_error.proto",
+      "sha256": "83665ab66517f6c543f6d612235f170cecd3e80382460bac33d4aa644d91c43c",
+      "size": 2709
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/customer_sk_ad_network_conversion_value_schema_error.proto",
+      "sha256": "a07c78c19b09d035d8ee57fbd6e98871af99ba3ca2610e837d8300080699298a",
+      "size": 2176
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/customer_user_access_error.proto",
+      "sha256": "2ece417a77c106e4502b78036154089aa256d42092d64088375aa1a01e4ef049",
+      "size": 2128
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/customizer_attribute_error.proto",
+      "sha256": "920e0e38673d25f7a93df917203515c4ebe32e8a6b5a0482dbfad2bf2c2204e9",
+      "size": 1691
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/data_link_error.proto",
+      "sha256": "69cc01a52cf26003f6b78af132b370e89eba3b9bd99b956453b23d62d9a8946c",
+      "size": 2204
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/database_error.proto",
+      "sha256": "1735cbcdd8cbd0a1bdd8ef525c6e6eb7987a84f5efa86d5f559ef7ffcdeee053",
+      "size": 1928
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/date_error.proto",
+      "sha256": "bf77f3340b370f44517890895bfa7ceaac2542a36800af241e4af39d35467b71",
+      "size": 2818
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/date_range_error.proto",
+      "sha256": "df833a8bfa03ca52e3a9fea6728f2e4e9ccbd0b99e0e1bb0e2497c89f5ed2628",
+      "size": 2173
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/distinct_error.proto",
+      "sha256": "378baa741c90a355e4014cebf25c50bf2ef5008d75a502b97d37da859a395fa3",
+      "size": 1589
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/enum_error.proto",
+      "sha256": "35541b29d5bceb7c0428e2b6cf8e1512f919c470eaa46d79e6fde6d4b9c11539",
+      "size": 1535
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/errors.proto",
+      "sha256": "b8f4575d155ab1b139c2a8ecb2bfd6340f9911d65d41cb21e021833c5627d447",
+      "size": 43488
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/experiment_arm_error.proto",
+      "sha256": "59a61b72683a9ac75e60673fdca1cc44728b578d709e4326833ca47dfd7c73b8",
+      "size": 4646
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/experiment_error.proto",
+      "sha256": "3f5c8020c56f0f9dd9ce87c0fda262dcdb3c9790367f48d45ad848489fefc99e",
+      "size": 5562
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/extension_feed_item_error.proto",
+      "sha256": "cc07c85f0a1ac11bc52d0d4b87a9cd3d33fbef0b5252804990babde5da5bcafa",
+      "size": 6916
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/extension_setting_error.proto",
+      "sha256": "af33bd10059429f5cea65bdf36e0dfbc52d56554112941af75ab47ce43aff62c",
+      "size": 9522
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/feed_attribute_reference_error.proto",
+      "sha256": "dbe8096cee7497fefcc4d4cf07b069526075bf0923cca2cfd20813fb1b756afa",
+      "size": 1862
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/feed_error.proto",
+      "sha256": "3da2095fc13f99d2b6b0076445757499b538a71dd83cddfb5cae098aead0a5d2",
+      "size": 3813
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/feed_item_error.proto",
+      "sha256": "1383cf88f735f974c530e641687713ea2c9736a522ccd9091567a7f8d4c0216e",
+      "size": 2449
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/feed_item_set_error.proto",
+      "sha256": "dc0e9688ece278ed777e3005e7b3e7510eda4fe403a31c3a9b94508b8d06cb1f",
+      "size": 2611
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/feed_item_set_link_error.proto",
+      "sha256": "b7034bc0fc09e71b055a92588d1e128a4253bd8d9e163a63a5f0361ded64f50d",
+      "size": 1811
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/feed_item_target_error.proto",
+      "sha256": "8ad5ee999eb6216cf8a0185ad127454fa9d9de20dbfc8149345d729c9648196f",
+      "size": 2459
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/feed_item_validation_error.proto",
+      "sha256": "de1ce58b8eee5d28e46a50236fb7c532daf214bfb10b36f4f57f80a49298d7ba",
+      "size": 12197
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/feed_mapping_error.proto",
+      "sha256": "5fe538a3f5c16352d3f4661bee28a8ed187ee8aab63579ae490c62e25e65e621",
+      "size": 3800
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/field_error.proto",
+      "sha256": "e8afa92bfcee8ea8da528a48b6ae6e74bc8f7ce1aca9f511ab0146cb2ba02d98",
+      "size": 2088
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/field_mask_error.proto",
+      "sha256": "59e089a5c04a721db118350c21806a009f62f7459f2bebd5ce8387e3137fe398",
+      "size": 2009
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/final_url_expansion_asset_view_error.proto",
+      "sha256": "7c5b869f5fe6486dbead82a27b13332914d1573fd56d8cd478b14fb33f5a83da",
+      "size": 2484
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/function_error.proto",
+      "sha256": "ef62d8ee0b0c86066b93e28c7b43131e2238ebe7801896bbd105ee67afabd559",
+      "size": 2949
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/function_parsing_error.proto",
+      "sha256": "cbe397170ab732ad531fddea4731096a9c69a88583d9c641602d632bfadbf791",
+      "size": 2393
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/geo_target_constant_suggestion_error.proto",
+      "sha256": "cf837a1f2dddf07ed76633a99d8ea8236f98458957a970ca26f148d3fe206ab9",
+      "size": 1976
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/goal_error.proto",
+      "sha256": "03cb283a47c581f6467fe61412f5a50399d85db0450b4abad2fa0652674c0386",
+      "size": 2255
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/header_error.proto",
+      "sha256": "f1f87ffaf2372e8926e1395c9edd484a83daae445bfacfc6adc5ddfac90dde1f",
+      "size": 1655
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/id_error.proto",
+      "sha256": "e6ae040427004c095ee78717c92792a492aed0735ef57b89219087fcaad93092",
+      "size": 1488
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/identity_verification_error.proto",
+      "sha256": "742871e098023d09c275d1103202af912253b98e62e0c3a16de853bf473eb903",
+      "size": 1823
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/image_error.proto",
+      "sha256": "5cdcdeea059eddf5dcafcec8ec319eeaa349e48ee43339d7446d40c21c0baeb9",
+      "size": 4739
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/incentive_error.proto",
+      "sha256": "c21cb9c5258a780924bbd6e88d40c16d3514c98401ea5a8dfb18c0a974fec2d9",
+      "size": 2761
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/internal_error.proto",
+      "sha256": "c38c9b25bc43ba003f6843d5dcc803822cc5865e99736e4724c13ab3951f6bba",
+      "size": 1965
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/invoice_error.proto",
+      "sha256": "300729ac9e3f771554f7cc5ee3665b2ebd66cddfec6c9c13d2be1162e25bf1b8",
+      "size": 2016
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/keyword_plan_ad_group_error.proto",
+      "sha256": "f22faa11885fc6a603110ccbd4ecfba6940616d31ad4d84665782964596638d3",
+      "size": 1925
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/keyword_plan_ad_group_keyword_error.proto",
+      "sha256": "e3778e4704b00b878ec68b171cc272ccaa47848e22f8575df23c0b936bba20cf",
+      "size": 2577
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/keyword_plan_campaign_error.proto",
+      "sha256": "67cf5b9c321556735d10660f06f4179974ee30f648c57ca2febfc241d0e8ad13",
+      "size": 2355
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/keyword_plan_campaign_keyword_error.proto",
+      "sha256": "df6b684f129d846f5b9a748389314d1856cae0c421cc2dd5a4080cec7a491752",
+      "size": 1748
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/keyword_plan_error.proto",
+      "sha256": "1ae7266ed9c5dd3b7cf7bc5b508a4c6a7dc0b8263cf6c69e1b9fb73033eb2c8a",
+      "size": 3092
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/keyword_plan_idea_error.proto",
+      "sha256": "e318f626a88ffeacc32edd72a6123d7db2a71425f6ca641730a256971d0d7eb0",
+      "size": 1696
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/label_error.proto",
+      "sha256": "5388b90b883c84bf008446e4947b16c4a03dd5638506a00caaa6bfda2edbc7d8",
+      "size": 2453
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/language_code_error.proto",
+      "sha256": "1cd61404e6fd5a2f26b4532f6e659c62430f132588df68552317e51865231524",
+      "size": 1655
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/list_operation_error.proto",
+      "sha256": "50cc5253315e541ce09dd743d891767f50268bb745a223b9f3a3954c326f602a",
+      "size": 1696
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/manager_link_error.proto",
+      "sha256": "96257cbe9e24a11b3a4b54b3cfea8caf68f64f37f56396018e1b2faceb06062a",
+      "size": 3422
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/media_bundle_error.proto",
+      "sha256": "28f089df7e58a717818f7a0b2843b657297698b72d0dd85fa28bc260fb4445db",
+      "size": 3473
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/media_file_error.proto",
+      "sha256": "75893d1acd22fbd882c531753b5b2d9f458dc16d7c85a3ea1a84bddf3ac8d1ec",
+      "size": 3562
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/media_upload_error.proto",
+      "sha256": "dd25e0d11a373fbd749fcc1fdbfc42ad02e3071c5c5fad3d4ac58e5b53a26d85",
+      "size": 5093
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/merchant_center_error.proto",
+      "sha256": "2e17776e951ef615e157ade0e44b2c7bff4f9a78c74e69651cedf9169592e3c5",
+      "size": 1773
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/multi_party_auth_review_error.proto",
+      "sha256": "9c7779ef3e80e53a13390d2628a17d0f3a51e47dfb41a2e5003a9225e2d73f17",
+      "size": 1934
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/multiplier_error.proto",
+      "sha256": "2395d07638040248cedbb44be7690541379f69e61be0e160cb34dc1413826178",
+      "size": 2801
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/mutate_error.proto",
+      "sha256": "db3ca816a33e996ae345193d2cf102c5d3e97da02fecf43f50d93b10a7b9a91b",
+      "size": 2586
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/new_resource_creation_error.proto",
+      "sha256": "388c4a63d0175ddf309b3e7bbfc15155fca3a2702ae104e5b64a82cb18b3d8f7",
+      "size": 1930
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/not_allowlisted_error.proto",
+      "sha256": "929bad5a3ea3f15d6914ecb6b1c1aa22721164456d488a43063391e28eb55fee",
+      "size": 1638
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/not_empty_error.proto",
+      "sha256": "5e1ab2acabf91b093eb1c56f12e74bf7bf80b9f9f2a6da84d24d5cc74feb0162",
+      "size": 1527
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/null_error.proto",
+      "sha256": "52930724adca58996510bcce85cb94adb29484bc50d8a3f621357d23baeb385a",
+      "size": 1550
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/offline_user_data_job_error.proto",
+      "sha256": "408796dbf22c17617f0e19bb3ee7dde065433d50dabdea5f71197575499c6a59",
+      "size": 6545
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/operation_access_denied_error.proto",
+      "sha256": "f31103b0e24bf71253515b5ba8e4f13ab49b0c7f059e71856236c97a2c91cdbb",
+      "size": 2722
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/operator_error.proto",
+      "sha256": "914eac9d853a35b435259fce62c5ab4b98016438c32916be6928341fda2c50ae",
+      "size": 1548
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/partial_failure_error.proto",
+      "sha256": "be23d8d9b1931502ea89d3627ec5b22e5a4c72249b30458a14f78d6403b001f8",
+      "size": 1678
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/payments_account_error.proto",
+      "sha256": "a1a57457e90e0576145f2d501370d828fb94d6375f357fba4004bb356418353d",
+      "size": 1677
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/policy_finding_error.proto",
+      "sha256": "c5abfb039ec2eaaa0c7a2e560ffbae775297ce743b51a404f8f9b70055737a4a",
+      "size": 1741
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/policy_validation_parameter_error.proto",
+      "sha256": "de705cc6e80b3ed5ca5f4669b7b14cfe7e9bc825b0db15d2dbb4e2db707f87d2",
+      "size": 2071
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/policy_violation_error.proto",
+      "sha256": "b154a527c690a9f3045ffae53695b75478d5ce271cc384688f3bb76793fe18a3",
+      "size": 1626
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/product_link_error.proto",
+      "sha256": "0bbb44101971097d8dda8c3c3e08128d2bee39528ccd2d67d26c9112d0bd033b",
+      "size": 1935
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/product_link_invitation_error.proto",
+      "sha256": "e066d4fef58495f40493d9acf04be11ed11c60523443eb44aeb7123421c3cbf0",
+      "size": 2207
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/query_error.proto",
+      "sha256": "66c18f1f07fc660133dc122956a14f5d8157d3b9a2b4dc47098902755a8f3fc8",
+      "size": 7968
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/quota_error.proto",
+      "sha256": "e989df0a4b6cfee01d5de74c79f7aaabbdeaae6a1488c17e95623d697c934baf",
+      "size": 2699
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/range_error.proto",
+      "sha256": "bbaba1811d5efe1e6c308c2c10df8b96ed7611f8e4285861362de87a15dc37fe",
+      "size": 1539
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/reach_plan_error.proto",
+      "sha256": "61d2cbe25c6b7e613306daa2e85a4fc6bc01a0e462dae106d6692e664db53026",
+      "size": 1860
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/recommendation_error.proto",
+      "sha256": "7f6a4e65353a62edf1806718a129fb02c173e8f5dd56bee2cac818c6374e6ef1",
+      "size": 7242
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/recommendation_subscription_error.proto",
+      "sha256": "f91b21f282423e4f18d7a7f5885c0374adb97c7f4fea43f4ebed32fa7f5919dd",
+      "size": 1598
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/region_code_error.proto",
+      "sha256": "917000e37227dbcbe54afa82cbf6aea4f41dddd8adaaa80ab902d67b14a18f3c",
+      "size": 1557
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/request_error.proto",
+      "sha256": "011b13c99a6bcf53920c5cdeb915fb4990db424a3f60ec45557f212ee178e6fa",
+      "size": 4514
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/resource_access_denied_error.proto",
+      "sha256": "715aa46b8388010f04a1a1c266a427e4147ded913f67f2615a8f4e9ce161e669",
+      "size": 1631
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/resource_count_limit_exceeded_error.proto",
+      "sha256": "dfdff568f2666ba686423f8b3fe43620f587e9800da117321070568e7452d3d4",
+      "size": 3930
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/search_term_insight_error.proto",
+      "sha256": "f23e665309280345c2d0d5fe1aa87c7decd9d9afc616716bd2a0c7c7cce20519",
+      "size": 2243
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/setting_error.proto",
+      "sha256": "c7ff59fc3c8ad5d2f945598882e7db6103f9fe67c75cfb8e7c44dacca85c56fa",
+      "size": 3744
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/shareable_preview_error.proto",
+      "sha256": "75aaa20a82a382ee729c06c772e91a19251bd1e902ce8686baa924afbb2ac537",
+      "size": 1774
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/shared_criterion_error.proto",
+      "sha256": "798ad1b5e4a27976d1fc867f2a844bc4398f0d7959203e5cd723295371c5e33a",
+      "size": 1651
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/shared_set_error.proto",
+      "sha256": "d70159cb4a4851a8c0342a0f5697432a717b6facd2bc96f35834de8264b849bd",
+      "size": 1859
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/shopping_product_error.proto",
+      "sha256": "92726d16944c912743150d6308bdcefacb9eb2321c9b22d1ef36ef07c6f496dc",
+      "size": 1833
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/size_limit_error.proto",
+      "sha256": "833f38e9c4a7c8f80f638c75e850e2e4c6cb4d6e359638bf28c8d9b8bb4b8f60",
+      "size": 1871
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/smart_campaign_error.proto",
+      "sha256": "5c62cb35d5df764d67bcc05b084789d441ca1dfcf958775abd8a89d782ce9056",
+      "size": 2787
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/string_format_error.proto",
+      "sha256": "775db9f3c27fe5fb5222db3f4070a1c802cdd7c4018975474f0983c3cb538741",
+      "size": 1692
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/string_length_error.proto",
+      "sha256": "e24839430671954ed78225c7096731ae3e20e0544561a133f62d5c747ba12041",
+      "size": 1698
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/third_party_app_analytics_link_error.proto",
+      "sha256": "58d3ad48c1bb0965630a36671f0016a7314edd2a90e4241d32cc064898c022ef",
+      "size": 2040
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/time_zone_error.proto",
+      "sha256": "92005c8ce175de181c7d17591debde7b3c23095d5c9889f9013041d2698cf138",
+      "size": 1550
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/url_field_error.proto",
+      "sha256": "fd5c41961be4e5d4a42dbccf52330af5a8bd242c62669c91ed30df9d915ff858",
+      "size": 7467
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/user_data_error.proto",
+      "sha256": "328a7f35fe5f2ed4903d5be24a83b816c3373ac4b0711d9a2d7bf08938b55d1f",
+      "size": 1873
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/user_list_customer_type_error.proto",
+      "sha256": "0ce7b8a8e8d86fc2123df28cfb1dab09804d6b0e843642784ec3563e587b53ca",
+      "size": 2877
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/user_list_error.proto",
+      "sha256": "8c1c92c7d94f140e6fa62dc78c4d1af8959ef9032b61e585e8cb72f666810238",
+      "size": 6601
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/video_campaign_error.proto",
+      "sha256": "57b230c2b02499bdacd86dbd0b6c702a831ae6b06c23f232641352d852f5eb01",
+      "size": 1682
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/video_reservation_error.proto",
+      "sha256": "1f37fd09f48c4d48c16da1d9eecedf7ed0a85609c2a912a62f32968a97a0893a",
+      "size": 5856
+    },
+    {
+      "path": "google/ads/googleads/v25/errors/youtube_video_registration_error.proto",
+      "sha256": "5eaf94c30193b5eee093b996848331da817677f2739a1bc500b3d60dac670e31",
+      "size": 1853
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/accessible_bidding_strategy.proto",
+      "sha256": "8a717602a742442406e511b6c50fddb1d5347a9f85006c0ec58e202d7ec45d8d",
+      "size": 8400
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/account_budget.proto",
+      "sha256": "bc8dfba93d2fcc08a876bd8059a7624c7b309f5c9f8cb2daa55d205552b0d8a2",
+      "size": 12607
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/account_budget_proposal.proto",
+      "sha256": "144ac7d49034c06f5ecbb0dbc50bfc0c5e9e2cf08d8d2e5ea1f4f982c6af3415",
+      "size": 7813
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/account_link.proto",
+      "sha256": "20ba7bbf8d594b92fb64924c3ebfec1c326c451ba873e5a3f3a9006661736406",
+      "size": 4398
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad.proto",
+      "sha256": "69b97830ac618356aa382579f901ab9902f6ea7766d8aaa2ccbf039ef26b2e85",
+      "size": 9930
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group.proto",
+      "sha256": "9648af9488ceacd986857a9e32582184f2cb5b702561741c1b22e23a6e896799",
+      "size": 16184
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_ad.proto",
+      "sha256": "234f2ad6f07707dbd39b4ba6874b28544f82f942e2ec689fbdf0c71e3f9bff24",
+      "size": 6642
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_ad_asset_combination_view.proto",
+      "sha256": "0ada047be7832b432b6c8d8a0a4f1fd67e748a4e46d377f671495d6de2ffeede",
+      "size": 3145
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_ad_asset_view.proto",
+      "sha256": "c8dd2dd730ee0bda938cc405a6ce4d008fec1baa61160981e6554505c63dd459",
+      "size": 5716
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_ad_label.proto",
+      "sha256": "9187528135d2fb27785d05e8e5d9362b14c5738cd3c229fcaa093d32882e89e9",
+      "size": 2429
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_asset.proto",
+      "sha256": "e64334c6daff218b7796bd74711f65161c2308f0014af2ea199d3ba3112296c7",
+      "size": 4642
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_asset_set.proto",
+      "sha256": "1e9c2e05425fcc8476fc4716dc97d5e169543b4602e0272c3cd29a7208e6a7e0",
+      "size": 2803
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_audience_view.proto",
+      "sha256": "a2547823339a3ea07f8b67ba8ce9550ee3c6d8bad96b6468eac6a9ca2f3d9947",
+      "size": 2174
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_bid_modifier.proto",
+      "sha256": "56819272eea821c4c0b36f10d75912966077d6b8d3e5708cd2a95c5547f497c0",
+      "size": 4872
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_criterion.proto",
+      "sha256": "f40b2e19d6174843ea1b00b149cbc1b7c892a8b9f3a305a219e28b50e03bf48f",
+      "size": 16828
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_criterion_customizer.proto",
+      "sha256": "d2291c036b56c65363440a6d76e023ee0def541bf8057e5a5991ded48cec96b9",
+      "size": 3375
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_criterion_label.proto",
+      "sha256": "cf68cdfe40021858da8894081d4393ad69ff09ee03ef769d48089aa5dbf4e2fb",
+      "size": 2541
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_criterion_simulation.proto",
+      "sha256": "c7cd20491c2b2fb0d58c2a3ad854e4772d7dfdbed59f4e494a507c0c8e5fd904",
+      "size": 4393
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_customizer.proto",
+      "sha256": "d5ff22256bf500daba7111339ddaf97ba24a481384dbd291d7ac8104185d09b9",
+      "size": 3166
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_label.proto",
+      "sha256": "25694b2adbbfd069f107ad4d0b7a4516e975b3b29cdeaf93f85dc8caf205ec3c",
+      "size": 2378
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_group_simulation.proto",
+      "sha256": "7042edfcc1e0e182367fbe1cb23f9d1786b368a1d7dc5948d00de5c056db2274",
+      "size": 4507
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_parameter.proto",
+      "sha256": "5274de5b10042686f7f9806f8a32370bb3158a9b14eb21d5d64d2d75d8e3c104",
+      "size": 3503
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ad_schedule_view.proto",
+      "sha256": "717b469b5ae5145b04b2f4acc5f72685fdc860040239f9142d5f2aae59044180",
+      "size": 1987
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/age_range_view.proto",
+      "sha256": "fcee0b99c3e9cd9857d37215cc799fa74bfa2d7336095cf41462f6f69de0d9d0",
+      "size": 2423
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/ai_max_search_term_ad_combination_view.proto",
+      "sha256": "4eb3043a40b5f7dd0edf186eb98ce3e1917a0416664fe6f7129e6aeabb3f6401",
+      "size": 3164
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/android_privacy_shared_key_google_ad_group.proto",
+      "sha256": "188806be4ccef6e14bcc9b13e1e6d7f5fe6fff65fbcf1d03ab0a0bcc23ef2f08",
+      "size": 3917
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/android_privacy_shared_key_google_campaign.proto",
+      "sha256": "f11ca7ea551c8fa7879074a6ff82a9faf4afb5430d5489c815f9000bcc80f107",
+      "size": 3360
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/android_privacy_shared_key_google_network_type.proto",
+      "sha256": "4a306a624643aa4403e380de614b3e6ac7a84d0df25a935fb3873465f053e2f9",
+      "size": 3797
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/app_top_combination_view.proto",
+      "sha256": "a2501e33669fefa7b131e1fb0efc2d4a4aedafbbc92a817072fdd747ea0727d7",
+      "size": 2666
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/applied_incentive.proto",
+      "sha256": "1edd5da7254ff48e4c3750b233d52ca49f8bd3308fac0c6a38197013bd8c3f05",
+      "size": 4493
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset.proto",
+      "sha256": "5c600b4b20d031d2c5c0c97668c2b498670c3cd3439a7fce44b87613f287b255",
+      "size": 10443
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_field_type_view.proto",
+      "sha256": "b3bc39e0490b7044537230a2fe4771c4ad5e143ee579b793c130f603ef13e7f7",
+      "size": 2315
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_group.proto",
+      "sha256": "dcfc3782ffda64f54bd99f2a834df2788e6c1363216a4d7ab2963d00dc377efd",
+      "size": 7633
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_group_asset.proto",
+      "sha256": "847eb74409c1a41e476fd109411401589a1f4d0a71ea21a2d7723dc13aabe9ca",
+      "size": 4844
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_group_listing_group_filter.proto",
+      "sha256": "4a6536d6d9fffd6bd8034831d8d7dcd09848a0f415ec008bde9ae12d9057d3b3",
+      "size": 9564
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_group_product_group_view.proto",
+      "sha256": "c7d2e5dff6b276089f67d8377d28badd0c27a201c515f1d4751ac551d45514f3",
+      "size": 2633
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_group_signal.proto",
+      "sha256": "ac90836a797c50ae3e96ba7ec9778cbd458661473fa78245a70fd02cf742eeac",
+      "size": 5013
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_group_top_combination_view.proto",
+      "sha256": "91637d88a37906a7002d633f32a9e6ba27df6669345b97787acf6c57d2ae024f",
+      "size": 2652
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_set.proto",
+      "sha256": "161520d710603269d12dd3e0ef66fda50baec3ca0b6f63438df3aac76ab04119",
+      "size": 6703
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_set_asset.proto",
+      "sha256": "44ba6376153a6719e3702e34ef0dfe7bf8ccd29a7c5956c50acee3a9a61e8349",
+      "size": 2702
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/asset_set_type_view.proto",
+      "sha256": "07c1171cece94c7fc3f273e9ca9734e62841b1ac08df89dbe512dfe1aa41f50b",
+      "size": 2378
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/audience.proto",
+      "sha256": "3d603051f65a0fec910b064bf7efe25b07facad03863ae30ee56752d5e11db91",
+      "size": 4038
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/batch_job.proto",
+      "sha256": "c52f5fd53d204ed7cad08b4df38a40a1f0e3fc74f62793445cade53b695e71e4",
+      "size": 4899
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/bidding_data_exclusion.proto",
+      "sha256": "c9fc938cde586d8921fc581c0a55dec80adf55f11011ccd579a8ed2062ec2b15",
+      "size": 4911
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/bidding_seasonality_adjustment.proto",
+      "sha256": "71e6d24fb91739687c0b149267f3e490d045fb98cc8739fecf56e601c97f2e15",
+      "size": 5181
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/bidding_strategy.proto",
+      "sha256": "6e6cd86717dfa070f1f12b723891dd520ca51f793226e79f8528d9cf5a30abe7",
+      "size": 6525
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/bidding_strategy_simulation.proto",
+      "sha256": "2c1c937173cc146bc02ac8ca6765d64c27ae549332b921763fa71ff4286a354e",
+      "size": 3914
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/billing_setup.proto",
+      "sha256": "390d02ff370341d5fecde038c3c3f58bbdfdf189e2bde63c6a3589e01a9c1bbb",
+      "size": 6462
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/call_view.proto",
+      "sha256": "e4d29d3d4eb6665c02a6b86cb579ed7d37dea3e371a29301b4b2ccf124dafc62",
+      "size": 3471
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign.proto",
+      "sha256": "b2903e53b15f8225ad2110a7143dcd69e65886811bb14f9fbaf12c646a5dfe62",
+      "size": 48010
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_aggregate_asset_view.proto",
+      "sha256": "970cfa5f4a49bf6cc47c9b6a73e5b7e4c903e50961fefbbbf91b801e97dae00b",
+      "size": 3177
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_asset.proto",
+      "sha256": "199c2d1375208d615f3e817972521de8c992d8941af9f2d843ce0e81d63518ce",
+      "size": 4500
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_asset_set.proto",
+      "sha256": "4d779a3bb7bfb0872fe89bd74abb5cb9cc62f45253e0f3e492990e5a4539fe23",
+      "size": 2808
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_audience_view.proto",
+      "sha256": "47a2a5a95f3dddfa5f1ada2090794b3d1ecae79bd021e4b9b3f16f1ffa689c98",
+      "size": 2262
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_bid_modifier.proto",
+      "sha256": "2c56e4ac505a7ee6c22ff8f26a857f9e443529c64dad56a24eda5e504cf3d6a0",
+      "size": 2965
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_budget.proto",
+      "sha256": "b3b6644d0f708ec8047005693b74c8784a845d609630205b91dfe179e4d12934",
+      "size": 8154
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_conversion_goal.proto",
+      "sha256": "020234525e39fed119fa6dad128b2909b26f6e7561ae0893b555485074929a00",
+      "size": 3351
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_criterion.proto",
+      "sha256": "d3cf5213cf4a2acfd0671edb019b9ee109957a0f52a1d0cb56edeb0890abdf82",
+      "size": 9436
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_customizer.proto",
+      "sha256": "5cb9e3b511f3816e465db1b7a65b1799071ef764561434142a5595e0ddbb9291",
+      "size": 3174
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_draft.proto",
+      "sha256": "eb4e62753f04cfd720034a41c6a790883f77718e36fe797d4e52cc06ec7f2dc8",
+      "size": 3857
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_goal_config.proto",
+      "sha256": "d3a41e950cf4ac267d072dc85751462d68215517bece404be1d89a7a011db4f2",
+      "size": 3444
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_group.proto",
+      "sha256": "667e33e87a3f8657b87bee9372c4a982d0847fb465d821d31a55ffc648aa4b46",
+      "size": 2588
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_label.proto",
+      "sha256": "72812a3d9f54833c46b2f67d5a532e55cf37593a33338b7e0317e059ce7fd3d4",
+      "size": 2376
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_search_term_insight.proto",
+      "sha256": "56fbf239de832ddd9be2d4f98b38a6f7bfa56276c56276524e57b377b306ac67",
+      "size": 2726
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_search_term_view.proto",
+      "sha256": "dfdc1697c1339849f214a803735ecb827d0b11359c310bc9ef3d60353f325149",
+      "size": 2570
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_shared_set.proto",
+      "sha256": "5cdf1153a02e052cedd531d532716c58bc887cac47eaa10741b508ca95d60601",
+      "size": 3212
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/campaign_simulation.proto",
+      "sha256": "269ab6c173382430efeb8f336170e3531fa17ace996d1c6fb1983ec0b5e65435",
+      "size": 5106
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/carrier_constant.proto",
+      "sha256": "107d22169f1abf034edb09176c13295221be756bf8ec061b0fa59a02a544e064",
+      "size": 2351
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/cart_data_sales_view.proto",
+      "sha256": "7a40f081e37a409741eb7b7c9a7660fb8b41930a9cb02bfa8d617bc116935801",
+      "size": 2441
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/change_event.proto",
+      "sha256": "924dc695c518e40fba9fc5e70137f59b143df4cd6705ce1add2d23d914959cb3",
+      "size": 8326
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/change_status.proto",
+      "sha256": "0b5c5c3139a1a4ad4a2c45086ca7be17c8db915aa968e474afd459401ef89891",
+      "size": 7182
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/channel_aggregate_asset_view.proto",
+      "sha256": "445819d6ad35674b238fa636ccd91d2e02ea32accfa27bea928b9b3cae5c5d6c",
+      "size": 3267
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/click_view.proto",
+      "sha256": "e3204c7c0bf1c9a377953cee12fecebac44b59e265bb2f7a66053725e26312a9",
+      "size": 4479
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/combined_audience.proto",
+      "sha256": "0dca3aeabd9c0fd1550c54abdb29f5005c1c7ce4f42d91772dfea78585eb09fa",
+      "size": 2740
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/content_criterion_view.proto",
+      "sha256": "4bcb3e3e6cd67ac0122f3ed0ace28e0fbfa596434a658808a049a7c9ff502b14",
+      "size": 1980
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/conversion_action.proto",
+      "sha256": "4d5c11e3378a3aca6844c46fb51281ef51ec4f9c333469785602d24a67d1a8f4",
+      "size": 9987
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/conversion_custom_variable.proto",
+      "sha256": "b807991e54578e62caf52b100f8ffaf92e72a90705f8d34cd387c711df782943",
+      "size": 3691
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/conversion_goal_campaign_config.proto",
+      "sha256": "677eb9de11c14bff243873f5d31a8720b127ccd64a40bc85a58793ad0da79918",
+      "size": 2674
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/conversion_value_rule.proto",
+      "sha256": "2f1dbf0cfa5ffa7363d18ff44d637e00dc9aaaaec81b1e0d9eecbbf81316669b",
+      "size": 7326
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/conversion_value_rule_set.proto",
+      "sha256": "b386773d284b47082cfd6b6a0a9c0539b77cf5e84b2b27bec2d6074723319337",
+      "size": 4892
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/currency_constant.proto",
+      "sha256": "bacb761b352f4b918cbe38c6c87630e6f7b7eacc542b49aba97dccc7d4d6c167",
+      "size": 2513
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/custom_audience.proto",
+      "sha256": "c1efab34d4960a5c18cb05305fb0a61015ad89ec3ab88f979e72e491de657cb5",
+      "size": 4625
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/custom_conversion_goal.proto",
+      "sha256": "04158046b62cf1864682c0b802f92fb37234923b29076ba31f337f8196a239c1",
+      "size": 2567
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/custom_interest.proto",
+      "sha256": "a35410ccad0b5afc562a8f097346e2639bc4f9596d37f64ebf0ba55eda855b15",
+      "size": 3736
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer.proto",
+      "sha256": "a8707b83ccc3ef611dcceaa32da154d8e172beb0d871db5fa4e1499752b5711a",
+      "size": 14570
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_asset.proto",
+      "sha256": "f94e991ad10826f5021c348d5ca413360b29e6966249df426f7c41ba955aa8c7",
+      "size": 4328
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_asset_set.proto",
+      "sha256": "32b054c16227957954cca265e91b50755bdfe0b76b8ab363b3b22cc6874cb71a",
+      "size": 2783
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_client.proto",
+      "sha256": "29140a9f1cc6c93a2141fdcb0f43b94642dc14136a3cbebf8e32635bca934e3c",
+      "size": 4495
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_client_link.proto",
+      "sha256": "c723abeb7b147a33c9b82f0ed36733113ebdb7d299a7c1dc8835f3450f9aad23",
+      "size": 2793
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_conversion_goal.proto",
+      "sha256": "8ec6d5db356bde6037f52b30ec8ba14b06d12b44b9de233a6a33837a7d22f0c1",
+      "size": 2703
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_customizer.proto",
+      "sha256": "cf371c59394411b73035903fa8d458cd1a2a1d36cef46b21c83c1674bec016b9",
+      "size": 2905
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_label.proto",
+      "sha256": "742e146ead45fe90cea985d49d9d55eb78563c0f3035443800fdc873bd5544c8",
+      "size": 2839
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_manager_link.proto",
+      "sha256": "4f6d31e6d6476edd26a4a88279c4ea7017799919a9ed1ca5e7bf688284fafc62",
+      "size": 2628
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_negative_criterion.proto",
+      "sha256": "9dbc0c4e3bd727c333d4cc454e58c7b0907542418f5f6788c779ae51500a7c8c",
+      "size": 4078
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_search_term_insight.proto",
+      "sha256": "9739a1fb32afe405987eeb266e535ba493ce1d1c50629521ccc13bd27fe7d340",
+      "size": 2574
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_sk_ad_network_conversion_value_schema.proto",
+      "sha256": "766fbd642746deaddf32c74a4f256ef15319e3751cf9b0a51481a86fba2bb0aa",
+      "size": 9688
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_user_access.proto",
+      "sha256": "553a4c56581569c8f8c5febde3a83027ab5e1a979b05067299d4b4679a4496b9",
+      "size": 3353
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customer_user_access_invitation.proto",
+      "sha256": "0d56a22c9a7a5766a99a964ba05e19274e6faae166b07d27cd4d70c29d267bce",
+      "size": 3145
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/customizer_attribute.proto",
+      "sha256": "3eccf1fecd31325201e80f874a6ed408c70c576870a6e37c34077fa1fe16eb76",
+      "size": 3174
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/data_link.proto",
+      "sha256": "7fc6c21f22d195014b211bbd9652f282b78e630d930944ffaf577718a0c215ee",
+      "size": 4189
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/detail_content_suitability_placement_view.proto",
+      "sha256": "85a308507c55c740f9a4ac433c78ad1aec1cbf422217fcf1f2dbbc9e3994cd49",
+      "size": 3236
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/detail_placement_view.proto",
+      "sha256": "130cc01a6dbd202d96c9a7f27cae90323bf4e7066fd7f5b6b6ae446de08e57a7",
+      "size": 3988
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/detailed_demographic.proto",
+      "sha256": "5e35a0aacecb49230e863a98a6b1e3aeccc8275b70939f1f2f9ac37e1f5316a6",
+      "size": 3084
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/display_keyword_view.proto",
+      "sha256": "d53359a73ef21e2f348acede9c535c51e1fd81639df94db2fe197f458cee55c5",
+      "size": 2740
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/distance_view.proto",
+      "sha256": "592a3467e395750ea23583bb912d15804f2a7354534d6a3b62b51bf5b1131b84",
+      "size": 2646
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/domain_category.proto",
+      "sha256": "6a6c82b3791896068bb58f43e6c0b86099689a28f12d2ad310b84225b9c34fae",
+      "size": 4171
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/dynamic_search_ads_search_term_view.proto",
+      "sha256": "c04607b5a22b9f72fc81a94f133e98b4f8c9b69250433593215003d3db695136",
+      "size": 3577
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/expanded_landing_page_view.proto",
+      "sha256": "b65c256842c511a59d3a62ef7189fd6f415ba4746465d80606525b05ce852a00",
+      "size": 2231
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/experiment.proto",
+      "sha256": "758fe669e94bdef10a9790175b148d6d987943d8de78e6fd27a81ca3e28c8b1a",
+      "size": 5913
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/experiment_arm.proto",
+      "sha256": "0a09b021192e0ad9ddcd335a22678cf2d9951b3ebf9314fc2cc88b8faa62980a",
+      "size": 8299
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/final_url_expansion_asset_view.proto",
+      "sha256": "ff76c267e2cb1ae57d077a1e337ad751e8802024fdbba2c10617d6e3ed1b00bc",
+      "size": 3677
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/gender_view.proto",
+      "sha256": "8833b2e4418dd013c9beefbea9c6d5f6eff87b0d11011b312d7ea69f490ad018",
+      "size": 2366
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/geo_target_constant.proto",
+      "sha256": "5b7a60a3f577c1506d20e5833a7c693101902c3316dbd0d82aafec1b3af849b7",
+      "size": 3355
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/geographic_view.proto",
+      "sha256": "9762fab77bd1a4435f539adfd378315722960565a866be2aabc8d5c2ed3a8e56",
+      "size": 2633
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/goal.proto",
+      "sha256": "2999ca4f47a818890b284f45a33da0465ab9adf81f44b94d50103a163b639622",
+      "size": 3281
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/google_ads_field.proto",
+      "sha256": "8e8f32d606df261bc0f637ee5ee95802f097e850846fd45733a74f0f6d010e67",
+      "size": 4929
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/group_content_suitability_placement_view.proto",
+      "sha256": "3b45e0e812948b67dbaddff79e57985327c966221bf6384a3067f121f379cf01",
+      "size": 3223
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/group_placement_view.proto",
+      "sha256": "affa4cbb6b579fe8d33390157588e504e35fd0094c1cd9879ff9dde251a64824",
+      "size": 3301
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/hotel_group_view.proto",
+      "sha256": "68e51f747079f8df7b75b17ce1b87d95c8c1a97b86da4e15c43cb504fb1c4f03",
+      "size": 1920
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/hotel_performance_view.proto",
+      "sha256": "71fcd730fbdf8280db29b825557937c989f0b59625da9a2b02811aaa555d1cb2",
+      "size": 1920
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/hotel_reconciliation.proto",
+      "sha256": "50e0096dfe09f61177ca37569db5230cad1872b69c40c59d865eeef1ac8caf30",
+      "size": 5433
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/income_range_view.proto",
+      "sha256": "72f48102ff476bfc87a0a97e0c1536df122487b710ffcfc63b969ece2af4bdb7",
+      "size": 1931
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/invoice.proto",
+      "sha256": "47e08b843878642d2de1ba9c70c7e9dec0f71e9a6a2f56fdd7a74ef245a8f08c",
+      "size": 20638
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/keyword_plan.proto",
+      "sha256": "f731c0e6840ff27c0647d170383974d4d19d4a8361c701b4b2b1ba6a18672458",
+      "size": 3230
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/keyword_plan_ad_group.proto",
+      "sha256": "ae089b7f96e968a88dbc8d9d672b4c4cab46eb31fbb21aec8dce4fd62e2926d4",
+      "size": 2749
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/keyword_plan_ad_group_keyword.proto",
+      "sha256": "9c9f505d3f7fa9f49987f1cccd452c72cee991da161449437a43cefab367238e",
+      "size": 3138
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/keyword_plan_campaign.proto",
+      "sha256": "5a95d5a271fadb666ac4988a222ffdf61ef8bdc8e41bee5b85ded67e7288bc83",
+      "size": 3648
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/keyword_plan_campaign_keyword.proto",
+      "sha256": "e8d1ede990c31d5c2798b31590cf7f1f0e532b6f0d553e2eb9426871b0c4f854",
+      "size": 2910
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/keyword_theme_constant.proto",
+      "sha256": "cf19f48f1aa9f0cdfcf3ce7bdb1ad5ba3e1f058008c7a3abd016f39a77a56fc9",
+      "size": 2676
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/keyword_view.proto",
+      "sha256": "81b08474f57c1c4d53fbf481f004ef332d82963ab24402f30408e22ab1287329",
+      "size": 1886
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/label.proto",
+      "sha256": "2395b7be0118e1f2bbb92792e0eafd026f3f76ba9029bc6466dc4e171bdd2187",
+      "size": 2473
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/landing_page_view.proto",
+      "sha256": "aa77a94eb579ae1340becb104aec212f7a38e0e6303aa66ac0c01f8f835d46db",
+      "size": 2157
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/language_constant.proto",
+      "sha256": "35ba774c565b67c76ba0d114f1d16335b76297a4732a7ec3a267ded3ffbf0ab3",
+      "size": 2463
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/lead_form_submission_data.proto",
+      "sha256": "a2e036d9908b506a9b7ac4d3b543286fb57656d2a6df433d04a265eca62cdb1b",
+      "size": 4828
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/life_event.proto",
+      "sha256": "47478dba5d0acf2b1ee15b333495d90a43ef66c54b3c0f1abe04fe72118c87aa",
+      "size": 2899
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/lift_measurement_age_range.proto",
+      "sha256": "fe77de9b2f25cd755c071d75ecded2e7081ba81981f8ee4abcd1a3e9cc7b070b",
+      "size": 2641
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/lift_measurement_campaign.proto",
+      "sha256": "8e6995078dfd9e1f1eda67484ada0a6929ff2ae6911acb26f8687016a1650165",
+      "size": 2374
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/lift_measurement_config.proto",
+      "sha256": "adc819bb23dc634ad17d6fcba102878efe9d576c20f5e779c53d397d17aab98a",
+      "size": 4845
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/lift_measurement_device.proto",
+      "sha256": "a7a75b275f85694207df9086685ee0a1e517591a4db9f5695e16a42422b3002a",
+      "size": 2594
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/lift_measurement_flight.proto",
+      "sha256": "a41682afafaf8937d2e203b412e035859c04fdfdfe801890a79ba203a089f26a",
+      "size": 4980
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/lift_measurement_gender.proto",
+      "sha256": "f3f08795bc0d4d8d0926b1c9db448f3dadcb7626fdd2fd9b1c35cfda417d38d6",
+      "size": 2607
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/lift_measurement_video.proto",
+      "sha256": "89c67dcc1e0eaa8eabb18a2f11e69e500b5d38e56ce088de2081a10bedff282e",
+      "size": 2600
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/local_services_employee.proto",
+      "sha256": "f6139d1e25e95209d70b67be1a54e3ca0b43942c4b859d54c282b080e3f5257e",
+      "size": 6608
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/local_services_lead.proto",
+      "sha256": "714bbd257a9ad9c777f3f84af7d1639595b35ffb1d62637f9881571ec385f85c",
+      "size": 6849
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/local_services_lead_conversation.proto",
+      "sha256": "f9dcd8ae054dde32ec12cd605006c8f254af437bf27c61c4766ef55fce0ae3ef",
+      "size": 4931
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/local_services_verification_artifact.proto",
+      "sha256": "7a1aa79d7597bc3afafa7b2b48a56d415a0b454948ed14703f21f09f2c493ded",
+      "size": 9885
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/location_interest_view.proto",
+      "sha256": "6c487e9671ce61db15fc4215ef7782307cd61f6bf57b5d85574bfe361002059b",
+      "size": 2152
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/location_view.proto",
+      "sha256": "b4ce7a7eb86b2d24c3bca9c01cf99612c6ba6bbedfa7f86440dca43fe74a7f66",
+      "size": 2108
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/managed_placement_view.proto",
+      "sha256": "fc1d64f86c6ef6435ea98424edb1ad67d05d335f58d347f1cb81c9da1eac3850",
+      "size": 2122
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/matched_location_interest_view.proto",
+      "sha256": "9d278a936b265b6fe4bed5c55aa78f84744aab85d324ffdf2da2890f52c40805",
+      "size": 2403
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/media_file.proto",
+      "sha256": "f5be80580af1ca74c3b5fb306caec1a3c74dd36ec361d16bffa94f7caa2ad413",
+      "size": 5685
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/mobile_app_category_constant.proto",
+      "sha256": "1d44fe5e8bb00c196bf71a7694c45e532b6b2809e8ad3365cbc2802c5039a32f",
+      "size": 2241
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/mobile_device_constant.proto",
+      "sha256": "c01592f5a01b7381ef4acfbb8824d2312bce3cf9ca5d8b7fd57b2d6ac629cfe5",
+      "size": 2721
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/multi_party_auth_review.proto",
+      "sha256": "681ba31ebb83bc09f93d4711a08258e2042ddbffb67acce887a144e673e884e6",
+      "size": 5391
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/offline_conversion_upload_client_summary.proto",
+      "sha256": "28493224398d76e7040bbcbbea5d49c0daca7f896b5bc55a450a0b874b6ccf59",
+      "size": 8257
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/offline_conversion_upload_conversion_action_summary.proto",
+      "sha256": "d75b9d6b47a77fc370046ea8c1c1a33be5b6b9305dd08da914afb182326007bf",
+      "size": 4486
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/offline_user_data_job.proto",
+      "sha256": "bebcaccda136a6dd85c4a6214438d7debef81f6a3999977bfbeb3a4e88a29e9b",
+      "size": 4683
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/operating_system_version_constant.proto",
+      "sha256": "97aa3825d7eaf8c733b697579d36a5deadd27b696e20e667a695e31ac10f1817",
+      "size": 3119
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/paid_organic_search_term_view.proto",
+      "sha256": "1c751a38da56892125c351c93cc286df28912c6fa92bd888b300e5e30f12988e",
+      "size": 2294
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/parental_status_view.proto",
+      "sha256": "1fe6dd4b2efa67de33243ff98629b3c9c74154073c3b49d9e30231256f400e80",
+      "size": 1960
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/payments_account.proto",
+      "sha256": "717df2a5fbe84276c84dcf4b67dfaeb2be6a77d5361df3afb1a795af64807940",
+      "size": 3256
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/per_store_view.proto",
+      "sha256": "cbd1c6c9915643f3e525a31ec3256695175c5f1bf24527b75ebe5fa165fcac07",
+      "size": 3141
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/performance_max_placement_view.proto",
+      "sha256": "535d12f367d04a8395c337dc9c49e41b8ae714bfea68ece46d60c93349e414ce",
+      "size": 3219
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/product_category_constant.proto",
+      "sha256": "0657c8397c1efdc5ff1279424d88565be7f72908fb93f53523c31c99642fd008",
+      "size": 3869
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/product_group_view.proto",
+      "sha256": "ff93bc6cefcbe257f8a28034b9a805a13983115effd75b6bb0abf64b2dd80612",
+      "size": 1938
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/product_link.proto",
+      "sha256": "e56d2c6333ccd3c8f02a524055b973731867e06312dc29a09f7b5df44b14a28e",
+      "size": 5530
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/product_link_invitation.proto",
+      "sha256": "9e4a206083b07a98ae8a12d2a0c52aa84b9592f8f6c376eb76dd27afb63ccf53",
+      "size": 5310
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/qualifying_question.proto",
+      "sha256": "8a6038e3f8599b14db10619622802cdfb873ec0ec92feb0676d153696c50f89c",
+      "size": 2221
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/recommendation.proto",
+      "sha256": "a0507aeeec8599dab6005d72472bf11ab207d3b6e5465f62d3570b8a63c22652",
+      "size": 46283
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/recommendation_subscription.proto",
+      "sha256": "dee16591b9857fcbc672d1cbe96882c61c1eee47b0cb74eb80aea02d4862c8e7",
+      "size": 3190
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/remarketing_action.proto",
+      "sha256": "b7eea5e9596ba93a36b096276abc5a8109200f15465d0b8507d6319b4476a829",
+      "size": 2692
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/search_term_view.proto",
+      "sha256": "cf0aee69265b2e24409d4d344fe52732428e44d8a8fcf243756e14406b079d6d",
+      "size": 2882
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/shared_criterion.proto",
+      "sha256": "b4e386433f312f9648e254f5ee18d2526be71e6dea8871a24dccb2a3dba8d3fa",
+      "size": 4542
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/shared_set.proto",
+      "sha256": "9c7c44dec6861be3d3f51da12ce8408faa098c69a97d9d68c52e91bb3d0f98fb",
+      "size": 3775
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/shopping_performance_view.proto",
+      "sha256": "4f77233067f38d1bd7525cbf7daccac44e358b2cc0b56ff45dacf5e14d4e43d9",
+      "size": 3001
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/shopping_product.proto",
+      "sha256": "8e023f20a8b21eca112ca275f39ad77e17728c61121c5bec84d0c9730a5422e5",
+      "size": 14021
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/smart_campaign_search_term_view.proto",
+      "sha256": "718fc4f78c15a9cd23b24c63f66aa1567c98c2779a83a8da01d19decd154e9b0",
+      "size": 2409
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/smart_campaign_setting.proto",
+      "sha256": "b582b90db9b4be12db135992b719cdcff451aa9f7d0eea46bf5333f8f8adfd25",
+      "size": 4355
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/targeting_expansion_view.proto",
+      "sha256": "e9754c1e47f3f8def1d9d91bf56b8c8a63cd3406367087703002794d25a26936",
+      "size": 2181
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/third_party_app_analytics_link.proto",
+      "sha256": "2efdfff412a407ee85e55d03b95799f8ac4c44d27a90bc935fff8ff16f434d7b",
+      "size": 2343
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/topic_constant.proto",
+      "sha256": "c99ce962d202e879e931f37ed6e5e698c2aa94220c912078a745fbbad9f8e05f",
+      "size": 2789
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/topic_view.proto",
+      "sha256": "fd113f8d3f21d2657cc4ec7fca9a2887788b7bd7dbc426377241d2aaa7b5b6be",
+      "size": 1866
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/travel_activity_group_view.proto",
+      "sha256": "c5c245dc51d29ade5ff4e2bf476eb79a37f66a779b59d3e4e8a34692f651726f",
+      "size": 2014
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/travel_activity_performance_view.proto",
+      "sha256": "a3dd83eceb0f61b473d6dbfaf563892e663887764a1bfa1b78f27507aed19492",
+      "size": 2016
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/user_interest.proto",
+      "sha256": "e3f3327ca0ecd27989c18a98e9464cafb18953caa53ab47a5a4d1dd962791beb",
+      "size": 3228
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/user_list.proto",
+      "sha256": "cf0c8ff8806fdfba4ff7fff25b6dfeea9d2f351d91ec1a484b96d411bb9f4042",
+      "size": 8561
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/user_list_customer_type.proto",
+      "sha256": "a47f4bd7d1ec6134b24bd7d8113283c71da63eb59492c216fd9ad1e5641c40d9",
+      "size": 2522
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/user_location_view.proto",
+      "sha256": "36bbbbc16d2a218a950b4bfb5fd4dccbdf6e0ca414e84528ee5f0eea197c3ae7",
+      "size": 2571
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/video.proto",
+      "sha256": "10d15188930e243e5bf7983296b482eae01c32b23495867500dbd1a58377e8e8",
+      "size": 2512
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/video_enhancement.proto",
+      "sha256": "bbfc07db9fffdf6dfc44f17143a46184f06471ea936df219902da3f3a809c9e8",
+      "size": 3032
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/webpage_view.proto",
+      "sha256": "25784d791bbf24fc308a3caf8e44320266c2179226cb871069c41b9e9f7b4a22",
+      "size": 1886
+    },
+    {
+      "path": "google/ads/googleads/v25/resources/youtube_video_upload.proto",
+      "sha256": "5d917618365a5cedd3d42f1232f7c804ff6e6bff52d24a068cf62ad21a944008",
+      "size": 3798
+    },
+    {
+      "path": "google/ads/googleads/v25/services/account_budget_proposal_service.proto",
+      "sha256": "6fe2ab8505078a6e7a374238ab2468bc86430acc6dda3847ffa177ca7b602211",
+      "size": 5347
+    },
+    {
+      "path": "google/ads/googleads/v25/services/account_link_service.proto",
+      "sha256": "b4926be440b8db99be818f011010803490d5fb1ea16e02a75278bd8fb128f716",
+      "size": 6316
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_ad_label_service.proto",
+      "sha256": "7dc243903b4e8d04402c3948e32cc07dc604ec8f321973711164e258832f7815",
+      "size": 4754
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_ad_service.proto",
+      "sha256": "bd6f68e2cd8be386594c821230dda7919908d8e938029956d23f2f0112124306",
+      "size": 8596
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_asset_service.proto",
+      "sha256": "468577441e850792279aeb3d0cd6513a16d2bdf62e57678de9425f4abe288b9b",
+      "size": 5652
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_asset_set_service.proto",
+      "sha256": "39bda3386b4097c6700e7c42a0890dca432b36087ac33efce24fd740d9928796",
+      "size": 5071
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_bid_modifier_service.proto",
+      "sha256": "1e96e67d3b25a690928c1749748babb7cf044990e8cc54b45a3a1aa7ddbc5d22",
+      "size": 6222
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_criterion_customizer_service.proto",
+      "sha256": "553eb751e87958b3d1fbe14b51be4b8d617afc6a3ee1699be4601c4e157a5453",
+      "size": 5497
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_criterion_label_service.proto",
+      "sha256": "9ffbadfc894cf87f7d79f9570fe30451f0df9bc06bfc0b7717a5d0e0b5f73d8a",
+      "size": 4911
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_criterion_service.proto",
+      "sha256": "7eb01e4789d17ab7ac9b02f15b42ab54a89ad539f16b0fa33bd8565ef8ef2383",
+      "size": 6950
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_customizer_service.proto",
+      "sha256": "b941af3efb5b66e9b21afbcfcddc5cd323fddd2103b17ee5d771d47a48602827",
+      "size": 5151
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_label_service.proto",
+      "sha256": "11944208a52271d8757887cceff04af33f6305c263ebf04a6cfdae43a01414be",
+      "size": 4696
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_group_service.proto",
+      "sha256": "091e8f6f811eb9af51932d30f634ac139b25721a9657a5b051f7be2ceb81db60",
+      "size": 5956
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_parameter_service.proto",
+      "sha256": "62ff6d167383863b629300d1fae1bcb7f683d625ec044dee6f567e62d1b26c02",
+      "size": 5642
+    },
+    {
+      "path": "google/ads/googleads/v25/services/ad_service.proto",
+      "sha256": "c9e913811e4fbe1a12b07ba06b0e123df42f68f80fe1a784bd81298c2bd008c4",
+      "size": 5901
+    },
+    {
+      "path": "google/ads/googleads/v25/services/asset_generation_service.proto",
+      "sha256": "cd1cc58d20d7ea3fe7a59f9f3ac4e61ba29ca7bc3f7f6c2cd74c9e6eccf32f5b",
+      "size": 10047
+    },
+    {
+      "path": "google/ads/googleads/v25/services/asset_group_asset_service.proto",
+      "sha256": "97b76c9bddbaf8cc69c53b8acac9a18b93921fe572193c40dddacc89e6233c44",
+      "size": 4844
+    },
+    {
+      "path": "google/ads/googleads/v25/services/asset_group_listing_group_filter_service.proto",
+      "sha256": "9a0004fcb83699f94d92a7c478938ca1222435a11c99ccfd749d363392c045fd",
+      "size": 5587
+    },
+    {
+      "path": "google/ads/googleads/v25/services/asset_group_service.proto",
+      "sha256": "77d47c4989ee69f0fd139774f5f069f1e5a598aad5ebac374898a28446c31144",
+      "size": 4356
+    },
+    {
+      "path": "google/ads/googleads/v25/services/asset_group_signal_service.proto",
+      "sha256": "55c12cb1bac5d56ab59b046cc9a8aeedd462e0110e2333abab28e164da7c53ed",
+      "size": 5815
+    },
+    {
+      "path": "google/ads/googleads/v25/services/asset_service.proto",
+      "sha256": "fd3f990bf9698973ef81adc7528d15ab7aa6be45a597ad723369a3526a532c82",
+      "size": 5934
+    },
+    {
+      "path": "google/ads/googleads/v25/services/asset_set_asset_service.proto",
+      "sha256": "fd6be0db7870be58f8c23edd2a919e57f05ff7b4f2c821d84b60de08be084705",
+      "size": 4992
+    },
+    {
+      "path": "google/ads/googleads/v25/services/asset_set_service.proto",
+      "sha256": "b136b534343bb136c588b222501b37d6a15077aca00ee6a6fc084d391e0524b7",
+      "size": 5111
+    },
+    {
+      "path": "google/ads/googleads/v25/services/audience_insights_service.proto",
+      "sha256": "1d2cf3241c9e7784bdb540c2f84cf4f266c21c4d95d39ecf982a3cbd727da428",
+      "size": 36703
+    },
+    {
+      "path": "google/ads/googleads/v25/services/audience_service.proto",
+      "sha256": "4d5a590a0a0f5fb5fffdd90bdf11869ce5375c555dd403795ccb4a7aeee3305d",
+      "size": 4852
+    },
+    {
+      "path": "google/ads/googleads/v25/services/automatically_created_asset_removal_service.proto",
+      "sha256": "ab774d1c6a726ea3402e1bd06612bdc0e904f615648c8286026966676c4ffa65",
+      "size": 4622
+    },
+    {
+      "path": "google/ads/googleads/v25/services/batch_job_service.proto",
+      "sha256": "92f274f77a2d766af45cbcc65e1ee47016abe9356d4f9a403800b7bb27d76639",
+      "size": 10719
+    },
+    {
+      "path": "google/ads/googleads/v25/services/benchmarks_service.proto",
+      "sha256": "c8ad112bc54baf9ae6963b89e18ffd47e31eef5255512b29a5fe93ccf2cc1487",
+      "size": 23141
+    },
+    {
+      "path": "google/ads/googleads/v25/services/bidding_data_exclusion_service.proto",
+      "sha256": "963cc42fc5cfb37b1caa07484eb895ad9fdcd344cde1d7d15e0e6163ea4abe3b",
+      "size": 5463
+    },
+    {
+      "path": "google/ads/googleads/v25/services/bidding_seasonality_adjustment_service.proto",
+      "sha256": "debe69a6c7a9e1c549a8041fd7296999855dc0b3b052634d772cf304ff7d8b2a",
+      "size": 5771
+    },
+    {
+      "path": "google/ads/googleads/v25/services/bidding_strategy_service.proto",
+      "sha256": "55c852a82b546a40fa391a816ad0ab836419d4f274ebb072f8d5a35ef6a90e73",
+      "size": 6154
+    },
+    {
+      "path": "google/ads/googleads/v25/services/billing_setup_service.proto",
+      "sha256": "6b19fc2317342479e87eb20c12f5af2f971bc9d9af0b916e1743d82ec32ba1e8",
+      "size": 4368
+    },
+    {
+      "path": "google/ads/googleads/v25/services/brand_suggestion_service.proto",
+      "sha256": "b564387b78c91a904fc779fd95ee2432f6d9e1a8e91773f9fa18da44453ecbb8",
+      "size": 3404
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_asset_service.proto",
+      "sha256": "b133b6eacb934a756b505ca15214ac4147320ce16da5a6b35dda388f3a79bab7",
+      "size": 5699
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_asset_set_service.proto",
+      "sha256": "a035f4bf6347c2005941f0325fe1efd2d5140f61b382066af1daab62d31e2be1",
+      "size": 5107
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_bid_modifier_service.proto",
+      "sha256": "b30060c9dc2c497c5408bba1aa4ab700bcefe2ed512557a81cbe63424b0362a4",
+      "size": 6180
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_budget_service.proto",
+      "sha256": "b285f192686a90d288eee314b9bc4e5ef0a617f433f84964139238dcd34ac97f",
+      "size": 5856
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_conversion_goal_service.proto",
+      "sha256": "6cf2db85b67352be8c6af7282a8043894339da3949d17b7fee4ae9487c1926b2",
+      "size": 3900
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_criterion_service.proto",
+      "sha256": "fe40f9d47564331e6689c0aa63fc779c3c664566f503d761080a2ff4c4afcef4",
+      "size": 6321
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_customizer_service.proto",
+      "sha256": "4500e45a3181e38df9c40be2ad696ab969c8a54af4649b11aab597193112d66b",
+      "size": 5173
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_draft_service.proto",
+      "sha256": "facd87076846e91940781958149071fc23b5818cc9d44e88c1e5c75458d1b4cc",
+      "size": 9899
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_goal_config_service.proto",
+      "sha256": "898de39befc8309859a7a025920c59472d6a83e8867a7c8e617ffb86c4cb601e",
+      "size": 4724
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_group_service.proto",
+      "sha256": "89cd94ab69e0bb3fbb1990b01eb1f1cb5361e27ea8830a3381154ecebdc40713",
+      "size": 5396
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_label_service.proto",
+      "sha256": "1481417aa245bf1b812a9731c8582c8b990a9bc92c5cd71eaba60cf3d67c5574",
+      "size": 4803
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_service.proto",
+      "sha256": "9d0420c5f08508330d08958844b47663cce592a90b72a51436cbebe4325e79c3",
+      "size": 10211
+    },
+    {
+      "path": "google/ads/googleads/v25/services/campaign_shared_set_service.proto",
+      "sha256": "9d5d1fa45d626483ec28faa28901a9cfe86508538cb8b9aef9992b9fd0f3773b",
+      "size": 5757
+    },
+    {
+      "path": "google/ads/googleads/v25/services/content_creator_insights_service.proto",
+      "sha256": "4ca5be24f306be65535601c40bd9ed0dda5c502d8959da50707198ec9ec8dd6e",
+      "size": 27440
+    },
+    {
+      "path": "google/ads/googleads/v25/services/conversion_action_service.proto",
+      "sha256": "0fab9067e4dcf421996066576707c5cf585a6f2cfb03b1fb91118ce5669025bb",
+      "size": 6055
+    },
+    {
+      "path": "google/ads/googleads/v25/services/conversion_adjustment_upload_service.proto",
+      "sha256": "ba8a1f5101e3dada07ca71aeb1be18a3c9c11e1e95f46db87494c4872ec9a1af",
+      "size": 9873
+    },
+    {
+      "path": "google/ads/googleads/v25/services/conversion_custom_variable_service.proto",
+      "sha256": "c3a50348e2b8797e6997db7adcd3c86016558e896ace047a08089cccd18863d3",
+      "size": 5791
+    },
+    {
+      "path": "google/ads/googleads/v25/services/conversion_goal_campaign_config_service.proto",
+      "sha256": "e2c29e150c390e642613ea2d056d72997ca877accf3f3adf62bd1105d4abc0d6",
+      "size": 4706
+    },
+    {
+      "path": "google/ads/googleads/v25/services/conversion_upload_service.proto",
+      "sha256": "96abd0c2aa0ab88b489b85b37a875ba62e0546167ec29d4e5a0d0bc7ee3861d8",
+      "size": 17696
+    },
+    {
+      "path": "google/ads/googleads/v25/services/conversion_value_rule_service.proto",
+      "sha256": "1d6e1bd2c1a382222194f8d74ced3f2f44beb98c3478d2b6995d9e4b2029c303",
+      "size": 5703
+    },
+    {
+      "path": "google/ads/googleads/v25/services/conversion_value_rule_set_service.proto",
+      "sha256": "d0f2232e20572726e262b16e9d20c50aebf3d00ccc731307c8e16c021104e51a",
+      "size": 5836
+    },
+    {
+      "path": "google/ads/googleads/v25/services/custom_audience_service.proto",
+      "sha256": "afe44999f49a138d42005f0618a56bb523af6afb383affd66ddf9e17f1c20bcc",
+      "size": 4532
+    },
+    {
+      "path": "google/ads/googleads/v25/services/custom_conversion_goal_service.proto",
+      "sha256": "f792aa9fec685508a27a2c01d58c275015254ec308d9fb9124a868508422b452",
+      "size": 4955
+    },
+    {
+      "path": "google/ads/googleads/v25/services/custom_interest_service.proto",
+      "sha256": "694dca1672a213fda239a2f9daa0eb6719f3b2f0f7cde5ab6e7cd6cd48515257",
+      "size": 4152
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_asset_service.proto",
+      "sha256": "cc8be04a358379056fe8e150bfbf90703ae0195daedcf6b0ba7c41468edb549d",
+      "size": 5602
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_asset_set_service.proto",
+      "sha256": "f48280384db7f39a9566327fda982e91f2020ed83939f943f6fe19efe7de8a8c",
+      "size": 5077
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_client_link_service.proto",
+      "sha256": "3acaaac984ddc5a9c635cfb4f0115d8cf54a3a6709f412a203c3ce7619f55274",
+      "size": 4195
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_conversion_goal_service.proto",
+      "sha256": "6d260dedb9f5f35b5d491dda71f48626beab8a556d973d26e52797327d430dd7",
+      "size": 3900
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_customizer_service.proto",
+      "sha256": "ca4b7f3e860d6e4dba7cbe0e3eeb10673b25ff004a00475522f0f378d56ec371",
+      "size": 5161
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_label_service.proto",
+      "sha256": "a9f4c5fd7a09b3ad9b7b80f7163fe7484acae571a5cef292ba0a7d1f0298dee3",
+      "size": 5161
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_manager_link_service.proto",
+      "sha256": "afb6adcbf6cde0d8f439f05248d0914ee0e646204a01f847e58a59341e9fd10c",
+      "size": 6662
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_negative_criterion_service.proto",
+      "sha256": "5f36e2516c4df67bf6f492bcfe8a31ddcbda71d861db754236361c74b9fb4db8",
+      "size": 5525
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_service.proto",
+      "sha256": "39fc5b189866ef1908e75e8c70e26b0eb7892330f17c42e42133c70afc75b09a",
+      "size": 7495
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_sk_ad_network_conversion_value_schema_service.proto",
+      "sha256": "ed64ae13f416836cb5f9754f366729efc876ce1d18b75c90c62d787d13d3500c",
+      "size": 4453
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_user_access_invitation_service.proto",
+      "sha256": "3d09306bf0df8ce55d6abd5ab55f761e83491f730ccd211b1cfc1d01477b4a6c",
+      "size": 4426
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customer_user_access_service.proto",
+      "sha256": "ad5428628217e50c34343e47d483caf5d7982b51b9c83cdd0da7bbc3f03f7cf5",
+      "size": 4379
+    },
+    {
+      "path": "google/ads/googleads/v25/services/customizer_attribute_service.proto",
+      "sha256": "cd21d75b959f0597daacf6b292dd5907ce33c747191a8c546c794ac570912dd4",
+      "size": 5372
+    },
+    {
+      "path": "google/ads/googleads/v25/services/data_link_service.proto",
+      "sha256": "103ea123f026e6d32cfe518a0dc5320de4591148666594e12d741beb739db399",
+      "size": 6571
+    },
+    {
+      "path": "google/ads/googleads/v25/services/experiment_arm_service.proto",
+      "sha256": "106276279d508d0afcaf61b02d1a33deced77659a243a0f83f338708ca83a00e",
+      "size": 5463
+    },
+    {
+      "path": "google/ads/googleads/v25/services/experiment_service.proto",
+      "sha256": "74611ea1d2db4f3a8a4165e6a09fc1c7071b53b3bc890045fe3557875ddd8f77",
+      "size": 14718
+    },
+    {
+      "path": "google/ads/googleads/v25/services/geo_target_constant_service.proto",
+      "sha256": "0206aff45007b8ee3383bb3d70b4f4d86549db550887a611dc93b1d662fa00e8",
+      "size": 4582
+    },
+    {
+      "path": "google/ads/googleads/v25/services/goal_service.proto",
+      "sha256": "79dae9bc5580dc881e3f45c22580e2c013c48778920b1d2e381ef4d32e10a287",
+      "size": 4087
+    },
+    {
+      "path": "google/ads/googleads/v25/services/google_ads_field_service.proto",
+      "sha256": "239c6a293bbbcf60707082871ecd714fbbe01d5bbe6d0e0d067ec2236fad9f7b",
+      "size": 4594
+    },
+    {
+      "path": "google/ads/googleads/v25/services/google_ads_service.proto",
+      "sha256": "13d842515fe00d7d21df04041f6bdf1260aa5290d1220711fc6f9137ed870980",
+      "size": 77143
+    },
+    {
+      "path": "google/ads/googleads/v25/services/identity_verification_service.proto",
+      "sha256": "1f53cda0fb9d25f1014c42a0bd14aea744f75e986800c84d198ddf739a236178",
+      "size": 5800
+    },
+    {
+      "path": "google/ads/googleads/v25/services/incentive_service.proto",
+      "sha256": "c53efd77df87cfc3524a207e146f37c4491984a0472dae56257e3c9342485ae1",
+      "size": 8478
+    },
+    {
+      "path": "google/ads/googleads/v25/services/invoice_service.proto",
+      "sha256": "2ecace6a615f0eed41023d94b682e9b0caf39de289605faa49a229164cc28c23",
+      "size": 3801
+    },
+    {
+      "path": "google/ads/googleads/v25/services/keyword_plan_ad_group_keyword_service.proto",
+      "sha256": "3d8a0c9a8ef94b0ddcc246d49ce696bd10dc5fb1ecb39d8cd08a273b0271c3cc",
+      "size": 5926
+    },
+    {
+      "path": "google/ads/googleads/v25/services/keyword_plan_ad_group_service.proto",
+      "sha256": "e04661d6acbcda2924d9af15a45bc0eec8b75bd662b59065dd6e7f7ab033dc0f",
+      "size": 5500
+    },
+    {
+      "path": "google/ads/googleads/v25/services/keyword_plan_campaign_keyword_service.proto",
+      "sha256": "fb127edfd701fb97090aa4f159993ef4fbb7994535c31dab9fd340f9bac0a1be",
+      "size": 5848
+    },
+    {
+      "path": "google/ads/googleads/v25/services/keyword_plan_campaign_service.proto",
+      "sha256": "14f43e29027790532ad50d209b00067b013ac6c2bb9774c474fa355ee3ef5812",
+      "size": 5449
+    },
+    {
+      "path": "google/ads/googleads/v25/services/keyword_plan_idea_service.proto",
+      "sha256": "ae0b6a267953e61d5aab5017e18824edb3c3564c9c20b287dcead92acaf9d736",
+      "size": 20764
+    },
+    {
+      "path": "google/ads/googleads/v25/services/keyword_plan_service.proto",
+      "sha256": "39920683ae378c8dd55733aa1149c07fcd97147a0c77504143fd3b9d77fa55f3",
+      "size": 5095
+    },
+    {
+      "path": "google/ads/googleads/v25/services/keyword_theme_constant_service.proto",
+      "sha256": "bea4c1259201bef50bd5422f14046c905fc2e2cebb8f0cb658570d0c09b2af77",
+      "size": 3267
+    },
+    {
+      "path": "google/ads/googleads/v25/services/label_service.proto",
+      "sha256": "9eb604c8d7e787c13bf390faf01032055eb6d5cda0120290329d43cfd827f63c",
+      "size": 5568
+    },
+    {
+      "path": "google/ads/googleads/v25/services/local_services_lead_service.proto",
+      "sha256": "a5efc6f586dc2979cb36aaa8d39f588851221e52f523d18a710344c75aab0089",
+      "size": 7325
+    },
+    {
+      "path": "google/ads/googleads/v25/services/multi_party_auth_review_service.proto",
+      "sha256": "c08de4e2666910097dc836650a5836d4f76d6d8a4fa234098b76a872d4b6d290",
+      "size": 5589
+    },
+    {
+      "path": "google/ads/googleads/v25/services/offline_user_data_job_service.proto",
+      "sha256": "542ec528dabf155174b558d588f1a556773120582d5e8d5b8a4493c656683706",
+      "size": 8579
+    },
+    {
+      "path": "google/ads/googleads/v25/services/payments_account_service.proto",
+      "sha256": "aea40fe492df0b7745339f3167d0f64c02a77a3fb9217e5d791c0d584c12990d",
+      "size": 2969
+    },
+    {
+      "path": "google/ads/googleads/v25/services/product_link_invitation_service.proto",
+      "sha256": "33dcb1c4635caefe9645a26fb78f403afa7606a9c9966a013fef36b9687a2f34",
+      "size": 6003
+    },
+    {
+      "path": "google/ads/googleads/v25/services/product_link_service.proto",
+      "sha256": "c65cf2d2e28f4e054bba8783859bc31058191776cb76e96e6c23326975954596",
+      "size": 4763
+    },
+    {
+      "path": "google/ads/googleads/v25/services/reach_plan_service.proto",
+      "sha256": "980622c6ad0961919b86644d2ebec864ff7d1c46aad3b02c29c8a5ba3707aa5c",
+      "size": 40629
+    },
+    {
+      "path": "google/ads/googleads/v25/services/recommendation_service.proto",
+      "sha256": "c74153f53ad507b9d6dfaa91a38a57bcd417ac867ae284288753660a5a7e7ebd",
+      "size": 33507
+    },
+    {
+      "path": "google/ads/googleads/v25/services/recommendation_subscription_service.proto",
+      "sha256": "8454e67f5207ea0042eaa59d60c07333b8c4a7bfd5af7f01b359b6521160739f",
+      "size": 6369
+    },
+    {
+      "path": "google/ads/googleads/v25/services/remarketing_action_service.proto",
+      "sha256": "649e8bec69530cd0bc36fd2d5066ca7d352b3d08750631d84b77b2f6984e4965",
+      "size": 4775
+    },
+    {
+      "path": "google/ads/googleads/v25/services/reservation_service.proto",
+      "sha256": "c739f0425b3a66bc548aef898e1258a9289c488260e62da59edd19c1a5d61021",
+      "size": 3839
+    },
+    {
+      "path": "google/ads/googleads/v25/services/shareable_preview_service.proto",
+      "sha256": "f17d69120382ab755361af66aacf5182b50743ca017061190bb215cf366b3722",
+      "size": 3184
+    },
+    {
+      "path": "google/ads/googleads/v25/services/shared_criterion_service.proto",
+      "sha256": "6a542f65d03d60a9612fd967a69af0f7c7a9dd235726047da78137727471008a",
+      "size": 5592
+    },
+    {
+      "path": "google/ads/googleads/v25/services/shared_set_service.proto",
+      "sha256": "f17b6e6d519011e9573fb19ecb3ac1305c181b5821bc5d36e4f95671dce88c33",
+      "size": 5824
+    },
+    {
+      "path": "google/ads/googleads/v25/services/smart_campaign_setting_service.proto",
+      "sha256": "f2f206171595e4b86f3ab8db170f04cbe94518e992cc7f19f7c0033acb025e2c",
+      "size": 8855
+    },
+    {
+      "path": "google/ads/googleads/v25/services/smart_campaign_suggest_service.proto",
+      "sha256": "73fe4d1f5318fceb4fea311f0c44b12ab5034827ba4e2cadadf2b5ab83157f63",
+      "size": 10601
+    },
+    {
+      "path": "google/ads/googleads/v25/services/third_party_app_analytics_link_service.proto",
+      "sha256": "d630e7e326ef95d0a2b4ea6b5484f928a528d7872b08abdfa26183895447a94f",
+      "size": 2872
+    },
+    {
+      "path": "google/ads/googleads/v25/services/travel_asset_suggestion_service.proto",
+      "sha256": "f27a044f9a6e74df8fa6145ad0c0665909861d625c610309426d1a2ee5926cbf",
+      "size": 4831
+    },
+    {
+      "path": "google/ads/googleads/v25/services/user_data_service.proto",
+      "sha256": "f98a60feed42128a7cc613abc83cbad508cd8d22133bb3dcc8bcf6eba2174269",
+      "size": 4276
+    },
+    {
+      "path": "google/ads/googleads/v25/services/user_list_customer_type_service.proto",
+      "sha256": "5a29ab42386f7d8522923684e5607c499daf966cce26b474694080d0dbfd22ca",
+      "size": 5048
+    },
+    {
+      "path": "google/ads/googleads/v25/services/user_list_service.proto",
+      "sha256": "f644d81e7d7614ce74fb0b8ec7da04fbc40f57054ef6a2b8f60540636c1fcc4b",
+      "size": 5144
+    },
+    {
+      "path": "google/ads/googleads/v25/services/youtube_video_upload_service.proto",
+      "sha256": "fa9fedd0231fbd5e7f38907a0290b765c2804b1b1de4103405f2b8d9503a06d5",
+      "size": 6030
+    }
+  ],
+  "inventory": {
+    "enum": 567,
+    "enum_value": 6176,
+    "field": 1728,
+    "message": 2048,
+    "normalized_records": 16906,
+    "proto_bytes": 3670952,
+    "proto_field": 6277,
+    "proto_files": 914,
+    "service": 110
+  },
+  "tar_sha256": "0329d274fe4a26a1636fdb59be32e4834a1f111de6d8f362a5d6c6724b854910"
+}

@@ -1,0 +1,12 @@
+{
+  "fixture_id": "generated_marker_scope",
+  "unknowns": [
+    {
+      "candidate_id": "prose_provider_reference",
+      "candidate_status": "UNKNOWN",
+      "disposition": "PRESERVED_UNKNOWN",
+      "reason": "TEXT_REFERENCE_ONLY",
+      "close_with": "Use the Phase 3 structure observer or runtime evidence to determine whether the first-party prose reference corresponds to an executable provider call."
+    }
+  ]
+}

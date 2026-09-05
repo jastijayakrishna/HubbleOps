@@ -1,0 +1,13 @@
+{
+  "fixture_id": "npm_lock_cross_evidence",
+  "unknowns": [
+    {
+      "unknown_id": "target_sdk_compatibility",
+      "scope": "target_resolution",
+      "related_candidate_id": "resolved_third_party_sdk",
+      "disposition": "PRESERVED_UNKNOWN",
+      "reason": "SDK_COMPATIBILITY_UNMAPPED",
+      "close_with": "Add a content-hashed, evidence-backed mapping from google-ads-node 24.1.0 to its supported Google Ads API versions, or record a human target decision bound to this dependency-state hash."
+    }
+  ]
+}

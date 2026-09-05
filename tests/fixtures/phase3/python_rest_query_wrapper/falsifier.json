@@ -1,0 +1,25 @@
+{
+  "fixture_id": "python_rest_query_wrapper",
+  "phase": 3,
+  "failure_class": "version_and_query_dataflow_lost_at_payload",
+  "should_be_caught_by": [
+    "observe.structure",
+    "graph.imports"
+  ],
+  "must_match": [
+    {
+      "path": "runtime_gateway.py",
+      "assertion": "API_RELEASE reaches the REST endpoint and resolves call_version to v19."
+    },
+    {
+      "path": "runtime_gateway.py",
+      "assertion": "The query payload emits one request skeleton preserving the day_count hole."
+    }
+  ],
+  "must_not_match": [
+    {
+      "path": "runtime_gateway.py",
+      "assertion": "The day_count hole must not be treated as a statically known request."
+    }
+  ]
+}

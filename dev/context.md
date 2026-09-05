@@ -7,14 +7,53 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 1 — source closure, text/dependency observers, ledger, exposure map |
-| **Branch** | merged to `main` and tagged `v0.1` on 2026-09-03 |
-| **Last gate passed** | none. Seven Phase 1 [gate audits](../prompts/cross-cutting/gate-audit.md) ran; every one returned `GATE: FAIL`. The seventh confirmed F-5 and F-7 fixed, agreed F-6 is correctly deferred to Phase 3, and blocked on F-8 alone; F-8 is fixed and verified, but **no audit has been run against the fixed tree**. The repository owner waived the gate and directed the merge |
-| **Next action** | run the Phase 1 gate audit against `main` before Phase 2 work lands; treat a `GATE: FAIL` there as a Phase 2 blocker, since `v0.1` is tagged without one |
+| **Current phase** | 2 complete — Phase 3 Wrapper Engine is next |
+| **Branch** | `phase-02-google-ads-pack-and-change-pack`; Phase 1 remediation remains intentionally uncommitted in this tree |
+| **Last gate passed** | Phase 2. Fresh independent audit returned literal `GATE: PASS`; after the real-repo fixtures landed, the final suite passed 299 tests with 2 environment skips, and all static, boundary, pack, and diff checks were clean |
+| **Next action** | Plan Phase 3 from all nine Failure Atlas rows and the six `tests/fixtures/phase3` families; install `ast-grep` before implementation. No commit or push authorized. |
+
+Phase 2 progress (2026-09-05): full protocols and both packs, v19-v25 offline sources/catalogs,
+computed proto comparisons including the v18 baseline, multi-hop contract diffs, validation-only
+transport, wire/telemetry adapters, composite ProofScope hash, and Exposure Map completion are built.
+The verified source build has 15,617 / 15,737 / 16,217 / 16,507 / 17,224 / 17,573 / 18,243 facts
+for v19 through v25 respectively. Current lattice hash:
+`5b31c7c83c0ac4b1011603695c56d619cfd1a77c6e2cc3817ae819ea8cdf7d26`.
+The final wheel inspection found 1,315 pack files, including all seven catalogs, the manifest, and
+1,230 retained upstream payloads. An isolated install with socket APIs blocked verified the full
+lattice. The fresh independent audit returned literal `GATE: PASS` with 269 passed and 1 environment
+skip; after the real-repo fixtures landed, the final-byte suite passed 299 tests with 2 environment
+skips. Ruff, formatting, strict Pyright, import boundaries, provider-leak checks, pack verification,
+and diff checks are clean. The Windows unreadable-file test skips when the current process token can
+bypass its deny ACL.
+
+Phase 2 source decisions: v20-v25 metadata comes directly from Google's Query Builder schemas,
+whose fields_index inventory is fully reconciled against every resource schema. v19 uses complete
+version-checked Internet Archive captures of all 169 resources in the official overview; truncated
+captures are rejected and alternate captures are tried. No partial v19 inventory was accepted.
+Source disagreements remain UNKNOWN_PROVIDER_CONTRACT. Raw upstream bytes are shipped compressed,
+alongside original and normalized hashes, inventories and source attribution. The current upgrade
+guide plus its archived historical version and the current/archived release notes are parsed into
+structured records. SDK compatibility minima/maxima are parsed from the official tables.
+Acquisition scratch was moved, without deletion, under `.hubbleops/artifacts/phase2-acquisition/`.
+The refresh command accepts version refs, dates and retrieval metadata through `--config`; adding a
+major does not require a compiler rewrite. Non-adjacent diff caches also bind intermediate catalogs.
+Provider `to replace` wording is resolved only when both identifiers map uniquely to the previous
+and current proto subjects; the v19→v20 YouTube lineup replacement is attached to the computed diff.
+Malformed telemetry CSV fails closed with explicit row issues.
+
+The required first real-repo loop ran read-only at pinned commits. `mcp-google-ads`
+(`461a1d673cf1c369e8b95fc9b5b1d9cb7f3ebb4a`) produced 387 candidates: 208 UNKNOWNs closed with
+evidence, 1 preserved UNKNOWN, 107 NEW_PATTERN UNKNOWNs, and zero unexplained candidates.
+`google-ads-api` (`e066efba47ebd94c0bda2d06e20af1f84a6e25ac`) produced 2,463 candidates: 9 AFFECTED,
+9 UNKNOWNs closed with evidence, 379 preserved UNKNOWNs, 2,060 NEW_PATTERN UNKNOWNs, and zero
+unexplained candidates. Ledger/evidence integrity checks found no duplicate ids, missing or orphaned
+evidence, source/text mismatches, or artifact/export byte differences. Nine generalized patterns are
+recorded in `docs/FAILURE_ATLAS.md`; six anonymized fixture families under `tests/fixtures/phase3`
+carry them into Phase 3. No prospect repository was modified.
 
 Phase 1 is implemented and green: `hops scan <repo> --pack <name>` and `hops exposure` produce a
 deterministic ledger and Exposure Map with `UNEXPLAINED_CANDIDATES = 0` on all six fixtures.
-188 tests pass, 1 skips; `ruff check`, `ruff format --check` and `pyright` (strict) are clean.
+196 tests pass, 1 skips; `ruff check`, `ruff format --check` and `pyright` (strict) are clean.
 `pyright` now covers `tests/` and `.claude/` as well as `hubbleops/`, excluding `tests/fixtures/`,
 which is deliberately-broken third-party sample code and an input to the scanner rather than source.
 
@@ -110,22 +149,20 @@ the architecture does not have. Phase 1's INVARIANTS forbid AI calls and no code
 question, to be raised in `dev/proposals.md` when the AI residue filter first produces such evidence
 — not a quiet code change, because it touches the frozen Evidence schema or the Observer contract.
 
-**M-7 is still open and deliberately deferred**: `write_evidence` commits before any candidate
-exists and `latest_run` does not exclude runs with `finished_at IS NULL`, so there is a committed
-persisted state carrying unexplained evidence, which violates the letter of L1. It fails loud rather
-than silent — the map prints `Unexplained 1` — but it wants either an atomic evidence+candidate
-write or an unfinished-run filter before Phase 2 leans on the store.
+**M-7 is closed.** `write_evidence` stages records in memory and `write_candidates` validates and
+persists evidence plus candidates in one transaction. Records offered before their run exists are
+rejected, staged evidence is rebound immediately before commit, and `finish_run` still refuses any
+unexplained evidence. The final Phase 1 gate exercised the pre-run call-order attack directly.
 
-Five non-blocking findings also stand: the `Detected` line still lacks per-version site counts and
-`UNKNOWN (n)` (P-005); `Pack google_ads@<hash>` prints the surface hash where §4/§16 specify
-`<changes_hash>`, unlabelled; the extra `EXCLUDED (with evidence)` line exceeds P-004's "nothing else
-in §4 changes"; the `ProviderPack` Protocol is missing `wire_signature` and `versions()` added to
-frozen §3.1 by P-005/P-006; and `observe/text.py` silently `continue`s an `rg` hit on an
-enumerated-but-unscannable path, discarding the matched content with no record of its own.
+The five non-blocking Phase-1 carryovers are closed. The `Detected` line includes per-version site
+counts and `UNKNOWN (n)`; the pack header labels the composite changes hash; the unapproved extra
+`EXCLUDED` line is gone; `ProviderPack` has `wire_signature` and `versions()`; and an enumerated but
+unscannable `rg` hit is preserved as evidence.
 
 ## Blocking
 
-- Nothing blocks Phase 2. `ast-grep` is not installed yet — Phase 3 needs it, Phase 1 does not.
+- Nothing blocks the completed Phase 2 gate. `ast-grep` is not installed yet and is a Phase 3
+  prerequisite.
 - `docker`/`podman` not installed — Phase 4 needs them.
 - `rg` was not on this machine at the start of Phase 1; the official 14.1.1 binary is now at
   `~/.local/bin/rg.exe`. The scan refuses to run without it (`TOOLING_MISSING`), by design.
@@ -135,6 +172,14 @@ enumerated-but-unscannable path, discarding the matched content with no record o
 ## Decisions that carry forward
 
 *(record here anything a later phase must not re-litigate — with the phase it was decided in)*
+
+**Phase-2 completion decisions (2026-09-05).** All questions in `dev/plan.md` are answered. The
+offline lattice supports v19-v25, including sunset nodes; v25 is the pinned current major and future
+majors use the same manifest-driven refresh pipeline. Public official field-reference data is the
+offline catalog source; no live credentialed FieldService call is part of this gate. A versioned
+gRPC or REST request target is authoritative, while `x-goog-api-client` is metadata and conflicts
+remain typed UNKNOWN. Docs-only mappings are DOCUMENTED and compose only when unique. No new runtime
+dependency was added. Phase 1 remediation remains preserved and uncommitted.
 
 **Frozen-surface decisions (Phase 1).**
 - **P-003 ACCEPTED.** `SurfaceSpec` is defined in `core/surface.py`, not `packs/_protocol.py` as
@@ -182,8 +227,8 @@ enumerated-but-unscannable path, discarding the matched content with no record o
 - `SurfaceSpec` is **defined in `core/surface.py`** and re-exported by `packs/_protocol.py`.
   DoD 2 asks for it in `_protocol.py`, but law L5 forbids `observe/` from importing `packs/`, and
   `observe/text.py` must name the type in its signature. The law wins; `_protocol.py` stays the
-  pack-facing name and holds the `ProviderPack` Protocol. Recorded as **P-003** in
-  `dev/proposals.md`, still awaiting the owner's decision line.
+  pack-facing name and holds the `ProviderPack` Protocol. Recorded as accepted **P-003** in
+  `dev/proposals.md`.
 - An observer's signature is `scan(closure, ctx)` and the surface reaches it on
   `ObserverContext.surface`. DoD 4 and 5 write it as `scan(closure, surface)`; frozen
   `ARCHITECTURE.md` §3.2 writes it as `scan(self, closure, ctx)` with "ObserverContext carries only
@@ -274,14 +319,7 @@ enumerated-but-unscannable path, discarding the matched content with no record o
 
 ## Open threads
 
-- `docs/FAILURE_ATLAS.md` is still empty. It fills from the real-repo loop, which starts after the
-  Phase 2 gate.
-- The Exposure Map prints `Target` and the production-services line as "not in this ProofScope"
-  because Phase 1 has no Change Pack and no telemetry observer. Phase 2 and Phase 4 fill them.
-- The `Detected` line lists every version literal found (it already refuses to collapse a
-  multi-version repo into one label) but not yet per-version site counts or an explicit
-  `UNKNOWN (n)` bucket, unlike the amended §4 example (P-005/P-006). `ledger.location_of(candidate)`
-  already resolves each candidate's winning version, so the data exists; `_detected_versions()` in
-  `app/exposure.py` just doesn't group by it yet. Same status as `Target` — aspirational until a
-  phase that touches `exposure.py` for another reason picks it up. Checked against a live scan
-  (2026-09-03): current output is `v22, sdk 17.1.0`, not wrong, just uncounted.
+- Phase 3 must implement the generalized structural and cross-evidence behaviors represented by all
+  nine Failure Atlas rows and six anonymized fixture families; no prospect-specific rule is allowed.
+- The Exposure Map target and per-version detected-site counts are implemented. The
+  production-services line remains "not in this ProofScope" until Phase 4 supplies telemetry.

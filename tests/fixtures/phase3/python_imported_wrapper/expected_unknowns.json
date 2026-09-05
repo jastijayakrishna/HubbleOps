@@ -1,0 +1,12 @@
+{
+  "fixture_id": "python_imported_wrapper",
+  "unknowns": [
+    {
+      "candidate_id": "imported_wrapper_query",
+      "candidate_status": "UNKNOWN",
+      "disposition": "PRESERVED_UNKNOWN",
+      "reason": "CONTRACT_VALIDATION_DEFERRED",
+      "close_with": "Validate the resolved query literal against the target catalog in the Phase 6 Obligation Engine; the structure observer must not decide field compatibility."
+    }
+  ]
+}

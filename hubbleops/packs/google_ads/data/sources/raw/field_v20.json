@@ -1,0 +1,1185 @@
+{
+  "index": {
+    "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/fields_index.json",
+    "sha256": "b3953629298d353d69fba114296f115e5a61590b9e5d65889f232098d0e89e84",
+    "size": 1776140,
+    "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/fields_index.json"
+  },
+  "inventory": {
+    "fields": 2577,
+    "index_pages": 1,
+    "resource_pages": 167,
+    "resources": 167
+  },
+  "pages": [
+    {
+      "fields": 49,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/accessible_bidding_strategy.json",
+      "sha256": "c3b859ac550c28a8dd5d350cf57df12b68e55a91c5fd11f0b9ab3264c8767b31",
+      "size": 48474,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/accessible_bidding_strategy.json"
+    },
+    {
+      "fields": 78,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/account_budget.json",
+      "sha256": "3af5c5a623faf1a156e0082a71d857dd3718956fe704d62a2bfa32b03c48418d",
+      "size": 74781,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/account_budget.json"
+    },
+    {
+      "fields": 67,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/account_budget_proposal.json",
+      "sha256": "85ee22c8f7c9bb00c8d85b6b66f03f2c6b7e18aae4f6f82c4d7e54a3e2959bcd",
+      "size": 63689,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/account_budget_proposal.json"
+    },
+    {
+      "fields": 41,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/account_link.json",
+      "sha256": "9ae3e90f96930e9659f565755810c237d227c2c4254f7be14b9223f347db995f",
+      "size": 40455,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/account_link.json"
+    },
+    {
+      "fields": 239,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad.json",
+      "sha256": "aba4580abc89019c7d5c893e7518288f2332d1872ec38ce701d18bdc6466eae8",
+      "size": 208637,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad.json"
+    },
+    {
+      "fields": 358,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group.json",
+      "sha256": "222c0c400b01dc949e9466b9e4f1bde277944cb935438a959f125cc9f34908c7",
+      "size": 1002085,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group.json"
+    },
+    {
+      "fields": 509,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_ad.json",
+      "sha256": "d5bbb16aa839afbd9b597f1d25032a660c4228d5eeb738dff2f93ed155cd4551",
+      "size": 1013593,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_ad.json"
+    },
+    {
+      "fields": 420,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_ad_asset_combination_view.json",
+      "sha256": "5291a390e131f33e32f924b646bbb7ae2ce89c137024c5eeffc7657684f0667b",
+      "size": 536664,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_ad_asset_combination_view.json"
+    },
+    {
+      "fields": 672,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_ad_asset_view.json",
+      "sha256": "78fd504b09e28aee2bb923f19460327c90f87360e9fd8f5fb0b9bedb537fc444",
+      "size": 864316,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_ad_asset_view.json"
+    },
+    {
+      "fields": 417,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_ad_label.json",
+      "sha256": "2c8ca929d75992865e89d5cadb3259474dbde444ac7ccdff976005776351f235",
+      "size": 398227,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_ad_label.json"
+    },
+    {
+      "fields": 473,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_asset.json",
+      "sha256": "30d34b808500801683f0c7a1d5143f402191789282a9c3f78de01efae51c860d",
+      "size": 802922,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_asset.json"
+    },
+    {
+      "fields": 211,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_asset_set.json",
+      "sha256": "23ff472b4c62a74cc119f719598a8c6867026152544c7fe2fba0e4bcb16e0450",
+      "size": 215736,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_asset_set.json"
+    },
+    {
+      "fields": 409,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_audience_view.json",
+      "sha256": "30cbdf4f110df194b183f1738c464db37af79194b1b0d57f714564cfe1dfa74f",
+      "size": 1106250,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_audience_view.json"
+    },
+    {
+      "fields": 203,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_bid_modifier.json",
+      "sha256": "4a62fa19de6fbb5dd07f998f7425fbe9b191254e5231f65a4057676409e14ea6",
+      "size": 206987,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_bid_modifier.json"
+    },
+    {
+      "fields": 331,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_criterion.json",
+      "sha256": "801214002a01ba4f816e471d38efb7e842d0710d9fcc8559c9b3147ba9b02a86",
+      "size": 331386,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_criterion.json"
+    },
+    {
+      "fields": 291,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_criterion_customizer.json",
+      "sha256": "71add2b2a0529c14826adb23f900847d54a840107922bb5ab2b3f1785b2107bc",
+      "size": 292277,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_criterion_customizer.json"
+    },
+    {
+      "fields": 289,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_criterion_label.json",
+      "sha256": "cc989e16d08d536245fe1cbc99b88b7606692cf39b7db26f52ec4ddd587c487c",
+      "size": 289288,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_criterion_label.json"
+    },
+    {
+      "fields": 289,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_criterion_simulation.json",
+      "sha256": "82e5ef74659d83ba9cded22cccbae7a3ef856aeec76301c1c834c991c4c9611a",
+      "size": 290634,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_criterion_simulation.json"
+    },
+    {
+      "fields": 199,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_customizer.json",
+      "sha256": "6d93eaf81e12cf0b3002c784b34dfc7325aa63523db8c6e1be0fb6e4bb4cca39",
+      "size": 203472,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_customizer.json"
+    },
+    {
+      "fields": 197,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_label.json",
+      "sha256": "8770119abf336fa1601379c28fa6b909439fa6d236913fad5c88f704252aab34",
+      "size": 200615,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_label.json"
+    },
+    {
+      "fields": 198,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_simulation.json",
+      "sha256": "8e4180516dc1e79cb17b7a8d3bc06281bc58e1a630285e76c66fc5e0dd384821",
+      "size": 202801,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_group_simulation.json"
+    },
+    {
+      "fields": 284,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_parameter.json",
+      "sha256": "91e72569d8abe2d845ba93706307232b345307517da4adfdc5b7b268e72a4caa",
+      "size": 285988,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_parameter.json"
+    },
+    {
+      "fields": 257,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_schedule_view.json",
+      "sha256": "317a83912d7bb9665a6faa0a89a6ef302c91b3250fab9853a145d1a354670698",
+      "size": 539327,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/ad_schedule_view.json"
+    },
+    {
+      "fields": 382,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/age_range_view.json",
+      "sha256": "9a14fcfa45269b725d02b192db1bad2261c765dedd2e2c538428d1ed8c933953",
+      "size": 746438,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/age_range_view.json"
+    },
+    {
+      "fields": 42,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/android_privacy_shared_key_google_ad_group.json",
+      "sha256": "193074f0c2b68a0b5ec875c352ec637fd3660682afdd8fec6722d7852c65daa8",
+      "size": 61405,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/android_privacy_shared_key_google_ad_group.json"
+    },
+    {
+      "fields": 40,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/android_privacy_shared_key_google_campaign.json",
+      "sha256": "2cf13c8ab7a4910fb4d0debc5fd81291ca1f774a4051bb7234c00474b1bccba7",
+      "size": 59351,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/android_privacy_shared_key_google_campaign.json"
+    },
+    {
+      "fields": 41,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/android_privacy_shared_key_google_network_type.json",
+      "sha256": "4dfabc2432afcdefa93e7f935c8a9ac7f3143899b38f24a7cab900dc426f9a4a",
+      "size": 60648,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/android_privacy_shared_key_google_network_type.json"
+    },
+    {
+      "fields": 268,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset.json",
+      "sha256": "b9bc7c69dc19b60ffd80a3a1d888406db0089d5bae805d9c8f9f11c8d70dc1f5",
+      "size": 283514,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset.json"
+    },
+    {
+      "fields": 237,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_field_type_view.json",
+      "sha256": "d738f4699f751cf61cf88556b498a0ca525830c2ed1211cda6ded4fed9abd731",
+      "size": 587951,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_field_type_view.json"
+    },
+    {
+      "fields": 226,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group.json",
+      "sha256": "e5461322ac6d698e229799bf93d8b3872669f19d02fd61c71127179a0c184863",
+      "size": 644925,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group.json"
+    },
+    {
+      "fields": 407,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_asset.json",
+      "sha256": "ffda2d90c0324c2f730a0d6e8d976e46990dd1e1d8e5ec5560f5e69e2f221724",
+      "size": 514595,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_asset.json"
+    },
+    {
+      "fields": 176,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_listing_group_filter.json",
+      "sha256": "a433bdff5d900e9a6ad467853af1dfed6fee0b66f9378ce96f017d13b5d8020c",
+      "size": 180044,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_listing_group_filter.json"
+    },
+    {
+      "fields": 228,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_product_group_view.json",
+      "sha256": "9923989019f29d21681b63e8d58c008b6f374e6effa805465cd0bef345c85e4d",
+      "size": 582538,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_product_group_view.json"
+    },
+    {
+      "fields": 164,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_signal.json",
+      "sha256": "a9a78ca2b542421c63bce61573783c157dc21680d285cf5b2878535cd6c7fe39",
+      "size": 167277,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_signal.json"
+    },
+    {
+      "fields": 166,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_top_combination_view.json",
+      "sha256": "962d8442b90e3b6b9e07839fea6debe4fa583683511147b6a6cfb0d18bf1519e",
+      "size": 276867,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_group_top_combination_view.json"
+    },
+    {
+      "fields": 53,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_set.json",
+      "sha256": "cd52fae200cf4e19f0d2e1e525d7fd7d24e182bd2fd9d900acfbeb1075d90307",
+      "size": 51976,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_set.json"
+    },
+    {
+      "fields": 483,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_set_asset.json",
+      "sha256": "a292209ad8439f31921a07f18df126a1ea23aff42a4dff097d80087db30e4350",
+      "size": 799132,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_set_asset.json"
+    },
+    {
+      "fields": 237,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_set_type_view.json",
+      "sha256": "57db356f3a06b3239e45b031d6b96c9c78dcb707460a62463d0435b20748d56d",
+      "size": 587566,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/asset_set_type_view.json"
+    },
+    {
+      "fields": 62,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/audience.json",
+      "sha256": "b507d4808701fa1bbf4be5e06c8c7dcb133e64f22c3824df13d5e6981d7b02db",
+      "size": 58318,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/audience.json"
+    },
+    {
+      "fields": 46,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/batch_job.json",
+      "sha256": "4cb2a6230e459ff2f8ded2288f31c320e2ac1a0ca47e5054f82dfc7723af1b69",
+      "size": 43447,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/batch_job.json"
+    },
+    {
+      "fields": 45,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/bidding_data_exclusion.json",
+      "sha256": "7ccf735aa415011f1b5382b494bc61ad08cdb530285920e1fc13d3d2d33ea521",
+      "size": 44312,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/bidding_data_exclusion.json"
+    },
+    {
+      "fields": 46,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/bidding_seasonality_adjustment.json",
+      "sha256": "c17e1460c1abf705f65a74b118edd5e3e3376b796aa716269e923d2e067d43fe",
+      "size": 45565,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/bidding_seasonality_adjustment.json"
+    },
+    {
+      "fields": 95,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/bidding_strategy.json",
+      "sha256": "625ff1af589c05852d58ed4a56c5a27b437c496cd05782384ed9764367cf8119",
+      "size": 379075,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/bidding_strategy.json"
+    },
+    {
+      "fields": 70,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/bidding_strategy_simulation.json",
+      "sha256": "54c2281bfc3801b6eea47e29ddf35ad8997c61ec52845e74b8012de0af9f4be9",
+      "size": 68867,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/bidding_strategy_simulation.json"
+    },
+    {
+      "fields": 46,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/billing_setup.json",
+      "sha256": "4b73fdb2d2704df588dbfb3f4e0125dde0dd0f397ae1adec3a17d9d1152a386f",
+      "size": 44243,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/billing_setup.json"
+    },
+    {
+      "fields": 197,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/call_view.json",
+      "sha256": "df97991959d11769f0ecfefc102cb1320ee4b4f4bc7d017831dd1bfed5dc690d",
+      "size": 200918,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/call_view.json"
+    },
+    {
+      "fields": 416,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign.json",
+      "sha256": "b344aa8bcf94e3f6a56b70e8c76c15f9bbf4b53e73ef37c689bdf3f1d0c1b858",
+      "size": 1608107,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign.json"
+    },
+    {
+      "fields": 376,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_aggregate_asset_view.json",
+      "sha256": "0b73a144d171b639ad615a981a08163e669a5416f78a17b7a2b9b27dd4e817ea",
+      "size": 508751,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_aggregate_asset_view.json"
+    },
+    {
+      "fields": 473,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_asset.json",
+      "sha256": "2397092ba2e30d12fab02b44537cf249c5e812cf23173b7bf13a48db28b1ab1e",
+      "size": 802905,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_asset.json"
+    },
+    {
+      "fields": 168,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_asset_set.json",
+      "sha256": "cc37433cca138d1090cd38ae1b8a28377e02b167c5a47c3a09e534d6e86b212e",
+      "size": 172033,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_asset_set.json"
+    },
+    {
+      "fields": 343,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_audience_view.json",
+      "sha256": "d5d1c97d431223351c58cbe42974750a815b0ba0639f28e97b1ebdca65b69e9d",
+      "size": 1039372,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_audience_view.json"
+    },
+    {
+      "fields": 151,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_bid_modifier.json",
+      "sha256": "053673a79c58563dc992fe74f823392aa95180d27d8a237c3bcd4892e386bcbb",
+      "size": 157762,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_bid_modifier.json"
+    },
+    {
+      "fields": 198,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_budget.json",
+      "sha256": "77069450e101607f92551a7398f5e9f01f19863425039318ab2c0104cda6d249",
+      "size": 400766,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_budget.json"
+    },
+    {
+      "fields": 150,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_conversion_goal.json",
+      "sha256": "4754bcde4eaa8c57e398b9534f3f8f6533c1d79f2792c5357434f21d065cd2cb",
+      "size": 155538,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_conversion_goal.json"
+    },
+    {
+      "fields": 288,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_criterion.json",
+      "sha256": "11cc5209a992c0af665de30c47a3a8a55059803880fc0ae35177564b7f883dd5",
+      "size": 283871,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_criterion.json"
+    },
+    {
+      "fields": 156,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_customizer.json",
+      "sha256": "0c298586108ef31331230fa4f175d6584f356cb306cae500315179d8e08378d5",
+      "size": 159770,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_customizer.json"
+    },
+    {
+      "fields": 153,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_draft.json",
+      "sha256": "bd225287e3ab402b6f0b9ddb393e022fe444ba5deea2ca23c0899b9775540bf1",
+      "size": 156687,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_draft.json"
+    },
+    {
+      "fields": 52,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_group.json",
+      "sha256": "3a82b9730441db6e9dfcbe417e81b1f5d9c89bb59c479197d170ea52bd922ad7",
+      "size": 187869,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_group.json"
+    },
+    {
+      "fields": 154,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_label.json",
+      "sha256": "c43782f5bef1195f6e942b9fdc68d1ea3a6ed6346b9553bfbb5f5afbc93f26c5",
+      "size": 156903,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_label.json"
+    },
+    {
+      "fields": 39,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_lifecycle_goal.json",
+      "sha256": "15227d467403df3ae2a6a312d8e3285f97f8b990118cf5b09f7ccecdc6c6bc96",
+      "size": 38122,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_lifecycle_goal.json"
+    },
+    {
+      "fields": 161,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_search_term_insight.json",
+      "sha256": "b155d2064c55f61811156a2d9526500afb8cad903e39b51d816da8ffa1e0a0eb",
+      "size": 228545,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_search_term_insight.json"
+    },
+    {
+      "fields": 156,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_shared_set.json",
+      "sha256": "4db544c5bea5289f44a59c326323e34ba650455c9124c47c82f2f18b5638765b",
+      "size": 159547,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_shared_set.json"
+    },
+    {
+      "fields": 156,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_simulation.json",
+      "sha256": "d595ce63acf43f6f004de8352bb2454374539543e5ec064b32e0a45c4941cba9",
+      "size": 160375,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/campaign_simulation.json"
+    },
+    {
+      "fields": 4,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/carrier_constant.json",
+      "sha256": "9f7ff2ca4a208fa271eb0957c1f31f8ec904c08ce80f0df1e19fc3dd74f42c54",
+      "size": 3423,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/carrier_constant.json"
+    },
+    {
+      "fields": 428,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/change_event.json",
+      "sha256": "ac5df396aeefd1c3b921d82e4e2afc6c370910595b59186016a2ceb9dbe2e877",
+      "size": 406580,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/change_event.json"
+    },
+    {
+      "fields": 477,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/change_status.json",
+      "sha256": "949efda21e87dc72e1a2bb4c809c0d2edce9d3837e44bd6a17457b5e92c6d9b8",
+      "size": 451174,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/change_status.json"
+    },
+    {
+      "fields": 299,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/channel_aggregate_asset_view.json",
+      "sha256": "d12db2ebc919bf87d526ddc751d1922ce351ac995c7c8077137f403277b59082",
+      "size": 1307200,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/channel_aggregate_asset_view.json"
+    },
+    {
+      "fields": 214,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/click_view.json",
+      "sha256": "e374f1deecf7d28b537fe38c465f442a3fef5ae7603d741148a1f8a61f60695e",
+      "size": 296849,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/click_view.json"
+    },
+    {
+      "fields": 39,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/combined_audience.json",
+      "sha256": "546fe13c7da877fd2a473a1321737d783df76cd93fbcd442f0810c074f702a01",
+      "size": 37259,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/combined_audience.json"
+    },
+    {
+      "fields": 367,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/content_criterion_view.json",
+      "sha256": "52b91a073e45f827ad39164f2300bb3ec72bd452d05193f7c18518a2f009ba20",
+      "size": 776368,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/content_criterion_view.json"
+    },
+    {
+      "fields": 73,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_action.json",
+      "sha256": "3b2aafaee22c4f4e33abebc3c8a8b8f4d5e863fa30e1fe7a361b3d28f36bcd89",
+      "size": 159583,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_action.json"
+    },
+    {
+      "fields": 40,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_custom_variable.json",
+      "sha256": "ba4e230af85cdf877a2bfd57fcf4e2f7fa5f017f2a8aecea8f6af6469ca73d74",
+      "size": 38920,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_custom_variable.json"
+    },
+    {
+      "fields": 154,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_goal_campaign_config.json",
+      "sha256": "2e4a59d15d5fb79d38e0081716d9661f05f6dc5dd8bc50f6e272e9811e5a0ed0",
+      "size": 157550,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_goal_campaign_config.json"
+    },
+    {
+      "fields": 58,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_value_rule.json",
+      "sha256": "608239bbb3a67d582db4feb4b341bb5c0bf41d926a31ecef8e7c499d3a6ab487",
+      "size": 54746,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_value_rule.json"
+    },
+    {
+      "fields": 43,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_value_rule_set.json",
+      "sha256": "0e22c8adec15d9a57b52d3ed8fda2d4dbe1a0f9be15980b969ebf3a970edda28",
+      "size": 42986,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/conversion_value_rule_set.json"
+    },
+    {
+      "fields": 5,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/currency_constant.json",
+      "sha256": "af2bcef936fe0846aff7c255d5e82dc471837d3023194b4fdb8ed644424bf55f",
+      "size": 4221,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/currency_constant.json"
+    },
+    {
+      "fields": 41,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/custom_audience.json",
+      "sha256": "8cf41af5bf695d344548b285ea86e8853c584857899d5e879a5f4525c91e0ff8",
+      "size": 39477,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/custom_audience.json"
+    },
+    {
+      "fields": 39,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/custom_conversion_goal.json",
+      "sha256": "035578d9b5d56d4fe3023168f7d7dbc4036bbbd1598bcae0271dad7fc817a155",
+      "size": 37288,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/custom_conversion_goal.json"
+    },
+    {
+      "fields": 41,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/custom_interest.json",
+      "sha256": "0dfdc02f19b52faf8edb79c7be5a7934341bd4ed25bd9d7c0a49a6064c80b718",
+      "size": 39204,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/custom_interest.json"
+    },
+    {
+      "fields": 178,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer.json",
+      "sha256": "0373b39dbd444c34dc3c398077b4344bd9f3898930a674af8b3198011b7626b0",
+      "size": 970371,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer.json"
+    },
+    {
+      "fields": 472,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_asset.json",
+      "sha256": "1761e2710ddbd8ff912337d40ab945883f21a1124dcb9c7f4d1a111f0445740b",
+      "size": 802140,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_asset.json"
+    },
+    {
+      "fields": 57,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_asset_set.json",
+      "sha256": "e63236ed242fbd60d7831a7f29a16110fd92a9f446d15e02167598fb5146e0ba",
+      "size": 55463,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_asset_set.json"
+    },
+    {
+      "fields": 46,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_client.json",
+      "sha256": "74ba36db8b148343dd439d9207f86ff24c021c4850dd607f9e8e4f04c0038221",
+      "size": 43167,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_client.json"
+    },
+    {
+      "fields": 39,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_client_link.json",
+      "sha256": "5d7bad0b75fd596b6f9f7c8ba9116824e233d3d85c3396384238fa602c328f71",
+      "size": 37442,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_client_link.json"
+    },
+    {
+      "fields": 38,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_conversion_goal.json",
+      "sha256": "457a2821f8dd0ee10455bbdbac874af4d79ff093088eba284d437fd53df84dfd",
+      "size": 37774,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_conversion_goal.json"
+    },
+    {
+      "fields": 44,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_customizer.json",
+      "sha256": "0555a124b4df53082ae9099e89778b8dc5630fb500e251db4477dd3d4200a0cd",
+      "size": 42423,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_customizer.json"
+    },
+    {
+      "fields": 37,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_label.json",
+      "sha256": "06a23a8a2d427193057bd4b8552c36cd51d8e4d7d3717110e220cf579d5a3f0b",
+      "size": 35870,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_label.json"
+    },
+    {
+      "fields": 38,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_lifecycle_goal.json",
+      "sha256": "a03f1cd0d6c96beff49c1256cb48aeb58b3b77962932ac6249af612fb06b99a5",
+      "size": 36887,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_lifecycle_goal.json"
+    },
+    {
+      "fields": 38,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_manager_link.json",
+      "sha256": "30b5da3d2d2ae95e42bd3d8ac786f44ffa4cededcafe91a989f9c2b30d9f12cf",
+      "size": 36624,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_manager_link.json"
+    },
+    {
+      "fields": 56,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_negative_criterion.json",
+      "sha256": "9c48e0e5f2392cab5ea792f07c297f9f5d66f78843423d631fe0275f37cc73a4",
+      "size": 55474,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_negative_criterion.json"
+    },
+    {
+      "fields": 14,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_search_term_insight.json",
+      "sha256": "c5f8f81fdb82d3aedf9030e36c8f958f93a9c019df50f45512372d3b1df8d5f4",
+      "size": 76120,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_search_term_insight.json"
+    },
+    {
+      "fields": 40,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_user_access.json",
+      "sha256": "cf084e830b01df119b474cfd2b9ba6e667bece2354499ceacb9628ac8c910033",
+      "size": 38253,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_user_access.json"
+    },
+    {
+      "fields": 40,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_user_access_invitation.json",
+      "sha256": "906d00bff1ff964691066e727c86d49bd89f54cb924d8094d6117556da5e99ba",
+      "size": 38759,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customer_user_access_invitation.json"
+    },
+    {
+      "fields": 39,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customizer_attribute.json",
+      "sha256": "d02055aecc5bcc4cdcde428d66a956162019141c5e6a23882a8ae14701ff7a39",
+      "size": 37825,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/customizer_attribute.json"
+    },
+    {
+      "fields": 47,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/data_link.json",
+      "sha256": "52a5584a6d800afd26ef9d9eb1fa177cfec0ea3cadab48c0d28aab441fbb8535",
+      "size": 45662,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/data_link.json"
+    },
+    {
+      "fields": 245,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/detail_placement_view.json",
+      "sha256": "552d8ee8d8e8b0c295137cb4c6458240684653256a0d7810ee0f2c678fe1532a",
+      "size": 581854,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/detail_placement_view.json"
+    },
+    {
+      "fields": 40,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/detailed_demographic.json",
+      "sha256": "efa50378f0bffb65fec2a4c675a4fda0347d319f66983fc00cb976ea37da2525",
+      "size": 38032,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/detailed_demographic.json"
+    },
+    {
+      "fields": 367,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/display_keyword_view.json",
+      "sha256": "5ecb39184191112e243680e7d338934b67a3ca40f7bb242cc3c641ab7f05f6d1",
+      "size": 777139,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/display_keyword_view.json"
+    },
+    {
+      "fields": 179,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/distance_view.json",
+      "sha256": "f39c08163d734c3b2ac4a5e48a9721b8c548611c125c3b1a6ed79b9bf3ee28bd",
+      "size": 475628,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/distance_view.json"
+    },
+    {
+      "fields": 154,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/domain_category.json",
+      "sha256": "838568f55e7a611afd5e6b73ebc8cc0592874e276e01dfe94c9542ab0284c28c",
+      "size": 157554,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/domain_category.json"
+    },
+    {
+      "fields": 225,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/dynamic_search_ads_search_term_view.json",
+      "sha256": "64af384bfb9ff2f08d05bbab0da9b9bd83dae7b25cfce5c884a5ff284a0319eb",
+      "size": 491348,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/dynamic_search_ads_search_term_view.json"
+    },
+    {
+      "fields": 248,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/expanded_landing_page_view.json",
+      "sha256": "1760ab33a940ffc833492e28f32560c256f9269659ce793fc9951802afab99ee",
+      "size": 617042,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/expanded_landing_page_view.json"
+    },
+    {
+      "fields": 47,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/experiment.json",
+      "sha256": "ff1a1a6320ccf135837f8eedde983d0a0eb83acd26ab0f89f56ce31920f0f138",
+      "size": 45231,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/experiment.json"
+    },
+    {
+      "fields": 54,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/experiment_arm.json",
+      "sha256": "08943e6e8f6513e3e1b16afbed6988c78fd6bae337d2b28a8ca3b97e2a28029e",
+      "size": 50945,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/experiment_arm.json"
+    },
+    {
+      "fields": 368,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/gender_view.json",
+      "sha256": "e679ec226d5c36d69e1304b3be488ceed9c7af6e0f8d74e0806894dc924a5582",
+      "size": 784603,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/gender_view.json"
+    },
+    {
+      "fields": 8,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/geo_target_constant.json",
+      "sha256": "f44384d0565aa539b55b25c11d950905d33093e49fae898e2aa1209562f7d51e",
+      "size": 6930,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/geo_target_constant.json"
+    },
+    {
+      "fields": 242,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/geographic_view.json",
+      "sha256": "c7bc20679127b5ce829fefad31852cd9d5aed280f35db76c9d9b4e1b7274f511",
+      "size": 591358,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/geographic_view.json"
+    },
+    {
+      "fields": 243,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/group_placement_view.json",
+      "sha256": "359ee7e575a020e579a26bb027dacd1945cba9ae0868c91972d13d978be4e4b1",
+      "size": 595768,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/group_placement_view.json"
+    },
+    {
+      "fields": 321,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/hotel_group_view.json",
+      "sha256": "7ac3f7bc2f66f92543987b1bc93fad4931cec9c148f63744cc6bcf249a4163cf",
+      "size": 579237,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/hotel_group_view.json"
+    },
+    {
+      "fields": 214,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/hotel_performance_view.json",
+      "sha256": "401bbba893112ac27a4544276d6f4022c9fb1b5a17b8b748d1e2dec5f8c8f2d6",
+      "size": 565368,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/hotel_performance_view.json"
+    },
+    {
+      "fields": 160,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/hotel_reconciliation.json",
+      "sha256": "561964732e641b29c353fdd25245c54dd286773e882d1c78cac7a0093c203888",
+      "size": 185881,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/hotel_reconciliation.json"
+    },
+    {
+      "fields": 339,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/income_range_view.json",
+      "sha256": "f3d93877677d17cd7621f07e2b6aecbbf44449fdd1e7aa616892d85c7023db68",
+      "size": 703275,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/income_range_view.json"
+    },
+    {
+      "fields": 38,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan.json",
+      "sha256": "e7e098cad2364757a7d4b5d3910f47219c479e7021f60c9e46bcb3b14fdc3604",
+      "size": 36282,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan.json"
+    },
+    {
+      "fields": 52,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan_ad_group.json",
+      "sha256": "8b625c06417aa53780bec68ee8fd26ba1b3a72452c1da222249936d6daa800dd",
+      "size": 48303,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan_ad_group.json"
+    },
+    {
+      "fields": 59,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan_ad_group_keyword.json",
+      "sha256": "48f52d732c2d180e70d712014b03e12a4e1950937d66d54706f57b4d7a14d4de",
+      "size": 54483,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan_ad_group_keyword.json"
+    },
+    {
+      "fields": 47,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan_campaign.json",
+      "sha256": "3b7bc01dfdf5ac696f1bc0beab5d50246ea40c4abeaff6baa6c064dd35655b2d",
+      "size": 44072,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan_campaign.json"
+    },
+    {
+      "fields": 53,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan_campaign_keyword.json",
+      "sha256": "74e794d906cdb056cc39aa2fce63ed60587f03df9f153e5044acec59e377d9b8",
+      "size": 49316,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_plan_campaign_keyword.json"
+    },
+    {
+      "fields": 4,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_theme_constant.json",
+      "sha256": "57e95ee7a2edfef1e3349d0c38c72a9b798b1f6ea0ac6d735598b838d4df2396",
+      "size": 3776,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_theme_constant.json"
+    },
+    {
+      "fields": 443,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_view.json",
+      "sha256": "fcd901865b057a751a0df09a7f82620b996d18b5bb6651899c92ab74304ba49b",
+      "size": 998100,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/keyword_view.json"
+    },
+    {
+      "fields": 40,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/label.json",
+      "sha256": "fa29a76fc2e99457316b7f863c8c4987357b3d9d05735d8b35cc47b4ac3950c3",
+      "size": 37907,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/label.json"
+    },
+    {
+      "fields": 248,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/landing_page_view.json",
+      "sha256": "deeedca408f341f10da8cd6f328cec4cc785e83779fb7231722687339a62bf1d",
+      "size": 617026,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/landing_page_view.json"
+    },
+    {
+      "fields": 5,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/language_constant.json",
+      "sha256": "f40fe8cb994f7740fa1eac43aafff2b6f0f866e39378bc4bdc3defec48ab485b",
+      "size": 4155,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/language_constant.json"
+    },
+    {
+      "fields": 645,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/lead_form_submission_data.json",
+      "sha256": "f98d13e86cb77253c137236f02896cdb15ea1f67d03a0cd70883939d0fb852e7",
+      "size": 600199,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/lead_form_submission_data.json"
+    },
+    {
+      "fields": 6,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/life_event.json",
+      "sha256": "d62a6f86646909799f293ccff3369247a63a673281d41cdeb9c76badb5452a28",
+      "size": 4958,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/life_event.json"
+    },
+    {
+      "fields": 51,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/local_services_employee.json",
+      "sha256": "d523dff39831a58d53f04e40293bc3cd24424f0a74387df0f2079253d1e250fe",
+      "size": 47768,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/local_services_employee.json"
+    },
+    {
+      "fields": 49,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/local_services_lead.json",
+      "sha256": "f99790997bf968e75af98bdf9570e0b906dd0bcab4d2f484c9c0e5a08414db4f",
+      "size": 47133,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/local_services_lead.json"
+    },
+    {
+      "fields": 59,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/local_services_lead_conversation.json",
+      "sha256": "2c24201e56600243ada406297e24df5d9b15c21e9d93799c1bc49e489bdff78f",
+      "size": 56749,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/local_services_lead_conversation.json"
+    },
+    {
+      "fields": 57,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/local_services_verification_artifact.json",
+      "sha256": "6921ba6bcece2ada3aef922564b028d250488f8741ef82695da07ddff1599962",
+      "size": 58078,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/local_services_verification_artifact.json"
+    },
+    {
+      "fields": 254,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/location_view.json",
+      "sha256": "be431910c1a71cf102e2be07119be63cc8990e3f8b47ed3a9f566fdad1148ac7",
+      "size": 534700,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/location_view.json"
+    },
+    {
+      "fields": 367,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/managed_placement_view.json",
+      "sha256": "1b6df312f29836df6845a44af906a221409f567635c9324d9169c020ff5ac4e9",
+      "size": 776368,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/managed_placement_view.json"
+    },
+    {
+      "fields": 49,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/media_file.json",
+      "sha256": "cc41a722bb69331961c0789313fc84869d3e360db6a87ee073f9cea7b446f120",
+      "size": 45853,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/media_file.json"
+    },
+    {
+      "fields": 3,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/mobile_app_category_constant.json",
+      "sha256": "90b304458bd30a4533f1a1b36961a2738676d0f61f7e03bac7bcae2fd9a11a2b",
+      "size": 2751,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/mobile_app_category_constant.json"
+    },
+    {
+      "fields": 6,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/mobile_device_constant.json",
+      "sha256": "27c21c42c39bca5ccd4d72f7c5ce41be5887edeb441aaec07fb625db14f062b8",
+      "size": 5207,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/mobile_device_constant.json"
+    },
+    {
+      "fields": 46,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/offline_conversion_upload_client_summary.json",
+      "sha256": "255234beae933d462d82cc2d61d2d7e54d0c1c64a36208feb9a9b840bb34ceee",
+      "size": 44371,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/offline_conversion_upload_client_summary.json"
+    },
+    {
+      "fields": 46,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/offline_conversion_upload_conversion_action_summary.json",
+      "sha256": "617e9408cf0370f394dc902630d32420a5363aa0bdb479dbd98a7f79f3d246eb",
+      "size": 44912,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/offline_conversion_upload_conversion_action_summary.json"
+    },
+    {
+      "fields": 82,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/offline_user_data_job.json",
+      "sha256": "082d8151d87e936f060e97bd59b9727dc1929aaf469af39c06554ab363c120c8",
+      "size": 83525,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/offline_user_data_job.json"
+    },
+    {
+      "fields": 6,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/operating_system_version_constant.json",
+      "sha256": "2a59834a535c4a7084f1247ad1c0cd68f417fb7970700c9a55dc50e19b0b36f5",
+      "size": 5868,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/operating_system_version_constant.json"
+    },
+    {
+      "fields": 214,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/paid_organic_search_term_view.json",
+      "sha256": "c4fa9474b49808fcaf66b0606b81802858b652b7921075e193245623c1a16d71",
+      "size": 397862,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/paid_organic_search_term_view.json"
+    },
+    {
+      "fields": 382,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/parental_status_view.json",
+      "sha256": "61b9fb4d4a51ce364df31481cf6ff6ad47dc1479e4e7ae0c4bd4b8c6a5c4f5c8",
+      "size": 746491,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/parental_status_view.json"
+    },
+    {
+      "fields": 170,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/per_store_view.json",
+      "sha256": "30433cfd20ba880710dc320d4ec6d58ab7a3f91f8a7213c1de519199f52fee39",
+      "size": 318512,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/per_store_view.json"
+    },
+    {
+      "fields": 152,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/performance_max_placement_view.json",
+      "sha256": "87426726adc127a608187a8781de6e0593822b2bce2d7b22b0d5e26eb3d1e1e1",
+      "size": 183408,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/performance_max_placement_view.json"
+    },
+    {
+      "fields": 6,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/product_category_constant.json",
+      "sha256": "6e431cb7a23ab7963fe6dc5bdc087c89ef68a53df04e99e55e1c6bb148f9a10e",
+      "size": 5965,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/product_category_constant.json"
+    },
+    {
+      "fields": 335,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/product_group_view.json",
+      "sha256": "3d64e9599e85a4c9b56f72e25709923f28a961c2ebca62197ed57ccfe7dc427e",
+      "size": 700207,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/product_group_view.json"
+    },
+    {
+      "fields": 41,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/product_link.json",
+      "sha256": "b00311f81fed6ec8dbb27147918211aba339c03d7c03504ae5600df5c0ea57c6",
+      "size": 40364,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/product_link.json"
+    },
+    {
+      "fields": 41,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/product_link_invitation.json",
+      "sha256": "046d0adf4f96f170b76b2b4a9c358c34794ccae10091a70e1f2a5ec9264cd843",
+      "size": 39901,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/product_link_invitation.json"
+    },
+    {
+      "fields": 4,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/qualifying_question.json",
+      "sha256": "2be17a1973c2ef0b1969d94403fbf58beb3077c72c6ea4c219ead4846c831dcf",
+      "size": 3364,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/qualifying_question.json"
+    },
+    {
+      "fields": 268,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/recommendation.json",
+      "sha256": "4d823e3bf83dd6cf83cc6169c13496eb6e5e12253e71a3a0ee4ef005d0efce87",
+      "size": 273563,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/recommendation.json"
+    },
+    {
+      "fields": 39,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/recommendation_subscription.json",
+      "sha256": "ad2bf43ac6f124448cf50d3c446d063dd13f3ca3995f2879a4b74d8ff602d674",
+      "size": 40441,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/recommendation_subscription.json"
+    },
+    {
+      "fields": 38,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/remarketing_action.json",
+      "sha256": "dadb8b2deb7b4ba3455c744e6c9f7d772bf295a09877c41f1dac0d06dc1cc92a",
+      "size": 36493,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/remarketing_action.json"
+    },
+    {
+      "fields": 467,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/search_term_view.json",
+      "sha256": "2d24517d3360e77cc33dc993205191270586256cb353163887055457cf0ffb45",
+      "size": 812492,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/search_term_view.json"
+    },
+    {
+      "fields": 65,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/shared_criterion.json",
+      "sha256": "567a5f09fb0b7c4e799a6cb37786774e79e177fbe33af4c0c9d10e43ec934860",
+      "size": 62403,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/shared_criterion.json"
+    },
+    {
+      "fields": 156,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/shared_set.json",
+      "sha256": "5d0678f17f8dee7be98464c470967cd07c4ff0116937c80d5777a2b7c986a5e4",
+      "size": 159528,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/shared_set.json"
+    },
+    {
+      "fields": 265,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/shopping_performance_view.json",
+      "sha256": "0960d72eb5e6b9c0860dc634946b5a55363326595402040a76e61b1ba4b9f268",
+      "size": 719523,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/shopping_performance_view.json"
+    },
+    {
+      "fields": 265,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/shopping_product.json",
+      "sha256": "1f0091bf42d022c9250b8274fe8fe9a2763c757a602b12a3ca819aaea063f6bb",
+      "size": 519993,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/shopping_product.json"
+    },
+    {
+      "fields": 158,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/smart_campaign_search_term_view.json",
+      "sha256": "896b690c4b990159a2af60d0a332ff30cdeb6aa5b52716c6c52090aae492c367",
+      "size": 298003,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/smart_campaign_search_term_view.json"
+    },
+    {
+      "fields": 154,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/smart_campaign_setting.json",
+      "sha256": "499fa935145466153e8019c9e36b82de15520cc78db0a9fa498eb91b7d29653b",
+      "size": 157612,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/smart_campaign_setting.json"
+    },
+    {
+      "fields": 43,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/third_party_app_analytics_link.json",
+      "sha256": "7bde9ffa3d5f0c924fb5330b69bc72279f69802c9c19e63a73e38b89699f3599",
+      "size": 42470,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/third_party_app_analytics_link.json"
+    },
+    {
+      "fields": 4,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/topic_constant.json",
+      "sha256": "d55efea7958689787c2ca0f9af284bdd6b5a1f811972520726a26334983d8329",
+      "size": 3857,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/topic_constant.json"
+    },
+    {
+      "fields": 367,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/topic_view.json",
+      "sha256": "679f4e7289c96a53700fcb0ee3e8b30fa5cc8f98b2652aa9838e5d5aba093bc9",
+      "size": 776261,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/topic_view.json"
+    },
+    {
+      "fields": 318,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/travel_activity_group_view.json",
+      "sha256": "f47fc3f8d4472250da22ffc910a97216a76d9a4e6b85093eb05db21e206205db",
+      "size": 571441,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/travel_activity_group_view.json"
+    },
+    {
+      "fields": 200,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/travel_activity_performance_view.json",
+      "sha256": "397a6872171e63f196e343ddd6a51bb73d033da3afb51fdc87a90990e0402d8e",
+      "size": 499598,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/travel_activity_performance_view.json"
+    },
+    {
+      "fields": 7,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/user_interest.json",
+      "sha256": "53ca8b2670178b828d4a57f0a01df3cd486a081095beb69b33ce98edc23154d3",
+      "size": 6140,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/user_interest.json"
+    },
+    {
+      "fields": 66,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/user_list.json",
+      "sha256": "4c03dd4b8648eb6024406cf53cd0a4d1f93bc5bcd5a14f10566a96d86fb70a8e",
+      "size": 67118,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/user_list.json"
+    },
+    {
+      "fields": 37,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/user_list_customer_type.json",
+      "sha256": "9fe5e707c2eb5ab572f71c0bd290c01ca36b3b5674e1ffafd3063333b5ebb91e",
+      "size": 36451,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/user_list_customer_type.json"
+    },
+    {
+      "fields": 240,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/user_location_view.json",
+      "sha256": "d75323b6c154081b1c6739e5dd6ba3dc650c9e65d9649e2ed8a3fc39823cc882",
+      "size": 583590,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/user_location_view.json"
+    },
+    {
+      "fields": 458,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/video.json",
+      "sha256": "04fb3391c3de14762742fed19e72c7865c1f0e7f69b22db7e51e8c13042b4bac",
+      "size": 776514,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/video.json"
+    },
+    {
+      "fields": 337,
+      "resolved_url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/webpage_view.json",
+      "sha256": "f2ece78326735e5c366a35f03b163c4adc2ef6509f4697e0360f14685e363e55",
+      "size": 709323,
+      "url": "https://gaql-query-builder.uc.r.appspot.com/schemas/v20/webpage_view.json"
+    }
+  ]
+}

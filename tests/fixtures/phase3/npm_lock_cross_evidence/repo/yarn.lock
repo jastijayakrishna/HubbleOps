@@ -1,0 +1,6 @@
+# yarn lockfile v1
+
+google-ads-node@^24.0.0:
+  version "24.1.0"
+  resolved "https://registry.npmjs.org/google-ads-node/-/google-ads-node-24.1.0.tgz"
+  integrity sha512-c3ludGhldGljLXByb3ZpdmVkZXItZGVwZW5kZW5jeS1maXh0dXJl

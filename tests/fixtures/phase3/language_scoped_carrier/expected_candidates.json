@@ -1,0 +1,40 @@
+{
+  "fixture_id": "language_scoped_carrier",
+  "phase": 3,
+  "candidates": [
+    {
+      "id": "markdown_namespace_reference",
+      "path": "reference_notes.md",
+      "language": "markdown",
+      "claim_type": "surface_reference",
+      "provider_subject": "google.ads.googleads",
+      "status": "UNKNOWN",
+      "observer": "text",
+      "confidence": "RAW"
+    },
+    {
+      "id": "typescript_namespace_data",
+      "path": "namespace_data.ts",
+      "language": "typescript",
+      "claim_type": "surface_reference",
+      "provider_subject": "google.ads.googleads",
+      "status": "UNKNOWN",
+      "observer": "text",
+      "confidence": "RAW"
+    }
+  ],
+  "must_not_emit": [
+    {
+      "path": "reference_notes.md",
+      "claim_type": "call_version",
+      "provider_subject": "v22",
+      "status": "AFFECTED"
+    },
+    {
+      "path": "namespace_data.ts",
+      "claim_type": "call_version",
+      "provider_subject": "v22",
+      "status": "AFFECTED"
+    }
+  ]
+}

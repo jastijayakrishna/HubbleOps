@@ -142,7 +142,7 @@ def test_exposure_reports_the_surface_the_run_recorded_not_the_one_on_disk(
     state = tmp_path / "state"
     run_scan(state)
     capsys.readouterr()
-    recorded = registry.load_pack("google_ads").surface.surface_hash()
+    recorded = registry.load_pack("google_ads").changes.lattice_hash
 
     def refuse(name: str) -> registry.LoadedPack:
         raise AssertionError("the map must render from the stored run, not the pack on disk")

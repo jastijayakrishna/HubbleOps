@@ -1,0 +1,15 @@
+{
+  "fixture_id": "python_rest_query_wrapper",
+  "unknowns": [
+    {
+      "candidate_id": "multiline_query_skeleton",
+      "candidate_status": "UNKNOWN",
+      "disposition": "PRESERVED_UNKNOWN",
+      "reason": "UNKNOWN_QUERY_HOLE",
+      "holes": [
+        "day_count"
+      ],
+      "close_with": "Capture the executed request during a representative test or production telemetry run and bind the observed request text to this source hash."
+    }
+  ]
+}

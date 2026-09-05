@@ -38,6 +38,10 @@ class PackNotFound(HubbleOpsError):
     pass
 
 
+class PackDataError(HubbleOpsError):
+    pass
+
+
 class UnknownClaimType(HubbleOpsError):
     def __init__(self, claim_type: str) -> None:
         super().__init__(
@@ -59,8 +63,7 @@ class UnknownNotConserved(HubbleOpsError):
         super().__init__(
             f"UNKNOWN_CONSERVATION (law L3): candidate {candidate_id} is {was} and this write "
             f"closes it to {now} without attaching evidence that was not already there. "
-            "An UNKNOWN closes only with new evidence or a recorded human decision "
-            "(`hops decide <candidate_id> --value <value> --by <name>`)."
+            "An UNKNOWN closes only with new evidence or recorded human-decision evidence."
         )
         self.candidate_id = candidate_id
         self.was = was
@@ -103,14 +106,25 @@ class EvidenceIdentityMismatch(HubbleOpsError):
         self.derived = derived
 
 
+class CandidateIdentityMismatch(HubbleOpsError):
+    def __init__(self, offered: str, derived: tuple[str, ...]) -> None:
+        expected = ", ".join(derived) if derived else "no identity"
+        super().__init__(
+            f"CANDIDATE_IDENTITY_MISMATCH: candidate offered under id {offered} derives "
+            f"{expected} from its attached evidence. A candidate id is the hash of its provider, "
+            "claim type, and claim key; attached evidence must describe one identity."
+        )
+        self.offered = offered
+        self.derived = derived
+
+
 class AiEvidenceAlone(HubbleOpsError):
     def __init__(self, candidate_id: str, was: str, now: str) -> None:
         super().__init__(
             f"AI_EVIDENCE_ALONE (law L10): candidate {candidate_id} is {was} and this write "
             f"closes it to {now} on evidence that is entirely DERIVED_AI_EVIDENCE. "
             "AI-derived evidence cannot alone change a candidate's status or close an UNKNOWN; "
-            "attach an observation, or record a human decision "
-            "(`hops decide <candidate_id> --value <value> --by <name>`)."
+            "attach an observation or recorded human-decision evidence."
         )
         self.candidate_id = candidate_id
         self.was = was
@@ -139,6 +153,51 @@ class ProofScopeMismatch(HubbleOpsError):
         self.record_id = record_id
         self.run_scope = run_scope
         self.record_scope = record_scope
+
+
+class EvidenceContextMismatch(HubbleOpsError):
+    def __init__(self, record_id: str, field: str, expected: object, offered: object) -> None:
+        super().__init__(
+            f"EVIDENCE_CONTEXT_MISMATCH (law L4): evidence {record_id} carries {field}="
+            f"{offered!r}, but its run's ProofScope carries {expected!r}. Evidence cannot be "
+            "relabeled across a repository or dependency context."
+        )
+        self.record_id = record_id
+        self.field = field
+        self.expected = expected
+        self.offered = offered
+
+
+class RunProviderMismatch(HubbleOpsError):
+    def __init__(self, record_id: str, expected: str, offered: str) -> None:
+        super().__init__(
+            f"RUN_PROVIDER_MISMATCH: candidate {record_id} carries provider {offered!r}, "
+            f"but its run carries {expected!r}. The run provider is authoritative."
+        )
+        self.record_id = record_id
+        self.expected = expected
+        self.offered = offered
+
+
+class RunIdentityMismatch(HubbleOpsError):
+    def __init__(self, offered: str, derived: str) -> None:
+        super().__init__(
+            f"RUN_IDENTITY_MISMATCH: run offered under id {offered} derives {derived} from its "
+            "ProofScope, provider, verb, and target. A run id cannot be caller-selected."
+        )
+        self.offered = offered
+        self.derived = derived
+
+
+class RunNotFound(HubbleOpsError):
+    def __init__(self, kind: str, record_id: str, run_id: str) -> None:
+        super().__init__(
+            f"RUN_NOT_FOUND: {kind} {record_id} names run {run_id}, but that run does not "
+            "exist. Start the run before offering records so their context can be verified."
+        )
+        self.kind = kind
+        self.record_id = record_id
+        self.run_id = run_id
 
 
 class StoreSchemaMismatch(HubbleOpsError):

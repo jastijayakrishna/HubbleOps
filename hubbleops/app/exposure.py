@@ -18,24 +18,25 @@ def render(
     *,
     ledger: Ledger,
     pack_name: str,
-    surface_hash: str,
+    changes_hash: str,
     target: str,
+    repository: str,
     repo_sha: str | None,
     expand_not_affected: bool = False,
 ) -> str:
     counts = ledger.counts()
     detected = _detected_versions(ledger)
     lines: list[str] = []
-    lines.append(f"HubbleOps — {pack_name.replace('_', ' ').upper()} EXPOSURE MAP")
+    lines.append(f"HubbleOps — {pack_name.replace('_', ' ').strip().upper()} EXPOSURE MAP")
     lines.append("")
     lines.append(
-        f"Repository   {_fit(_repo_label(target), 24)}"
+        f"Repository   {_fit(_repo_label(repository), 24)}"
         f"Commit  {repo_sha[:7] if repo_sha else 'not a git tree'}"
     )
-    lines.append(f"Detected     {_fit(detected, 24)}Target  {_no_change_pack()}")
+    lines.append(f"Detected     {_fit(detected, 24)}Target  {target}")
     lines.append(
         f"ProofScope   {_fit(short_scope(ledger.proof_scope_hash), 24)}"
-        f"Pack    {pack_name}@{surface_hash[:8]}"
+        f"Pack    {pack_name}@{changes_hash[:8]}"
     )
     lines.append("")
     lines.append(RULE)
@@ -74,10 +75,6 @@ def render(
     lines.append(f"NOT AFFECTED (with evidence)   {len(not_affected)}   [expand]")
     if expand_not_affected:
         lines.extend(_plain_block(ledger, not_affected))
-    excluded = ledger.by_status("EXCLUDED_WITH_EVIDENCE")
-    lines.append(f"EXCLUDED (with evidence)       {len(excluded)}   [expand]")
-    if expand_not_affected:
-        lines.extend(_plain_block(ledger, excluded))
     lines.append("")
     return "\n".join(lines) + "\n"
 
@@ -157,28 +154,26 @@ def _provenance(records: Sequence[Mapping[str, Any]]) -> str:
 
 
 def _detected_versions(ledger: Ledger) -> str:
-    versions = sorted(
-        {
-            str(record["provider_subject"])
-            for record in ledger.evidence
-            if record["claim_type"] == "call_version" and record["provider_subject"]
-        }
-    )
-    sdk = sorted(
-        {
-            version
-            for record in ledger.evidence
-            if record["claim_type"] == "sdk_installed"
-            for version in [as_text(as_mapping(record["value"]).get("version"))]
-            if version
-        }
-    )
-    parts = versions + [f"sdk {item}" for item in sdk]
+    counts: dict[str, int] = {}
+    unknown = 0
+    for record in ledger.evidence:
+        if record["claim_type"] != "call_version":
+            continue
+        version = as_text(record["provider_subject"])
+        if version is None:
+            unknown += 1
+            continue
+        normalized = version.lower()
+        counts[normalized] = counts.get(normalized, 0) + 1
+    parts = [f"{version} ({counts[version]})" for version in sorted(counts, key=_version_key)]
+    if unknown:
+        parts.append(f"UNKNOWN ({unknown})")
     return ", ".join(parts) if parts else "no version literal resolved"
 
 
-def _no_change_pack() -> str:
-    return "no Change Pack in this ProofScope"
+def _version_key(value: str) -> tuple[int, str]:
+    suffix = value[1:] if value.startswith("v") else ""
+    return (int(suffix), value) if suffix.isdigit() else (10**9, value)
 
 
 def _repo_label(target: str) -> str:

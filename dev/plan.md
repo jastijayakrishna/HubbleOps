@@ -1,192 +1,323 @@
-# Plan — Phase 1 — Source Closure + text/dependency observers + Ledger + Exposure Map
+# Plan — Phase 2 — Google Ads Provider Pack and offline Change Pack lattice
 
-Written in **plan mode**, before any edit. Overwritten at the start of each phase (the previous
-phase's plan is in git history).
+Written before implementation on `phase-02-google-ads-pack-and-change-pack`. Every question is
+answered below. A fresh reviewer must approve this plan before implementation starts.
 
-**Every OPEN QUESTION must be answered in this file before leaving plan mode.** A guessed answer is
-a design decision you didn't make. Then a fresh session runs
-[plan review](../prompts/cross-cutting/plan-review.md) against it.
+## Scope and maturity
 
----
+**Classification:** Build. Phase 1 has a fresh `GATE: PASS`; Phase 2 is permitted by frozen
+Architecture §3.1 and §7.1 and accepted proposals P-005 through P-008.
 
-## Approach
+**Outcome:** HubbleOps can load complete `_mock` and `google_ads` ProviderPacks, reproduce a
+provenance-bearing Google Ads contract lattice for major versions v19 through the current major,
+compute adjacent and multi-hop changes without hand-authored diffs, parse wire and Cloud Console
+records without language-specific code, and prove validation requests cannot mutate provider state.
 
-One pipeline, assembled in `app/`, run by `hops scan`:
+**Current boundary:** On the 2026-09-04 source snapshot, `v25` is the current major endpoint and
+the v25 catalog includes the latest published backward-compatible v25 minor refresh. Minor releases
+refresh their major node because Google publishes endpoints and protos by major version; they do not
+become separate breaking-change nodes. The historical lattice still includes sunset v19-v21 because
+the phase explicitly requires v19 through current and real repositories still contain those calls.
 
-```
-pack (surface.yaml) ─► SurfaceSpec ──┐
-                                     ▼
-closure.build(root) ─► SourceClosure ─► observe.text.scan(closure, surface) ─┐
-                                     └► observe.deps.scan(closure, surface) ─┤
-                                                                             ▼
-                                              observe.resolver ─► observe.ledger.build ─► Ledger
-                                                                             │
-                                                        store/sqlite + artifacts ─► `hops exposure`
-```
+**Appetite and stop:** one phase branch, no production deployment, credentials, live oracle,
+obligations, verification verdicts, repair, capture hooks, or language rules. Stop on an
+unreconcilable frozen-contract conflict, a required production dependency, an unhashable source,
+or any path that could send a non-validation provider request.
 
-Generic layers receive `SurfaceSpec` as a parameter. `app/registry.py` is the only importer of
-`packs/`, and it discovers packs by directory listing — no provider name in `app/` either.
+## Evidence and rationale
 
-| DoD | How it is met |
+Official Google sources establish the node and ingestion decisions:
+
+- Versioning documents major endpoints as the compatibility boundary and minor versions as
+  backward-compatible updates to an existing endpoint.
+- The release and sunset pages identify v25 as the current major and provide release/sunset dates.
+- The upgrade page publishes version-to-version proto difference tables.
+- Google's Query Builder schemas expose current GoogleAdsFieldService metadata without credentials.
+  The removed v19 catalog comes from version-checked Internet Archive captures of every resource in
+  the official v19 overview; live FieldService calls are deliberately outside this offline gate.
+- The client-library page publishes the language/version compatibility table.
+- Google request-logging examples show the version in the gRPC/REST path. `x-goog-api-client`
+  identifies client runtime/library versions, not reliably the Google Ads API endpoint version.
+
+Accepted P-008 corrects P-006 safely: a wire observation may include `x-goog-api-client`, but the API
+version must come from the versioned request target. Header-only input and any conflicting signal
+return typed UNKNOWN with a reason; they are never guessed into a tuple or dropped.
+
+## Deliverables and boundaries
+
+### Provider contract
+
+`hubbleops/packs/_protocol.py` will contain typed, runtime-checkable protocols and immutable value
+records only for Version, typed wire parse results, catalog/diff results, and validation results.
+Future-slot protocols remain minimal. Protocol docstrings are the only new code docstrings/comments
+permitted by `CLAUDE.md`.
+
+Both packs expose one object satisfying the frozen ProviderPack slots:
+
+- `_mock` has the frozen two fixed nodes, a tiny hand-written source
+  catalog, deterministic diffs, an in-memory safe validator, REST wire parsing, CSV telemetry, and
+  explicit empty implementations for future-phase slots.
+- `google_ads` loads its existing surface plus the shipped source lattice, Google wire parser,
+  Cloud Console telemetry parser, safe ContractOracle, and explicit empty future-phase slots.
+
+`app/registry.py` is the only production importer of pack modules. Generic `core/`, `closure/`,
+`observe/`, `store/`, and later layers continue to receive pack parts as parameters and contain no
+provider name.
+
+### Hashed source and catalog pipeline
+
+`hubbleops/packs/google_ads/data/sources/` is the only offline compiler input. A canonical manifest
+binds every input file to SHA-256, retrieval time, upstream URL, version, and source kind. Inputs are
+normalized snapshots produced from:
+
+1. googleapis proto contents for v18-v25, where v18 exists only as the v19 comparison baseline;
+2. public per-version Google Ads field-reference metadata corresponding to
+   GoogleAdsFieldService: selectable, filterable, sortable, data_type, and selectable_with;
+3. structured claims from the official upgrade guide and release notes;
+4. client-library compatibility and release/sunset metadata.
+
+The implemented acquisition boundary uses Google's Query Builder `fields_index.json` plus every
+listed resource schema for v20-v25. It uses the official v19 overview as the complete 169-resource
+inventory and resolves version-checked Internet Archive captures for every resource. Truncated
+captures are rejected and alternate captures are tried. Original Google URLs and exact archive URLs
+are retained. A redirect or archive response containing a different major is a hard failure, never
+relabelled data. This evidence-driven refinement replaced the earlier tentative v20-v21 archive-page
+approach because the Query Builder publishes complete versioned schemas derived from FieldService.
+
+The refresh path retains fetched raw bytes, hashes them before parsing, and records the normalized
+snapshot hash beside the raw hash. The manifest records expected proto path/symbol counts and every
+field-reference resource/page/field count. Missing, duplicate, or unparsed inputs are fatal; each
+parser must account for its complete input inventory, so a reproducibly partial parse cannot pass.
+The offline build path performs no network calls, verifies every manifest hash before use, and emits sorted canonical
+`data/catalog_v19.jsonl` through `data/catalog_v25.jsonl`. Adding a new major is data-driven: add its
+manifest entries and source snapshots, then invoke the same compiler. No source-specific branch may
+name v25 as a special case.
+
+Every catalog fact contains `subject`, `kind`, normalized attributes, `source_url`, `retrieved_at`,
+`sha256`, and confidence `PROVEN` or `DOCUMENTED`, plus corroborating provenance where applicable.
+Applicability is mechanical: service, message, and enum facts are proto-only; a subject exposed by
+the field inventory requires both proto and field-source reconciliation. Proto-only structural facts
+are PROVEN only for those non-field kinds. A field/resource fact
+is PROVEN only when proto and field metadata agree. Guide/release-note, client-compatibility, and
+release/sunset facts are provider-documentation facts and therefore DOCUMENTED unless a second
+applicable source is explicitly reconciled.
+A missing counterpart, unequal normalized type, or unequal presence for an applicable subject is a
+material contradiction. It is retained as a typed pack conflict and yields
+`UNKNOWN_PROVIDER_CONTRACT`; the compiler never uses an LLM or chooses a convenient source.
+
+The build report records input hashes, per-version catalog hashes/counts, and the full lattice hash.
+Two offline builds from the same source directory must be byte-identical and have the same report.
+
+### Catalog, diff, and composition semantics
+
+`catalog(version)` validates the requested lattice node and reads exactly its catalog. Adjacent
+`diff(a,b)` is computed from normalized subject sets and attributes, annotated by structured docs,
+and cached under `sha256({ordered_from_catalog_hash, ordered_to_catalog_hash})`. Version labels are
+not cache authority. No diff data file is an authority.
+
+Non-adjacent `diff(a,c)` composes every ordered adjacent hop. A subject that survives every hop maps
+to the same result as `compose(diff(a,b), diff(b,c))`. Zero or one exact mapping may compose;
+multiple replacements, contradictory mappings, missing intermediate nodes, or a source conflict
+yield `UNKNOWN_PROVIDER_CONTRACT` with provenance. Removal without replacement remains removal and
+is not treated as ambiguous. Reverse diffs are rejected rather than inferred.
+
+Known v25 removals `CustomerLifecycleGoal` and `CampaignLifecycleGoal` and known current-v25 field
+addition `Campaign.aca_migration_date_time` must be computed from the v24/v25 catalogs with PROVEN
+confidence. A hand-checked v19→v25 fixture covers at least six consecutive hops and must match the
+composed result.
+
+### Validation safety
+
+The Google oracle first validates Search/GAQL field references against the selected local catalog.
+A field absent from a complete, conflict-free catalog is INVALID; incomplete or conflicting catalog
+state is `UNKNOWN_PROVIDER_CONTRACT`. It then accepts an injected `Transport`; the shipped default
+is unavailable and performs no I/O. Search uses `SearchGoogleAdsRequest` with `validate_only=true`.
+SearchStream queries are validated through the semantically equivalent Search validation endpoint,
+because `SearchGoogleAdsStreamRequest` has no validate-only field. Mutate validation always
+overwrites/sets `validate_only=true`, allows only known validation-capable operations, and has no API
+for a non-validation mutation. A fake transport records the exact call and operation.
+Missing credentials/transport, unsupported operation, provider error, or ambiguous catalog state
+returns `ORACLE_UNAVAILABLE` or `UNKNOWN_PROVIDER_CONTRACT`, never pass. Live Google execution is
+Phase 5.
+
+### Wire and telemetry
+
+The wire parser accepts normalized path plus headers and recognizes:
+
+- real gRPC paths such as
+  `/google.ads.googleads.v25.services.GoogleAdsService/SearchStream`;
+- REST paths such as `/v25/customers/123/googleAds:searchStream`;
+- only additional wire forms backed by retained official logged-path fixtures.
+
+Under accepted P-008, `x-goog-api-client` is accepted and tested as accompanying metadata but is
+never mistaken for an API version. Wire parsing returns a typed MATCH or UNKNOWN result; missing
+components, header-only input, and conflicting signals return UNKNOWN with a reason and the original
+input provenance, never absence.
+
+Telemetry accepts RFC 4180 CSV whose header is `Method`, `method`, or a qualified header ending in
+`.method`, matching the Google Ads API Dashboard Methods table and Cloud Monitoring CSV export. Each
+method cell must contain the documented fully-qualified
+`google.ads.googleads.vNN.services.Service.Method` value. Other metric columns are preserved as
+uninterpreted input. Every malformed row yields a typed issue carrying its row number and raw value
+while valid rows remain available; a missing method column is a file-level issue and no row
+disappears. Fixtures cite the Google Ads sunset-page Methods example and Cloud Monitoring's
+documented Download CSV workflow.
+
+### ProofScope and Exposure Map completion
+
+The full lattice hash and existing surface hash are composed into
+`provider_contract_hash = sha256({surface_hash, lattice_hash})`; neither can replace the other.
+Property tests mutate every surface field and every lattice node/fact and prove the proof key moves.
+The scan stores lattice/target metadata only in the existing non-frozen `runs.closure_json`; it does
+not add to ProofScope or overload the run target. Exposure reads only stored run data and never
+reopens a pack.
+
+The frozen Exposure Map is completed by normalizing version labels, printing per-version site
+counts plus `UNKNOWN (n)` and labelling the pack with the stored Change Pack lattice hash. A target
+is shown only when client-compatibility data resolves the installed SDK line; unresolved or multiple
+incompatible SDK lines print an explicit UNKNOWN target rather than hardcoding v25. The extra final
+`EXCLUDED` expansion line is removed while its Discovery count remains, per P-004.
+
+### CLI and packaging
+
+`hops pack verify google_ads` verifies manifest hashes, rebuilds catalogs in a temporary location,
+compares them byte-for-byte with shipped catalogs, checks the full lattice, performs no network I/O,
+and exits nonzero with a precise reason on tampering. A socket-denial guard makes any network attempt
+fail the test. `hops pack verify _mock` exercises the same contract-level checks where applicable.
+A built-wheel inspection and isolated install prove JSON/JSONL/YAML source and catalog data ship.
+
+## Definition-of-done mapping
+
+| DoD | Observable completion |
 |---|---|
-| 1 — schemas | `core/schemas/{evidence,candidate,obligation,proof_scope,receipt}.json`, draft 2020-12. `core/schema.py` compiles and caches validators; `core/records.py` validates on every construction *and* `store/sqlite.py` re-validates on every write. IDs = SHA-256 hex of canonical JSON (`core/canonical.py`: sorted keys, `(",",":")` separators, UTF-8). |
-| 2 — SurfaceSpec + pack | `packs/_protocol.py`: frozen `SurfaceSpec` dataclass (identifiers, hosts, package_names, version_carriers, request_languages, sink_argument_positions, config_env_keys) with `from_mapping`/`to_mapping`, plus the `ProviderPack` Protocol stub. `packs/google_ads/surface.yaml`, `packs/_mock/surface.yaml`. `app/registry.py:load_pack(name)`. |
-| 3 — closure | `closure/source_closure.py` walks the root, classifies every path `INSIDE / GENERATED / VENDORED / SUBMODULE / EXTERNAL_BOUNDARY / UNSCANNED` by a fixed, ordered rule list. Unreadable / undecodable / oversize / unclassifiable → `UNSCANNED` with a reason → `FILE_UNSCANNED` candidate. |
-| 4 — text observer | `observe/text.py` wraps `rg --json`, one invocation per surface pattern so every match is attributable. Zero provider strings. Evidence: `observer="text"`, `confidence="RAW"`, exact path / line / `source_hash`. |
-| 5 — deps observer | `observe/deps.py`: per-ecosystem parsers (python, js, php, java, dotnet, go, ruby) over manifests and locks found in the closure. Names normalised, matched against `surface.package_names`. Unparsable manifest / unpinned spec with no lock / no manifest at all → `DEPENDENCY_STATE_UNKNOWN`. Never "absent" without a parsed lock. |
-| 6 — ledger | `observe/ledger.py`: every Evidence attaches to exactly one Candidate (keyed by identity tuple, so attaching never loses provenance). Status comes from the resolver; `store` refuses to persist a candidate whose status is absent (schema `required`). `unexplained` is computed, and a non-zero value raises. |
-| 7 — resolver | `observe/resolver.py`: `CLAIM_PRECEDENCE` and `CLAIM_STATUS_RULES` keyed by `claim_type`. No module-level global ranking of evidence kinds exists anywhere. |
-| 8 — store | `store/sqlite.py`: WAL, `foreign_keys=ON`, tables `runs / evidence / candidates / obligations / checks / artifacts`; every row carries `run_id` + `proof_scope_hash`. `store/artifacts.py` writes tmp → `fsync` → `os.replace`. |
-| 9 — CLI | `app/cli.py` (argparse, plain text, no ANSI): `hops scan <repo> --pack <name>`, `hops exposure`. §4 layout, counts including `Unexplained`, a `close with:` line under every UNKNOWN. |
-| 10 — laws as tests | `tests/unit/test_imports.py` (AST-level import check), `tests/unit/test_no_provider_leak.py` + `tests/unit/provider_names.txt`. |
-| 11 — property tests | `tests/property/`: unexplained-free ledger (hypothesis), byte-identical reruns, `rg` absent → `TOOLING_MISSING`, two surfaces over one closure. |
-| 12 — fixtures | `tests/fixtures/phase1/` × 6 + `expected_candidates.json` each, compared on stable fields. |
+| 1. Full protocols and two packs | Runtime conformance suite parametrized over frozen two-node `_mock` and `google_ads`; every slot called and typed; Google supplies multi-hop composition coverage |
+| 2. v19-current catalogs from four source families | Seven canonical catalog files; retained raw/normalized hashes and expected inventory counts prove total parsing; facts span proto, field, docs, and compatibility sources with required provenance |
+| 3. Cross-check | Agreement, docs-only, and synthetic disagreement tests return PROVEN, DOCUMENTED, and UNKNOWN_PROVIDER_CONTRACT respectively; source contains no AI path |
+| 4. Contract oracle | Local catalog field checks, adjacent/non-adjacent diff properties, catalog-hash cache key, and fake-transport validate-only/unavailable behavior pass |
+| 5. Wire signature | Under P-008, a corpus of real documented gRPC/REST/header combinations returns typed MATCH/UNKNOWN with no language input; conflicts and header-only ambiguity are explicit |
+| 6. Telemetry | CSV Cloud export fixtures parse to exact generic tuples and row-provenance issues; malformed rows are explicit |
+| 7. Offline reproducibility | network-disabled rebuild equals shipped bytes; tamper test fails; `hops pack verify google_ads` exits 0 offline |
+| 8. Known changes and multi-hop | both v25 lifecycle removals and `Campaign.aca_migration_date_time` are PROVEN; v19→v25 expected composition fixture matches |
 
-Also, per [docs/HOOKS.md](../docs/HOOKS.md): activate `.claude/settings.json` as the first act of
-this phase, now that `tests/`, `core/schemas/` and the generic trees exist.
+## Success measures
 
-## Files touched
+Engineering completion requires all seven major catalogs present, 100% manifest entries hash-valid,
+100% catalog facts carrying required provenance, two byte-identical clean builds, every computed hop
+covered, zero non-validation fake-transport calls, and the full repository suite/static checks green.
 
-| Path | New / changed | Why |
-|---|---|---|
-| `pyproject.toml`, `.python-version`, `.gitattributes` | new | uv project, Python 3.12 pin, `hops` console script, LF normalisation so fixture hashes are platform-stable |
-| `.claude/settings.json` | new | mechanical enforcement of the Laws (HOOKS.md) |
-| `hubbleops/core/canonical.py` `schema.py` `records.py` `ids.py` `errors.py` | new | canonical JSON, validator cache, record constructors, fail-closed error types |
-| `hubbleops/core/schemas/*.json` | new | DoD 1 — the five frozen schemas |
-| `hubbleops/core/proof_scope.py` | new | ProofScope construction (tree hash, dep resolution hash, tool versions) |
-| `hubbleops/closure/source_closure.py` | new | DoD 3 |
-| `hubbleops/observe/{text,deps,ledger,resolver}.py` | new | DoD 4–7 |
-| `hubbleops/store/{sqlite,artifacts}.py` | new | DoD 8 |
-| `hubbleops/app/{registry,cli,exposure}.py` | new | DoD 2, 9 |
-| `hubbleops/packs/_protocol.py`, `packs/{google_ads,_mock}/surface.yaml` | new | DoD 2 |
-| `tests/unit/*`, `tests/property/*`, `tests/fixtures/phase1/*` | new | DoD 10–12 |
-| `dev/context.md`, `dev/tasks.md`, `dev/proposals.md` | changed | session handoff; PyYAML recorded as an approved addition |
+Product success is not claimed by shipping code. The post-gate real-repo loop must scan two or three
+public Google Ads repositories, preserve every UNKNOWN with a closing instruction, produce
+`UNEXPLAINED=0`, and record every genuinely new pattern in `docs/FAILURE_ATLAS.md`. Evidence from that
+loop determines Phase 3 fixtures; it does not retroactively rewrite provider facts.
 
-## Law check
+## Non-negotiable invariants
 
-| Law | How this plan respects it |
-|---|---|
-| UNEXPLAINED_CANDIDATES = 0 | `ledger.build` attaches every Evidence to a Candidate and asks the resolver for a status for each; it recomputes `unexplained` and raises `UnexplainedCandidates` before anything is persisted. Status is `required` in `candidate.json`, so an unstatused candidate cannot be written even by a future caller. |
-| UNKNOWN ≠ UNEXPLAINED | UNKNOWN is a first-class outcome of the Phase-1 status rules (dynamic version keys, unpinned deps, unparsable files, provider surface without a resolvable version). Every UNKNOWN carries a non-empty `close_with`; the gate counts `unexplained`, never `unknown`. |
-| UNKNOWN conservation | Phase 1 creates the first ledger, so there is no prior UNKNOWN set to conserve. The property test asserts a rerun over an unchanged closure reproduces the identical UNKNOWN set (the base case of L3). Closing machinery (`hops decide`) is Phase 7. |
-| Proof bound to ProofScope; new SHA → new proof | Every row carries `proof_scope_hash`; `run_id` is derived from it, so a changed tree yields a different run and different rows rather than mutating old ones. Phase 1 never writes the word "verified" — `hops scan` reports discovery only. |
-| Dependency direction | `app/` is the only importer of `packs/`; `closure/ observe/ core/ store/` take `SurfaceSpec` as a parameter. Enforced by `test_imports.py` (AST) and `test_no_provider_leak.py` (grep), plus a PreToolUse hook at write time. |
-| Fail closed | `rg` missing → `ToolingMissing`; file unreadable/undecodable → `FILE_UNSCANNED`; manifest unparsable or unpinned → `DEPENDENCY_STATE_UNKNOWN`; subprocess timeout → `ToolingTimeout`. No bare `except`, no `except: pass`, no default that turns a failure into "nothing found". |
-| AI evidence | Phase 1 makes no AI calls. `derivation` accepts `DERIVED_AI_EVIDENCE` in the schema, but no Phase-1 code path emits it and the resolver's status rules ignore that derivation. |
-| Memory reduces work, never proof | Phase 1 ships no cache. The store is a record of runs, not an input to them; a rerun recomputes everything. |
+- Laws L1-L11 and all frozen schemas/interfaces/layouts remain intact.
+- Generic layers never import `packs/` or name Google Ads.
+- Surface and full lattice both move `provider_contract_hash`.
+- No hand-authored authoritative diff, LLM adjudication, unpinned source, or silent disagreement.
+- Every network response is cached and SHA-256-bound before parsing; offline verification performs
+  no network access.
+- No live credentials and no callable non-validation mutation path.
+- `UNKNOWN_PROVIDER_CONTRACT` and `ORACLE_UNAVAILABLE` are pack result codes only, never Candidate
+  statuses or verdict values.
+- Unsupported, ambiguous, malformed, missing, or conflicting provider information fails closed to
+  an explicit unknown/unavailable result.
+- Canonical outputs are deterministic, sorted, content-addressed, and timestamped only by the fixed
+  source retrieval metadata.
+- Existing unrelated working-tree changes are preserved.
+- No comments/docstrings outside the protocol exception and tool-required suppressions.
 
-## Evidence plan
+## Authority
 
-```
+The implementation may inspect and refactor scoped internals, use read-only official network
+sources, create/update source snapshots and required JSONL fixtures, add tests, run local tools,
+and make reversible implementation choices. It may not add a dependency, use credentials, issue a
+provider write, change a frozen schema/contract meaning, commit, push, publish, deploy, or release
+without explicit human approval.
+
+## Outside scope
+
+No obligations, repair transforms, repair tools, language rule files, dynamic capture, sentinel,
+verification verdict, Receipt, live Google oracle, scheduled automation, dashboard, recommendation
+engine, or generic multi-provider framework beyond the two required implementations.
+
+## Risks, assumptions, and alternatives
+
+1. **Highest: stale/incomplete provider facts.** Mitigation: official primary sources, pinned
+   retrieval metadata, full manifest verification, cross-source reconciliation, and conflict
+   preservation. A partial catalog cannot pass verification.
+2. **False rename composition.** Mitigation: compose only unique structured mappings corroborated by
+   subject deltas; all ambiguity becomes UNKNOWN_PROVIDER_CONTRACT.
+3. **Header version confusion.** Mitigation: never infer the endpoint from client-library version
+   tokens in `x-goog-api-client`.
+4. **Proof reuse after data edits.** Mitigation: every source/catalog/lattice and surface mutation
+   has a property test proving the ProofScope key changes.
+5. **Online-only build.** Mitigation: network-disabled verification uses only shipped source inputs.
+6. **Data volume/package cost.** Keep normalized source snapshots rather than redundant raw site
+   chrome while retaining upstream byte hashes and complete machine-relevant facts.
+
+Alternatives rejected: one hand-built v22→v25 diff; treating minor releases as breaking nodes;
+querying live FieldService at gate time; trusting docs without proto/field cross-check; deriving API
+version from client library metadata; and introducing a provider framework beyond the two packs.
+
+## Verification and evidence
+
+The final report must include command, output, and exit code for:
+
+```text
+uv run hops pack verify google_ads
+uv run pytest -q tests/unit/test_pack_conformance.py
+uv run pytest -q tests/unit/test_google_ads_changes.py tests/property/test_change_composition.py
+uv run pytest -q tests/unit/test_google_ads_contract.py
+uv run pytest -q tests/unit/test_google_ads_wire.py tests/unit/test_google_ads_telemetry.py
+uv run pytest -q tests/integration/test_google_ads_change_pack.py
 uv run pytest -q
-uv run pytest tests/unit/test_no_provider_leak.py -v
-uv run ruff check . && uv run ruff format --check .
-for f in tests/fixtures/phase1/*/ ; do uv run hops scan "$f" --pack google_ads ; done
-uv run hops exposure
-uv run hops scan <fixture> --pack google_ads --export a.json
-uv run hops scan <fixture> --pack google_ads --export b.json
-sha256sum a.json b.json          # must be identical
+uv run pytest -q tests/unit/test_imports.py tests/unit/test_no_provider_leak.py
+uv run ruff format --check .
+uv run ruff check .
+uv run pyright
+git diff --check
 ```
 
-## OPEN QUESTIONS
+Evidence also includes the compiler build report with all source and catalog hashes, ten catalog or
+diff facts spanning all source kinds, the v19→v25 composition example, the fake transport call log,
+the logged-path corpus result, two catalog-build directory hashes, and a network-denied offline run.
 
-*(numbered. Design-changing questions get answered here — in writing — before implementation
-starts. Delete none; answer them inline.)*
+## Release, learning, and architecture record
 
-1. **Physical layout: `hubbleops/` package directory, or top-level `app/ core/ …`?**
-   **ANSWERED (human, Phase 1): `hubbleops/` package directory.** ARCHITECTURE.md §10 indents
-   `app/ core/ closure/ …` under `hubbleops/` while `packages/ tests/ docs/ dev/` sit at column 0,
-   and the import name `hubbleops` plus the sentinel law ("never imports `hubbleops.*`") only hold
-   if the generic layers are importable as `hubbleops.*`. CLAUDE.md's repo-map line is shorthand for
-   the module tree. Schemas therefore live at `hubbleops/core/schemas/*.json`.
+This phase is local and unreleased. Rollback is removal of Phase 2 code/data while the Phase 1 gate
+remains independently valid. No migration or credential handling exists. P-005 through P-008 already
+record the architectural decisions; no new ADR is needed unless implementation forces a different
+trust boundary, data meaning, or compatibility promise.
 
-2. **YAML: add PyYAML, or write a stdlib-only subset loader?**
-   **ANSWERED (human, Phase 1): add PyYAML.** It crosses the stated approval boundary, so it is
-   recorded in `dev/proposals.md`. The architecture mandates YAML in three frozen places
-   (`packs/*/surface.yaml`, ast-grep rule files in Phase 3, `.hubbleops/surface.yml` in Phase 7); a
-   hand-rolled subset parser would have to grow to meet all three. Loaded with `yaml.safe_load`.
+After the Phase 2 fresh gate says `GATE: PASS`, run the required fresh real-repo loop. Continue only
+when every encountered item has one of the four UNKNOWN dispositions and new patterns are converted
+to anonymized fixtures or explicitly scheduled for the correct later phase.
 
-3. **Which `observer` values may Evidence carry — is the §3.2 list closed?**
-   **ANSWERED: closed.** `evidence.json` restricts `observer` to the six §3.2 names
-   (`text deps structure dynamic telemetry sentinel`). `closure/` is not an observer and gets no
-   enum value. Consequence: the closure classifies and records the reason, and `observe/text.py` —
-   the component that actually reads file bytes in Phase 1 — emits the `file_unscanned` evidence for
-   both closure-marked `UNSCANNED` entries and files it fails to read itself. Every candidate is
-   therefore evidence-backed and has a path/line for the Exposure Map, and the frozen enum is
-   untouched.
+## Working method and escalation
 
-4. **What content is a Candidate's ID the SHA-256 of?**
-   **ANSWERED: the identity tuple, not the whole record.**
-   `candidate.id = sha256(canonical({provider, claim_type, claim_key}))`, where `claim_key` is the
-   per-`claim_type` identity string `observe/resolver.py` builds — a location for the location-bound
-   claims, `{ecosystem}:{package}` for `sdk_installed`, a path for the closure claims. Encoding the
-   location directly would give one claim type's key to all of them.
-   Evidence IDs hash the full record minus `id`. If a candidate's ID covered
-   `evidence_ids`, attaching a second observer's evidence would change the ID — the candidate would
-   "disappear" and a new one appear, breaking L1's *a candidate never disappears*. Deduplication is
-   therefore attachment to a stable key, and `evidence_ids` is an append-only sorted set (trap 3).
+Inspect first, make routine reversible choices autonomously, preserve unrelated edits, and continue
+through evidence, fresh gate audit, and real-repo loop. Stop only for a frozen-contract conflict,
+an unsafe/non-validation call, missing authoritative source that would otherwise be guessed, a new
+dependency, credential/cost requirement, or an excluded feature. Report exact evidence and the
+smallest required human decision.
 
-5. **Is `run_id` random or derived? Determinism (DoD 11b) says the ledger export must be byte-identical across runs.**
-   **ANSWERED: derived.** `run_id = sha256(canonical({proof_scope_hash, provider, verb, target}))`.
-   Wall-clock timestamps exist only in the `runs` row, never in the ledger export or in any hashed
-   record, so two consecutive scans of an unchanged tree produce identical `run_id`, identical rows
-   (idempotent upsert) and a byte-identical export. This also makes `hops replay <run_id>` meaningful
-   (§12) and kills trap 4.
+## Open questions — all answered
 
-6. **What is `Evidence.source_hash` the hash of — the file, or the matched line?**
-   **ANSWERED: the file blob** (`sha256` of the file's bytes). §14 keys the fact cache and binding
-   store on blob hashes, so Phase 8's invalidation needs exactly this value; a line hash would not
-   compose. Path + `line_start`/`line_end` already give the exact location.
-
-7. **Which ProofScope fields can Phase 1 fill, and what happens to the rest?**
-   **ANSWERED: fill four, `null` the rest, no sentinels.** Filled: `tree_hash` (always computed from
-   sorted `(path, blob_sha)` pairs, so a non-git directory is still bound), `repo_sha` (git HEAD, or
-   `null` when the target is not a git repo — never silently substituted), `dependency_resolution_hash`
-   (from the deps observer's resolved set), `scanner_version` (`hubbleops` version + `rg` version, so
-   Axiom 1's tool-version binding holds). `null`: `build_command`, `build_config_hash`,
-   `provider_contract_hash`, `rules_hash` (Phase 2/3), `verifier_version`, `verifier_image_hash`
-   (Phase 5). The schema types these as nullable and `required`, so a later phase fills them without
-   a schema change — and a `null` reads as "not yet bound", not as "bound to nothing".
-
-8. **Is `claim_type` a closed enum?**
-   **ANSWERED: no — pattern-constrained (`^[a-z][a-z0-9_]*$`).** §5 names four claim types in the
-   resolution tables but never declares the set closed, and Phase 1 already needs `file_unscanned`
-   and `dependency_state`. Freezing an enum that is knowably incomplete would force a frozen-schema
-   change in Phase 3. The resolver, by contrast, *is* exhaustive: an unknown `claim_type` raises
-   rather than defaulting to a status.
-
-9. **Which statuses can Phase 1 legitimately assign, with no Change Pack and therefore no target version?**
-   **ANSWERED: four of the five, on these rules.**
-   - `AFFECTED` — a resolved provider version literal at a version carrier (`version="v22"`, REST
-     `/v22/`, generated namespace `…v22`), or a surface package resolved to a concrete version.
-   - `UNKNOWN` — provider surface present but the version is not statically resolvable (env/config
-     key, unpinned dependency with no lock, request-language anchor with no version), plus every
-     `FILE_UNSCANNED`. Each carries a `close_with`.
-   - `NOT_AFFECTED_WITH_EVIDENCE` — only where a **lock** file for an ecosystem parsed cleanly and
-     contains no surface package. A manifest alone is not enough (trap 1).
-   - `EXCLUDED_WITH_EVIDENCE` — hits inside `VENDORED / GENERATED / SUBMODULE / EXTERNAL_BOUNDARY`
-     regions, with the closure classification as the evidence. The vendored SDK's *version* is still
-     claimed by the deps observer off its own manifest, so excluding the copy never hides the fact
-     that it pins an executing version.
-   - `HUMAN_REQUIRED` is not assignable in Phase 1 — it needs a recorded human decision loop
-     (`hops decide`, Phase 7). The schema permits it; no Phase-1 rule emits it.
-
-10. **Where does run state live, given that scanning must not pollute the scanned repository?**
-    **ANSWERED: `--state-dir`, default `<cwd>/.hubbleops`.** The SQLite DB and artifacts go to
-    `.hubbleops/hubbleops.sqlite` and `.hubbleops/artifacts/<run_id>/`, both already ignored by
-    `.gitignore` (`*.sqlite`, `artifacts/`) while `.hubbleops/` itself stays committable for Phase 7.
-    Tests pass a tmp dir. Scanning `tests/fixtures/**` therefore writes nothing into the fixtures.
-
-11. **Where does the PreToolUse hook read "the current phase" from?** (HOOKS.md leaves this to Phase 1.)
-    **ANSWERED: from the git branch name.** `phase-NN-<slug>` is already a Law in CLAUDE.md, so the
-    branch is the single source of truth and no new state file is needed. Unparseable branch (e.g.
-    `main`) → treat as the most restrictive phase, so `core/schemas/` edits are rejected outside a
-    Phase-1 branch. The repair restriction keys off `HUBBLEOPS_ROLE=repair`, which the Phase-6
-    repair runner will set; until then it is simply never on.
-
-12. **Does `observe/text.py` scan VENDORED and GENERATED files at all?**
-    **ANSWERED: yes — scan everything, exclude at status time.** §6.2 is recall-first, and a vendored
-    SDK copy is exactly where a pinned version hides. Suppressing the scan would make the closure
-    classification a silent filter; instead the evidence is recorded and the ledger marks it
-    `EXCLUDED_WITH_EVIDENCE` naming the classification. Only `UNSCANNED` entries are not scanned —
-    and those become `FILE_UNSCANNED` candidates, so absence is still never silence.
+1. **What is “current”?** v25 major at the pinned 2026-09-04 retrieval; latest published minor data
+   refreshes the v25 node. Future releases enter through the same manifest-driven pipeline.
+2. **Are sunset v19-v21 nodes included?** Yes; the explicit v19-current requirement and migration
+   detection need historical nodes even when live calls no longer succeed.
+3. **Does this gate call GoogleAdsFieldService live?** No. It ingests the official public field
+   reference generated from that catalog; v19-v21 use pinned, version-checked archives of the
+   original official pages. Live credentialed comparison is Phase 5.
+4. **Can `x-goog-api-client` alone select an API version?** No. It is accompanying metadata only;
+   a versioned request target is required and disagreement returns typed UNKNOWN.
+5. **How are docs-only mappings treated?** DOCUMENTED, and only uniquely composable mappings may be
+   followed. Ambiguity or source conflict is UNKNOWN_PROVIDER_CONTRACT.
+6. **Is a new dependency required?** No. Parsing, hashing, canonicalization, CSV/JSON, and proto
+   inventory extraction use the standard library and existing project utilities.
+7. **What happens to Phase 1’s uncommitted remediation?** It remains preserved on this branch, is
+   itemized separately in `dev/context.md`, and is the exact tree that earned the Phase 1 gate pass;
+   no commit/push occurs without explicit approval.

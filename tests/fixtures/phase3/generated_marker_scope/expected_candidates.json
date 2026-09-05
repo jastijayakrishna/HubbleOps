@@ -1,0 +1,35 @@
+{
+  "fixture_id": "generated_marker_scope",
+  "phase": 3,
+  "candidates": [
+    {
+      "id": "prose_provider_reference",
+      "path": "usage_notes.md",
+      "language": "markdown",
+      "claim_type": "endpoint_reference",
+      "provider_subject": "googleads.googleapis.com",
+      "status": "UNKNOWN",
+      "observer": "text",
+      "confidence": "RAW",
+      "closure_classification": "INSIDE"
+    },
+    {
+      "id": "generated_namespace_reference",
+      "path": "emitted/api_types.ts",
+      "language": "typescript",
+      "claim_type": "surface_reference",
+      "provider_subject": "google.ads.googleads",
+      "status": "EXCLUDED_WITH_EVIDENCE",
+      "observer": "text",
+      "confidence": "RAW",
+      "closure_classification": "GENERATED"
+    }
+  ],
+  "must_not_emit": [
+    {
+      "path": "usage_notes.md",
+      "claim_type": "closure_classification",
+      "value": "GENERATED"
+    }
+  ]
+}

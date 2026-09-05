@@ -31,7 +31,7 @@ Cost(FALSE_VERIFIED) ≫ Cost(UNKNOWN) > Cost(HUMAN_REQUIRED) > Cost(correct rep
 
 **Axiom 2 — Rice's theorem bounds static analysis.** Runtime-selected versions and dynamically built requests are undecidable statically. UNKNOWN is a required output; dynamic and provider-side evidence are structural, not optional.
 
-**Completeness math.** For a usage `u`, `P(miss u) = Π_i P(miss u | observer i)` only if observers fail independently; therefore observers must span orthogonal channels (text, structure, dependencies, wire, execution, provider telemetry). The completeness claim is: *every provider-observed (service, method, version) tuple maps to ≥1 explained candidate, and every candidate has a status.* Text, dependencies, wire and provider telemetry need no per-language work at all — the wire channel reads the version out of the request itself (method path, URL path, client header), identical in shape regardless of which language issued it — so structural coverage gaps change how much lands in `UNKNOWN`, never whether a usage is missed silently (§6.4, §15, P-006).
+**Completeness math.** For a usage `u`, `P(miss u) = Π_i P(miss u | observer i)` only if observers fail independently; therefore observers must span orthogonal channels (text, structure, dependencies, wire, execution, provider telemetry). The completeness claim is: *every provider-observed (service, method, version) tuple maps to ≥1 explained candidate, and every candidate has a status.* Text, dependencies, wire and provider telemetry need no per-language work at all — the wire channel reads the version out of the versioned request target, identical in shape regardless of which language issued it; client headers remain provenance, not endpoint-version authority (P-008) — so structural coverage gaps change how much lands in `UNKNOWN`, never whether a usage is missed silently (§6.4, §15, P-006).
 
 **Blast-radius math.** `Δ` = changed symbols; `R = reach(G, Δ)` over the import/call graph; `C: test → files` from coverage; `UNKNOWN_BLAST = R \ ⋃C(passing frozen tests)`.
 
@@ -74,7 +74,7 @@ class ProviderPack(Protocol):
     name: str
     surface: SurfaceSpec                      # identifiers, hosts, package names, version carriers,
                                               # request languages, sink arg positions, config/env keys
-    wire_signature: WireSignature             # request path/header regexes → (service, method, version); zero language work
+    wire_signature: WireSignature             # request path/headers → typed match or UNKNOWN; zero language work
     def versions(self) -> tuple[Version, ...]           # supported version lattice: id, catalog_hash, released_at, sunset_at
     def rules(self, language: str) -> RuleSet          # ast-grep YAML rule files: sinks, version carriers, request-string sinks
     contract: ContractOracle                  # catalog(version); diff(v_from, v_to) computed + cached + hashed, composed
@@ -91,7 +91,7 @@ class ProviderPack(Protocol):
 |---|---|---|
 | Identifiers / hosts | `google-ads`, `googleads.googleapis.com` | `mockprov`, `api.mockprov.test` |
 | Version carriers | `get_service(version=)`, `get_type(version=)`, URL `/vNN/`, namespace `google.ads.googleads.vNN`, env/config keys | `client(version=)`, URL `/vN/` |
-| Wire signature | gRPC method path `/google\.ads\.googleads\.v(\d+)\.services\.(\w+)Service/`, REST path `/v(\d+)/`, header `x-goog-api-client` | REST path `/v(\d+)/` |
+| Wire signature | gRPC method path `/google\.ads\.googleads\.v(\d+)\.services\.(\w+)Service/`, REST path `/v(\d+)/`; `x-goog-api-client` is metadata, never endpoint-version authority; ambiguity → typed UNKNOWN | REST path `/v(\d+)/` |
 | Version lattice | v19…current, monthly ingestion; catalog + computed diff per consecutive pair | two fixed versions, for composition tests |
 | Request language | GAQL | key=value strings |
 | Contract source | googleapis protos + GoogleAdsFieldService catalog + guides + release notes | hand-written JSON |
@@ -207,7 +207,7 @@ The customer's own test suite runs in the sandbox (§8.1). Events (versioned sch
 
 ### §6.6 Observer E — Provider telemetry and sentinel
 - **Telemetry:** the pack's adapter parses the provider's usage export (Google: Cloud Console methods/versions) into `(service, method, version)`. Reconciliation: each tuple ↦ ≥1 explained candidate; unmatched → `TELEMETRY_UNEXPLAINED`.
-- **Wire (production or test, language-independent):** the pack's `wire_signature` parses a request's path and headers directly — no SDK, no language-specific code, no dependency on which client library issued the call. This is what makes proxy mode (§6.5, §15) possible.
+- **Wire (production or test, language-independent):** the pack's `wire_signature` parses a request's path and headers directly into a typed match or UNKNOWN — no SDK and no language-specific code. The Google Ads endpoint version comes from the versioned request target; `x-goog-api-client` is retained as metadata but never used as endpoint-version authority (P-008). This is what makes proxy mode (§6.5, §15) possible.
 - **Sentinel (production sensor, §15):** customer-installed package emitting the same event schema from production; `observer="sentinel"`, in either hook mode or proxy mode.
 
 ### §6.7 Candidate Ledger and resolver

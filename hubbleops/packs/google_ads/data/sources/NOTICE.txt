@@ -1,0 +1,23 @@
+Google Ads provider source attribution
+
+Protocol buffer source files are from Google LLC's googleapis repository, licensed
+under Apache License 2.0. See LICENSE-googleapis.txt and the original notices in
+the retained source archives. The source inventory records exact Git revisions,
+original paths and SHA-256 hashes. HubbleOps extracts and normalizes declarations;
+these catalogs are derived data, not original Google source files.
+
+Google Developers reference, release, upgrade and compatibility documentation:
+https://developers.google.com/google-ads/api/
+Content is licensed under Creative Commons Attribution 4.0 unless otherwise noted:
+https://creativecommons.org/licenses/by/4.0/
+https://developers.google.com/terms/site-policies
+
+Google Ads Query Builder schemas are Google's published GoogleAdsFieldService
+metadata. Their generation and meaning are documented at:
+https://ads-developers.googleblog.com/2021/04/the-query-builder-blog-series-part-2.html
+
+Historical Google reference captures are delivered by the Internet Archive.
+The original Google URLs, exact capture URLs, retrieval dates, raw byte hashes,
+and normalized snapshot hashes are recorded in manifest.json and raw/*.json.
+HubbleOps removes site formatting and converts metadata to canonical JSONL.
+No endorsement by Google or the Internet Archive is implied.

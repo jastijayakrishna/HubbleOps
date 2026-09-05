@@ -1,0 +1,1034 @@
+{
+  "index": {
+    "resolved_url": "https://web.archive.org/cdx/search/cdx?url=developers.google.com/google-ads/api/fields/v19/*&output=json&filter=statuscode:200&filter=mimetype:text/html&collapse=digest",
+    "sha256": "543187d62f6c0ebeecb7b9e30c93fc808acc2968c10b53ede8c6d2775b3fa007",
+    "url": "https://web.archive.org/cdx/search/cdx?url=developers.google.com/google-ads/api/fields/v19/*&output=json&filter=statuscode:200&filter=mimetype:text/html&collapse=digest"
+  },
+  "inventory": {
+    "fields": 2552,
+    "index_pages": 1,
+    "resource_pages": 169
+  },
+  "pages": [
+    {
+      "resolved_url": "https://web.archive.org/web/20250426191224id_/https://developers.google.com/google-ads/api/fields/v19/accessible_bidding_strategy",
+      "sha256": "26679868a084b7ff7ec133411547395cfa379b9385be54dd24b15610f979e1d2",
+      "size": 645781,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/accessible_bidding_strategy"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426171753id_/https://developers.google.com/google-ads/api/fields/v19/account_budget",
+      "sha256": "f295e60f9a4f95c1f9e6451f57571d3b30cdfa17cbcf5f5f24e4eabfd6ba2670",
+      "size": 663747,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/account_budget"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419130935id_/https://developers.google.com/google-ads/api/fields/v19/account_budget_proposal",
+      "sha256": "0125092e8890b525b23f2956b8c9f66c29ed7bf286530d68c732d102ef79a188",
+      "size": 649539,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/account_budget_proposal"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185424id_/https://developers.google.com/google-ads/api/fields/v19/account_link",
+      "sha256": "e7c20a5979181640cf4c3a23c889adb2338a92445c6fe35627d0af24de8b6108",
+      "size": 636794,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/account_link"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419130119id_/https://developers.google.com/google-ads/api/fields/v19/ad",
+      "sha256": "9df90d83910b1542fb9986356adf80536b93e4f8bbd76a1051cc46682785e488",
+      "size": 830704,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250316013017id_/https://developers.google.com/google-ads/api/fields/v19/ad_group",
+      "sha256": "4a8ddf526782e83825c5d4adbeeb496037cf4713928fe62dbe9bd2984a3702c5",
+      "size": 943609,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419034038id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_ad",
+      "sha256": "5ff71fb88abf24d65ec34ef9c634eb5a25d9ca74f2b5ac5c49ca7a86b727f6bf",
+      "size": 1054703,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_ad"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419123905id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_ad_asset_combination_view",
+      "sha256": "acc0eccde649a11295e0c7226c2b5588f5b35171e8e8adc9e29452d91b666b1e",
+      "size": 644794,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_ad_asset_combination_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185936id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_ad_asset_view",
+      "sha256": "f5144972b1e08862872b47294b938c7bab9958d11f16d8dfbe89454be9259ccd",
+      "size": 677201,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_ad_asset_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250319135417id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_ad_label",
+      "sha256": "bd9e4d1bf78c742faa07117928e4efeeade436dcdabcfd349bcae615f307cdb4",
+      "size": 629660,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_ad_label"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002145953id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_asset",
+      "sha256": "4ad66fb8507942afbfe35ab5411324c31d1ef5dbdec18bab992bb381d3b1585f",
+      "size": 4328351,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_asset"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250327200140id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_asset_set",
+      "sha256": "91f5d7b65da3a648116c09bff8bcf0fcbd84e6cf50435e35eec799c71919caad",
+      "size": 630911,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_asset_set"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250322135103id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_audience_view",
+      "sha256": "15d8741a66ce1545e69b51423994229c3f44b016b7314e3d6f8f49103d58221c",
+      "size": 716471,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_audience_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250512223048id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_bid_modifier",
+      "sha256": "c0e5e21257cf594fafd3d4eeb1c47a06affb87af9c3f62536dba936c79db710e",
+      "size": 642622,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_bid_modifier"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419122559id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_criterion",
+      "sha256": "e5a5cfdcd48c6ddf37932c4409c7e843e215f0788f77584185debeeb51eb897c",
+      "size": 728630,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_criterion"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002142927id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_criterion_customizer",
+      "sha256": "b0e80a9416df287f5586791c95f050b6d1db32ec642ee43fa973c8669e59fc1c",
+      "size": 4260120,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_criterion_customizer"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185437id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_criterion_label",
+      "sha256": "4b213d80fdd1040870da77750f1a11607f3955073992acb94c32dee358bafc3e",
+      "size": 631811,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_criterion_label"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250520071600id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_criterion_simulation",
+      "sha256": "c27222b446275b7cf785ba546c11e6969cf8f50b90ecdea6428a1a44349fb29e",
+      "size": 637271,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_criterion_simulation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426190221id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_customizer",
+      "sha256": "4648f8dd014afcd11b61eedc068b61051ee2da37aec556d0f9f0223ceae0b737",
+      "size": 635150,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_customizer"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250525062855id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_label",
+      "sha256": "6a7dc7bd8d9750768cb7e788c3e7293366dfbde4671dd9b4881018f3738ef7f5",
+      "size": 629841,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_label"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185411id_/https://developers.google.com/google-ads/api/fields/v19/ad_group_simulation",
+      "sha256": "76817dac8432a6f9f413f43fbb95df44d18008da389f0776f0ae8d379cc9359d",
+      "size": 639026,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_group_simulation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250325201858id_/https://developers.google.com/google-ads/api/fields/v19/ad_parameter",
+      "sha256": "e396cb735de2b97cf7c132ce4e73d1f718427a73a3f1f74cbf79d85aeb363468",
+      "size": 631420,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_parameter"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002151311id_/https://developers.google.com/google-ads/api/fields/v19/ad_schedule_view",
+      "sha256": "4d3eb9b2aa3f7f555e5d089c1125a302e6633b9d6c94d17ba14999ae8113283f",
+      "size": 4306230,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/ad_schedule_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002144021id_/https://developers.google.com/google-ads/api/fields/v19/age_range_view",
+      "sha256": "1b0805ce3fbe291581bf423a44fdf125dff5b465856d19b440c4274f031863a2",
+      "size": 4327002,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/age_range_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426191433id_/https://developers.google.com/google-ads/api/fields/v19/android_privacy_shared_key_google_ad_group",
+      "sha256": "cba05c4c80e699f34d3014d2bf5f2917384e7390806758652cf50366c39dabab",
+      "size": 641677,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/android_privacy_shared_key_google_ad_group"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250517065501id_/https://developers.google.com/google-ads/api/fields/v19/android_privacy_shared_key_google_campaign",
+      "sha256": "33519393e0bfa44eeb16f6f29e2cd8d7de76021d8a82bd2b807bdb6a812795d2",
+      "size": 637311,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/android_privacy_shared_key_google_campaign"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419031852id_/https://developers.google.com/google-ads/api/fields/v19/android_privacy_shared_key_google_network_type",
+      "sha256": "36a4374a0636d8b703db0bcdbf8c9e480318106361f0b42005c38dc741109ff4",
+      "size": 639149,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/android_privacy_shared_key_google_network_type"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424034425id_/https://developers.google.com/google-ads/api/fields/v19/asset",
+      "sha256": "93cfa57cf3c2c00d9bf0289b8aa170b72b7db722f3c50905b39841020d39b861",
+      "size": 913501,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424143549id_/https://developers.google.com/google-ads/api/fields/v19/asset_field_type_view",
+      "sha256": "a1bc536f6d827cb3de6d6725ea20afa311701b9d97920535afa3d5eec2b166b5",
+      "size": 692938,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_field_type_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419155333id_/https://developers.google.com/google-ads/api/fields/v19/asset_group",
+      "sha256": "867850870d22eafa14d578f7bc0975d5a7d82d15390c40a0f31cd54f0c11d62d",
+      "size": 709288,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_group"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250425153848id_/https://developers.google.com/google-ads/api/fields/v19/asset_group_asset",
+      "sha256": "c1e65f854c16b657dadf98472731b37da7d8432ab115c27a7fba2b4a19adde08",
+      "size": 659829,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_group_asset"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250517165757id_/https://developers.google.com/google-ads/api/fields/v19/asset_group_listing_group_filter",
+      "sha256": "049934d6d22acdac4d3fa5c6137643629ef0f8b1f3eea86a967e41f6c32b087d",
+      "size": 648190,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_group_listing_group_filter"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250422174758id_/https://developers.google.com/google-ads/api/fields/v19/asset_group_product_group_view",
+      "sha256": "4ce0f9a49c262aa75e5c46756cad2e01ddaf207d6c3ce2942ecb2b12f7f73650",
+      "size": 704472,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_group_product_group_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250326091331id_/https://developers.google.com/google-ads/api/fields/v19/asset_group_signal",
+      "sha256": "77d1fa8e03e836586abdec8d830d51ecda105da07988cbfaf2e63958c4a3e583",
+      "size": 632952,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_group_signal"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250428112542id_/https://developers.google.com/google-ads/api/fields/v19/asset_group_top_combination_view",
+      "sha256": "9e5a6f61bd3fb124f2893f6ead6ce206878e949a05717f69f210483013a6daf1",
+      "size": 639864,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_group_top_combination_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250522141332id_/https://developers.google.com/google-ads/api/fields/v19/asset_set",
+      "sha256": "6a024a19c0ecf2cab7951cb943451b02b8a3eff3730b2f121361f3c8fb9dbde8",
+      "size": 648336,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_set"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250522102152id_/https://developers.google.com/google-ads/api/fields/v19/asset_set_asset",
+      "sha256": "ba023f2fd5c54d80f1bf494519edce6dc9f863fc0b89d8327cc3f62dcbac7c3e",
+      "size": 690393,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_set_asset"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185322id_/https://developers.google.com/google-ads/api/fields/v19/asset_set_type_view",
+      "sha256": "b56fc3134c154c73a70bbc30500fa04e854039ab64fa9e34ae4ae7832b5c031a",
+      "size": 692597,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/asset_set_type_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250512192959id_/https://developers.google.com/google-ads/api/fields/v19/audience",
+      "sha256": "3e6de8c30cfb430c3430933240e84393da69f068f9611675cd78aafbbdebbc8a",
+      "size": 642215,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/audience"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419125338id_/https://developers.google.com/google-ads/api/fields/v19/batch_job",
+      "sha256": "c9303a92cae05493b8007d11038415ec4ef7dae9d1ea9dd72e4259a5818e4198",
+      "size": 638824,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/batch_job"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250322233308id_/https://developers.google.com/google-ads/api/fields/v19/bidding_data_exclusion",
+      "sha256": "1de73a32d7c92a526d3d2d124519dfbc6080232cc7136a1fc1ab02891e66907f",
+      "size": 639095,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/bidding_data_exclusion"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419130454id_/https://developers.google.com/google-ads/api/fields/v19/bidding_seasonality_adjustment",
+      "sha256": "8f404fb91220354292670896bbb6f5872d8f77e06d37a758ead47219a029eaeb",
+      "size": 641061,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/bidding_seasonality_adjustment"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250320225437id_/https://developers.google.com/google-ads/api/fields/v19/bidding_strategy",
+      "sha256": "9de99d1eefd55351897b12dd9f3c9d9446f12a846e7bd57df5cd499f6e13b8d1",
+      "size": 727455,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/bidding_strategy"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250316142758id_/https://developers.google.com/google-ads/api/fields/v19/bidding_strategy_simulation",
+      "sha256": "c5e9357bdc826f5d9333635837b5efaf962f863cfbb30cd0d458c89069abc532",
+      "size": 635254,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/bidding_strategy_simulation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250709141315id_/https://developers.google.com/google-ads/api/fields/v19/billing_setup",
+      "sha256": "ff530547135085f2d966a9cf293d5c50eb318a5d7aee0a773641849d55eaaa9e",
+      "size": 629289,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/billing_setup"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250327233852id_/https://developers.google.com/google-ads/api/fields/v19/call_view",
+      "sha256": "78e87f81b347a0e1ff173fbd60aa03231ff8ba92686f791fe88f7eee98f5e60b",
+      "size": 635607,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/call_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250418015309id_/https://developers.google.com/google-ads/api/fields/v19/campaign",
+      "sha256": "a647e3d36015da9464ff46cf4b96d2ec3dac2c9d8c820e7604da22b5a71e6633",
+      "size": 1124539,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250429071855id_/https://developers.google.com/google-ads/api/fields/v19/campaign_aggregate_asset_view",
+      "sha256": "5d37f2c8e49cecdfa85b80b7896bd22abb6335466c1c3b855f6f16b60efd4b62",
+      "size": 681143,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_aggregate_asset_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419130331id_/https://developers.google.com/google-ads/api/fields/v19/campaign_asset",
+      "sha256": "a20b5274c74ec16427346c2486d75827488f13ab4bbd70876d1276cebec549c2",
+      "size": 702339,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_asset"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426183521id_/https://developers.google.com/google-ads/api/fields/v19/campaign_asset_set",
+      "sha256": "67b511016dc99415683dd7d8bd7072b655f746ae8e2b2ab4ab7f6c15b6d26f31",
+      "size": 632678,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_asset_set"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250428042513id_/https://developers.google.com/google-ads/api/fields/v19/campaign_audience_view",
+      "sha256": "bfdfa6d56f7f8c6fe8a500ad8179d630b30575325c3afaec1aeb5f32c6d7d7aa",
+      "size": 718355,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_audience_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250811060721id_/https://developers.google.com/google-ads/api/fields/v19/campaign_bid_modifier",
+      "sha256": "3d506fd79ee623f4031b11a6f007a52682049bd3e98f3b19623006622090269a",
+      "size": 814423,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_bid_modifier"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419131036id_/https://developers.google.com/google-ads/api/fields/v19/campaign_budget",
+      "sha256": "e7597418175e4f716fa014714208fa98cf8c15d433cabb081e18733a1eb1c81b",
+      "size": 695198,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_budget"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419130940id_/https://developers.google.com/google-ads/api/fields/v19/campaign_conversion_goal",
+      "sha256": "7bc47dc2ddf03d882de52263094e850d08c419d237f2dfbd61292865f885d3fa",
+      "size": 632895,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_conversion_goal"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250319091209id_/https://developers.google.com/google-ads/api/fields/v19/campaign_criterion",
+      "sha256": "056e1b410280084a7cbd2ecdc1af3e45e3bfcbbb2172437566b4eb2b8883c97a",
+      "size": 700612,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_criterion"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250324012340id_/https://developers.google.com/google-ads/api/fields/v19/campaign_customizer",
+      "sha256": "409edf5995bae468db119cbdc10aad8df9cdbae99f49d2533a971b9132443dce",
+      "size": 633162,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_customizer"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250318114503id_/https://developers.google.com/google-ads/api/fields/v19/campaign_draft",
+      "sha256": "43a49d5fd91ee4bd11525d44b734febd1f597f9d958607a96ed7afee27e1c3c3",
+      "size": 634554,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_draft"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002143300id_/https://developers.google.com/google-ads/api/fields/v19/campaign_group",
+      "sha256": "7aeec6c279c539c4226220d0b1eaff6a039809313be34eb844336c37db55888a",
+      "size": 4276109,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_group"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419125816id_/https://developers.google.com/google-ads/api/fields/v19/campaign_label",
+      "sha256": "0c2433461ae2b90bb60870dcca7d2f99f8ea84b15ba6258c82ded53c0252d051",
+      "size": 629754,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_label"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250323200612id_/https://developers.google.com/google-ads/api/fields/v19/campaign_lifecycle_goal",
+      "sha256": "257e136d3d367bdecb5c627668444f0f818b1bd5d08e13be1f9bf0856423c85a",
+      "size": 632330,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_lifecycle_goal"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250324221654id_/https://developers.google.com/google-ads/api/fields/v19/campaign_search_term_insight",
+      "sha256": "f2a32d0ae8276265221c7450dbf0cc23d8307228f72b370f7e79b1b00658441f",
+      "size": 647476,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_search_term_insight"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419123152id_/https://developers.google.com/google-ads/api/fields/v19/campaign_shared_set",
+      "sha256": "e0e87808f9e18325e1c42d33eb4a522f8b3c9554a9412bb1812524cea1a954a5",
+      "size": 631496,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_shared_set"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250429071900id_/https://developers.google.com/google-ads/api/fields/v19/campaign_simulation",
+      "sha256": "1229bc0f1211afe96fa746754a6495c8f1905f83208b22765fb5cf724e63d76e",
+      "size": 640647,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/campaign_simulation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002150919id_/https://developers.google.com/google-ads/api/fields/v19/carrier_constant",
+      "sha256": "7ef67c97d197aa412d6652e3ed4c779915559284274b78393d01b06b5c76d18e",
+      "size": 4255959,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/carrier_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424014946id_/https://developers.google.com/google-ads/api/fields/v19/change_event",
+      "sha256": "b37ae1f56c1dc0a5f602090e35911c087b917b20d8a15dfd0ea550dca1ff3b2d",
+      "size": 640700,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/change_event"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424034425id_/https://developers.google.com/google-ads/api/fields/v19/change_status",
+      "sha256": "e85c8a150c46097a941f38aa94cbd2dfd3ea1fd9666945bea29bd141acb9ba95",
+      "size": 646029,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/change_status"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250429071855id_/https://developers.google.com/google-ads/api/fields/v19/channel_aggregate_asset_view",
+      "sha256": "ba261a309550bdb0db547860f075403cc02efbbb3a87f464a6506cb2579a4dd5",
+      "size": 681973,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/channel_aggregate_asset_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250422040141id_/https://developers.google.com/google-ads/api/fields/v19/click_view",
+      "sha256": "8ccf07b6b0518bbd51e636fe6a8dc957d4dc0a9d6d199c09ba70a2b65409348a",
+      "size": 661598,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/click_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426191633id_/https://developers.google.com/google-ads/api/fields/v19/combined_audience",
+      "sha256": "ddb4eee0077b7e52ec4493fc995c13d3a606e251cd6f1d58ab75dd066a88915b",
+      "size": 633318,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/combined_audience"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250429071855id_/https://developers.google.com/google-ads/api/fields/v19/content_criterion_view",
+      "sha256": "5909a9e1d3bec2b23351e5c5ac317a17b6b76120164ea8ab2df8e4f5f70fccdf",
+      "size": 703717,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/content_criterion_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250315221348id_/https://developers.google.com/google-ads/api/fields/v19/conversion_action",
+      "sha256": "ccec3090c22f7cb2a20036ff594a1cb8ed920eace7c3cd9ec046fcaf8503e21e",
+      "size": 678912,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/conversion_action"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250523122915id_/https://developers.google.com/google-ads/api/fields/v19/conversion_custom_variable",
+      "sha256": "2a0339ed417e0abc94da132125ff018d7a381103ed38d4b3db5c7014e2201aa8",
+      "size": 633615,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/conversion_custom_variable"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426174025id_/https://developers.google.com/google-ads/api/fields/v19/conversion_goal_campaign_config",
+      "sha256": "e127c15a4958d046e7b03e19e4a86b4e46b444bc9827abedf2004f09fb73b471",
+      "size": 633020,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/conversion_goal_campaign_config"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250324141334id_/https://developers.google.com/google-ads/api/fields/v19/conversion_value_rule",
+      "sha256": "01408079ad416bd579d717e3c0d913695f7bf35dc065147ff5990c8f6d8cd279",
+      "size": 651670,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/conversion_value_rule"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250715021441id_/https://developers.google.com/google-ads/api/fields/v19/conversion_value_rule_set",
+      "sha256": "8b677f0e97682f868dbcd53401704a65537c4389b53533fff785aaeb01f82207",
+      "size": 627486,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/conversion_value_rule_set"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426190359id_/https://developers.google.com/google-ads/api/fields/v19/currency_constant",
+      "sha256": "042b777fbef818c42521eef3dc1aa89e8020e1842d684836d3e8d49a8cf83939",
+      "size": 632490,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/currency_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185442id_/https://developers.google.com/google-ads/api/fields/v19/custom_audience",
+      "sha256": "f60c3b6f1d4769f0600f984eed1b3d725cbee78580d42cf1bd81f2c344d8127c",
+      "size": 635376,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/custom_audience"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419123734id_/https://developers.google.com/google-ads/api/fields/v19/custom_conversion_goal",
+      "sha256": "b976fa688c06a4423f04a8c838793c3ba3db3c4840028907add85dc36a0e0d70",
+      "size": 631850,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/custom_conversion_goal"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419131010id_/https://developers.google.com/google-ads/api/fields/v19/custom_interest",
+      "sha256": "541fabfb2c12ba94880d9d8f9daf036b383a887dc5be9e080fe56a7789fcc2dc",
+      "size": 634017,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/custom_interest"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250323055346id_/https://developers.google.com/google-ads/api/fields/v19/customer",
+      "sha256": "33fcdc323ee7c64f74b71f80987da8060848967c973690282a8e8236e93eae91",
+      "size": 950729,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250316032253id_/https://developers.google.com/google-ads/api/fields/v19/customer_asset",
+      "sha256": "acae12d74d8c042b635190bf0fd435c67b26e9ee804ea37ad615f8ad44f502f4",
+      "size": 700674,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_asset"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185641id_/https://developers.google.com/google-ads/api/fields/v19/customer_asset_set",
+      "sha256": "22468fc49ef6661792c6fd248a9d753aae053d19efee2847fcb976f57ad7f325",
+      "size": 632567,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_asset_set"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426191842id_/https://developers.google.com/google-ads/api/fields/v19/customer_client",
+      "sha256": "9372c99be12e8b6f4d6834fab68ba0c6b06ea4e20b2177d7ec8e2afc9b989e3e",
+      "size": 640149,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_client"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419063255id_/https://developers.google.com/google-ads/api/fields/v19/customer_client_link",
+      "sha256": "042ef98713c6cef26e073451ffbb4bb6ca8b6b92a7479639c109290851949763",
+      "size": 631956,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_client_link"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250316231526id_/https://developers.google.com/google-ads/api/fields/v19/customer_conversion_goal",
+      "sha256": "5986e452a6f74a321aa11ca1fd088c617fc8478ac950fb6bc5897127f911e384",
+      "size": 631381,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_conversion_goal"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250320195137id_/https://developers.google.com/google-ads/api/fields/v19/customer_customizer",
+      "sha256": "94ff578e817ffe75de6387b4822a240e6a45d6f61481969f586ecd03cc3f0278",
+      "size": 632142,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_customizer"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426191935id_/https://developers.google.com/google-ads/api/fields/v19/customer_label",
+      "sha256": "978adf2a736cbc0f78cc9da0c7989fd074f3f26e6e8f625e8150084d65022283",
+      "size": 631175,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_label"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002143602id_/https://developers.google.com/google-ads/api/fields/v19/customer_lifecycle_goal",
+      "sha256": "ce6b5d0dfcafa4389f4ed7ca41569214678097b9ce2c7633b60fdbf8a4a536d7",
+      "size": 4257236,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_lifecycle_goal"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185313id_/https://developers.google.com/google-ads/api/fields/v19/customer_manager_link",
+      "sha256": "ce66676c83ac9458c93e7cbfbcbdd2480322e225fa324d0489f2ad4517239ae9",
+      "size": 632554,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_manager_link"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250326122748id_/https://developers.google.com/google-ads/api/fields/v19/customer_negative_criterion",
+      "sha256": "76ab116ce95f154eaea93f0330cc80ffa379cfb5e2aff80972cb164e535210f6",
+      "size": 641544,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_negative_criterion"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250407191650id_/https://developers.google.com/google-ads/api/fields/v19/customer_search_term_insight",
+      "sha256": "552447eea327691fc90831ead5f3fa8e000bdbd0ac50a3a44067fc320b695ea5",
+      "size": 644773,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_search_term_insight"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002211044id_/https://developers.google.com/google-ads/api/fields/v19/customer_user_access",
+      "sha256": "c6a4d190f90a19d7ceecd011ba865f8f3bad58bad998d6188b54a68c9c0f2b96",
+      "size": 4258867,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_user_access"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419130828id_/https://developers.google.com/google-ads/api/fields/v19/customer_user_access_invitation",
+      "sha256": "6e687f8770e8c5a350092a2bd5117d80b3a6cc117a11578bbacc7b5131303337",
+      "size": 633541,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customer_user_access_invitation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250325012230id_/https://developers.google.com/google-ads/api/fields/v19/customizer_attribute",
+      "sha256": "31bb9788cc7a7ed0760fe20ac5f126e6f49b591637cfca1a77d2c0772c2e7ed6",
+      "size": 632065,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/customizer_attribute"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002143423id_/https://developers.google.com/google-ads/api/fields/v19/data_link",
+      "sha256": "d718337290bda5aaac224ddc0175982a5e8511ba478b19c0f50b3ec56e50fb38",
+      "size": 4258949,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/data_link"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426190346id_/https://developers.google.com/google-ads/api/fields/v19/detail_placement_view",
+      "sha256": "ccec3ed046384249592afc88daccad15c4d19f3456f81ef05a9e103ef83c38f8",
+      "size": 699023,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/detail_placement_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250315220239id_/https://developers.google.com/google-ads/api/fields/v19/detailed_demographic",
+      "sha256": "a802be9b29df24b06b4eacf3e9ec7af504d12341964bc1998aef77dd26474457",
+      "size": 632080,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/detailed_demographic"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426190421id_/https://developers.google.com/google-ads/api/fields/v19/display_keyword_view",
+      "sha256": "cc795ca1977a32a63b572f6aaa83b28de0bd1735ef43a78ad421b3f11fc8aa6d",
+      "size": 703506,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/display_keyword_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426190028id_/https://developers.google.com/google-ads/api/fields/v19/distance_view",
+      "sha256": "3644f7c29be077add578b408414a8094bdbf263ec227039bfb95e6166baea785",
+      "size": 673276,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/distance_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002151109id_/https://developers.google.com/google-ads/api/fields/v19/domain_category",
+      "sha256": "6a7bdf1190457422b3605e855e74497e694b2a814c88a6a3be0ab8b7fee9081d",
+      "size": 4262029,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/domain_category"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424173551id_/https://developers.google.com/google-ads/api/fields/v19/dynamic_search_ads_search_term_view",
+      "sha256": "bbadbfeda11f3829547624021a089d599c052fc469f6ee6694e887f822347b8e",
+      "size": 676489,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/dynamic_search_ads_search_term_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419124519id_/https://developers.google.com/google-ads/api/fields/v19/expanded_landing_page_view",
+      "sha256": "c7eea756ddaae4aab4743bc7fcc41b4c236fae3c15095def9ab15d1286a10d51",
+      "size": 702214,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/expanded_landing_page_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426191507id_/https://developers.google.com/google-ads/api/fields/v19/experiment",
+      "sha256": "19de4cc043ce664cfc117d920442628d7c7bb7b8ab55460ede7ac28580f0c75e",
+      "size": 642168,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/experiment"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002142843id_/https://developers.google.com/google-ads/api/fields/v19/experiment_arm",
+      "sha256": "bbbbe447fa03193e0a20be570980508788007c6ed9cfd513ffb8998a87d6408a",
+      "size": 4259571,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/experiment_arm"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250812191236id_/https://developers.google.com/google-ads/api/fields/v19/gender_view",
+      "sha256": "b165cdd3652b1f4e8b1d00589ae67131814934f3145cfbaa63627892127780c2",
+      "size": 881230,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/gender_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250517101725id_/https://developers.google.com/google-ads/api/fields/v19/geo_target_constant",
+      "sha256": "3e1cc3408bd298103214d19d9bb699b979b13273400f0480edacb0ad9a32e733",
+      "size": 633875,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/geo_target_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002144428id_/https://developers.google.com/google-ads/api/fields/v19/geographic_view",
+      "sha256": "9fa3cd9b6478bea859126bbbef43ae4a80589681ce04a7fdbe71a7b526731889",
+      "size": 4319809,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/geographic_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250328072602id_/https://developers.google.com/google-ads/api/fields/v19/group_placement_view",
+      "sha256": "39ffc5b4b68d86d5ef2512ff915e6fccfb56e3fe08f5d0c76e4245f0e5ba3487",
+      "size": 696938,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/group_placement_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426190554id_/https://developers.google.com/google-ads/api/fields/v19/hotel_group_view",
+      "sha256": "a156f133c7fb427c2dad0053c3ae08fdc78ffe0676890e15bf0f76d9f4534ebd",
+      "size": 680846,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/hotel_group_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250501002042id_/https://developers.google.com/google-ads/api/fields/v19/hotel_performance_view",
+      "sha256": "1cdd232e63835f85db007072b91afcc463932a84de4360289386d9ce106bfaea",
+      "size": 703472,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/hotel_performance_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424050443id_/https://developers.google.com/google-ads/api/fields/v19/hotel_reconciliation",
+      "sha256": "57ce50383787a279e76dedb2e979646324de7407742bd28fa404fed2cd6714f4",
+      "size": 648242,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/hotel_reconciliation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002143007id_/https://developers.google.com/google-ads/api/fields/v19/income_range_view",
+      "sha256": "b5c8460e0bb6154fec1ac737d832aaabacaccc23f0d6b4017ad89843d3d91207",
+      "size": 4327259,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/income_range_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426185839id_/https://developers.google.com/google-ads/api/fields/v19/keyword_plan",
+      "sha256": "0bdf3847b178e72f92160117aaea091046cd9e974119a9b08d0778ed199370f0",
+      "size": 632098,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/keyword_plan"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426191214id_/https://developers.google.com/google-ads/api/fields/v19/keyword_plan_ad_group",
+      "sha256": "289ef0b713ece374da962d5930524f87dd05b8350c1b11756d94bd3c6f2e0a36",
+      "size": 633546,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/keyword_plan_ad_group"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002154707id_/https://developers.google.com/google-ads/api/fields/v19/keyword_plan_ad_group_keyword",
+      "sha256": "bd869ef9008fea67261db29404521145e2b204c14f7ecd98007e88130b768fd4",
+      "size": 4260415,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/keyword_plan_ad_group_keyword"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250324032144id_/https://developers.google.com/google-ads/api/fields/v19/keyword_plan_campaign",
+      "sha256": "5ea04a222f81c665397459bbec751c275fe517fbf564d92347d4233740c5a375",
+      "size": 635416,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/keyword_plan_campaign"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250323222102id_/https://developers.google.com/google-ads/api/fields/v19/keyword_plan_campaign_keyword",
+      "sha256": "0ad347a610118bdd0410dbe92984e856e56aa7c3dffdfd8ffa9978262120f586",
+      "size": 632919,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/keyword_plan_campaign_keyword"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250328002400id_/https://developers.google.com/google-ads/api/fields/v19/keyword_theme_constant",
+      "sha256": "284aa3f88ed4c662f770f6ee737253f594d79eac197ccc0672333210400fad4d",
+      "size": 630086,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/keyword_theme_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250516023728id_/https://developers.google.com/google-ads/api/fields/v19/keyword_view",
+      "sha256": "f057d0d98a15034368fe2b0d12b813030ab7bdfaf92272e52140874d15ae2adb",
+      "size": 799285,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/keyword_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250716123129id_/https://developers.google.com/google-ads/api/fields/v19/label",
+      "sha256": "5a3b39f68fb7a7fb264ad89018a22f98df6257b0fcf7085250749114b3598b19",
+      "size": 622178,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/label"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419124830id_/https://developers.google.com/google-ads/api/fields/v19/landing_page_view",
+      "sha256": "0a0b6a5138663095a1ac130ae9d717400ca7a76e2d0952ddd8f0f9ecf1e46d26",
+      "size": 701484,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/landing_page_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250423100356id_/https://developers.google.com/google-ads/api/fields/v19/language_constant",
+      "sha256": "a9a3f3450ac71f24c1442a12d060fbbc0a85bc942c9c5f9f4c1bcd7c56d1fd14",
+      "size": 630873,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/language_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250317124556id_/https://developers.google.com/google-ads/api/fields/v19/lead_form_submission_data",
+      "sha256": "81852b402c4cb36b49cebb146a4b170dcd4694c09013f284521aa9cd0983cd06",
+      "size": 636486,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/lead_form_submission_data"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250522143336id_/https://developers.google.com/google-ads/api/fields/v19/life_event",
+      "sha256": "4454d3ea9b4d0162f84cff45f7abf3ed98acdd16245397094f7bcfc21531b223",
+      "size": 631741,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/life_event"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426182951id_/https://developers.google.com/google-ads/api/fields/v19/local_services_employee",
+      "sha256": "4e45074fc0aff2ac62fd9adb6377a3b6b7b45b2a63118a2f2d81dda81ba6c69c",
+      "size": 645529,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/local_services_employee"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424175815id_/https://developers.google.com/google-ads/api/fields/v19/local_services_lead",
+      "sha256": "cf3889417314152ebc49b34179fd45028db09c7c67d38ac73f843794f32699ba",
+      "size": 644676,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/local_services_lead"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250428112542id_/https://developers.google.com/google-ads/api/fields/v19/local_services_lead_conversation",
+      "sha256": "c81adeab96cb1af3a5bac228e0b89badf1200d45a911705bf8b69985f38e24d7",
+      "size": 639790,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/local_services_lead_conversation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250428112547id_/https://developers.google.com/google-ads/api/fields/v19/local_services_verification_artifact",
+      "sha256": "14971cec7323888738468313b35f072fa06472b2055f3672ce0d0eb80adb6754",
+      "size": 656587,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/local_services_verification_artifact"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419113214id_/https://developers.google.com/google-ads/api/fields/v19/location_view",
+      "sha256": "7cb4774f9f8c5aa210448c6994c0749388ad3e9cfcc634c971aa6d99ea05bf1e",
+      "size": 677331,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/location_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426170305id_/https://developers.google.com/google-ads/api/fields/v19/managed_placement_view",
+      "sha256": "c5ead2831f3095a360db783011f1643b0e276b6ed8822e7adfec1eb05509dae5",
+      "size": 703674,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/managed_placement_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250522135428id_/https://developers.google.com/google-ads/api/fields/v19/media_file",
+      "sha256": "117e826d1689a6445a9a5505b3171aed84c22339a3627fd1965a245bfd45ff42",
+      "size": 641515,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/media_file"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250421092017id_/https://developers.google.com/google-ads/api/fields/v19/metrics",
+      "sha256": "b2328b61d508ac0b64d331a746ce3c650a1d8ff92da311228c8933c7376453ef",
+      "size": 856219,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/metrics"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002142904id_/https://developers.google.com/google-ads/api/fields/v19/mobile_app_category_constant",
+      "sha256": "c5a8576c5cb70da7b8404909386de375a17726e64f6d13e00823bd95f5ef6c2e",
+      "size": 4255268,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/mobile_app_category_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419130049id_/https://developers.google.com/google-ads/api/fields/v19/mobile_device_constant",
+      "sha256": "97cc1e83800495d8e22fea2c9fd536328d525d19220db80f6bb47ee8d2449004",
+      "size": 632163,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/mobile_device_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419125645id_/https://developers.google.com/google-ads/api/fields/v19/offline_conversion_upload_client_summary",
+      "sha256": "fcb4f3f1f55d06dc31ee400e7a1e524c067c5a99748dc96964cd78b410bad5e1",
+      "size": 640040,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/offline_conversion_upload_client_summary"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419125456id_/https://developers.google.com/google-ads/api/fields/v19/offline_conversion_upload_conversion_action_summary",
+      "sha256": "8819d958e5c2562d624543bc47d4146d7e9637be21501a00d801bf82bbf5654f",
+      "size": 640683,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/offline_conversion_upload_conversion_action_summary"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250318220223id_/https://developers.google.com/google-ads/api/fields/v19/offline_user_data_job",
+      "sha256": "7f1dfe1e476c061e8d514b015b0ef98d85b6490dc1dfc6af17f9c72cc75a5814",
+      "size": 645485,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/offline_user_data_job"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002144043id_/https://developers.google.com/google-ads/api/fields/v19/operating_system_version_constant",
+      "sha256": "a87da3e5e207b74756a5ecca91455e99b21f68c2d1d5924de7bac14e5632666b",
+      "size": 4258901,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/operating_system_version_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250324104131id_/https://developers.google.com/google-ads/api/fields/v19/overview",
+      "sha256": "d30766a7661c6aed49bffa55a79a5d2c86a75dc564a70fb715ea12b96d84147f",
+      "size": 667585,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/overview"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250315075354id_/https://developers.google.com/google-ads/api/fields/v19/paid_organic_search_term_view",
+      "sha256": "96b27e2550138fe5bfd7370fd58f02700a6f617124a3736e41a8fbd1fdb94edf",
+      "size": 660953,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/paid_organic_search_term_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250317135606id_/https://developers.google.com/google-ads/api/fields/v19/parental_status_view",
+      "sha256": "b7d6d0ed9a5e5c65da3c5bf86542e0479579c7c89194736b860166a73d6a3b10",
+      "size": 701167,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/parental_status_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424032412id_/https://developers.google.com/google-ads/api/fields/v19/per_store_view",
+      "sha256": "75587568860e064eb985446bfdd57e2ed6b3d2189d24a019143cd8e80465f620",
+      "size": 661282,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/per_store_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419130218id_/https://developers.google.com/google-ads/api/fields/v19/performance_max_placement_view",
+      "sha256": "0dc010f828eff2d723c0b9901a8ffd218fbdd470f93ce479c4f6806be0052000",
+      "size": 638718,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/performance_max_placement_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426190810id_/https://developers.google.com/google-ads/api/fields/v19/product_category_constant",
+      "sha256": "f389070c78b65fb469c63540f065c65b4b4968dc1861a3f064611617bcbc99f3",
+      "size": 634483,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/product_category_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250430182404id_/https://developers.google.com/google-ads/api/fields/v19/product_group_view",
+      "sha256": "4f002501a89f859b4a413b1797fe032f5f6464399e2488967b952106dec3cc23",
+      "size": 707169,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/product_group_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250326190845id_/https://developers.google.com/google-ads/api/fields/v19/product_link",
+      "sha256": "d4659f2761e0fbea50b15e0f2942ccedb6550a3d95526de1197adf468a9a939e",
+      "size": 633736,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/product_link"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002143452id_/https://developers.google.com/google-ads/api/fields/v19/product_link_invitation",
+      "sha256": "62fc3787c7f3a13d7cc4681c680a955c13f59204c9abe9a82eef5a222ab6dd27",
+      "size": 4260653,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/product_link_invitation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250325092723id_/https://developers.google.com/google-ads/api/fields/v19/qualifying_question",
+      "sha256": "28f6554cee791c8c256be25e0c2d06a77b5f7fd5694a30dc8ca164dbb564d1c5",
+      "size": 629635,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/qualifying_question"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250326190130id_/https://developers.google.com/google-ads/api/fields/v19/recommendation",
+      "sha256": "696ed5a4c2a38f8b59b63736c913ea203f213f0d22af212989640d7fb4616ac5",
+      "size": 696095,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/recommendation"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424013743id_/https://developers.google.com/google-ads/api/fields/v19/recommendation_subscription",
+      "sha256": "8bc63f4470ccacaa8794df011dd9236ac88bf08f180b073b86615af17758a3ca",
+      "size": 634412,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/recommendation_subscription"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250517163201id_/https://developers.google.com/google-ads/api/fields/v19/remarketing_action",
+      "sha256": "954052e21cc7cfabe40cfbd8fd9a3e70955bfd07507e5b94a1c139a443a8a81c",
+      "size": 630815,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/remarketing_action"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250425165837id_/https://developers.google.com/google-ads/api/fields/v19/search_term_view",
+      "sha256": "89c58ce841adef51f3ec1ec00215cf84e47358ba3b605e594a9d05bd1ed62085",
+      "size": 702402,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/search_term_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250407191650id_/https://developers.google.com/google-ads/api/fields/v19/segments",
+      "sha256": "abe04a3b2d5b5d5848e3306fdfe6ddffa18594453ad523336213f49ceb40f3e3",
+      "size": 1884312,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/segments"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002145736id_/https://developers.google.com/google-ads/api/fields/v19/shared_criterion",
+      "sha256": "95a883207c3df64a292cfde6a650cc159d53f5b8421fa14fb8260188051f6934",
+      "size": 4271677,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/shared_criterion"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250424034425id_/https://developers.google.com/google-ads/api/fields/v19/shared_set",
+      "sha256": "b4bd99358c74e8b3d241af2a8ad97b8fb3f790a0202036d91f350814ff23bfdf",
+      "size": 637365,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/shared_set"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250428232018id_/https://developers.google.com/google-ads/api/fields/v19/shopping_performance_view",
+      "sha256": "717893c06fbb097b4cf5f5421b395b267f28f17728c5a2e00d2632a0b48ea17f",
+      "size": 733836,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/shopping_performance_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250429071855id_/https://developers.google.com/google-ads/api/fields/v19/shopping_product",
+      "sha256": "acd70e9405e75a25827ef108cdf408951a12a85505cd11f4da281742a81f6a86",
+      "size": 732444,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/shopping_product"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250427143021id_/https://developers.google.com/google-ads/api/fields/v19/smart_campaign_search_term_view",
+      "sha256": "c44aaccf7674dc79cf95f507a73a9b30ea41a13e890511e6d2fe9b620830585f",
+      "size": 646182,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/smart_campaign_search_term_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419125540id_/https://developers.google.com/google-ads/api/fields/v19/smart_campaign_setting",
+      "sha256": "a7a03c005d081c348c136834a894c461eebcab4acf5f776f46a6b29bda42ef82",
+      "size": 636220,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/smart_campaign_setting"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250523052129id_/https://developers.google.com/google-ads/api/fields/v19/third_party_app_analytics_link",
+      "sha256": "438b79ceff5f67329c70b9a95efbd4be8f7b25910a83184c6596284bb0b81a13",
+      "size": 629327,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/third_party_app_analytics_link"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426191320id_/https://developers.google.com/google-ads/api/fields/v19/topic_constant",
+      "sha256": "ffeac7cb2fe3298958d2a71d9e32c325014784ea389ff00fb8c6ab49c00be56f",
+      "size": 631937,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/topic_constant"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250323025732id_/https://developers.google.com/google-ads/api/fields/v19/topic_view",
+      "sha256": "5e71f92223c1eb413786474418da964998054a1f7224a9174a8aa734efbbe0ec",
+      "size": 700791,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/topic_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250317120130id_/https://developers.google.com/google-ads/api/fields/v19/travel_activity_group_view",
+      "sha256": "aa866ca6887d64257f54f644786d56e6aaa24eee62ded9e8ea9a9138021842f4",
+      "size": 675804,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/travel_activity_group_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250612231529id_/https://developers.google.com/google-ads/api/fields/v19/travel_activity_performance_view",
+      "sha256": "b981e27eca9832c1325de913fbd92891c3824ee3c0f51ed1f4aaa07dfba2aeae",
+      "size": 674354,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/travel_activity_performance_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250426190124id_/https://developers.google.com/google-ads/api/fields/v19/user_interest",
+      "sha256": "df337dbedf7de2bdd2014b6cbe5ac5446d1373e3db69f37acabffeb06ef0fe00",
+      "size": 634649,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/user_interest"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250315053504id_/https://developers.google.com/google-ads/api/fields/v19/user_list",
+      "sha256": "cb3040a380aa8c4757765887c5ce631f2999ae2a189461a7231be29915de3694",
+      "size": 664219,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/user_list"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20251002144514id_/https://developers.google.com/google-ads/api/fields/v19/user_list_customer_type",
+      "sha256": "e50d1d076352f8a8979e1ab4927f7c2586a97b94a5fbec59d8c2830d09915899",
+      "size": 4256536,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/user_list_customer_type"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250622070505id_/https://developers.google.com/google-ads/api/fields/v19/user_location_view",
+      "sha256": "fdaed5f110be839be8cd19f37c9b18a0941df6206c2d55751eacc692b1636774",
+      "size": 680208,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/user_location_view"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250425155055id_/https://developers.google.com/google-ads/api/fields/v19/video",
+      "sha256": "f2d10dd457191ae0c07586c7bd6f90a58f0f17a1aad1518e53e6543f7629a5af",
+      "size": 692014,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/video"
+    },
+    {
+      "resolved_url": "https://web.archive.org/web/20250419124043id_/https://developers.google.com/google-ads/api/fields/v19/webpage_view",
+      "sha256": "2bea427d9c2cc825d91b1166c7eb8a8719c161ec1c6a9f70a72abef5075f40e2",
+      "size": 702999,
+      "url": "https://developers.google.com/google-ads/api/fields/v19/webpage_view"
+    }
+  ]
+}
