@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 from hubbleops.core.canonical import content_id
+from hubbleops.core.errors import UnknownClaimType
+from hubbleops.core.records import as_mapping
 from hubbleops.core.schema import validate
 
 STATUSES = (
@@ -19,6 +21,35 @@ OPEN_STATUSES = ("UNKNOWN", "HUMAN_REQUIRED")
 
 def candidate_identity(provider: str, claim_type: str, claim_key: str) -> str:
     return content_id({"provider": provider, "claim_type": claim_type, "claim_key": claim_key})
+
+
+def claim_key(record: Mapping[str, Any]) -> str:
+    claim_type = str(record["claim_type"])
+    path = str(record["path"])
+    line = record["line_start"]
+    subject = record["provider_subject"]
+    value = as_mapping(record["value"])
+    if claim_type == "call_version":
+        return f"{path}:{line}"
+    if claim_type in (
+        "surface_reference",
+        "endpoint_reference",
+        "package_reference",
+        "config_reference",
+        "request_text",
+    ):
+        return f"{path}:{line}:{subject}"
+    if claim_type == "sdk_installed":
+        ecosystem = value.get("ecosystem")
+        package = value.get("package")
+        if value.get("state") == "ABSENT" or package is None:
+            return f"{ecosystem}:*"
+        return f"{ecosystem}:{str(package).lower().replace('_', '-')}"
+    if claim_type == "dependency_state":
+        return f"{value.get('state')}:{path}"
+    if claim_type in ("file_unscanned", "external_boundary"):
+        return path
+    raise UnknownClaimType(claim_type)
 
 
 def make_candidate(

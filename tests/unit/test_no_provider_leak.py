@@ -31,6 +31,18 @@ def scanned_files() -> list[Path]:
     return files
 
 
+def provider_offences(paths: list[Path], root: Path) -> list[str]:
+    names = [name.lower() for name in provider_names()]
+    offences: list[str] = []
+    for path in paths:
+        content = path.read_text(encoding="utf-8", errors="replace").lower()
+        for number, line in enumerate(content.splitlines(), start=1):
+            for name in names:
+                if name in line:
+                    offences.append(f"{path.relative_to(root)}:{number} contains {name!r}")
+    return offences
+
+
 def test_provider_name_list_is_populated() -> None:
     assert provider_names(), "the leak test proves nothing without names to look for"
 
@@ -45,16 +57,17 @@ def test_the_scan_reads_the_generic_layer_sources() -> None:
 
 
 def test_generic_layers_contain_no_provider_name() -> None:
-    names = [name.lower() for name in provider_names()]
-    offences: list[str] = []
-    for path in scanned_files():
-        content = path.read_text(encoding="utf-8", errors="replace").lower()
-        for number, line in enumerate(content.splitlines(), start=1):
-            for name in names:
-                if name in line:
-                    offences.append(
-                        f"{path.relative_to(PACKAGE_ROOT.parent)}:{number} contains {name!r}"
-                    )
+    offences = provider_offences(scanned_files(), PACKAGE_ROOT.parent)
     assert offences == [], (
         "law L5: generic layers carry no provider name, hostname, package name or pack path"
     )
+
+
+def test_an_injected_observe_to_pack_import_is_detected(tmp_path: Path) -> None:
+    root = tmp_path / "hubbleops"
+    observe = root / "observe"
+    observe.mkdir(parents=True)
+    leak = observe / "leak.py"
+    leak.write_text("from hubbleops.packs.google_ads import PACK\n", encoding="utf-8")
+    offences = provider_offences([leak], tmp_path)
+    assert any("google" in offence for offence in offences)

@@ -1,0 +1,64 @@
+{
+  "inventory": {
+    "bytes": 11292274,
+    "pages": 8
+  },
+  "pages": [
+    {
+      "name": "archive",
+      "resolved_url": "https://developers.google.com/google-ads/api/docs/archived-release-notes",
+      "sha256": "2ca0ed6d7a8d1a9b42a1631e108f4b3196416baf7e9214a52f5685c9f2c3d6d4",
+      "size": 772814,
+      "url": "https://developers.google.com/google-ads/api/docs/archived-release-notes"
+    },
+    {
+      "name": "release",
+      "resolved_url": "https://developers.google.com/google-ads/api/docs/release-notes",
+      "sha256": "f33dbef21947da187c9cc851329c05709471c6e67453e84001ae6550299925c5",
+      "size": 345084,
+      "url": "https://developers.google.com/google-ads/api/docs/release-notes"
+    },
+    {
+      "name": "sunset",
+      "resolved_url": "https://developers.google.com/google-ads/api/docs/sunset-dates",
+      "sha256": "dca3d965fec4f44fc05c2d276624a53d08fd4d3c52d343455d769ac698b8a039",
+      "size": 2649087,
+      "url": "https://developers.google.com/google-ads/api/docs/sunset-dates"
+    },
+    {
+      "name": "sunset_v19",
+      "resolved_url": "https://ads-developers.googleblog.com/2025/12/google-ads-api-v19-sunset-reminder.html",
+      "sha256": "204e99cea45e056b82e79618134ce3cc12023436e5a5153e2b1a52437b019241",
+      "size": 169646,
+      "url": "https://ads-developers.googleblog.com/2025/12/google-ads-api-v19-sunset-reminder.html"
+    },
+    {
+      "name": "sunset_v20",
+      "resolved_url": "https://ads-developers.googleblog.com/2026/04/google-ads-api-v20-sunset-reminder.html",
+      "sha256": "42f302eac1089d6f3c6cfcaf514d2aa686ec46975aa4d8c952baeac32398c3cc",
+      "size": 171388,
+      "url": "https://ads-developers.googleblog.com/2026/04/google-ads-api-v20-sunset-reminder.html"
+    },
+    {
+      "name": "sunset_v21",
+      "resolved_url": "https://ads-developers.googleblog.com/2026/06/google-ads-api-v21-sunset-reminder.html",
+      "sha256": "52c36cb09064f62be78c2a6bcdd26230d91b31e83911a9920631ffae0aaf59dd",
+      "size": 171586,
+      "url": "https://ads-developers.googleblog.com/2026/06/google-ads-api-v21-sunset-reminder.html"
+    },
+    {
+      "name": "upgrade",
+      "resolved_url": "https://developers.google.com/google-ads/api/docs/upgrade",
+      "sha256": "931a560f9ade971a8a5a6a0a825b4d9083c843220da5f1d350c9db857abaf6c4",
+      "size": 2752394,
+      "url": "https://developers.google.com/google-ads/api/docs/upgrade"
+    },
+    {
+      "name": "upgrade_archive",
+      "resolved_url": "https://web.archive.org/web/20250829043338id_/https://developers.google.com/google-ads/api/docs/upgrade",
+      "sha256": "c929e227ef31311b8b179a6445cff8c4769290f54b77a1b3b2adb15a341ae1e2",
+      "size": 4260275,
+      "url": "https://web.archive.org/web/20250827000000id_/https://developers.google.com/google-ads/api/docs/upgrade"
+    }
+  ]
+}

@@ -8,19 +8,31 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any
 
-from hubbleops.core.candidate import OPEN_STATUSES, STATUSES
+from hubbleops.core.candidate import (
+    OPEN_STATUSES,
+    STATUSES,
+    candidate_identity,
+    claim_key,
+)
 from hubbleops.core.canonical import canonical_text
 from hubbleops.core.errors import (
     AiEvidenceAlone,
+    CandidateIdentityMismatch,
+    EvidenceContextMismatch,
     EvidenceIdentityMismatch,
     EvidenceNotFound,
     ProofScopeMismatch,
     ProvenanceDropped,
+    RunIdentityMismatch,
+    RunNotFound,
+    RunProviderMismatch,
     StoreSchemaMismatch,
     UnexplainedCandidates,
     UnknownNotConserved,
 )
 from hubbleops.core.evidence import AI_DERIVATION, evidence_identity
+from hubbleops.core.proof_scope import proof_scope_hash as derive_proof_scope_hash
+from hubbleops.core.proof_scope import run_id_for
 from hubbleops.core.schema import validate
 
 DATABASE_FILENAME = "hubbleops.sqlite"
@@ -133,6 +145,7 @@ class Store:
         self.directory.mkdir(parents=True, exist_ok=True)
         self.path = directory / DATABASE_FILENAME
         self._scopes: dict[str, str] = {}
+        self._pending_evidence: dict[tuple[str, str], dict[str, Any]] = {}
         self.connection = sqlite3.connect(self.path)
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA journal_mode=WAL")
@@ -165,6 +178,7 @@ class Store:
         self.close()
 
     def close(self) -> None:
+        self._pending_evidence.clear()
         self.connection.close()
 
     def start_run(
@@ -180,6 +194,20 @@ class Store:
         started_at: str,
     ) -> None:
         validate("proof_scope", proof_scope)
+        derived_scope = derive_proof_scope_hash(proof_scope)
+        if proof_scope_hash != derived_scope:
+            raise ProofScopeMismatch("run", run_id, derived_scope, proof_scope_hash)
+        derived_run = run_id_for(
+            scope_hash=proof_scope_hash,
+            provider=provider,
+            verb=verb,
+            target=target,
+        )
+        if run_id != derived_run:
+            raise RunIdentityMismatch(run_id, derived_run)
+        held_scope = self._run_scope(run_id)
+        if held_scope is not None and held_scope != proof_scope_hash:
+            raise ProofScopeMismatch("run", run_id, held_scope, proof_scope_hash)
         self.connection.execute(
             """
             INSERT INTO runs (
@@ -205,6 +233,7 @@ class Store:
             ),
         )
         self.connection.commit()
+        self._scopes[run_id] = proof_scope_hash
 
     def finish_run(self, run_id: str, finished_at: str) -> None:
         self._guard_every_evidence_is_explained(run_id)
@@ -229,8 +258,45 @@ class Store:
 
     def _bind_to_run(self, kind: str, record_id: str, run_id: str, scope: str) -> None:
         run_scope = self._run_scope(run_id)
-        if run_scope is not None and run_scope != scope:
+        if run_scope is None:
+            raise RunNotFound(kind, record_id, run_id)
+        if run_scope != scope:
             raise ProofScopeMismatch(kind, record_id, run_scope, scope)
+
+    def _run_context(self, run_id: str) -> tuple[str, dict[str, Any]] | None:
+        cursor = self.connection.execute(
+            "SELECT provider, proof_scope_json FROM runs WHERE run_id = ?", (run_id,)
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        return str(row["provider"]), json.loads(row["proof_scope_json"])
+
+    def _guard_evidence_context(self, record: dict[str, Any]) -> None:
+        context = self._run_context(str(record["run_id"]))
+        if context is None:
+            return
+        _, scope = context
+        pairs = (
+            ("repo_sha", scope["repo_sha"], record["repo_sha"]),
+            (
+                "dependency_context_hash",
+                scope["dependency_resolution_hash"],
+                record["dependency_context_hash"],
+            ),
+        )
+        for field, expected, offered in pairs:
+            if offered != expected:
+                raise EvidenceContextMismatch(str(record["id"]), field, expected, offered)
+
+    def _guard_candidate_provider(self, record: dict[str, Any]) -> None:
+        context = self._run_context(str(record["run_id"]))
+        if context is None:
+            return
+        provider, _ = context
+        offered = str(record["provider"])
+        if offered != provider:
+            raise RunProviderMismatch(str(record["id"]), provider, offered)
 
     def _guard_evidence_exists(self, record: dict[str, Any]) -> None:
         cited = sorted({str(eid) for eid in record["evidence_ids"]})
@@ -242,9 +308,40 @@ class Store:
             (record["run_id"], *cited),
         )
         stored = {str(row["id"]) for row in cursor.fetchall()}
+        stored.update(
+            evidence_id
+            for pending_run, evidence_id in self._pending_evidence
+            if pending_run == str(record["run_id"])
+        )
         missing = tuple(eid for eid in cited if eid not in stored)
         if missing:
             raise EvidenceNotFound(str(record["id"]), missing)
+
+    def _evidence_records(self, run_id: str, evidence_ids: set[str]) -> list[dict[str, Any]]:
+        records = [
+            record
+            for (pending_run, evidence_id), record in self._pending_evidence.items()
+            if pending_run == run_id and evidence_id in evidence_ids
+        ]
+        remaining = evidence_ids - {str(record["id"]) for record in records}
+        if remaining:
+            placeholders = ",".join("?" for _ in remaining)
+            cursor = self.connection.execute(
+                f"SELECT record_json FROM evidence WHERE run_id = ? AND id IN ({placeholders})",
+                (run_id, *sorted(remaining)),
+            )
+            records.extend(json.loads(row["record_json"]) for row in cursor.fetchall())
+        return records
+
+    def _guard_candidate_identity(self, record: dict[str, Any]) -> None:
+        evidence_ids = {str(item) for item in record["evidence_ids"]}
+        identities = {
+            candidate_identity(str(record["provider"]), str(item["claim_type"]), claim_key(item))
+            for item in self._evidence_records(str(record["run_id"]), evidence_ids)
+        }
+        offered = str(record["id"])
+        if identities != {offered}:
+            raise CandidateIdentityMismatch(offered, tuple(sorted(identities)))
 
     def _guard_candidate_transition(
         self, record: dict[str, Any], pending: Mapping[tuple[str, str], dict[str, Any]]
@@ -274,16 +371,22 @@ class Store:
     def _every_derivation_is_ai(self, run_id: str, evidence_ids: set[str]) -> bool:
         if not evidence_ids:
             return False
-        placeholders = ",".join("?" for _ in evidence_ids)
-        cursor = self.connection.execute(
-            "SELECT json_extract(record_json, '$.derivation') AS derivation "
-            f"FROM evidence WHERE run_id = ? AND id IN ({placeholders})",
-            (run_id, *sorted(evidence_ids)),
-        )
-        derivations = [str(row["derivation"]) for row in cursor.fetchall()]
+        derivations = [
+            str(record["derivation"]) for record in self._evidence_records(run_id, evidence_ids)
+        ]
         return bool(derivations) and all(item == AI_DERIVATION for item in derivations)
 
     def _guard_every_evidence_is_explained(self, run_id: str) -> None:
+        pending = sorted(
+            evidence_id
+            for pending_run, evidence_id in self._pending_evidence
+            if pending_run == run_id
+        )
+        if pending:
+            raise UnexplainedCandidates(
+                len(pending),
+                f"run {run_id} has evidence staged without a candidate: {', '.join(pending[:5])}",
+            )
         cursor = self.connection.execute(
             """
             SELECT evidence.id FROM evidence
@@ -306,7 +409,6 @@ class Store:
             )
 
     def write_evidence(self, records: Sequence[dict[str, Any]]) -> None:
-        rows: list[tuple[Any, ...]] = []
         for record in records:
             validate("evidence", record)
             derived = evidence_identity(record)
@@ -318,34 +420,37 @@ class Store:
                 str(record["run_id"]),
                 str(record["proof_scope_hash"]),
             )
-            rows.append(
-                (
-                    record["id"],
-                    record["run_id"],
-                    record["proof_scope_hash"],
-                    record["claim_type"],
-                    record["observer"],
-                    record["path"],
-                    record["line_start"],
-                    record["line_end"],
-                    canonical_text(record),
-                )
-            )
-        self.connection.executemany(
-            """
-            INSERT INTO evidence (
-                id, run_id, proof_scope_hash, claim_type, observer, path,
-                line_start, line_end, record_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(run_id, id) DO UPDATE SET record_json = excluded.record_json
-            """,
-            rows,
-        )
-        self.connection.commit()
+            self._guard_evidence_context(record)
+            self._pending_evidence[(str(record["run_id"]), str(record["id"]))] = record
 
     def write_candidates(self, records: Sequence[dict[str, Any]]) -> None:
         rows: list[tuple[Any, ...]] = []
         pending: dict[tuple[str, str], dict[str, Any]] = {}
+        run_ids = {str(record["run_id"]) for record in records}
+        for (run_id, _), evidence in self._pending_evidence.items():
+            if run_id in run_ids:
+                self._bind_to_run(
+                    "evidence",
+                    str(evidence["id"]),
+                    run_id,
+                    str(evidence["proof_scope_hash"]),
+                )
+                self._guard_evidence_context(evidence)
+        attached = {
+            (str(record["run_id"]), str(evidence_id))
+            for record in records
+            for evidence_id in record["evidence_ids"]
+        }
+        orphaned = sorted(
+            evidence_id
+            for run_id, evidence_id in self._pending_evidence
+            if run_id in run_ids and (run_id, evidence_id) not in attached
+        )
+        if orphaned:
+            raise UnexplainedCandidates(
+                len(orphaned),
+                f"staged evidence is attached to no offered candidate: {', '.join(orphaned[:5])}",
+            )
         for record in records:
             validate("candidate", record)
             self._bind_to_run(
@@ -354,8 +459,10 @@ class Store:
                 str(record["run_id"]),
                 str(record["proof_scope_hash"]),
             )
+            self._guard_candidate_provider(record)
             self._guard_candidate_transition(record, pending)
             self._guard_evidence_exists(record)
+            self._guard_candidate_identity(record)
             pending[(str(record["run_id"]), str(record["id"]))] = record
             rows.append(
                 (
@@ -367,18 +474,45 @@ class Store:
                     canonical_text(record),
                 )
             )
-        self.connection.executemany(
-            """
-            INSERT INTO candidates (
-                id, run_id, proof_scope_hash, provider, status, record_json
-            ) VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(run_id, id) DO UPDATE SET
-                status = excluded.status,
-                record_json = excluded.record_json
-            """,
-            rows,
-        )
-        self.connection.commit()
+        evidence_rows = [
+            (
+                record["id"],
+                record["run_id"],
+                record["proof_scope_hash"],
+                record["claim_type"],
+                record["observer"],
+                record["path"],
+                record["line_start"],
+                record["line_end"],
+                canonical_text(record),
+            )
+            for (run_id, _), record in sorted(self._pending_evidence.items())
+            if run_id in run_ids
+        ]
+        with self.connection:
+            self.connection.executemany(
+                """
+                INSERT INTO evidence (
+                    id, run_id, proof_scope_hash, claim_type, observer, path,
+                    line_start, line_end, record_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(run_id, id) DO UPDATE SET record_json = excluded.record_json
+                """,
+                evidence_rows,
+            )
+            self.connection.executemany(
+                """
+                INSERT INTO candidates (
+                    id, run_id, proof_scope_hash, provider, status, record_json
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(run_id, id) DO UPDATE SET
+                    status = excluded.status,
+                    record_json = excluded.record_json
+                """,
+                rows,
+            )
+        for key in [key for key in self._pending_evidence if key[0] in run_ids]:
+            del self._pending_evidence[key]
 
     def write_artifact(
         self,

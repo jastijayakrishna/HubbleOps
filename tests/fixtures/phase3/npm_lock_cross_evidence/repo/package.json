@@ -1,0 +1,7 @@
+{
+  "name": "synthetic-provider-wrapper",
+  "private": true,
+  "dependencies": {
+    "google-ads-node": "^24.0.0"
+  }
+}

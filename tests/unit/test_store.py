@@ -10,16 +10,21 @@ from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.errors import (
     AiEvidenceAlone,
+    CandidateIdentityMismatch,
+    EvidenceContextMismatch,
     EvidenceIdentityMismatch,
     EvidenceNotFound,
     ProofScopeMismatch,
     ProvenanceDropped,
+    RunIdentityMismatch,
+    RunNotFound,
+    RunProviderMismatch,
     StoreSchemaMismatch,
     UnexplainedCandidates,
     UnknownNotConserved,
 )
-from hubbleops.core.evidence import make_evidence
-from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash
+from hubbleops.core.evidence import evidence_identity, make_evidence
+from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash, run_id_for
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
 
@@ -34,7 +39,7 @@ def seeded(directory: Path) -> tuple[Store, str, str]:
         scanner_version="test",
     )
     scope_hash = proof_scope_hash(scope)
-    run_id = content_id({"run": scope_hash})
+    run_id = run_id_for(scope_hash=scope_hash, provider="p", verb="scan", target="target")
     store = Store(directory)
     store.start_run(
         run_id=run_id,
@@ -157,13 +162,17 @@ def test_an_artifact_row_records_its_digest(tmp_path: Path) -> None:
 
 
 def evidence_at(
-    run_id: str, scope_hash: str, path: str, derivation: str = "OBSERVED"
+    run_id: str,
+    scope_hash: str,
+    path: str,
+    derivation: str = "OBSERVED",
+    observer: str = "text",
 ) -> dict[str, Any]:
     return make_evidence(
         run_id=run_id,
         proof_scope_hash=scope_hash,
         claim_type="call_version",
-        observer="text",
+        observer=observer,
         repo_sha=None,
         path=path,
         line_start=1,
@@ -231,7 +240,7 @@ def test_an_unknown_does_not_close_by_being_called_affected(tmp_path: Path) -> N
 
 def test_ai_evidence_alone_does_not_close_an_unknown(tmp_path: Path) -> None:
     store, run_id, scope_hash, first = seeded_unknown(tmp_path)
-    derived = evidence_at(run_id, scope_hash, "src/guess.py", derivation="DERIVED_AI_EVIDENCE")
+    derived = evidence_at(run_id, scope_hash, "src/open.py", derivation="DERIVED_AI_EVIDENCE")
     store.write_evidence([derived])
     closing = open_candidate(run_id, scope_hash, [first["id"], derived["id"]], "AFFECTED", None)
 
@@ -252,7 +261,7 @@ def test_evidence_whose_id_is_not_its_content_is_refused(tmp_path: Path) -> None
 
 
 def test_stored_evidence_cannot_be_relabelled_under_its_own_id(tmp_path: Path) -> None:
-    store, run_id, scope_hash = seeded(tmp_path)
+    store, run_id, scope_hash, _ = seeded_unknown(tmp_path)
     derived = evidence_at(run_id, scope_hash, "src/guess.py", derivation="DERIVED_AI_EVIDENCE")
     store.write_evidence([derived])
     relabelled = {**derived, "derivation": "OBSERVED"}
@@ -260,14 +269,14 @@ def test_stored_evidence_cannot_be_relabelled_under_its_own_id(tmp_path: Path) -
     with pytest.raises(EvidenceIdentityMismatch):
         store.write_evidence([relabelled])
     held = [item for item in store.evidence_for(run_id) if item["id"] == derived["id"]]
-    assert held[0]["derivation"] == "DERIVED_AI_EVIDENCE"
+    assert held == []
     store.close()
 
 
 def test_ai_evidence_beside_an_observation_closes_an_unknown(tmp_path: Path) -> None:
     store, run_id, scope_hash, first = seeded_unknown(tmp_path)
-    derived = evidence_at(run_id, scope_hash, "src/guess.py", derivation="DERIVED_AI_EVIDENCE")
-    observed = evidence_at(run_id, scope_hash, "src/seen.py")
+    derived = evidence_at(run_id, scope_hash, "src/open.py", derivation="DERIVED_AI_EVIDENCE")
+    observed = evidence_at(run_id, scope_hash, "src/open.py", observer="dynamic")
     store.write_evidence([derived, observed])
     closing = open_candidate(
         run_id, scope_hash, [first["id"], derived["id"], observed["id"]], "AFFECTED", None
@@ -293,7 +302,7 @@ def test_an_unknown_does_not_close_inside_the_batch_that_opens_it(tmp_path: Path
 
 def test_an_unknown_closes_when_new_evidence_arrives(tmp_path: Path) -> None:
     store, run_id, scope_hash, first = seeded_unknown(tmp_path)
-    second = evidence_at(run_id, scope_hash, "src/open_again.py")
+    second = evidence_at(run_id, scope_hash, "src/open.py", observer="dynamic")
     store.write_evidence([second])
     closing = open_candidate(run_id, scope_hash, [first["id"], second["id"]], "AFFECTED", None)
     store.write_candidates([closing])
@@ -303,7 +312,7 @@ def test_an_unknown_closes_when_new_evidence_arrives(tmp_path: Path) -> None:
 
 def test_a_candidate_write_can_never_drop_evidence(tmp_path: Path) -> None:
     store, run_id, scope_hash, _ = seeded_unknown(tmp_path)
-    second = evidence_at(run_id, scope_hash, "src/open_again.py")
+    second = evidence_at(run_id, scope_hash, "src/open.py", observer="dynamic")
     store.write_evidence([second])
     with pytest.raises(ProvenanceDropped):
         store.write_candidates(
@@ -344,6 +353,137 @@ def test_a_record_from_another_proof_scope_is_refused(tmp_path: Path) -> None:
     store.close()
 
 
+def test_start_run_refuses_a_hash_that_is_not_the_offered_proof_scope(tmp_path: Path) -> None:
+    scope = make_proof_scope(
+        repo_sha="1" * 40,
+        tree_hash=EMPTY_SHA256,
+        dependency_resolution_hash=None,
+        scanner_version="test",
+    )
+    derived = proof_scope_hash(scope)
+    store = Store(tmp_path)
+    with pytest.raises(ProofScopeMismatch):
+        store.start_run(
+            run_id=content_id({"run": derived}),
+            proof_scope=scope,
+            proof_scope_hash="f" * 64,
+            provider="p",
+            verb="scan",
+            target="target",
+            closure_summary={"entries": 0},
+            started_at="2026-01-01T00:00:00+00:00",
+        )
+    assert store.latest_run() is None
+    store.close()
+
+
+def test_start_run_refuses_a_caller_selected_run_id(tmp_path: Path) -> None:
+    scope = make_proof_scope(
+        repo_sha=None,
+        tree_hash=EMPTY_SHA256,
+        dependency_resolution_hash=None,
+        scanner_version="test",
+    )
+    scope_hash = proof_scope_hash(scope)
+    store = Store(tmp_path)
+    with pytest.raises(RunIdentityMismatch):
+        store.start_run(
+            run_id=content_id({"not": "the run identity"}),
+            proof_scope=scope,
+            proof_scope_hash=scope_hash,
+            provider="p",
+            verb="scan",
+            target="target",
+            closure_summary={"entries": 0},
+            started_at="2026-01-01T00:00:00+00:00",
+        )
+    assert store.latest_run() is None
+    store.close()
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("repo_sha", "1" * 40),
+        ("dependency_context_hash", "2" * 64),
+    ],
+)
+def test_evidence_context_must_match_its_run_proof_scope(
+    tmp_path: Path, field: str, value: str
+) -> None:
+    store, run_id, scope_hash = seeded(tmp_path)
+    offered = {**evidence_at(run_id, scope_hash, "src/context.py"), field: value}
+    offered = {**offered, "id": evidence_identity(offered)}
+    with pytest.raises(EvidenceContextMismatch):
+        store.write_evidence([offered])
+    store.close()
+
+
+def test_candidate_provider_must_match_its_run(tmp_path: Path) -> None:
+    store, run_id, scope_hash = seeded(tmp_path)
+    evidence = evidence_at(run_id, scope_hash, "src/provider.py")
+    store.write_evidence([evidence])
+    offered = make_candidate(
+        candidate_id=candidate_identity("other", "call_version", "src/provider.py:1"),
+        run_id=run_id,
+        proof_scope_hash=scope_hash,
+        provider="other",
+        evidence_ids=[evidence["id"]],
+        status="AFFECTED",
+        reason="wrong provider",
+        close_with=None,
+    )
+    with pytest.raises(RunProviderMismatch):
+        store.write_candidates([offered])
+    store.close()
+
+
+def test_evidence_cannot_be_staged_before_its_run_exists(tmp_path: Path) -> None:
+    scope = make_proof_scope(
+        repo_sha=None,
+        tree_hash=EMPTY_SHA256,
+        dependency_resolution_hash=None,
+        scanner_version="test",
+    )
+    scope_hash = proof_scope_hash(scope)
+    run_id = run_id_for(scope_hash=scope_hash, provider="p", verb="scan", target="target")
+    store = Store(tmp_path)
+    with pytest.raises(RunNotFound):
+        store.write_evidence([evidence_at(run_id, scope_hash, "src/early.py")])
+    store.start_run(
+        run_id=run_id,
+        proof_scope=scope,
+        proof_scope_hash=scope_hash,
+        provider="p",
+        verb="scan",
+        target="target",
+        closure_summary={"entries": 0},
+        started_at="2026-01-01T00:00:00+00:00",
+    )
+    assert store.evidence_for(run_id) == ()
+    store.close()
+
+
+def test_candidate_id_must_match_its_attached_evidence_identity(tmp_path: Path) -> None:
+    store, run_id, scope_hash = seeded(tmp_path)
+    evidence = evidence_at(run_id, scope_hash, "src/forged.py")
+    store.write_evidence([evidence])
+    forged = make_candidate(
+        candidate_id="f" * 64,
+        run_id=run_id,
+        proof_scope_hash=scope_hash,
+        provider="p",
+        evidence_ids=[evidence["id"]],
+        status="AFFECTED",
+        reason="forged identity",
+        close_with=None,
+    )
+    with pytest.raises(CandidateIdentityMismatch):
+        store.write_candidates([forged])
+    assert all(item["id"] != forged["id"] for item in store.candidates_for(run_id))
+    store.close()
+
+
 def test_a_database_written_by_another_store_schema_is_refused(tmp_path: Path) -> None:
     store, _, _ = seeded(tmp_path)
     store.connection.execute("PRAGMA user_version=0")
@@ -354,19 +494,8 @@ def test_a_database_written_by_another_store_schema_is_refused(tmp_path: Path) -
 
 
 def test_an_unknown_never_closes_on_an_evidence_id_the_run_never_wrote(tmp_path: Path) -> None:
-    store, run_id, scope_hash = seeded(tmp_path)
-    held = store.evidence_for(run_id)[0]["id"]
-    store.write_candidates(
-        [
-            open_candidate(
-                run_id,
-                scope_hash,
-                [held],
-                "UNKNOWN",
-                "capture the executed call, or record it with `hops decide`",
-            )
-        ]
-    )
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    held = first["id"]
 
     closing = make_candidate(
         candidate_id=candidate_identity("p", "call_version", "src/open.py:1"),
@@ -405,6 +534,11 @@ def test_a_run_cannot_finish_while_evidence_is_attached_to_no_candidate(tmp_path
         confidence="RAW",
     )
     store.write_evidence([orphan])
+    assert store.connection.execute("SELECT COUNT(*) FROM evidence").fetchone()[0] == 1
     with pytest.raises(UnexplainedCandidates):
         store.finish_run(run_id, "2026-01-01T00:01:00+00:00")
     store.close()
+
+    reopened = Store(tmp_path)
+    assert reopened.connection.execute("SELECT COUNT(*) FROM evidence").fetchone()[0] == 1
+    reopened.close()

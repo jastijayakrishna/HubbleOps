@@ -1,0 +1,23 @@
+{
+  "fixture_id": "typescript_version_symbol",
+  "phase": 3,
+  "candidates": [
+    {
+      "id": "imported_typescript_version",
+      "path": "transport_lookup.ts",
+      "language": "typescript",
+      "claim_type": "call_version",
+      "provider_subject": "v24",
+      "status": "AFFECTED",
+      "observer": "structure",
+      "confidence": "PROVEN",
+      "required_shape": [
+        "exported_constant",
+        "import_edge",
+        "formatted_rest_endpoint",
+        "computed_proto_lookup"
+      ]
+    }
+  ],
+  "must_not_emit": []
+}

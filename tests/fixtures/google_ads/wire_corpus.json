@@ -1,0 +1,22 @@
+[
+  {
+    "source_url": "https://developers.google.com/google-ads/api/docs/productionize/logging",
+    "retrieved_at": "2026-09-05T00:00:00Z",
+    "source_kind": "official detailed request log example",
+    "path": "/google.ads.googleads.v24.services.GoogleAdsService/SearchStream",
+    "headers": {"x-goog-api-client": "gl-dotnet/5.0.0 gapic/17.0.1 gax/4.2.0 grpc/2.46.3 gccl/3.0.1 pb/3.21.5"},
+    "service": "GoogleAdsService",
+    "method": "SearchStream",
+    "version": "v24"
+  },
+  {
+    "source_url": "https://developers.google.com/google-ads/api/rest/common/search",
+    "retrieved_at": "2026-09-05T00:00:00Z",
+    "source_kind": "official REST request example, customer identifier normalized",
+    "path": "/v25/customers/123/googleAds:searchStream",
+    "headers": {},
+    "service": "GoogleAdsService",
+    "method": "SearchStream",
+    "version": "v25"
+  }
+]

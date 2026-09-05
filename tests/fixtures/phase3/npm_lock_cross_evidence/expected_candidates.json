@@ -1,0 +1,29 @@
+{
+  "fixture_id": "npm_lock_cross_evidence",
+  "phase": 3,
+  "candidates": [
+    {
+      "id": "resolved_third_party_sdk",
+      "path": "yarn.lock",
+      "language": "dependency",
+      "claim_type": "sdk_installed",
+      "provider_subject": "google-ads-node",
+      "status": "AFFECTED",
+      "observer": "deps",
+      "confidence": "PROVEN",
+      "source_kind": "lock",
+      "resolved_version": "24.1.0",
+      "closes": [
+        "manifest_sdk_range"
+      ]
+    }
+  ],
+  "closed_with_evidence": [
+    {
+      "id": "manifest_sdk_range",
+      "path": "package.json",
+      "reason": "The lock entry resolves the manifest range to google-ads-node 24.1.0."
+    }
+  ],
+  "must_not_emit": []
+}

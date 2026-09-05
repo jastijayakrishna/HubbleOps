@@ -1,0 +1,22 @@
+{
+  "source_url": "https://developers.google.com/google-ads/api/docs/release-notes",
+  "retrieved_at": "2026-09-05T00:00:00Z",
+  "from_version": "v24",
+  "to_version": "v25",
+  "expected": {
+    "service.CampaignLifecycleGoalService": "REMOVED",
+    "service.CustomerLifecycleGoalService": "REMOVED",
+    "message.resources.campaign_lifecycle_goal.CampaignLifecycleGoal": "REMOVED",
+    "message.resources.customer_lifecycle_goal.CustomerLifecycleGoal": "REMOVED",
+    "campaign.aca_migration_date_time": "ADDED"
+  },
+  "composed": {
+    "from_version": "v19",
+    "to_version": "v25",
+    "expected": {
+      "service.CampaignLifecycleGoalService": "REMOVED",
+      "service.CustomerLifecycleGoalService": "REMOVED",
+      "campaign.aca_migration_date_time": "ADDED"
+    }
+  }
+}

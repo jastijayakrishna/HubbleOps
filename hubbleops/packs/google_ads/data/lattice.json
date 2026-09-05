@@ -1,0 +1,88 @@
+{
+  "fact_counts": {
+    "v19": 15617,
+    "v20": 15737,
+    "v21": 16217,
+    "v22": 16507,
+    "v23": 17224,
+    "v24": 17573,
+    "v25": 18243
+  },
+  "lattice_hash": "5b31c7c83c0ac4b1011603695c56d619cfd1a77c6e2cc3817ae819ea8cdf7d26",
+  "manifest_sha256": "55ff4a2bdf6f24da27f208f00684cba7fc0d851dabb8cb5ebb560cf7c90928cb",
+  "source_hashes": {
+    "normalized/compatibility_v19.jsonl": "3d786723cf346ca1c4c6a1f8d2b543b155014896de2956ea35e79fef8b0b732e",
+    "normalized/compatibility_v20.jsonl": "ad527952f514822fca2666cf2efb1745981bb07e4adaddfbd623ff6ac303ec8f",
+    "normalized/compatibility_v21.jsonl": "5f463ebce97ca8bea0424ccb7307f8fb14a98afe9fcb0101d086213b1d8fbc67",
+    "normalized/compatibility_v22.jsonl": "44f9f4dcd61513f5548234a95bcd1da7f589fa9edbb97d7042d5907f162db47e",
+    "normalized/compatibility_v23.jsonl": "f717e706e2d0e72743a1776cd80b2c2e5129f794ec334de0da2c608baead7aaf",
+    "normalized/compatibility_v24.jsonl": "485ce819508dbf8f1c83dfc3628ae7705233a67eca87045eec54dbfd47f3f815",
+    "normalized/compatibility_v25.jsonl": "a3909d0d21ef07faf7ccc9287f96cf059003684d75a925daf28ebec706c092cd",
+    "normalized/docs_v19.jsonl": "d107c61879086a69d8a6ea2a89611917d7773d9fd51df8c71774de0641a12775",
+    "normalized/docs_v20.jsonl": "9cc63730576df1dd8cacaae46ea6c542f1cfa22a6efcceb42c452d3fbda31005",
+    "normalized/docs_v21.jsonl": "6fb4520adcd3674916b87014bf8905720de788a2c5f78dd722d374d5c79a7bf5",
+    "normalized/docs_v22.jsonl": "f771f787fdcc1c2d6fbfd990bd425a8a8c6ff41bcaafb6bd700e6c1f9257a7ae",
+    "normalized/docs_v23.jsonl": "87ba9c7a2cc9aa50a5912c5940ba67e3e258814e76b7677906c26a2ab0215c46",
+    "normalized/docs_v24.jsonl": "e32cefb081bf8cb6aab0dae5ece05ad6929b27d72182ae63baa3402df2c06993",
+    "normalized/docs_v25.jsonl": "1c665a074cd3ede08e5840799c5dc964eed4ecc4f5dd723f0ce7226426216af7",
+    "normalized/field_v19.jsonl": "2f71d3100095f692096f8b13d4dabfb3ed9d79a3e06341814e4d70fb5b06bd38",
+    "normalized/field_v20.jsonl": "b4a4ce834e833e4eb8063257a986c3b218809f84f35b01642ef654be59e31e79",
+    "normalized/field_v21.jsonl": "d1a28aba843c8385a59389ef0d6d80092c32bad71792d088d1c08bd2425f389a",
+    "normalized/field_v22.jsonl": "412cf7fcf511b97ec72c86172e67af31ac23318a73a91053b1fb4bfa4a347b6b",
+    "normalized/field_v23.jsonl": "a8247c48656b622d4a6ebde23135dde57cb0e0605b7605611681d5cf7d1ba4f8",
+    "normalized/field_v24.jsonl": "ca9df21e5dfb468a7f0bd90559cb6eb80c73c97b109d0583ac9bff10058e8b3c",
+    "normalized/field_v25.jsonl": "c74b43f59663473a38c8341ad9b78c1c38c742570281e5bc408bfc27d43a9a4a",
+    "normalized/proto_v18.jsonl": "8255bf3ab7510a461411969a0e64eb9fbb1f2a0ee931752214f33594e0317bd4",
+    "normalized/proto_v19.jsonl": "2135333183021aa3abe1c85b341d7a2dc42c884fe04a59e9b2096fcb324c10e3",
+    "normalized/proto_v20.jsonl": "775ce6b7ed63150ededc7b0bb51e8912462761ad740ad6f52b4111205fecd282",
+    "normalized/proto_v21.jsonl": "a01c4347c74aea201327b88907c62ae3d69f86a24425bbc5a48ddee162275137",
+    "normalized/proto_v22.jsonl": "28edcfd99f962f6405f71cbc14c308f5621a8f17815511d19ea9db64b9f55b29",
+    "normalized/proto_v23.jsonl": "9820403641b684879b8f79a64708bd73c8a3a95824567794acb330554bf9b579",
+    "normalized/proto_v24.jsonl": "aab39488c7c5093d8109891a8c20e3ec86e0a7bff9a86f79a3b8f13f81f89747",
+    "normalized/proto_v25.jsonl": "7873eb02a7a2fefc40fec8f07e7e016cba77a5165eb56313d22d82d78b60bb1a"
+  },
+  "versions": [
+    {
+      "catalog_hash": "3396bcad434fa629d13ad4fb7ade4cbf48b155b3594140afe1aa98ca81135462",
+      "id": "v19",
+      "released_at": "2025-02-26",
+      "sunset_at": "2026-02-11"
+    },
+    {
+      "catalog_hash": "3e3aa97cdd03c90b9dd47ba387dc9fd48916af94416d8f8b139333fd6ac83132",
+      "id": "v20",
+      "released_at": "2025-06-04",
+      "sunset_at": "2026-06-10"
+    },
+    {
+      "catalog_hash": "2e4eb47bc67c2183962749315cb375a7ba71d20ee4dca6b81078b0166176e1df",
+      "id": "v21",
+      "released_at": "2025-08-06",
+      "sunset_at": "2026-08-05"
+    },
+    {
+      "catalog_hash": "ddda0c8aa83eb576c569eec45a932b8fe040d5558439de1074fff14ec495f70c",
+      "id": "v22",
+      "released_at": "2025-10-15",
+      "sunset_at": "2026-10"
+    },
+    {
+      "catalog_hash": "cfc5858d7d212658b5273aaacca4f862e15007687ed578bc66a12d024229dfda",
+      "id": "v23",
+      "released_at": "2026-01-28",
+      "sunset_at": "2027-02"
+    },
+    {
+      "catalog_hash": "deeb4e44030fa2aa2814586a65df88c65fbf91397353c0a67aede2bd17596c91",
+      "id": "v24",
+      "released_at": "2026-04-22",
+      "sunset_at": "2027-05"
+    },
+    {
+      "catalog_hash": "27a98808f6ac72905bcbe033fea527fae4ab3c94524e079a7e86afebe9fdd838",
+      "id": "v25",
+      "released_at": "2026-07-22",
+      "sunset_at": "2027-08"
+    }
+  ]
+}

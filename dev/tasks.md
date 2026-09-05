@@ -5,10 +5,21 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
-- [ ] Fix the five non-blocking findings carried since the third audit: `Detected` site counts
-      (P-005), `<changes_hash>` label, the extra `EXCLUDED` line (P-004), `wire_signature`/
-      `versions()` on the `ProviderPack` Protocol, and the discarded `rg` hit in `observe/text.py`
-- [ ] Fix the four new minor findings from the fourth audit: a symlinked directory yields no closure
+- [x] Owner accepted P-008: correct frozen P-006 so Google Ads endpoint versions come from the
+      gRPC/REST request target, while `x-goog-api-client` remains metadata and ambiguity emits a
+      typed UNKNOWN instead of silence
+- [x] Fresh-session review of the answered Phase 2 plan; final independent review returned `PLAN: PASS`
+- [x] Implement and verify the full Phase 2 Google Ads and `_mock` ProviderPacks, v19-v25 offline
+      source/catalog lattice, computed diff composition, safe oracle, wire/telemetry adapters,
+      ProofScope composition, Exposure Map completion, fixtures, and `hops pack verify`
+- [x] Fresh Phase 2 gate audit returned `GATE: PASS`; the first real-repo loop is complete and
+      every NEW_PATTERN is recorded in `docs/FAILURE_ATLAS.md`
+
+- [x] Finish the four Phase-2-owned carryovers: `Detected` site counts (P-005),
+      `<changes_hash>` label, the extra `EXCLUDED` line (P-004), and `wire_signature`/`versions()`
+      on the `ProviderPack` Protocol
+- [x] Preserve an `rg` hit on an enumerated-but-unscannable path as evidence instead of discarding it
+- [x] Fix the four new minor findings from the fourth audit: a symlinked directory yields no closure
       entry (N-6), one unreadable file aborts the whole scan instead of becoming `FILE_UNSCANNED`
       (N-7), the `_mock` map header has a double space (N-8), and the guard hook allows
       `# pragma: no cover`, which is not one of CLAUDE.md's four comment exceptions (N-9)
@@ -16,15 +27,17 @@ Updated before every session ends. Phase-level status lives in
       (**F-6**). The store proves an evidence id matches its content but cannot prove `derivation`
       is truthful, so a caller can label AI-derived evidence `OBSERVED` and close an UNKNOWN. Needs
       attestation, which touches the frozen Evidence schema or the Observer contract
-- [ ] Fix **M-7**: `write_evidence` commits before any candidate exists and `latest_run` does not
+- [x] Fix **M-7**: `write_evidence` commits before any candidate exists and `latest_run` does not
       exclude `finished_at IS NULL`, so a committed state can carry unexplained evidence (L1 letter).
-      Wants an atomic evidence+candidate write or an unfinished-run filter
-- [ ] Fix the three minor findings from the fifth audit: `start_run` silently keeps the first
+      Evidence is now staged and persisted atomically with its candidates
+- [x] Fix the three minor findings from the fifth audit: `start_run` silently keeps the first
       ProofScope when a `run_id` restarts under a second one (m-2), and every `close_with` names
       `hops decide`, a verb that does not exist until Phase 7 (m-3)
-- [ ] Run the [gate audit](../prompts/cross-cutting/gate-audit.md) against `main`. Phase 1 merged
+- [x] Reject a caller-supplied Candidate id unless it is re-derived from every attached Evidence
+- [x] Remove the unapproved Markdown fixture by renaming it to `reporting.txt`
+- [x] Run the [gate audit](../prompts/cross-cutting/gate-audit.md) against the repaired Phase 1 tree. Phase 1 merged
       and tagged `v0.1` without a passing gate, by the repository owner's decision after seven
-      `GATE: FAIL` runs; the eighth was never run against the tree that fixes F-8
+      `GATE: FAIL` runs; the final fresh audit returned `GATE: PASS`
 - [x] Fix **F-8**: the scanner fingerprint covers every module in the package, discovered not listed
 - [x] Fix **F-5**/**F-7**: every surface field is tested to reach the proof key, and one unreadable
       file no longer throws the whole scan away
@@ -58,9 +71,8 @@ Updated before every session ends. Phase-level status lives in
 
 ## Phase gates
 
-- [x] Phase 1 — scan + exposure + ledger *(implemented and green; two gate audits have returned
-      `GATE: FAIL`, every code finding fixed, re-run pending on the two open proposals)*
-- [ ] Phase 2 — Google Ads pack + Change Pack version lattice *(first real-repo loop after this gate)*
+- [x] Phase 1 — scan + exposure + ledger *(fresh final audit: `GATE: PASS`)*
+- [x] Phase 2 — Google Ads pack + Change Pack version lattice *(fresh `GATE: PASS`; first real-repo loop complete)*
 - [ ] Phase 3 — wrapper engine
 - [ ] Phase 4 — dynamic capture + sentinel
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
@@ -81,4 +93,4 @@ loop (from Phase 2).
 ## Blocked / parked
 
 - Telemetry and production-services accounting in the Exposure Map print "not in this ProofScope"
-  until Phase 4 supplies a `TelemetryAdapter`; the `Target` line waits on the Phase 2 Change Pack.
+  until Phase 4 supplies a `TelemetryAdapter`; the Change Pack now supplies the `Target` line.

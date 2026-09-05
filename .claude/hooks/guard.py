@@ -31,7 +31,7 @@ REPAIR_FORBIDDEN = (
     "hubbleops/sandbox/verifier_image.py",
     ".hubbleops/decisions.yml",
 )
-COMMENT_EXCEPTIONS = ("# noqa", "# type: ignore", "# pragma: no cover")
+COMMENT_EXCEPTIONS = ("# noqa", "# type: ignore")
 PROTOCOL_FILE = "hubbleops/packs/_protocol.py"
 MARKDOWN_ALWAYS_ALLOWED = ("dev/", "docs/FAILURE_ATLAS.md")
 

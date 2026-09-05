@@ -17,7 +17,7 @@ from hubbleops.core.candidate import (
 from hubbleops.core.canonical import EMPTY_SHA256
 from hubbleops.core.errors import UnknownNotConserved
 from hubbleops.core.evidence import make_evidence
-from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash
+from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash, run_id_for
 from hubbleops.store.sqlite import Store
 
 SETTINGS = settings(
@@ -37,7 +37,7 @@ def seed(directory: Path) -> tuple[Store, str, str]:
         scanner_version="test",
     )
     scope_hash = proof_scope_hash(scope)
-    run_id = scope_hash
+    run_id = run_id_for(scope_hash=scope_hash, provider="p", verb="scan", target="target")
     store = Store(directory)
     store.start_run(
         run_id=run_id,
@@ -52,12 +52,12 @@ def seed(directory: Path) -> tuple[Store, str, str]:
     return store, run_id, scope_hash
 
 
-def observation(run_id: str, scope_hash: str, path: str) -> dict[str, Any]:
+def observation(run_id: str, scope_hash: str, path: str, observer: str = "text") -> dict[str, Any]:
     return make_evidence(
         run_id=run_id,
         proof_scope_hash=scope_hash,
         claim_type="call_version",
-        observer="text",
+        observer=observer,
         repo_sha=None,
         path=path,
         line_start=1,
@@ -107,7 +107,7 @@ def test_a_status_changes_away_from_open_only_when_evidence_arrives(
             store.write_candidates([candidate(run_id, scope_hash, attached, was)])
 
             if evidence_arrives:
-                second = observation(run_id, scope_hash, "src/other.py")
+                second = observation(run_id, scope_hash, "src/app.py", observer="dynamic")
                 store.write_evidence([second])
                 attached = sorted([first["id"], second["id"]])
 

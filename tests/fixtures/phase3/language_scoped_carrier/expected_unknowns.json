@@ -1,0 +1,19 @@
+{
+  "fixture_id": "language_scoped_carrier",
+  "unknowns": [
+    {
+      "candidate_id": "markdown_namespace_reference",
+      "candidate_status": "UNKNOWN",
+      "disposition": "PRESERVED_UNKNOWN",
+      "reason": "TEXT_REFERENCE_ONLY",
+      "close_with": "Correlate the documentation reference with executable call evidence from structure, dynamic capture, or provider telemetry."
+    },
+    {
+      "candidate_id": "typescript_namespace_data",
+      "candidate_status": "UNKNOWN",
+      "disposition": "PRESERVED_UNKNOWN",
+      "reason": "LANGUAGE_SCOPED_VERSION_CARRIER",
+      "close_with": "Resolve this TypeScript data value through a TypeScript sink or observed request before assigning an effective API version."
+    }
+  ]
+}

@@ -20,6 +20,7 @@ from hubbleops.core.proof_scope import (
     scanner_fingerprint,
     short_scope,
 )
+from hubbleops.core.records import as_mapping
 from hubbleops.observe import deps, ledger, text
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
@@ -80,6 +81,12 @@ def _parser() -> argparse.ArgumentParser:
     show.add_argument("--expand", action="store_true", help="list explained-away candidates too")
     show.set_defaults(handler=_exposure)
 
+    pack = subparsers.add_parser("pack", help="inspect and verify provider packs")
+    pack_commands = pack.add_subparsers(dest="pack_verb", required=True)
+    pack_verify = pack_commands.add_parser("verify", help="verify an offline provider pack")
+    pack_verify.add_argument("name", help=f"one of: {', '.join(registry.available_packs())}")
+    pack_verify.set_defaults(handler=_pack_verify)
+
     return parser
 
 
@@ -101,6 +108,10 @@ class ScanResult:
             "entries": len(self.closure.entries),
             "counts": self.closure.counts(),
             "control_directories": list(self.closure.control_directories),
+            "pack": {
+                "changes_hash": self.pack.changes.lattice_hash,
+                "target": self.pack.latest_compatible(self.resolution.dependencies),
+            },
         }
 
 
@@ -117,12 +128,12 @@ def scan_repository(target: Path, pack: registry.LoadedPack) -> ScanResult:
         repo_sha=closure.repo_sha,
         tree_hash=closure.tree_hash(),
         dependency_resolution_hash=resolution.resolution_hash(),
-        provider_contract_hash=pack.surface.surface_hash(),
+        provider_contract_hash=pack.contract_hash(),
         scanner_version=scanner_version,
     )
     scope_hash = proof_scope_hash(scope)
     run_id = run_id_for(
-        scope_hash=scope_hash, provider=pack.name, verb="scan", target=resolved.name
+        scope_hash=scope_hash, provider=pack.name, verb="scan", target=str(resolved)
     )
     ctx = ObserverContext(
         provider=pack.name,
@@ -209,18 +220,32 @@ def _exposure(args: argparse.Namespace) -> int:
             evidence=store.evidence_for(row.run_id),
             candidates=store.candidates_for(row.run_id),
         )
-        recorded_surface = row.proof_scope["provider_contract_hash"]
+        pack_record = as_mapping(row.closure.get("pack"))
+        changes_hash = str(pack_record.get("changes_hash", "UNKNOWN"))
+        target = str(pack_record.get("target", "UNKNOWN (SDK compatibility unresolved)"))
     print(
         exposure.render(
             ledger=book,
             pack_name=row.provider,
-            surface_hash=recorded_surface,
-            target=row.target,
+            changes_hash=changes_hash,
+            target=target,
+            repository=row.target,
             repo_sha=row.repo_sha,
             expand_not_affected=args.expand,
         ),
         end="",
     )
+    return EXIT_OK
+
+
+def _pack_verify(args: argparse.Namespace) -> int:
+    pack = registry.load_pack(args.name)
+    report = pack.changes.verify()
+    print(f"PACK VERIFIED  {pack.name}")
+    print(f"  lattice      {report.lattice_hash}")
+    for version, digest in report.catalog_hashes.items():
+        print(f"  {version:<12} {digest}  facts={report.fact_counts[version]}")
+    print(f"  sources      {len(report.source_hashes)}")
     return EXIT_OK
 
 

@@ -1,0 +1,25 @@
+{
+  "fixture_id": "typescript_version_symbol",
+  "phase": 3,
+  "failure_class": "typescript_imported_version_carrier_missed",
+  "should_be_caught_by": [
+    "observe.structure",
+    "graph.imports"
+  ],
+  "must_match": [
+    {
+      "path": "transport_lookup.ts",
+      "assertion": "API_RELEASE resolves through the import edge to the v24 literal."
+    },
+    {
+      "path": "transport_lookup.ts",
+      "assertion": "The same v24 carrier reaches both the REST endpoint and computed proto lookup."
+    }
+  ],
+  "must_not_match": [
+    {
+      "path": "transport_lookup.ts",
+      "assertion": "The computed property access must not be treated as an unresolved dynamic version after its constant is resolved."
+    }
+  ]
+}

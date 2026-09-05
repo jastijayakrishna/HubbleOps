@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from collections.abc import Mapping
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Literal, Protocol, runtime_checkable
 
 from hubbleops.core.surface import (
     RequestLanguage,
@@ -9,87 +12,240 @@ from hubbleops.core.surface import (
     VersionCarrier,
 )
 
-__all__ = [
-    "CaptureHooks",
-    "ChangeCompiler",
-    "ContractOracle",
-    "Falsifier",
-    "ProviderPack",
-    "RequestLanguage",
-    "RuleSet",
-    "SinkArgument",
-    "SurfaceSpec",
-    "TelemetryAdapter",
-    "ToolSpec",
-    "Transform",
-    "VersionCarrier",
+Confidence = Literal["PROVEN", "DOCUMENTED"]
+ContractCode = Literal[
+    "VALID",
+    "INVALID",
+    "UNKNOWN_PROVIDER_CONTRACT",
+    "ORACLE_UNAVAILABLE",
 ]
+WireCode = Literal["MATCH", "UNKNOWN_WIRE_SIGNATURE"]
 
 
+@dataclass(frozen=True, slots=True)
+class Version:
+    id: str
+    catalog_hash: str
+    released_at: str
+    sunset_at: str | None
+
+    def to_mapping(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "catalog_hash": self.catalog_hash,
+            "released_at": self.released_at,
+            "sunset_at": self.sunset_at,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CatalogFact:
+    subject: str
+    kind: str
+    attributes: Mapping[str, Any]
+    source_url: str
+    retrieved_at: str
+    sha256: str
+    confidence: Confidence
+    corroborating_sources: tuple[Mapping[str, str], ...] = ()
+    resolution: str = "RESOLVED"
+
+    def to_mapping(self) -> dict[str, Any]:
+        return {
+            "subject": self.subject,
+            "kind": self.kind,
+            "attributes": dict(self.attributes),
+            "source_url": self.source_url,
+            "retrieved_at": self.retrieved_at,
+            "sha256": self.sha256,
+            "confidence": self.confidence,
+            "corroborating_sources": [dict(item) for item in self.corroborating_sources],
+            "resolution": self.resolution,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class Catalog:
+    version: str
+    facts: tuple[CatalogFact, ...]
+    sha256: str
+
+
+@dataclass(frozen=True, slots=True)
+class DiffFact:
+    subject: str
+    change: str
+    before: Mapping[str, Any] | None
+    after: Mapping[str, Any] | None
+    replacement: str | None
+    confidence: Confidence
+    result: ContractCode
+    reason: str
+
+    def to_mapping(self) -> dict[str, Any]:
+        return {
+            "subject": self.subject,
+            "change": self.change,
+            "before": None if self.before is None else dict(self.before),
+            "after": None if self.after is None else dict(self.after),
+            "replacement": self.replacement,
+            "confidence": self.confidence,
+            "result": self.result,
+            "reason": self.reason,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ContractDiff:
+    from_version: str
+    to_version: str
+    pair_hash: str
+    facts: tuple[DiffFact, ...]
+    hops: tuple[ContractDiff, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ValidationResult:
+    code: ContractCode
+    reason: str
+    response: Mapping[str, Any] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class WireObservation:
+    service: str
+    method: str
+    version: str
+
+
+@dataclass(frozen=True, slots=True)
+class WireResult:
+    code: WireCode
+    observation: WireObservation | None
+    reason: str
+
+
+@dataclass(frozen=True, slots=True)
+class TelemetryIssue:
+    row: int
+    value: str
+    reason: str
+
+
+@dataclass(frozen=True, slots=True)
+class TelemetryResult:
+    observations: tuple[WireObservation, ...]
+    issues: tuple[TelemetryIssue, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class BuildReport:
+    source_hashes: Mapping[str, str]
+    catalog_hashes: Mapping[str, str]
+    fact_counts: Mapping[str, int]
+    lattice_hash: str
+
+
+@runtime_checkable
 class RuleSet(Protocol):
-    """ast-grep rule files for one language: sinks, version carriers, request-string sinks.
+    """Provider-owned structural rule files for one source language."""
 
-    Filled in Phase 3. Rules ship with the pack and are tested with must-match and
-    must-not-match snippets; the structure observer only executes them.
-    """
+    language: str
+    paths: tuple[Path, ...]
 
 
+@runtime_checkable
+class Transport(Protocol):
+    """Injected provider transport exposing validation-only request execution."""
+
+    @property
+    def available(self) -> bool: ...
+
+    def validate(
+        self,
+        *,
+        service: str,
+        method: str,
+        version: str,
+        request: Mapping[str, Any],
+    ) -> Mapping[str, Any]: ...
+
+
+@runtime_checkable
 class ContractOracle(Protocol):
-    """The provider's own answer to 'is this request valid at this version?'.
+    """Provider contract catalogs, computed diffs, and validation-only oracle access."""
 
-    Filled in Phase 2. `ORACLE_UNAVAILABLE` caps a verdict at UNKNOWN rather than
-    letting an unanswered question pass as an accepted one.
-    """
+    def catalog(self, version: str) -> Catalog: ...
+
+    def diff(self, version_from: str, version_to: str) -> ContractDiff: ...
+
+    def validate(self, request: Mapping[str, Any], version: str) -> ValidationResult: ...
 
 
+@runtime_checkable
 class ChangeCompiler(Protocol):
-    """Compiles provider sources into a hashed, provenance-carrying Change Pack.
+    """Offline compiler for hashed provider sources and reproducible version catalogs."""
 
-    Filled in Phase 2. Cross-checked facts are PROVEN; documentation-only facts are
-    DOCUMENTED; disagreement is UNKNOWN_PROVIDER_CONTRACT. No LLM adjudication.
-    """
+    @property
+    def lattice_hash(self) -> str: ...
+
+    def build(self, output_dir: Path) -> BuildReport: ...
+
+    def verify(self) -> BuildReport: ...
 
 
+@runtime_checkable
+class WireSignature(Protocol):
+    """Language-independent request-target parser returning a match or explicit unknown."""
+
+    def parse(self, path: str, headers: Mapping[str, str]) -> WireResult: ...
+
+
+@runtime_checkable
 class TelemetryAdapter(Protocol):
-    """Parses the provider's usage export into (service, method, version) tuples.
+    """Provider usage-export parser returning observations and row-provenance issues."""
 
-    Filled in Phase 4. Every tuple must map to at least one explained candidate;
-    unmatched tuples are TELEMETRY_UNEXPLAINED.
-    """
+    def parse(self, payload: str) -> TelemetryResult: ...
 
 
+@runtime_checkable
 class CaptureHooks(Protocol):
-    """Interceptor or patch code for one language, loaded by the generic dynamic loaders.
+    """Provider capture-hook bundle loaded later by generic dynamic observers."""
 
-    Filled in Phase 4. Emits the versioned capture event schema; the loaders never
-    know which provider they are capturing.
-    """
+    language: str
+    paths: tuple[Path, ...]
 
 
+@runtime_checkable
 class Transform(Protocol):
-    """One deterministic, precondition-checked repair. Filled in Phase 6."""
+    """Deterministic provider repair transform implemented in a later phase."""
+
+    name: str
 
 
+@runtime_checkable
 class ToolSpec(Protocol):
-    """A provider-supplied repair tool made available inside the repair image. Filled in Phase 6."""
+    """Provider repair tool specification implemented in a later phase."""
+
+    name: str
 
 
+@runtime_checkable
 class Falsifier(Protocol):
-    """An adversarial check keyed to a known failure class. Filled in Phase 5."""
+    """Provider adversarial check implemented in the verification phase."""
+
+    name: str
 
 
 @runtime_checkable
 class ProviderPack(Protocol):
-    """Everything provider-specific, in one object.
-
-    `app/` selects a pack and passes its parts into the generic layers as parameters.
-    The generic layers never import this module and contain no provider names (law L5),
-    so adding a provider is filling this contract and writing rules, with zero diff to
-    generic code.
-    """
+    """Complete provider-specific capability object selected only by the application layer."""
 
     name: str
     surface: SurfaceSpec
+    wire_signature: WireSignature
+
+    def versions(self) -> tuple[Version, ...]: ...
 
     def rules(self, language: str) -> RuleSet: ...
 
@@ -109,3 +265,36 @@ class ProviderPack(Protocol):
     def repair_tools(self) -> list[ToolSpec]: ...
 
     def falsifiers(self) -> list[Falsifier]: ...
+
+
+__all__ = [
+    "BuildReport",
+    "CaptureHooks",
+    "Catalog",
+    "CatalogFact",
+    "ChangeCompiler",
+    "Confidence",
+    "ContractCode",
+    "ContractDiff",
+    "ContractOracle",
+    "DiffFact",
+    "Falsifier",
+    "ProviderPack",
+    "RequestLanguage",
+    "RuleSet",
+    "SinkArgument",
+    "SurfaceSpec",
+    "TelemetryAdapter",
+    "TelemetryIssue",
+    "TelemetryResult",
+    "ToolSpec",
+    "Transform",
+    "Transport",
+    "ValidationResult",
+    "Version",
+    "VersionCarrier",
+    "WireCode",
+    "WireObservation",
+    "WireResult",
+    "WireSignature",
+]

@@ -4,9 +4,15 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from hubbleops.core.candidate import claim_key as core_claim_key
 from hubbleops.core.errors import PathNotInClosure, UnknownClaimType
 from hubbleops.core.records import as_mapping, as_sequence
 from hubbleops.observe.deps import classify_manifest
+
+
+def claim_key(record: Mapping[str, Any]) -> str:
+    return core_claim_key(record)
+
 
 CLAIM_PRECEDENCE: dict[str, tuple[str, ...]] = {
     "sdk_installed": ("lock", "manifest"),
@@ -35,13 +41,11 @@ LOCATION_BOUND_CLAIMS = frozenset(
 
 CLOSE_WITH_CALL_SITE = (
     "resolve the version at this call site: the structure observer's wrapper walk, "
-    "dynamic capture of the test suite, or provider telemetry; or record it with "
-    "`hops decide <candidate_id> --value <version> --by <name>`"
+    "dynamic capture of the test suite, or provider telemetry"
 )
 CLOSE_WITH_RUNTIME_CONFIG = (
     "the value of this key is chosen at runtime: close with a provider telemetry export, "
-    "a sentinel event from production, dynamic capture; or record it with "
-    "`hops decide <candidate_id> --value <version> --by <name>`"
+    "a sentinel event from production, or dynamic capture"
 )
 
 
@@ -51,31 +55,6 @@ class Resolution:
     reason: str
     close_with: str | None
     winner_id: str
-
-
-def claim_key(record: Mapping[str, Any]) -> str:
-    claim_type = str(record["claim_type"])
-    path = str(record["path"])
-    line = record["line_start"]
-    subject = record["provider_subject"]
-    value = as_mapping(record["value"])
-    if claim_type == "call_version":
-        return f"{path}:{line}"
-    if claim_type in ("surface_reference", "endpoint_reference", "package_reference"):
-        return f"{path}:{line}:{subject}"
-    if claim_type in ("config_reference", "request_text"):
-        return f"{path}:{line}:{subject}"
-    if claim_type == "sdk_installed":
-        ecosystem = value.get("ecosystem")
-        package = value.get("package")
-        if value.get("state") == "ABSENT" or package is None:
-            return f"{ecosystem}:*"
-        return f"{ecosystem}:{str(package).lower().replace('_', '-')}"
-    if claim_type == "dependency_state":
-        return f"{value.get('state')}:{path}"
-    if claim_type in ("file_unscanned", "external_boundary"):
-        return path
-    raise UnknownClaimType(claim_type)
 
 
 def rank(record: Mapping[str, Any]) -> int:
@@ -150,8 +129,7 @@ def _call_version(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]
                 f"{', '.join(versions)}"
             ),
             close_with=(
-                "determine which literal executes here (dynamic capture or telemetry), then "
-                "record it with `hops decide <candidate_id> --value <version> --by <name>`"
+                "determine which literal executes here with dynamic capture or provider telemetry"
             ),
             winner_id=str(chosen["id"]),
         )
@@ -209,10 +187,7 @@ def _sdk_installed(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any
             f"{ecosystem} package {package} is declared at {location} as {spec!r}, "
             "which does not resolve to a single installed version"
         ),
-        close_with=(
-            f"commit a {ecosystem} lock file so the installed version is resolvable, or record "
-            "it with `hops decide <candidate_id> --value <version> --by <name>`"
-        ),
+        close_with=(f"commit a {ecosystem} lock file so the installed version is resolvable"),
         winner_id=str(chosen["id"]),
     )
 
@@ -231,11 +206,7 @@ def _dependency_state(
                 "source closure, so the installed package set is unknown; a missing manifest is "
                 "not evidence of absence"
             ),
-            close_with=(
-                "add the dependency manifest or lock file the build actually uses, or record "
-                "the installed provider SDK with `hops decide <candidate_id> --value <version> "
-                "--by <name>`"
-            ),
+            close_with=("add the dependency manifest or lock file the build actually uses"),
             winner_id=str(chosen["id"]),
         )
     if state == "UNRESOLVED_ECOSYSTEM":
@@ -246,11 +217,7 @@ def _dependency_state(
                 f"DEPENDENCY_STATE_UNKNOWN: {ecosystem} declares dependencies in {manifests} but "
                 "ships no lock file, so the absence of a surface package cannot be proven"
             ),
-            close_with=(
-                f"commit a {ecosystem} lock file so absence can be resolved, or record the "
-                "installed provider SDK with `hops decide <candidate_id> --value <version> "
-                "--by <name>`"
-            ),
+            close_with=(f"commit a {ecosystem} lock file so absence can be resolved"),
             winner_id=str(chosen["id"]),
         )
     detail = value.get("detail")
@@ -260,11 +227,7 @@ def _dependency_state(
             f"DEPENDENCY_STATE_UNKNOWN: {chosen['path']} could not be parsed as a {ecosystem} "
             f"manifest: {detail}"
         ),
-        close_with=(
-            f"repair or replace {chosen['path']} so the dependency state resolves, or record "
-            "the installed provider SDK with `hops decide <candidate_id> --value <version> "
-            "--by <name>`"
-        ),
+        close_with=(f"repair or replace {chosen['path']} so the dependency state resolves"),
         winner_id=str(chosen["id"]),
     )
 
@@ -274,10 +237,7 @@ def _file_unscanned(chosen: Mapping[str, Any], records: Sequence[Mapping[str, An
     return Resolution(
         status="UNKNOWN",
         reason=f"{chosen['path']} could not be scanned: {value.get('reason')}",
-        close_with=(
-            f"make {chosen['path']} readable and decodable and rescan, or record a deliberate "
-            "exclusion with `hops decide <candidate_id> --value excluded --by <name>`"
-        ),
+        close_with=(f"make {chosen['path']} readable and decodable and rescan"),
         winner_id=str(chosen["id"]),
     )
 
@@ -288,10 +248,7 @@ def _external_boundary(
     return Resolution(
         status="UNKNOWN",
         reason=f"{chosen['path']} leaves the closure root, so its contents are outside this proof",
-        close_with=(
-            f"scan the tree {chosen['path']} points at as its own ProofScope, or record a "
-            "decision with `hops decide <candidate_id> --value <value> --by <name>`"
-        ),
+        close_with=(f"scan the tree {chosen['path']} points at as its own ProofScope"),
         winner_id=str(chosen["id"]),
     )
 
@@ -339,8 +296,7 @@ def _package_reference(
             ),
             close_with=(
                 f"read the installed version off the resolved {ecosystem} lock file, which the "
-                "dependency observer claims as its own candidate; or record it with "
-                "`hops decide <candidate_id> --value <version> --by <name>`"
+                "dependency observer claims as its own candidate"
             ),
             winner_id=str(chosen["id"]),
         )
@@ -351,9 +307,8 @@ def _package_reference(
             "any recognised manifest, so it resolves to no installed version"
         ),
         close_with=(
-            "confirm whether this location installs or pins the SDK (build script, container "
-            "image, CI config); then record it with `hops decide <candidate_id> --value "
-            "<version> --by <name>`"
+            "make this location's SDK version explicit in a supported manifest or lock file, "
+            "then rescan"
         ),
         winner_id=str(chosen["id"]),
     )
@@ -382,8 +337,7 @@ def _request_text(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]
         ),
         close_with=(
             "extract the request skeleton with the structure observer, or capture the executed "
-            "request dynamically; or record it with `hops decide <candidate_id> --value "
-            "<request> --by <name>`"
+            "request dynamically"
         ),
         winner_id=str(chosen["id"]),
     )

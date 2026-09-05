@@ -2,8 +2,8 @@
 
 |  |  |
 |---|---|
-| **Status** | NOT STARTED |
-| **Reads** | `CLAUDE.md`, `docs/ARCHITECTURE.md` §3, §5, §7, `dev/proposals.md` P-005/P-006, `dev/context.md` |
+| **Status** | COMPLETE — `GATE: PASS`; first real-repo loop complete |
+| **Reads** | `CLAUDE.md`, `docs/ARCHITECTURE.md` §3, §5, §7, `dev/proposals.md` P-005–P-008, `dev/context.md` |
 | **Ships** | `packs/google_ads/` full ProviderPack, offline Change Pack (version lattice, computed diffs), `hops pack verify` |
 | **Gate** | fresh-session [gate audit](../cross-cutting/gate-audit.md) → `GATE: PASS`, **then the first [real-repo loop](../cross-cutting/real-repo-loop.md)** |
 | **Then** | Phase 3 — whose fixtures include every pattern that loop turns up |
@@ -19,7 +19,7 @@ Procedure: [operating protocol](../../docs/OPERATING_PROTOCOL.md).
 ## Prompt — paste verbatim in plan mode
 
 ```text
-ROLE: senior engineer implementing HubbleOps Phase 2. Read CLAUDE.md, docs/ARCHITECTURE.md §3, §5, §7, dev/proposals.md P-005 and P-006, dev/context.md.
+ROLE: senior engineer implementing HubbleOps Phase 2. Read CLAUDE.md, docs/ARCHITECTURE.md §3, §5, §7, dev/proposals.md P-005 through P-008, dev/context.md.
 
 OUTCOME: packs/google_ads/ implements the full ProviderPack contract; catalog/diff work fully OFFLINE from cached, hashed sources over a version lattice (not one hand-built pair); validate() is implemented against a transport abstraction and proven safe with a fake transport; wire_signature parses real logged request paths with zero language-specific code; packs/_mock passes the same conformance suite.
 
@@ -28,7 +28,7 @@ DEFINITION OF DONE:
 2. packs/google_ads/changes.py builds data/catalog_<version>.jsonl for every supported version from v19 to current from (a) googleapis proto diff against the previous version (services, messages, fields, enums), (b) that version's GoogleAdsFieldService catalog (selectable, filterable, sortable, data_type, selectable_with), (c) that version's upgrade guide + release notes parsed into structured claims, (d) client-library compatibility table. Every fact: source_url, retrieved_at, sha256, confidence ∈ {PROVEN, DOCUMENTED}. Ingesting a newly released version reruns this same pipeline against one new version, never a rewrite.
 3. Cross-check: (a)∧(b) agree → PROVEN; only (c) → DOCUMENTED; material disagreement → UNKNOWN_PROVIDER_CONTRACT. No LLM adjudication.
 4. packs/google_ads/contract.py: catalog(version) reads a single version's catalog; diff(v_from, v_to) is COMPUTED (set difference over subjects between consecutive catalogs) and cached by pair hash, never hand-authored, and for a non-adjacent pair is composed across every consecutive hop (v22→v23→v24→v25). Property test: diff(a, c) == compose(diff(a, b), diff(b, c)) for every subject that survives all hops; a subject whose mapping does not compose cleanly across every hop → UNKNOWN_PROVIDER_CONTRACT, never guessed. validate(request, version) implemented over a Transport interface. Fake-transport tests prove: validate_only is always true; a non-validate_only mutate can never be issued; missing credentials → ORACLE_UNAVAILABLE, never a pass. Live execution is a Phase 5 requirement.
-5. packs/google_ads/wire.py: wire_signature regexes parse a request's gRPC method path, REST path, and x-goog-api-client header into (service, method, version), tested against a corpus of real logged request paths (no live traffic required) — zero per-language code.
+5. packs/google_ads/wire.py: wire_signature regexes parse a request's gRPC method path and REST path into a typed `(service, method, version)` match or explicit UNKNOWN, tested with accompanying `x-goog-api-client` metadata against a corpus of real logged request paths (no live traffic required) — zero per-language code. `x-goog-api-client` is provenance, never endpoint-version authority (P-008).
 6. packs/google_ads/telemetry.py parses a Cloud Console methods/versions export into generic (service, method, version) tuples.
 7. Change Pack build is idempotent and reproducible without network from data/sources/ (hashed); `hops pack verify google_ads` passes offline over the full lattice.
 8. tests/fixtures/google_ads/: known v25 removals (e.g., CustomerLifecycleGoal, CampaignLifecycleGoal) and known field changes appear with PROVEN confidence; a composed diff across a 3+ version gap matches the hand-checked expected mapping.

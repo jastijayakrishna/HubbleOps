@@ -1,0 +1,15 @@
+{
+  "inventory": {
+    "bytes": 2649087,
+    "pages": 1
+  },
+  "pages": [
+    {
+      "name": "sunset",
+      "resolved_url": "https://developers.google.com/google-ads/api/docs/sunset-dates",
+      "sha256": "dca3d965fec4f44fc05c2d276624a53d08fd4d3c52d343455d769ac698b8a039",
+      "size": 2649087,
+      "url": "https://developers.google.com/google-ads/api/docs/sunset-dates"
+    }
+  ]
+}

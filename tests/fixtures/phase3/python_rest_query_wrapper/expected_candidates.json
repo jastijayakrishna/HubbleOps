@@ -1,0 +1,46 @@
+{
+  "fixture_id": "python_rest_query_wrapper",
+  "phase": 3,
+  "candidates": [
+    {
+      "id": "module_version_to_rest_sink",
+      "path": "runtime_gateway.py",
+      "language": "python",
+      "claim_type": "call_version",
+      "provider_subject": "v19",
+      "status": "AFFECTED",
+      "observer": "structure",
+      "confidence": "PROVEN",
+      "required_shape": [
+        "module_constant",
+        "formatted_rest_endpoint",
+        "http_sink"
+      ]
+    },
+    {
+      "id": "multiline_query_skeleton",
+      "path": "runtime_gateway.py",
+      "language": "python",
+      "claim_type": "request_text",
+      "provider_subject": "gaql",
+      "status": "UNKNOWN",
+      "observer": "structure",
+      "confidence": "PROVEN",
+      "required_shape": [
+        "multiline_f_string",
+        "payload_query_key",
+        "http_sink"
+      ],
+      "literal_fragments": [
+        "SELECT campaign.id, metrics.clicks",
+        "FROM campaign",
+        "WHERE segments.date DURING LAST_",
+        "_DAYS"
+      ],
+      "holes": [
+        "day_count"
+      ]
+    }
+  ],
+  "must_not_emit": []
+}

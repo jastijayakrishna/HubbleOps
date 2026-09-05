@@ -1,0 +1,25 @@
+{
+  "fixture_id": "python_imported_wrapper",
+  "phase": 3,
+  "failure_class": "imported_wrapper_breaks_query_flow",
+  "should_be_caught_by": [
+    "observe.structure",
+    "graph.imports"
+  ],
+  "must_match": [
+    {
+      "path": "scheduled_report.py",
+      "assertion": "The imported submit_report symbol resolves to the wrapper definition."
+    },
+    {
+      "path": "scheduled_report.py",
+      "assertion": "The inline query reaches requests.post through one carried parameter."
+    }
+  ],
+  "must_not_match": [
+    {
+      "path": "scheduled_report.py",
+      "assertion": "The observer must not validate GAQL fields or close compatibility in Phase 3."
+    }
+  ]
+}

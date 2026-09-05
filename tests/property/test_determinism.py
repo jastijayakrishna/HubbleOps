@@ -8,6 +8,7 @@ import pytest
 from hubbleops.app import registry
 from hubbleops.app.cli import scan_repository
 from hubbleops.core.canonical import export_bytes
+from hubbleops.core.proof_scope import proof_scope_hash
 from tests.support import fixture_repos
 
 
@@ -41,6 +42,19 @@ def test_a_content_change_produces_a_new_proof_scope(tmp_path: Path) -> None:
     after = scan_repository(repo, pack)
     assert before.proof_scope_hash != after.proof_scope_hash
     assert before.run_id != after.run_id
+
+
+def test_a_proof_receipt_scope_cannot_survive_a_new_repository_sha(tmp_path: Path) -> None:
+    pack = registry.load_pack("google_ads")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    source = repo / "client.py"
+    source.write_text('VERSION = "v22"\n', encoding="utf-8")
+    receipt_scope = scan_repository(repo, pack).proof_scope
+    source.write_text('VERSION = "v23"\n', encoding="utf-8")
+    current_scope = scan_repository(repo, pack).proof_scope
+    assert receipt_scope["tree_hash"] != current_scope["tree_hash"]
+    assert proof_scope_hash(receipt_scope) != proof_scope_hash(current_scope)
 
 
 @pytest.mark.parametrize("fixture", fixture_repos(), ids=lambda path: path.name)

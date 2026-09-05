@@ -135,3 +135,19 @@ def test_a_nul_byte_past_the_sniff_window_still_reads_as_binary(tmp_path: Path) 
     by_path = {entry.path: entry for entry in source_closure.build(tmp_path).entries}
     assert by_path["src/late.py"].classification is Classification.UNSCANNED
     assert by_path["src/late.py"].reason.startswith("binary_opaque")
+
+
+def test_an_internal_directory_symlink_is_a_bound_alias_not_a_missing_path(tmp_path: Path) -> None:
+    target = tmp_path / "actual"
+    target.mkdir()
+    (target / "app.py").write_text("value = 1\n", encoding="utf-8")
+    alias = tmp_path / "alias"
+    try:
+        alias.symlink_to(target, target_is_directory=True)
+    except OSError as error:
+        pytest.skip(f"directory symlinks are unavailable: {error}")
+
+    by_path = source_closure.build(tmp_path).by_path()
+    assert by_path["alias"].classification is Classification.INSIDE
+    assert by_path["alias"].blob_sha is not None
+    assert by_path["actual/app.py"].classification is Classification.INSIDE

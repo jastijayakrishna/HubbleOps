@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from hubbleops.closure.source_closure import SourceClosure
-from hubbleops.core.candidate import STATUSES, candidate_identity, make_candidate
+from hubbleops.core.candidate import STATUSES, candidate_identity, claim_key, make_candidate
 from hubbleops.core.errors import UnexplainedCandidates
 from hubbleops.observe import resolver
 
@@ -108,7 +108,7 @@ def build(
     classifications = {entry.path: entry.classification.value for entry in closure.entries}
     groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for record in evidence:
-        key = (str(record["claim_type"]), resolver.claim_key(record))
+        key = (str(record["claim_type"]), claim_key(record))
         groups.setdefault(key, []).append(record)
 
     candidates: list[dict[str, Any]] = []

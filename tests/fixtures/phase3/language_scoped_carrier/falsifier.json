@@ -1,0 +1,29 @@
+{
+  "fixture_id": "language_scoped_carrier",
+  "phase": 3,
+  "failure_class": "python_version_carrier_crosses_language_boundary",
+  "should_be_caught_by": [
+    "observe.text",
+    "observe.structure"
+  ],
+  "must_match": [
+    {
+      "path": "reference_notes.md",
+      "assertion": "The provider namespace remains a recall-first surface reference."
+    },
+    {
+      "path": "namespace_data.ts",
+      "assertion": "The provider namespace remains a recall-first surface reference."
+    }
+  ],
+  "must_not_match": [
+    {
+      "path": "reference_notes.md",
+      "assertion": "The Python-only namespace carrier must not emit an AFFECTED call_version from Markdown."
+    },
+    {
+      "path": "namespace_data.ts",
+      "assertion": "The Python-only namespace carrier must not emit an AFFECTED call_version from TypeScript data."
+    }
+  ]
+}

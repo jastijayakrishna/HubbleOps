@@ -67,8 +67,9 @@ def test_every_open_candidate_prints_a_closing_instruction(
     rendered = exposure.render(
         ledger=book,
         pack_name=google_pack.name,
-        surface_hash=google_pack.surface.surface_hash(),
-        target=str(fixture),
+        changes_hash=google_pack.changes.lattice_hash,
+        target="UNKNOWN (SDK compatibility unresolved)",
+        repository=str(fixture),
         repo_sha=None,
     )
     for candidate in book.candidates:
