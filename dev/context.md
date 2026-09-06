@@ -7,10 +7,46 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 3 complete — Phase 4 Dynamic Capture + Sandbox + Sentinel + Telemetry is next |
-| **Branch** | `main` after the authorized local Phase 3 merge and `v0.3` tag; no push performed |
-| **Last gate passed** | Phase 3. The post-real-repo-loop fresh audit returned literal `GATE: PASS`; the final implementation suite passed 342 tests with 1 environment skip, and all rule, static, boundary, provider-neutrality, determinism, and diff checks were clean |
-| **Next action** | Install rootless docker/podman, then plan Phase 4. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
+| **Current phase** | 4 implemented and green — the Phase 4 gate audit and real-repo loop have **not** been run |
+| **Branch** | `phase-04-dynamic-capture-and-sentinel`, cut from `main` at `v0.3` |
+| **Last gate passed** | Phase 3. The post-real-repo-loop fresh audit returned literal `GATE: PASS` |
+| **Next action** | Run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on this tree, then the [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) including `hops capture`, then a final fresh gate. Only then merge and tag `v0.4`. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
+
+Phase 4 progress (2026-09-07): the sandbox (runner, image, limits, network, mounts, capture worktree,
+proxy, verifier image), the versioned dynamic event schema with generic Python/PHP/Node loaders,
+`hops capture` in proxy and hook modes, telemetry reconciliation, `hops promote`, and the standalone
+`hubbleops-sentinel` package are implemented. Ubuntu WSL runs Podman 4.9.3 rootless.
+
+Five real defects were found and fixed while completing the phase, each one a case where the system
+would have reported a confident absence instead of a named uncertainty:
+
+- **Node capture was impossible.** `ulimit -v` was carrying the memory bound, and V8 cannot start
+  under a 512 MiB address-space limit, so hook capture of any JavaScript suite died before the
+  first test while Python and PHP passed. `memory_bytes` is now `RLIMIT_DATA` (`ulimit -d`) and
+  `address_space_bytes` is a separate, larger `RLIMIT_AS`; both are proved against all three capture
+  runtimes in `tests/integration/test_sandbox_runtime.py`. Recorded as FA-011.
+- **Hook installation was unattested.** PHP does not apply `auto_prepend_file` to `php -r`, so the
+  hook never loaded and capture reported `UNKNOWN_DYNAMIC: test execution emitted no events` — a
+  claim about the customer's tests when the truth was that the sensor never ran. Every pack hook now
+  writes a per-run nonce to `/hops/output/install.jsonl`, and capture emits `HOOK_NOT_INSTALLED`
+  instead. Recorded as FA-012.
+- **A failed TLS interception looked like no usage.** When the workload cannot trust the capture CA,
+  the proxy logs a handshake failure and observes nothing; capture called that "no events". Failed
+  handshakes are now counted from the proxy's own log and reported as `PROXY_INTERCEPTION_FAILED`,
+  which suppresses the `UNKNOWN_DYNAMIC` claim. Recorded as FA-013.
+- **Telemetry reconciled against a static-only ledger.** A production tuple that the same run had
+  just observed dynamically was still reported `TELEMETRY_UNEXPLAINED`, manufacturing an UNKNOWN the
+  run held the evidence to close and understating `Production services accounted for N/M`.
+  Reconciliation and sentinel candidate mapping now use the static-plus-dynamic ledger.
+- **The sentinel wheel could not build.** A redundant `force-include` duplicated the data directory,
+  so `uv build` failed outright and DoD 5's "separate pip package" was unbuildable.
+
+Four smaller fixes: `json.loads` over untrusted bytes raised an uncaught `UnicodeDecodeError` in five
+places (one non-UTF-8 byte aborted a whole capture instead of becoming a named issue); the proxy's
+readiness was inferred from its certificate rather than its listener, and its log was buffered so the
+listening line was invisible; the PHP loader mount exposed all of `observe/dynamic/` to the workload
+and the CA copy was written into a directory the proxy container had mounted read-write; and the
+provider-leak scan did not read the `.ini`, `.cjs` or `.php` asset types Phase 4 introduced.
 
 Phase 3 progress (2026-09-06): the provider-neutral structural observer, deterministic import/symbol
 graph, five-hop wrapper walk, inheritance/decorator/factory/registry propagation, query skeletons,
@@ -177,9 +213,16 @@ unscannable `rg` hit is preserved as evidence.
 
 ## Blocking
 
+- The Phase 4 gate audit and real-repo loop have not been run. Implementation is complete and the
+  suite is green, but no Phase 4 gate has passed and nothing may merge to `main` until one does.
 - Nothing blocks the completed Phase 3 gate. `ast-grep` 0.45.0 is installed and its identity is
   proof-bound.
-- `docker`/`podman` not installed — Phase 4 needs them.
+- Podman 4.9.3 runs rootless in Ubuntu WSL and is the only eligible capture engine; the host's
+  Docker Desktop engine is rootful and is refused. The engine reports cgroups v1 and ignores
+  `--memory`/`--pids-limit`, so POSIX rlimits and the parent wall/output bounds are the enforcement
+  that is actually proved.
+- Capture state must live in a **short** host directory. A deep path makes a bind-mounted file
+  unreadable inside the container (`EIO`), which costs proxy mode its certificate (FA-013).
 - P-009 remains OPEN. AI triage is default-off and disconnected; it must not receive an operational
   application, CLI, scan, or store route until the owner decides the producer-attestation boundary.
 - `rg` was not on this machine at the start of Phase 1; the official 14.1.1 binary is now at
@@ -190,6 +233,30 @@ unscannable `rg` hit is preserved as evidence.
 ## Decisions that carry forward
 
 *(record here anything a later phase must not re-litigate — with the phase it was decided in)*
+
+**Phase-4 decisions (2026-09-07).**
+- A memory bound is `RLIMIT_DATA`, never `RLIMIT_AS`. `RLIMIT_AS` is a separate, larger
+  address-space bound because managed runtimes reserve address space they never touch. Do not
+  collapse the two back into one field to "simplify" the limits.
+- A sensor must attest that it installed. Hook mode carries a per-run nonce and proxy mode counts
+  failed interceptions, so "the sensor did not observe" and "the workload made no provider call"
+  are different, separately named outcomes with different closing instructions. Any future capture
+  channel owes the same distinction; without it, zero events silently reads as zero usage.
+- Production inputs reconcile against the run's static **plus** dynamic evidence, and never against
+  each other, so the accounting is order-independent across multiple production inputs while still
+  crediting what this run observed.
+- The workload's trust anchor lives in a directory the proxy container cannot write, and the
+  proxy is ready only when its listener is up, not when its certificate exists.
+- The sentinel's own suite is a separate product run:
+  `uv run --package hubbleops-sentinel pytest -c pyproject.toml
+  --override-ini="testpaths=packages/hubbleops-sentinel/tests"
+  --override-ini="pythonpath=packages/hubbleops-sentinel/src" packages/hubbleops-sentinel/tests`.
+  The main suite's `testpaths` deliberately excludes it; that is the independence boundary, not an
+  oversight. The main suite still proves the package imports no `hubbleops.*` and emits no verdict.
+- `dev/plan.md` named the sentinel hook smoke input `sentinel_hook_input.jsonl`. Hook mode takes a
+  Python entrypoint to run, not a JSONL file, so the fixture is
+  `tests/fixtures/phase4/inputs/sentinel_hook_app.py`. Phase 4 fixtures are split into `repo/`
+  (the capture target, which must stay clean for `_require_clean`) and `inputs/` (command inputs).
 
 **Phase-3 completion decisions (2026-09-06).** Structural language differences live in pack-owned
 ast-grep rules; the generic graph consumes neutral captured facts and contains no provider knowledge.
@@ -346,9 +413,11 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
 
 ## Open threads
 
-- Phase 4 needs rootless docker/podman before implementation and must preserve the structural
-  coverage and UNKNOWN-conservation guarantees established in Phase 3.
-- P-009 must be decided before AI triage is operationally connected; no Phase 3 runtime path reaches
-  it.
-- The Exposure Map target and per-version detected-site counts are implemented. The
-  production-services line remains "not in this ProofScope" until Phase 4 supplies telemetry.
+- Phase 4 needs its fresh gate audit and real-repo loop. The loop must run `scan`, `exposure` and
+  `capture` on the two pinned public repositories under `.hubbleops/artifacts/phase2-real-repos/`,
+  with a deny-all network, no credentials and no dependency installation; a missing offline
+  dependency is a `CAPTURE_EXECUTION_FAILED` UNKNOWN, never a reason to enable network.
+- P-009 must be decided before AI triage is operationally connected; no Phase 3 or Phase 4 runtime
+  path reaches it.
+- The Exposure Map production-services line is live: it prints `N/M` once a telemetry or sentinel
+  observer is in the ProofScope, and the "not in this ProofScope" wording only when neither is.

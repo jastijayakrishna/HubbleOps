@@ -5,6 +5,26 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] Install rootless Podman for Phase 4 — 4.9.3 in Ubuntu WSL, measured rootless, local,
+      uid/gid-remapped and seccomp-enabled; the host's rootful Docker Desktop engine is refused
+- [x] Implement Phase 4: `sandbox/`, `observe/dynamic/`, `observe/telemetry.py`, `hops capture` in
+      proxy and hook modes, `hops promote`, and the standalone `hubbleops-sentinel` package
+- [x] Fix the five defects found while completing Phase 4, each a confident absence in place of a
+      named uncertainty: V8 cannot start under the address-space limit that was carrying the memory
+      bound (FA-011); an uninstalled hook reported "no events" (FA-012); a failed TLS interception
+      reported "no events" (FA-013); telemetry reconciled against a static-only ledger and
+      manufactured `TELEMETRY_UNEXPLAINED` for tuples the run had just observed; the sentinel wheel
+      could not build at all
+- [x] Add the Phase 4 evidence the prompt requires: DI-fixture hook capture with a recorded wrapper
+      chain, the same fixture in proxy mode producing an equivalent candidate, a deliberately
+      unmatched telemetry tuple, the sentinel installed from its wheel and smoked in both modes, a
+      promotion round trip, and `test_no_provider_leak` over `observe/dynamic`
+- [ ] Run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4
+- [ ] Run the Phase 4 [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) — now including
+      `hops capture` — then rerun the fresh gate on the post-loop tree
+- [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4`, only after a literal
+      `GATE: PASS`
+
 - [x] Owner accepted P-008: correct frozen P-006 so Google Ads endpoint versions come from the
       gRPC/REST request target, while `x-goog-api-client` remains metadata and ambiguity emits a
       typed UNKNOWN instead of silence
@@ -67,7 +87,6 @@ Updated before every session ends. Phase-level status lives in
 - [x] Merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1` — done 2026-09-03 with the
       gate waived, not passed
 - [x] Install `ast-grep` before Phase 3
-- [ ] Install rootless docker/podman before Phase 4
 - [x] Fix the second gate audit's findings: silent media binaries, evidence-existence at the store
       boundary, and eleven non-blocking items
 - [x] Fix the first gate audit's findings: recall over manifests, L3 enforcement, and eight
@@ -82,7 +101,7 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 1 — scan + exposure + ledger *(fresh final audit: `GATE: PASS`)*
 - [x] Phase 2 — Google Ads pack + Change Pack version lattice *(fresh `GATE: PASS`; first real-repo loop complete)*
 - [x] Phase 3 — wrapper engine *(post-loop fresh `GATE: PASS`; FA-010 closed)*
-- [ ] Phase 4 — dynamic capture + sentinel
+- [ ] Phase 4 — dynamic capture + sentinel *(implemented and green; gate audit and real-repo loop not yet run)*
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard
@@ -100,5 +119,5 @@ loop (from Phase 2).
 
 ## Blocked / parked
 
-- Telemetry and production-services accounting in the Exposure Map print "not in this ProofScope"
-  until Phase 4 supplies a `TelemetryAdapter`; the Change Pack now supplies the `Target` line.
+- Nothing is parked. Production-services accounting now prints `N/M` whenever a telemetry or
+  sentinel observer is in the ProofScope, and "not in this ProofScope" only when neither is.
