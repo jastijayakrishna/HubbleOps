@@ -1,290 +1,481 @@
-# Plan — Phase 3 — Wrapper Engine
+# Phase 4 plan — Dynamic capture, isolated execution, telemetry, and sentinel
 
 ## Scope and maturity
 
-**Classification:** Build. Phase 2 passed its fresh gate, completed the first real-repo loop, and is
-merged locally into `main` at `2b97be2` with tag `v0.2`. Phase 3 starts from that merge on
-`phase-03-wrapper-engine`.
+Classification: **Build**, Phase 4, targeting local tag `v0.4`. Phase 3 is merged on `main`, tagged
+`v0.3`, and has a literal post-loop `GATE: PASS`. Ubuntu WSL now has Podman 4.9.3 and the selected
+engine has been measured as Linux, local, rootless, uid/gid-remapped, seccomp-enabled, and able to
+run a capability-free non-root container with a read-only root and no network. The host's Docker
+Desktop engine is rootful and is therefore not an eligible Phase 4 runner.
 
-**Outcome:** HubbleOps finds provider usage hidden behind first-party wrappers, imports, factories,
-inheritance, decorators, asynchronous calls, configuration, and constructed request text. The
-structural channel remains a conservative source of evidence: every unresolved data-flow path names
-the uncertainty and how to close it, while field and provider-contract validation stay deferred to
-Phase 6.
+This phase stops after isolated test-time capture, telemetry reconciliation, the standalone
+sentinel, promotion, a fresh gate, and the Phase 4 real-repo loop. It does not implement verification,
+repair, obligations, receipts, deployment, production credentials, or P-009 producer attestation.
+AI triage remains default-off and disconnected.
 
-**Appetite:** one phase branch. Stop after the Phase 3 gate and required real-repo loop. Do not build
-dynamic capture, verification, obligations, repair, wrapper promotion, Java/C# rules, SCIP, or a
-networked/LLM integration. No push, deployment, or release is authorized.
+## Outcome
 
-## Evidence and constraints
+A successful implementation lets a user run:
 
-- `docs/ARCHITECTURE.md` §6.4 fixes ast-grep plus a language-neutral graph/walker, backward depth 5,
-  query skeletons, explicit boundaries, and structural coverage reporting.
-- P-006 fixes initial rule coverage to Python, PHP, JavaScript, and TypeScript. Other source
-  languages retain the language-independent observers and receive `STRUCTURE_UNSUPPORTED` from the
-  structural observer rather than silence.
-- `docs/FAILURE_ATLAS.md` carries nine Phase 2 real-repo patterns. The six fixture families already
-  present under `tests/fixtures/phase3` are required inputs, including the generated-marker,
-  language-scoping, and lockfile cross-evidence prerequisites as well as the three structural cases.
-- The frozen Observer interface remains `scan(closure, ctx)`. `ObserverContext` may carry normalized,
-  injected rule bundles and run metadata; generic layers may not import or name a provider or pack
-  path.
-- The frozen Evidence schema and Observer contract cannot be changed in place. F-6 requires a
-  proposal before AI triage can be exposed operationally.
-- `ast-grep 0.45.0` was installed for this task at the npm global prefix and is verified by the
-  elevated repository command environment. Runtime lookup accepts the executable path injected by
-  the application or discovers it from `PATH`; its version and all active rule bytes enter the
-  proof scope.
+```text
+hops capture <repo> --pack <name> --cmd "<test command>"
+```
+
+and receive an evidence-backed ledger from the repository's own tests without exposing host
+credentials or granting unrestricted network access. Proxy mode is the default and hook mode is an
+explicit alternative. Both produce the same versioned event format. Provider telemetry and
+standalone sentinel output reconcile to candidates without silently proving absence. A confirmed
+dynamic or sentinel wrapper can be promoted into a revocable repository-local ast-grep rule that
+the next static scan consumes.
+
+## Why this matters
+
+Phase 3 can prove many wrapper paths statically but correctly preserves runtime configuration,
+opaque call paths, and query holes as UNKNOWN. Phase 4 adds independent execution, wire, and
+production-observation channels. The value is reduced uncertainty with provenance, not a promise
+that one passing test run observed all production behavior.
+
+The highest-risk assumption is that customer tests can run in an isolated container with either a
+pack hook or an egress proxy in their path. The cheapest credible proof is the existing DI wrapper
+fixture executed in both modes, with equivalent provider tuple identity and a recorded hook stack,
+plus direct adversarial probes for network bypass, environment leakage, timeout, mounts, and limits.
 
 ## Success measures
 
-Engineering completion requires all Phase 3 Definition-of-Done checks and the repository gate to
-pass. Product efficacy is not yet proven: after the gate, the real-repo loop must scan 2–3 public or
-prospect repositories and classify every UNKNOWN. A useful Phase 3 reduces wrapper-related UNKNOWNs
-without reducing total candidate recall, introducing silent language gaps, or closing contract
-uncertainty.
+- The DI fixture yields the same `(service, method, version)` candidate identity in hook and proxy
+  modes; hook evidence carries a complete repository stack and proxy evidence carries the matched
+  request target.
+- A host-only sentinel environment variable is absent inside the workload container.
+- Direct application-container egress fails; proxy egress rejects a destination outside the
+  allowlist; the empty allowlist permits no forwarding.
+- Workload and proxy containers run as non-root numeric uids with all Linux capabilities dropped,
+  `no-new-privileges`, read-only root filesystems, and bounded CPU time, address space, processes,
+  open files, output, and wall time. Mandatory in-container POSIX limits remain active when a
+  rootless host cannot delegate cgroup controllers; ignored runtime-limit warnings are recorded and
+  cannot be presented as enforcement.
+- Every subprocess invocation, duration, exit code, stdout, and stderr is recorded under the run's
+  ignored artifact directory without recording inherited host environment values.
+- Zero dynamic events with static call sites yields one or more `UNKNOWN_DYNAMIC` candidates with a
+  precise closing instruction. It never yields evidence of no usage.
+- A deliberately unmatched telemetry tuple yields `TELEMETRY_UNEXPLAINED`; a tuple with at least
+  one explained exact mapping counts once in deterministic `Production services accounted for N/M`
+  output, while multiple source-site mappings retain explicit association ambiguity.
+- The sentinel wheel installs in an isolated environment and its hook and proxy commands emit events
+  validated against byte-identical copies of the shared schema without importing `hubbleops.*`.
+- Promotion is idempotent and revocable, records run/evidence/source provenance, and reduces the
+  confirmed fixture wrapper to a direct promoted sink on the next scan.
+- Full tests, property tests, Ruff, formatting, strict Pyright, import/provider-leak checks, package
+  build/install checks, rootless Podman integration probes, deterministic artifact checks, and diff checks
+  pass. The post-loop fresh auditor returns literal `GATE: PASS`.
 
-Guardrails:
+## Relevant contracts and existing system
 
-- candidate/evidence conservation and proof-scope tests do not regress;
-- the pre-Phase-3 suite remains green;
-- structural output is byte-identical for identical closure, rules, tool version, and source bytes;
-- unsupported and unscanned structural coverage is explicit;
-- AI-derived evidence cannot independently change candidate status.
+- `CLAUDE.md` Laws L1, L3, L4, L5, L7, L9, and L10 remain controlling.
+- Frozen `Evidence`, `Candidate`, `ProofScope`, and `Observer` schemas/interfaces remain unchanged.
+- `ProviderPack.capture_hooks(language)`, `wire_signature`, and `telemetry` are injected by `app/`;
+  generic sandbox and observer modules never import or name a pack.
+- `request_text` and `production_version` use the frozen per-claim precedence in §5.
+- Phase 3 static observations and wrapper chains are rebuilt under the capture ProofScope rather
+  than copied across a scope boundary.
+- Capture and repair share `sandbox/`; Phase 5 uses a separate `sandbox/verifier_image.py` contract.
+- `.hubbleops/surface.yml` is the frozen repository-local promotion location. Capture artifacts,
+  logs, worktrees, images, SQLite files, and events remain uncommitted.
+- P-006 requires the language-independent wire channel. P-008 makes the versioned request target
+  authoritative over client metadata. P-009 stays open and operational AI remains unreachable.
 
-The post-gate decision is: proceed to Phase 4 only on literal `GATE: PASS` plus a completed
-real-repo loop; otherwise repair Phase 3 or preserve a typed UNKNOWN.
+## Deliverable boundaries
 
-## Smallest complete design
+### Sandbox
 
-### Rule bundles and proof binding
+Add `hubbleops/sandbox/{runner,image,limits,network,mounts,capture,verifier_image}.py` with small value
+objects that validate before constructing any process invocation. The application workload runs in
+a detached git worktree at the captured SHA. Temporary paths are resolved and checked beneath the
+run artifact root before cleanup.
 
-Each active pack supplies three tested rule families for each supported language: sink calls,
-version carriers, and request-string sinks. Google Ads supplies
-`rules/{python,php,javascript,typescript}.yml`; `_mock` supplies `rules/python.yml`. Every rule has a
-stable id and a corresponding test under `rules/tests/` with must-match and must-not-match snippets.
-The cases run through `ast-grep test` and a pack-local `sgconfig.yml`.
+Git worktree creation has one narrow, unavoidable host write outside those paths: Git owns
+administrative metadata under the target repository's resolved git-common-dir `/worktrees/`.
+Before invoking Git, the runner resolves the repository with `git rev-parse`, requires the metadata
+target to be beneath that exact git-common-dir, records the before/after entry, and permits only
+`git worktree add --detach` and `git worktree remove` to mutate it. It never edits source files in
+the prospect checkout or any other `.git` path.
 
-The application layer obtains rule bundles from the selected pack and normalizes them into
-`ObserverContext`. It computes `rules_hash` from sorted logical language/rule identifiers and file
-bytes, never absolute paths or filesystem order. The hash enters `ProofScope.rules_hash`. The
-existing `hubbleops + full observation-pipeline fingerprint + ripgrep` scanner identity is preserved
-and the installed ast-grep version is appended to it. Changing a scanner module, rule, ripgrep, or
-ast-grep version therefore invalidates the proof key.
+The runner refuses every engine unless its machine-readable security report says `rootless=true`.
+The workload container is non-root, capability-free, no-new-privileges, read-only at its root,
+limited, and attached only to a per-run internal network. Mandatory `RLIMIT_CPU`, `RLIMIT_AS`,
+`RLIMIT_NPROC`, `RLIMIT_NOFILE`, and `RLIMIT_FSIZE` enforcement complements runtime cgroup flags;
+the parent enforces wall time and bounded stdout/stderr. A separate, equally hardened capture-proxy
+container may join that internal network and an external bridge. The workload therefore cannot
+bypass the proxy.
 
-### Generic graph
+The proxy is the official mitmproxy 12.2.3 image pinned as
+`docker.io/mitmproxy/mitmproxy@sha256:00b77b5d8804c8ad18cb6caefbf9d5849e895e8986c5ce011f4ae30f4385962f`,
+invoked through its direct entrypoint as uid/gid 1000 with the same capability, filesystem, process,
+and output bounds as the workload. A generic mounted add-on owns policy and emits neutral flow
+records; provider parsing remains injected in `app/`.
 
-`graph/imports.py` consumes ast-grep JSON captures for definitions, calls, imports, assignments,
-classes, inheritance, decorators, and factory/registration references and normalizes them into
-provider-neutral nodes and edges. Thin language-specific ast-grep extraction rules capture each
-parameter and argument as an AST node, import sources, assignment right-hand sides, base classes,
-decorators, and registration values. The generic Python code never tokenizes or parses raw source
-syntax. The graph model contains source path, byte/line range, symbol, arity, captured
-parameters/arguments, and edge kind. Serialization sorts every node, edge, path, and captured value,
-and contains no absolute repository path.
+The proxy allowlist consists of exact normalized `(scheme, host, port)` entries. An empty allowlist
+is valid deny-all configuration and permits zero forwarded destinations. The proxy rejects IP
+literals unless explicitly listed, credentials in authorities, loopback, unspecified,
+link-local, multicast, and private destinations, post-resolution forbidden addresses, DNS changes
+between policy and connection, disallowed redirect targets, oversized or invalid headers, and
+oversized or opaque bodies. IPv4 and IPv6 receive the same policy. Logs redact authorization,
+cookies, API keys, and configured sensitive fields. Request/body/event limits are hard bounds.
+Plain HTTP is decoded. For HTTPS/gRPC, the proxy generates a per-execution disposable CA, exposes
+only its public certificate to the workload via a read-only mount and generic runtime trust
+variables, decrypts the request in the separately constrained proxy, and records the versioned
+target for the injected wire signature. The private key is confined to the proxy's validated
+temporary directory and destroyed after artifact finalization; its public-certificate hash and
+proxy configuration enter ProofScope. Certificate pinning, unsupported trust stores, failed
+handshakes, or an application ignoring proxy settings yields `TLS_INTERCEPTION_FAILED` or
+`PROXY_BYPASS_BLOCKED`, never absence. The DI equivalence test uses a TLS/gRPC-shaped target on a
+separate fixture service reachable only from the proxy's egress network, proving the normal
+language-independent TLS path without provider credentials or production traffic.
 
-Ast-grep, rather than a custom source parser, establishes every syntax node and capture boundary.
-Normalization consumes only discrete captures and resolves already-captured local import references;
-it must not infer provider meaning. Call-to-definition edges use permissive name-plus-arity matching
-and retain every plausible target. Import edges refine local symbol resolution but never prune a
-plausible global target.
+The integration runner creates one test-only exception for that service: its generated container
+identity, network id, exact hostname, port, and resolved address are bound into the execution
+manifest, and the proxy accepts that private address only when all five values match the runner's
+per-run fixture record. The public CLI cannot declare this exception. It is absent from customer
+capture, expires with the run network, and does not relax unconditional denial of undeclared
+private, loopback, link-local, host, or user-supplied destinations.
 
-### Structural observer and wrapper walk
+The capture image is reproducibly described. ProofScope binds hashes of the exact dynamic schema,
+generic loader assets, selected pack hook assets, pack wire implementation plus declarative
+conformance corpus, normalized allowlist, proxy implementation and resolved image digest, workload
+image digest, runner/runtime identity, command/working directory, limits, mounts, capture mode, and
+the immutable execution manifest. `verifier_image.py` defines a separately hashed immutable
+configuration and is never accepted as a runner mode.
 
-`observe/structure.py` implements the frozen two-argument observer contract. It validates ast-grep
-availability/version, builds the generic graph, executes the injected rules over exact `INSIDE`
-files, and emits deterministic Evidence records.
+### Shared event contract and dynamic observer
 
-For each sink hit, the containing definition is W1. A backward work queue tracks the carried
-argument positions through definitions and callers for at most five call edges. A literal resolves
-at that location; an assignment/imported constant continues through the graph; a config or env read
-emits `UNKNOWN_CONFIG(key)`; an unresolved symbol, ambiguity, parse gap, or depth limit emits a named
-UNKNOWN with a closing instruction. Same-name/same-arity overrides, subclass implementations,
-decorated definitions, registry/factory values, and async definitions inherit wrapper status as a
-conservative superset.
+Add `hubbleops/observe/dynamic/schema.json`, schema revision `1`, and generic
+validation/normalization, loaders, proxy-event parsing, and runner integration. Event objects use
+the architecture fields `{version, service, method, request_text, request_type, stack, ts}` plus the
+Phase 4 prompt's optional `mode: hook|proxy`, with `additionalProperties: false`; observer
+provenance lives in Evidence and the execution manifest. Version/service/method/type are non-empty bounded
+strings, request text is bounded or null, and timestamps are RFC 3339 UTC. A stack retains every
+captured repository, dependency, library, and runtime frame in order: repository paths are
+slash-normalized and relative, while container-only external paths are normalized beneath
+`<dependency>` or `<runtime>` so host paths cannot leak. Frames carry kind, path, positive line when
+known, and function. The schema imposes a hard frame bound; exceeding it appends an explicit
+truncation frame with the omitted count and emits `STACK_TRUNCATED` UNKNOWN, so a limited trace is
+never called full. Canonical
+ordering and JSONL encoding are deterministic for a fixed event set. Oversize, non-canonical, or
+schema-invalid input is retained raw only as a bounded artifact and yields a named UNKNOWN.
 
-Every emitted wrapper-chain value records ordered hops, carried parameters, source ranges, and the
-terminal resolution. Multiple plausible targets remain paths grouped under the originating call-site
-candidate. Conflicting terminal resolutions make that one candidate UNKNOWN; they never become
-separate independently AFFECTED candidates. Precision heuristics must not discard any path.
+Hook loaders use Python `sitecustomize`, PHP `auto_prepend_file`, and Node `--require` to load only
+the paths returned by the selected pack. The loaders contain no provider knowledge. Proxy records
+carry request path, normalized headers, request body when bounded and textual, and an explicit
+truncation/opaque reason. `app/` applies the injected `wire_signature` exactly once to turn raw wire
+records into typed events or named UNKNOWN evidence.
 
-### Versions, request skeletons, and boundaries
+Dynamic event conversion emits:
 
-Version-carrier hits resolve direct literals and constants/imports that reach a sink. Effective
-versions are emitted as `call_version` with deterministic provenance. A carrier in a language not
-named by its SurfaceSpec declaration remains a recall-layer reference and cannot become an AFFECTED
-call version.
+- `production_version` evidence keyed by service, method, and version for hook/proxy equivalence;
+- same-identity `call_version` and `request_text` evidence when a repository stack location matches
+  a static candidate, allowing L3-compliant closure through newly attached evidence;
+- an AFFECTED candidate with reason `OBSERVED_NOT_STATIC` when execution proves a call absent from
+  the static candidate set;
+- `UNKNOWN_DYNAMIC` when static call sites exist but the test run emits no events;
+- named UNKNOWN evidence for malformed, truncated, opaque, or unmatched proxy records.
 
-Strings reaching request sinks are reduced to ordered literal fragments and named holes using
-ast-grep captures. Concatenation, f-string/interpolation, format, and template chains emit frozen
-`claim_type="request_text"` evidence whose value carries the skeleton. Any hole emits
-`UNKNOWN_QUERY_HOLE`; a hole-free request remains structurally resolved but gets
-`CONTRACT_VALIDATION_DEFERRED`, because only Phase 6 may validate fields against the injected
-ContractOracle.
+Each invocation first writes append-only partial JSONL and bounded logs to a fresh temporary attempt
+directory. On success, non-zero exit, timeout, signal, malformed output, or observer loss, the parent
+flushes those partial artifacts and finalizes an immutable execution manifest containing their
+hashes and the exact exit/failure state. The manifest hash enters `build_config_hash` before ledger
+materialization. Its resulting run directory is content-addressed and creation is no-clobber: two
+executions can never overwrite or silently union event sets. Fixed manifest bytes produce the same
+run id and artifact bytes; distinct outputs, timestamps, failure states, or event sets produce
+distinct run ids.
 
-Internal HTTP, queue, and RPC calls that carry a query or version across a process/service boundary
-emit an `external_boundary` UNKNOWN naming the payload and a closing instruction. Boundary candidate
-identity includes path, source range, and captured payload identity so distinct payloads in one file
-cannot collapse. They are not silently treated as provider sinks.
+No event, hook output, or proxy output is trusted until schema validation, source-path confinement,
+source-hash verification, ProofScope rebinding, and deterministic deduplication succeed. Valid
+partial events survive a failed or timed-out workload and remain paired with a named execution
+UNKNOWN; failure does not discard observations or imply absence.
 
-### Coverage and failure behavior
+### Provider capture hooks
 
-Every `INSIDE` file is mapped to a normalized language id; unknown extensions and extensionless files
-map to `unknown`. Every `INSIDE` file without an active rule bundle emits
-`structure_unsupported` evidence and an UNKNOWN candidate. Structural coverage per language is
-stored in the run's closure summary and printed in the Exposure Map, including supported,
-unsupported, and unscanned counts.
+Add Google Ads capture assets under `hubbleops/packs/google_ads/capture/{python,php,node}/` and return
+them from `capture_hooks(language)`. They may name the provider because they are pack-owned. The
+Python hook supplies the gate's executable DI evidence; PHP and Node loaders/hooks receive smoke and
+failure tests so this is not a Python-only capture design. Add a minimal `_mock` hook so pack
+injection remains testable without generic-layer changes.
 
-Missing or incompatible ast-grep raises `TOOLING_MISSING` and produces no partial successful run.
-Malformed ast-grep output and tool timeout also reject partial results. `hops scan --force` is the
-explicit fail-closed continuation for missing, incompatible, malformed, or timed-out structure work:
-every `INSIDE` file receives `file_unscanned` evidence naming the structural tool failure. A syntax
-parse failure limited to one file emits `file_unscanned` for that file while other files remain
-accounted for. Timeout evidence remains UNKNOWN and never becomes FAILED.
+Provider hook assets do not import the main `hubbleops` package inside the workload. They emit the
+shared event shape to the path supplied by the generic loader and include a bounded full stack.
+Malformed hook output fails closed and remains an artifact. A pack-owned declarative wire
+conformance corpus covers positive, negative, versioned, malformed, redirect, authority-only, and
+bounded-body cases; the independent sentinel vendors the corpus bytes, and the root suite requires
+byte identity plus identical normalized outputs across pack and sentinel adapters.
 
-### AI residue triage and F-6
+### Telemetry reconciliation and Exposure Map
 
-`observe/ai_triage.py` accepts only candidates still unresolved after deterministic structure work,
-at most two source files, and exactly one question per invocation. A default-off, non-CLI application
-gate is an explicit `enabled=False` input; disabled mode cannot call the injected client. Enabled-mode
-unit tests use a fake client only. The module returns only `DERIVED_AI_EVIDENCE` and has no candidate
-mutation or store authority. The CLI exposes no enabling flag in Phase 3.
+Add generic `hubbleops/observe/telemetry.py`. It accepts an injected adapter result and an existing
+ledger, produces telemetry Evidence, and maps every unique `(service, method, version)` tuple to at
+least one explained candidate or a `TELEMETRY_UNEXPLAINED` UNKNOWN. Adapter issues also become named
+UNKNOWNs rather than disappearing.
 
-Before the module lands, add P-009 to `dev/proposals.md`: evidence-producer attestation at the store
-boundary so an untrusted caller cannot relabel AI output as observed evidence. The proposal compares
-schema-bound attestation, trusted emitter capabilities, and keeping AI disabled. It remains pending
-owner decision; Phase 3 does not amend a frozen schema or Observer contract. AI triage stays
-operationally unreachable until an accepted design mechanically enforces provenance.
+`hops capture <repo> --pack <name> --telemetry-export <file>` and
+`--sentinel-events <file> --sentinel-manifest <file>` are explicit application-layer ingestion
+paths. Before parsing either,
+the application finalizes a no-clobber production-input manifest containing the exact input-byte
+hash, input kind, import mode, schema hash, selected telemetry/wire adapter bytes and identity,
+mandatory sentinel package version, conformance-corpus hash, repository/tree/dependency hashes,
+and parser limits. The manifest hash enters `build_config_hash`; its run and raw bounded artifact
+are content-addressed before Evidence materialization. Separate imports never overwrite or union
+under one provenance claim. Malformed, foreign-schema, or adapter-mismatched input yields a scoped
+UNKNOWN and retained artifact rather than partial trust. A sentinel import requires every event's
+`mode` to equal the manifest mode; the CLI never accepts a caller-supplied mode override.
+
+Each pack ships a provider-owned `capture/sentinel_contract.json` mapping supported sentinel
+package versions and modes to the expected adapter-source, schema, and conformance-corpus hashes;
+its exact bytes join `provider_contract_hash`. Ingestion recomputes the event-file hash, validates
+each event against the current dynamic schema, hashes the current schema/corpus, and compares every
+sidecar field against that pack-owned expected record. It rejects the entire import before Evidence
+materialization if the version is unsupported, any hash differs, modes disagree, fields are absent,
+or the file exceeds its declared bound. This validates integrity/compatibility, not producer
+identity or authenticity, and sentinel evidence remains non-closing on its own.
+
+`production_version` candidate identity includes service, method, and version. Resolver behavior is
+observer-specific: unmatched telemetry remains UNKNOWN; dynamic or sentinel execution can be
+AFFECTED with `OBSERVED_NOT_STATIC`; matched evidence records the candidate ids it reconciles.
+Exposure derives its production denominator from unique telemetry/sentinel tuples and its numerator
+from tuples with at least one explained candidate mapping, matching frozen §6.6. Exact matching
+means all normalized service, method, and version fields are equal. Zero matches is
+`TELEMETRY_UNEXPLAINED` and is not accounted. Multiple legitimate source-site mappings increment the
+tuple numerator once but emit `TELEMETRY_SITE_AMBIGUOUS` association evidence; they never attribute
+the production call to one site or close any per-site UNKNOWN. With no production observer it
+preserves the existing text exactly.
+
+### Standalone sentinel
+
+Add `packages/hubbleops-sentinel/` as a separate distribution with its own source tree, version,
+tests, wheel metadata, and CLI. It uses only the Python standard library. It never imports or loads
+`hubbleops.*`, never writes a verdict, and never shares runtime code with test capture.
+
+The sentinel has two commands over the same vendored event schema and conformance corpus:
+
+- hook mode installs its own Google Ads logging/interceptor adapter and writes observed events;
+- proxy mode, documented and presented as the recommended default, reads bounded egress/client
+  request logs and applies its independent wire adapter without any language-specific loader.
+
+Both modes write atomic local JSONL plus a mandatory atomic `<output>.manifest.json` sidecar. The
+sidecar contains the sentinel package version, mode, exact adapter-source hash, schema hash,
+conformance-corpus hash, event-file hash, and output limits. It contains no wall-clock generation
+field: fixed input events, including their observational timestamps, produce byte-identical JSONL
+and sidecar bytes. Optional URL export
+is explicit, bounded by a timeout, and sends only validated event bytes. Export failure leaves the local artifact intact and exits non-zero. The
+root suite asserts that the sentinel schema bytes match the dynamic schema and that no source,
+metadata, test, or built wheel imports `hubbleops`. It also executes the corpus against both
+independent wire adapters and rejects semantic drift; the sentinel never imports pack code at
+runtime.
+
+Sentinel ingestion emits only `production_version` Evidence and promotion-eligible observed stack
+provenance; it is mechanically forbidden from emitting or attaching `call_version` or
+`request_text` Evidence at a static candidate identity. The resolver and store integration retain a
+pre-existing static UNKNOWN when the only new observation is sentinel. Tests inject forged
+sentinel-labelled call-site evidence and require rejection. A later scan may independently use a
+source-valid promoted rule, but that structure observation—not sentinel alone—performs any closure.
+
+### Promotion
+
+Add `hops promote` with explicit repository, run, candidate, and state inputs. Only a candidate with
+dynamic or sentinel observed stack evidence can be promoted. Promotion writes a schema-versioned,
+sorted `.hubbleops/surface.yml` entry containing an active/revoked state, language, symbol, a valid
+ast-grep rule, run id, evidence ids, and source hash.
+
+Creating or reactivating an entry requires current same-scope OBSERVED stack evidence and matching
+source bytes. Revocation addresses an existing provenance-bound entry by its stable identity and is
+always allowed after source drift or deletion; it changes only that entry to `revoked` and cannot
+create, reactivate, or rewrite its rule. On every scan, `app/` re-hashes the active entry's recorded
+source path before materializing its neutral rule. A mismatch or missing source never applies the
+rule and aborts with the named `PROMOTION_SOURCE_DRIFT` fail-closed outcome; the user can still run
+revocation against the stable entry identity afterward. `hops scan` binds validated active promotion
+bytes into `rules_hash` and passes materialized neutral rules to the structure observer. Revocation removes the rule from the
+active set without deleting provenance. Duplicate promotion is byte-idempotent. Invalid YAML,
+foreign-run evidence, source drift during creation/reactivation, unsupported language, or a missing
+stack fails closed.
 
 ## Definition of done
 
-1. Google Ads has Python/PHP/JavaScript/TypeScript sink, version-carrier, and request-string rule
-   families. `_mock` has a minimal equivalent. Every rule id has positive and negative ast-grep test
-   cases, and all pack rule tests pass under ast-grep 0.45.0.
-2. Active rule bytes are included in `rules_hash`; ast-grep identity is composed with the existing
-   HubbleOps/full-pipeline/ripgrep scanner identity. Mutating one scanner module or rule changes the
-   proof key; filesystem order does not.
-3. `graph/imports.py` creates a deterministic provider-neutral import/symbol graph from ast-grep
-   output. Identical inputs serialize byte-identically. Local Python and TypeScript import cases
-   connect to their definitions without excluding ambiguous name/arity matches.
-4. The backward walk follows carried values through up to five call hops and covers gateway class,
-   DI container, abstract adapter plus two subclasses, factory registry, decorator, async wrapper,
-   configuration, and an added intermediate hop. A sixth required hop ends in a named depth UNKNOWN.
-5. Literal version resolution, imported constant resolution, `UNKNOWN_CONFIG(key)`, unresolved
-   variables, ambiguous targets, and language-scoped carriers have positive and negative tests.
-6. F-string, concatenation, format, and JavaScript/TypeScript template requests emit `request_text`
-   with ordered literal fragments and holes. Holes preserve `UNKNOWN_QUERY_HOLE`; hole-free
-   structural requests preserve `CONTRACT_VALIDATION_DEFERRED`. No observer validates provider
-   fields.
-7. Queue, internal HTTP, and RPC payload transfer emits `external_boundary` UNKNOWN evidence naming
-   the carried payload. Two boundary payloads in one file have distinct source-range/payload keys.
-8. Missing/incompatible ast-grep fails with `TOOLING_MISSING`. Timeout or malformed output rejects
-   partial results. Forced scan emits `file_unscanned` for every `INSIDE` file. Per-file parse
-   failures emit `file_unscanned`; unsupported and unknown/extensionless languages emit
-   `structure_unsupported`; Exposure Map prints structural coverage per language.
-9. Metamorphic tests show that renaming a wrapper, moving it to another file, splitting a query
-   across variables, and adding an intermediate hop leave canonical candidate/evidence semantics
-   unchanged apart from expected source identities.
-10. The fixture corpus contains at least ten named wrapper patterns plus all six Phase 2 real-repo
-    families. Fixture tests assert required positive, negative, UNKNOWN, and prerequisite behavior.
-    FA-004/005 retain correct generated-marker classification; FA-008 closes only the manifest
-    dependency uncertainty from matching lock evidence; FA-009 preserves target compatibility as
-    UNKNOWN without a content-hashed mapping or human decision.
-11. `ai_triage.py` has an explicit default-off non-CLI application gate, has no CLI enablement, reads
-    no more than two files, asks once, emits only `DERIVED_AI_EVIDENCE`, and cannot change a candidate
-    status. Fake-client tests cover both gate states. P-009 records the unresolved attestation
-    boundary before the file lands.
-12. Generic layers contain no provider name, hostname, package name, or pack path; no generic layer
-    imports `packs/`; no custom parser or build step is introduced.
-13. The full pytest suite, Ruff, strict Pyright, diff check, import tests, provider-leak tests, rule
-    tests, fixture tests, deterministic tests, and required manual demonstrations pass.
-14. After implementation, run a fresh gate, then the required real-repo loop, then an unconditional
-    final fresh gate on the post-loop tree. `dev/context.md`, `dev/tasks.md`, `docs/BUILD_ORDER.md`,
-    and the Phase 3 prompt record completion only after that final audit returns literal
-    `GATE: PASS`.
+1. All six sandbox modules and separate verifier image module exist and enforce the isolation,
+   worktree, network, limit, mount, timeout, and logging facts above with unit and real-runtime tests.
+2. The versioned dynamic schema validates both modes; Python/PHP/Node generic loaders inject only
+   pack assets; proxy is the CLI default and hook is opt-in.
+3. `hops capture` persists a capture-scoped ledger and no-clobber content-addressed execution
+   manifests/events/log artifacts, including partial evidence from failures and timeouts.
+   Hook/proxy DI runs have equivalent provider candidates; hook has the stack; zero events with
+   static sites is UNKNOWN; observed-only calls are AFFECTED with `OBSERVED_NOT_STATIC`.
+4. Generic telemetry/sentinel import uses no-clobber content-addressed production-input manifests;
+   reconciliation accounts for every tuple or emits `TELEMETRY_UNEXPLAINED`, and Exposure renders
+   deterministic `N/M` production coverage.
+5. The independently packaged sentinel installs and passes local-output plus mandatory producer
+   manifest, URL-export failure, hook, proxy, schema, no-verdict, no-UNKNOWN-alone, and no-import tests.
+6. `hops promote` is provenance-bound, idempotent, revocable, and consumed by the next scan as an
+   active ast-grep rule.
+7. Capture uses no production credentials, no host environment leakage, no unrestricted workload
+   egress, no host writes outside validated worktree/artifact/repository-promotion targets and the
+   exact Git-owned `.git/worktrees` metadata needed for detached worktree lifecycle, and no silent
+   fallback.
+8. Existing Phase 1–3 behavior and byte determinism remain green; no generic layer imports a pack or
+   contains a provider name.
+9. Evidence commands in the Phase 4 prompt are executed, a fresh audit returns literal
+   `GATE: PASS`, the real-repo loop runs `scan`, `exposure`, and `capture` on two pinned repositories,
+   every UNKNOWN receives one allowed disposition, every NEW_PATTERN becomes an anonymized fixture,
+   and a final fresh gate passes after any loop change.
+
+## Non-negotiable invariants
+
+- L1/L3/L4/L5/L7/L9/L10 and all frozen schemas/interfaces remain mechanically enforced.
+- Test capture and production sentinel share schema bytes, not implementation code or imports.
+- Sentinel input without a matching mandatory producer manifest stays UNKNOWN; sentinel evidence
+  alone never attaches to or closes a static call-site UNKNOWN.
+- Capture never inherits or discovers production credentials. Explicit production-looking secret
+  variable names are rejected even if requested.
+- Application workload egress is impossible except through the policy proxy; default is deny-all.
+- Proxy is the default, not a lower-confidence fallback. Hook and proxy evidence differ only where
+  the channel genuinely observes different facts, such as stacks.
+- Zero events, malformed events, opaque TLS, adapter issues, runtime loss, timeout, and source drift
+  become named UNKNOWN/failure outcomes, never absence or a smaller ledger.
+- Dynamic, telemetry, and sentinel evidence bind to the current tree, dependencies, pack contract, exact
+  schema/loaders/hooks/wire corpus/proxy bytes, normalized policy, runtime identity, command, images,
+  execution manifest, and capture configuration. No evidence crosses a ProofScope.
+- Promotion preserves provenance and revocation history. Memory reduces future work and never proves
+  a verdict.
+- Verifier isolation is a separate image/config and cannot be selected as a runner flag.
+- No command pushes, publishes, deploys, uses real provider credentials, or writes to prospect
+  repositories during the real-repo loop.
+
+## Authority
+
+Authorized autonomously: inspect the repository and local runtime; use the measured rootless Podman
+engine in Ubuntu WSL; create the Phase 4 branch; implement scoped modules, package assets, schemas, tests,
+fixtures, and required completion records; build local images and wheels; pull a pinned public base
+image when required; create/remove validated temporary worktrees, containers, networks, and volumes;
+run non-destructive tests and the public-repository loop; make logical local commits; merge to
+`main`; and create local tag `v0.4` only after the literal final gate pass.
+
+Requires human approval: changing a frozen schema/interface or P-009; accepting production
+credentials; weakening isolation; persistent writes outside the target repository's explicit
+`.hubbleops/surface.yml` promotion or the selected state directory; adding a sentinel runtime
+dependency; incurring material paid cost; pushing, publishing, deploying, or releasing.
+
+## Explicitly outside scope
+
+- Verification, Receipt/verdict generation, repair, obligations, change application, or agent access.
+- Production deployment or enrollment of the sentinel and live provider credentials.
+- Field-level contract validation and Phase 5 request-shape differential checks.
+- Transparent capture of protocols a selected proxy cannot decode; these remain explicit UNKNOWNs.
+- Java/C# capture hooks, Kubernetes, orchestration, cloud control planes, dashboards, databases, or
+  generic plugin frameworks.
+- Enabling AI triage or implementing producer attestation while P-009 is open.
+- Phase 7 decision/retired/binding registries beyond the single Phase 4 promotion file required now.
+
+## Risks, assumptions, and alternatives
+
+1. **Container limit portability.** The measured WSL rootless Podman host is on hybrid cgroup v1 and
+   reports that cgroup resource flags are ignored. The runner therefore requires POSIX rlimits and
+   parent wall/output bounds, records the runtime warning, and proves each bound adversarially. A
+   runtime with neither delegated cgroups nor working rlimits is rejected.
+2. **TLS/protocol opacity.** A proxy cannot claim a provider tuple from an undecodable request.
+   The selected pinned mitmproxy container performs controlled interception using a disposable CA
+   trusted only by the workload. Failed trust injection, pinning, or missing path visibility remains
+   a named UNKNOWN. Never infer version from client metadata or CONNECT authority.
+3. **Hook brittleness.** Library internals change. Keep hooks pack-owned, smoke all three loaders,
+   and let proxy remain the default cross-language path.
+4. **Container escape or credential exposure.** Validate mounts and target paths, pass an allowlisted
+   environment from scratch, use an internal workload network, drop privileges/capabilities, and
+   test hostile commands.
+5. **False telemetry reconciliation.** Match exact normalized tuples and retain unmatched records
+   as UNKNOWN. A tuple with multiple legitimate explained source mappings counts once as accounted
+   but keeps site association ambiguous and never closes per-site unknowns. Do not fuzzy-match
+   provider operations.
+6. **Sentinel dependency coupling.** Keep it stdlib-only and audit wheel contents/import AST. A
+   shared library was rejected because it violates the independent-products boundary. Byte-identical
+   schema/corpus assets and cross-product conformance tests provide mechanical drift detection.
+7. **Promotion overreach.** Promote one observed symbol and exact source hash, keep it revocable,
+   and prove source drift invalidates it. Auto-promoting inferred/AI evidence was rejected.
+8. **Doing nothing.** Leaves runtime-only calls and production usage permanently UNKNOWN and fails
+   the ordered Phase 4 contract.
 
 ## Verification
 
-Required executed evidence:
+Required commands and objective evidence:
 
-- `ast-grep test -c hubbleops/packs/google_ads/sgconfig.yml --skip-snapshot-tests`
-- `ast-grep test -c hubbleops/packs/_mock/sgconfig.yml --skip-snapshot-tests`
-- focused graph, structure, fixture, failure-mode, coverage, AI-boundary, and metamorphic pytest runs;
-- a printed DI wrapper chain with every hop and carried parameter;
-- a forced scan with ast-grep unavailable showing one `FILE_UNSCANNED` result per `INSIDE` file;
-- a normal scan containing an unsupported language and `STRUCTURE_UNSUPPORTED` rather than silence;
-- two identical scans/graph exports compared byte-for-byte and metamorphic canonical semantics;
-- `uv run pytest -q`;
-- `uv run ruff check .`;
-- `uv run ruff format --check .`;
-- `uv run pyright`;
-- `uv run pytest -q tests/unit/test_imports.py tests/unit/test_no_provider_leak.py`;
-- `git diff --check`;
-- gate-audit adversarial attempts against Laws L1, L3, L4, L5, and L10.
+```text
+wsl.exe -d Ubuntu -- podman info --format json
+wsl.exe -d Ubuntu -- sh -ceu 'test "$(podman info --format "{{.Host.Security.Rootless}}")" = true; echo rootless=true'
+wsl.exe -d Ubuntu -- podman run --rm --user 65532:65532 --cap-drop=all --security-opt=no-new-privileges --network=none --read-only --tmpfs /tmp:rw,noexec,nosuid,nodev,size=16m docker.io/library/alpine@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce sh -ceu "ulimit -t 2; ulimit -v 131072; ulimit -u 64; ulimit -n 64; ulimit -f 128; id; test ! -w /"
+wsl.exe -d Ubuntu -- podman run --rm --user 1000:1000 --cap-drop=all --security-opt=no-new-privileges --network=none --read-only --tmpfs /tmp:rw,noexec,nosuid,nodev,size=16m --tmpfs /home/mitmproxy/.mitmproxy:rw,noexec,nosuid,nodev,size=16m --entrypoint /usr/local/bin/mitmdump docker.io/mitmproxy/mitmproxy@sha256:00b77b5d8804c8ad18cb6caefbf9d5849e895e8986c5ce011f4ae30f4385962f --version
+uv run pytest -q
+uv run pytest -q tests/unit/test_sandbox_*.py tests/unit/test_dynamic*.py tests/unit/test_telemetry.py
+uv run pytest -q tests/integration/test_sandbox_runtime.py -k "rootless or cpu_limit or memory_limit or process_limit or file_descriptor_limit or file_size_limit or wall_timeout or output_limit or environment or mount or network"
+uv run pytest -q tests/integration/test_capture_*.py tests/integration/test_promotion.py
+uv run pytest -q tests/property/test_phase4_*.py
+uv run pytest -q tests/unit/test_imports.py tests/unit/test_no_provider_leak.py
+uv run ruff check .
+uv run ruff format --check .
+uv run pyright
+uv build --package hubbleops-sentinel --out-dir .hubbleops/artifacts/phase4-sentinel-dist
+uv venv --seed --clear .hubbleops/artifacts/phase4-sentinel-venv
+uv pip install --python .hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe --no-deps .hubbleops/artifacts/phase4-sentinel-dist/hubbleops_sentinel-0.1.0-py3-none-any.whl
+.hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe -I -m hubbleops_sentinel hook --input tests/fixtures/phase4/sentinel_hook_input.jsonl --output .hubbleops/artifacts/phase4-sentinel-hook.jsonl
+.hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe -I -m hubbleops_sentinel proxy --input tests/fixtures/phase4/sentinel_proxy_input.jsonl --output .hubbleops/artifacts/phase4-sentinel-proxy.jsonl
+git diff --check
+```
 
-Record exact commands, outputs, and exit codes. A check not run is not a pass.
+Manual evidence prints the DI hook stack, the equivalent proxy candidate id, a denied direct egress
+attempt, absence of the host-secret canary, a timed-out process, an unmatched telemetry tuple,
+`Production services accounted for N/M`, and the promotion before/after hop count. Every command's
+exit code is recorded. Determinism compares event normalization, telemetry reconciliation,
+promotion YAML, command plans, and artifact bytes for identical fixed inputs.
 
-## Authority and invariants
-
-Autonomous authority covers inspection, rule/test/fixture creation, generic implementation,
-application wiring, narrow schema-compatible evidence/resolver additions, deterministic refactoring,
-the ast-grep installation completed with explicit tool approval in this task, and local commits
-implied by the user's explicit instruction to merge Phase 2 and execute Phase 3. Push remains
-explicitly prohibited.
-
-Human approval is required for accepting P-009; changing any frozen schema or contract; exposing AI
-triage; adding SCIP, a framework/service/database, Java/C# rules, credentials, material network cost,
-deployment, release, push, or a Phase 4 capability. None is authorized here.
-
-Non-negotiable throughout:
-
-- no candidate or structural gap disappears;
-- UNKNOWN closes only with new evidence or a recorded human decision;
-- same inputs produce byte-identical outputs;
-- generic layers remain provider-neutral and receive pack parts by injection;
-- unsupported, missing-tool, timeout, parse, ambiguity, config, query-hole, and depth failures are
-  explicit and fail closed;
-- AI evidence alone cannot change status;
-- no field validation, build, dynamic execution, network scan, or repair occurs;
-- unrelated work is preserved and nothing is pushed.
-
-## Risks and alternatives
-
-- **Highest risk — false completeness from graph ambiguity.** Prefer a conservative superset and
-  explicit ambiguity over pruning. Metamorphic, multi-target, and depth fixtures falsify misses.
-- **Ast-grep output drift.** Pin verified compatibility behavior, fingerprint the actual version,
-  reject incompatible output, and test malformed JSON/subprocess failures.
-- **Rule precision creates recall loss.** Rules detect broad structural families; deterministic
-  graph and resolver layers explain matches. Negative rule tests constrain obvious noise without
-  permitting silent exclusion.
-- **Path/import resolution differs across ecosystems.** Local import edges refine the graph, while
-  permissive name-plus-arity edges remain as a fallback. No build or package-manager execution is
-  required.
-- **AI provenance remains forgeable at the record API.** Keep AI operationally unreachable and raise
-  P-009 instead of weakening or silently changing the frozen trust boundary.
-- **Alternative: custom parsers/tree-sitter bindings.** Rejected by the frozen stack and no-custom-
-  parser invariant.
-- **Alternative: SCIP now.** Rejected as out of appetite and approval-bounded.
-- **Alternative: text-only heuristics.** Rejected because they cannot provide syntax-bounded wrapper
-  chains and would duplicate, rather than add an independent observation channel.
+After the implementation gate, run current `scan`, `exposure`, and `capture` against the two pinned
+public repositories already stored under `.hubbleops/artifacts/phase2-real-repos/`. Use
+`python -m unittest discover -v` for `mcp-google-ads` and `npm test -- --runInBand` for
+`google-ads-api`, in their pinned worktrees, with a deny-all network, an environment built only from
+fixed safe variables, and no dependency installation or credentials. A missing offline dependency
+or non-zero test result is an explicit `CAPTURE_EXECUTION_FAILED` UNKNOWN with preserved partial
+events, never a reason to enable network or invent coverage. Classify every UNKNOWN using the
+operating protocol. Any new generalized pattern goes through the fixture-writer and is entered in
+the Failure Atlas. Rerun the complete fresh gate on the post-loop tree unconditionally.
 
 ## Release and learning
 
-Phase 3 is a local, unreleased branch. Rollback is removal of Phase 3 commits while `main` remains at
-the Phase 2 merge. There is no migration or production data change. After a literal fresh-session
-`GATE: PASS`, run the real-repo loop against 2–3 repositories. Every UNKNOWN is classified as closed
-with evidence, closed by recorded human decision, preserved with an instruction, or a new anonymized
-pattern. New patterns extend fixtures/rules/falsifiers before Phase 4; no repository-specific rule is
-allowed. Rerun the full fresh gate on the post-loop tree unconditionally, even when the loop changes
-no tracked byte. Phase 3 is complete only when that final audit returns literal `GATE: PASS`.
+This phase creates local CLI/package capability only. There is no production rollout or sentinel
+deployment. Local rollback is the Phase 4 merge revert while `v0.3` remains intact. Capture artifacts
+are disposable and content-addressed; repository promotion is recoverable from git and revocable in
+place.
+
+The real-repo loop measures event yield, UNKNOWN_DYNAMIC rate, proxy opacity, hook failures,
+telemetry reconciliation, and promotion usefulness. A pattern graduates only when generalized and
+anonymized. Phase 5 proceeds only after the final post-loop gate passes.
 
 ## Architecture record
 
-No new ADR is required if implementation stays within frozen §6.4 and accepted P-006. P-009 is the
-required pending architecture proposal because evidence attestation changes a frozen trust boundary.
+No frozen architecture change is planned. The chosen two-container internal-network topology is an
+implementation of the already-open proxy and sandbox design: the non-root workload has no direct
+egress, while the separately constrained proxy owns allowlisting and observation. Any need to alter
+the Evidence schema, Observer contract, verdict function, or P-009 boundary stops for a proposal.
+
+## Working method
+
+Preserve unrelated work. Implement the smallest complete capability behind the existing injected
+pack contracts. Prefer immutable value objects, deterministic serialization, narrow subprocess
+boundaries, fake runtime tests for error surfaces, and a small number of real rootless Podman
+integration tests for claims mocks cannot establish. Do not weaken a check to accommodate the host.
+
+## Stop and escalate conditions
+
+Stop and report the evidence if the measured rootless Podman engine cannot execute a non-root
+isolated test or the mandatory rlimits cannot be proved; a required image cannot be acquired without credentials or
+material cost; the workload cannot be prevented from bypassing an allowlist; the disposable CA or
+proxy private key cannot be confined to the validated per-run boundary; a frozen schema/interface must change;
+sentinel independence cannot be enforced; a target test requires production credentials; or a
+prospect repository would need modification.
 
 ## Open questions
 
-None. The frozen architecture, accepted P-006, Phase 3 prompt, nine Failure Atlas rows, and existing
-fixtures resolve the implementation choices needed for this phase. P-009 is intentionally not an
-open implementation question because AI remains disabled until the owner decides it.
+None. The frozen architecture chooses the two capture products, injected pack boundaries, shared
+event contract, proxy-default policy, sandbox model, telemetry behavior, and promotion location.
+Implementation choices remain open inside those hard edges. P-009 is a pending owner decision but
+does not block Phase 4 because AI triage remains operationally disconnected.
