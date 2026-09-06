@@ -21,6 +21,9 @@ class EmptyBundle:
     paths: tuple[Path, ...] = ()
 
 
+RULE_LANGUAGES = frozenset({"javascript", "php", "python", "typescript"})
+
+
 class GoogleAdsPack:
     name = "google_ads"
     surface = SurfaceSpec.from_mapping(yaml.safe_load((ROOT / "surface.yaml").read_text("utf-8")))
@@ -33,7 +36,9 @@ class GoogleAdsPack:
         return self.changes.versions()
 
     def rules(self, language: str) -> RuleSet:
-        return EmptyBundle(language)
+        normalized = language.lower()
+        paths = (ROOT / "rules" / f"{normalized}.yml",) if normalized in RULE_LANGUAGES else ()
+        return EmptyBundle(normalized, paths)
 
     def capture_hooks(self, language: str) -> CaptureHooks:
         return EmptyBundle(language)

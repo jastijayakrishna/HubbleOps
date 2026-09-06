@@ -192,7 +192,9 @@ class MockPack:
         )
 
     def rules(self, language: str) -> RuleSet:
-        return EmptyBundle(language)
+        normalized = language.lower()
+        paths = (ROOT / "rules" / "python.yml",) if normalized == "python" else ()
+        return EmptyBundle(normalized, paths)
 
     def capture_hooks(self, language: str) -> CaptureHooks:
         return EmptyBundle(language)

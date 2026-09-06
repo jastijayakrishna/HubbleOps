@@ -1,0 +1,8 @@
+id: mock-provider-python-structure
+valid:
+  - print("ordinary request")
+  - value = "resource=users"
+invalid:
+  - client = MockProvClient(version="v2")
+  - endpoint = "https://api.mockprov.test/v2/call"
+  - request = "resource=campaigns"

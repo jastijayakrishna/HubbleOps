@@ -2,7 +2,7 @@
 
 |  |  |
 |---|---|
-| **Status** | NOT STARTED |
+| **Status** | COMPLETE — post-loop fresh `GATE: PASS` |
 | **Reads** | `CLAUDE.md`, `docs/ARCHITECTURE.md` §6 and the Wrapper section, `dev/proposals.md` P-006, `dev/context.md` |
 | **Ships** | `observe/structure.py`, `graph/imports.py`, per-language ast-grep rules, query skeletons, flagged `ai_triage` |
 | **Gate** | fresh-session [gate audit](../cross-cutting/gate-audit.md) → `GATE: PASS`, then [real-repo loop](../cross-cutting/real-repo-loop.md) |

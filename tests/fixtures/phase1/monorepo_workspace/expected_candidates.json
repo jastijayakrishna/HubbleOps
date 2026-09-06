@@ -1,6 +1,18 @@
 {
   "candidates": [
     {
+      "claim_type": "structure_unsupported",
+      "location": "package.json",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "structure_unsupported",
+      "location": "packages/ads/package.json",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "package_reference",
       "location": "packages/ads/package.json:5",
       "provider_subject": "google-ads",
@@ -49,10 +61,28 @@
       "status": "AFFECTED"
     },
     {
+      "claim_type": "structure_unsupported",
+      "location": "packages/web/package.json",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "sdk_installed",
       "location": "services/etl/poetry.lock",
       "provider_subject": null,
       "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "claim_type": "structure_unsupported",
+      "location": "services/etl/poetry.lock",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "structure_unsupported",
+      "location": "services/etl/pyproject.toml",
+      "provider_subject": null,
+      "status": "UNKNOWN"
     }
   ],
   "counts": {
@@ -60,9 +90,9 @@
     "excluded_with_evidence": 0,
     "human_required": 0,
     "not_affected_with_evidence": 1,
-    "total": 9,
+    "total": 14,
     "unexplained": 0,
-    "unknown": 6
+    "unknown": 11
   },
   "fixture": "monorepo_workspace",
   "pack": "google_ads"

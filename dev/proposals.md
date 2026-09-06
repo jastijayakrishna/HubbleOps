@@ -376,3 +376,46 @@ unnecessary; they remain valuable provenance and may detect contradictions.
 instruction to execute Phase 2 completely after this proposal was presented as the sole blocker.
 
 ---
+
+## P-009 — Evidence producer attestation
+
+| | |
+|---|---|
+| **Raised** | 2026-09-05, Phase 3 before AI residue triage |
+| **Touches** | frozen Evidence schema and Observer trust boundary |
+| **Status** | OPEN |
+
+**What forced this.** The store verifies that an Evidence id hashes its content and prevents an
+UNKNOWN from closing on records labeled only `DERIVED_AI_EVIDENCE`. It does not verify who produced
+the record or whether the caller truthfully selected `derivation`. A caller can copy AI output into
+an otherwise valid Evidence record labeled `OBSERVED`; the store then treats it as independent
+observation and can accept a status transition that L10 forbids. Phase 3 introduces the first AI
+triage module, so this is now a concrete boundary rather than a hypothetical future concern.
+
+**Proposed change.** Make evidence provenance store-verifiable rather than caller-asserted. Add a
+versioned producer attestation to Evidence, covering the canonical record, run id, observer,
+derivation, and producer identity. Trusted deterministic observers run in an authority that can mint
+the corresponding attestation. The AI triage boundary cannot mint an observed or deterministic
+attestation; its ingestion path stamps `DERIVED_AI_EVIDENCE` before signing. The store rejects a
+missing, invalid, mismatched, or insufficient attestation before evaluating candidate transitions.
+Define the key/capability lifecycle and process boundary in the accepting decision; Python naming or
+an import-private singleton is not a security boundary.
+
+**Blast radius.** The Evidence schema and canonical id change, so every observer, store write path,
+fixture, export, replay path, scanner fingerprint, and evidence-id test must be updated together.
+ProofScope moves and no earlier Receipt survives the new schema/tool identity. Gate audits must add
+forged-label, replay-across-run, observer-swap, derivation-downgrade, and stolen-output experiments.
+The change must land before AI triage receives any operational application or CLI route. Phase 3 can
+ship the disconnected, default-off triage function without accepting this proposal because no AI
+record reaches the ledger or store.
+
+**Alternatives rejected, and why.** Trust the `derivation` string because the store hashes it — a
+hash proves integrity after construction, not truthful origin. Hide an in-process token in a Python
+module — code in the same interpreter can import or recover it. Inspect content heuristically for AI
+style — neither deterministic nor enforceable. Delete AI triage — safe but needlessly removes a
+future advisory tool; keeping it unreachable preserves the option without widening authority.
+
+**Decision.** Pending repository-owner decision. Until accepted and mechanically enforced, AI
+triage remains default-off, has no CLI or scan-pipeline path, and cannot write to the ledger or store.
+
+---

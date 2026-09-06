@@ -1,0 +1,25 @@
+{
+  "fixture_id": "wrapper_patterns",
+  "phase": 3,
+  "failure_class": "wrapper_shapes_are_silently_pruned",
+  "should_be_caught_by": [
+    "observe.structure",
+    "graph.imports"
+  ],
+  "must_match": [
+    {
+      "path": "wrappers.py",
+      "assertion": "At least ten named wrapper shapes enter the structural graph."
+    },
+    {
+      "path": "wrappers.py",
+      "assertion": "The sixth required call hop remains an explicit depth unknown."
+    }
+  ],
+  "must_not_match": [
+    {
+      "path": "wrappers.py",
+      "assertion": "No ambiguity, configuration read, boundary, or depth gap disappears."
+    }
+  ]
+}

@@ -1,6 +1,12 @@
 {
   "candidates": [
     {
+      "claim_type": "structure_unsupported",
+      "location": "composer.json",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "package_reference",
       "location": "composer.json:4",
       "provider_subject": "google-ads",
@@ -22,6 +28,12 @@
       "claim_type": "surface_reference",
       "location": "composer.json:4",
       "provider_subject": "googleads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "structure_unsupported",
+      "location": "composer.lock",
+      "provider_subject": null,
       "status": "UNKNOWN"
     },
     {
@@ -84,9 +96,9 @@
     "excluded_with_evidence": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 13,
+    "total": 15,
     "unexplained": 0,
-    "unknown": 11
+    "unknown": 13
   },
   "fixture": "php_rest_v22_path",
   "pack": "google_ads"

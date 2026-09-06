@@ -1,0 +1,22 @@
+{
+  "fixture_id": "typescript_parent_import",
+  "phase": 3,
+  "candidates": [
+    {
+      "id": "parent_imported_typescript_version",
+      "path": "tasks/proto_registry.ts",
+      "language": "typescript",
+      "claim_type": "call_version",
+      "provider_subject": "v24",
+      "status": "AFFECTED",
+      "observer": "structure",
+      "confidence": "PROVEN",
+      "required_shape": [
+        "parent_relative_import",
+        "local_alias_assignment",
+        "computed_proto_lookup"
+      ]
+    }
+  ],
+  "must_not_emit": []
+}

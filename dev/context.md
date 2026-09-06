@@ -7,10 +7,26 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 2 complete — Phase 3 Wrapper Engine is next |
-| **Branch** | `phase-02-google-ads-pack-and-change-pack`; Phase 1 remediation remains intentionally uncommitted in this tree |
-| **Last gate passed** | Phase 2. Fresh independent audit returned literal `GATE: PASS`; after the real-repo fixtures landed, the final suite passed 299 tests with 2 environment skips, and all static, boundary, pack, and diff checks were clean |
-| **Next action** | Plan Phase 3 from all nine Failure Atlas rows and the six `tests/fixtures/phase3` families; install `ast-grep` before implementation. No commit or push authorized. |
+| **Current phase** | 3 complete — Phase 4 Dynamic Capture + Sandbox + Sentinel + Telemetry is next |
+| **Branch** | `main` after the authorized local Phase 3 merge and `v0.3` tag; no push performed |
+| **Last gate passed** | Phase 3. The post-real-repo-loop fresh audit returned literal `GATE: PASS`; the final implementation suite passed 342 tests with 1 environment skip, and all rule, static, boundary, provider-neutrality, determinism, and diff checks were clean |
+| **Next action** | Install rootless docker/podman, then plan Phase 4. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
+
+Phase 3 progress (2026-09-06): the provider-neutral structural observer, deterministic import/symbol
+graph, five-hop wrapper walk, inheritance/decorator/factory/registry propagation, query skeletons,
+cross-service boundaries, fail-closed per-file coverage, Google Ads Python/PHP/JavaScript/TypeScript
+rules, `_mock` rules, and default-off AI triage boundary are implemented. Rule bytes and ast-grep
+identity bind into the ProofScope. The final suite passed 342 tests with 1 environment skip; Ruff,
+formatting, strict Pyright, import/provider-leak checks, both rule-test packs, and diff checks passed.
+The fresh post-loop audit independently returned literal `GATE: PASS`.
+
+The Phase 3 real-repo loop reran current HubbleOps read-only at the Phase 2 pinned commits.
+`mcp-google-ads` produced 422 candidates, 9 AFFECTED, 413 preserved UNKNOWNs, 434 evidence records,
+and zero unexplained candidates. `google-ads-api` produced 2,471 candidates, 3 AFFECTED, 2,066
+evidence-backed exclusions, 402 preserved UNKNOWNs, 2,488 evidence records, and zero unexplained
+candidates. Every preserved UNKNOWN has a precise closing instruction. A parent-relative TypeScript
+import through a local alias was the only NEW_PATTERN; FA-010 and its anonymized fixture now prove
+the live site as `v24` AFFECTED. No prospect repository was modified.
 
 Phase 2 progress (2026-09-05): full protocols and both packs, v19-v25 offline sources/catalogs,
 computed proto comparisons including the v18 baseline, multi-hop contract diffs, validation-only
@@ -161,9 +177,11 @@ unscannable `rg` hit is preserved as evidence.
 
 ## Blocking
 
-- Nothing blocks the completed Phase 2 gate. `ast-grep` is not installed yet and is a Phase 3
-  prerequisite.
+- Nothing blocks the completed Phase 3 gate. `ast-grep` 0.45.0 is installed and its identity is
+  proof-bound.
 - `docker`/`podman` not installed — Phase 4 needs them.
+- P-009 remains OPEN. AI triage is default-off and disconnected; it must not receive an operational
+  application, CLI, scan, or store route until the owner decides the producer-attestation boundary.
 - `rg` was not on this machine at the start of Phase 1; the official 14.1.1 binary is now at
   `~/.local/bin/rg.exe`. The scan refuses to run without it (`TOOLING_MISSING`), by design.
 - `pyright` is a dev dependency and pinned in `uv.lock` (1.1.411). It used to run only from a
@@ -172,6 +190,15 @@ unscannable `rg` hit is preserved as evidence.
 ## Decisions that carry forward
 
 *(record here anything a later phase must not re-litigate — with the phase it was decided in)*
+
+**Phase-3 completion decisions (2026-09-06).** Structural language differences live in pack-owned
+ast-grep rules; the generic graph consumes neutral captured facts and contains no provider knowledge.
+The frozen `request_text` claim type carries structural fragments and holes instead of introducing a
+new `request_skeleton` type. Every INSIDE file is conserved as supported, STRUCTURE_UNSUPPORTED, or
+FILE_UNSCANNED; forced missing-tool scans never silently shrink the ledger. Ambiguous wrapper paths
+stay grouped at the originating candidate and remain UNKNOWN. P-009 is deliberately OPEN: correctly
+labelled AI-only closure and same-id relabelling are rejected, while relabel-plus-rehash requires
+producer attestation at a frozen boundary. AI triage therefore stays default-off and disconnected.
 
 **Phase-2 completion decisions (2026-09-05).** All questions in `dev/plan.md` are answered. The
 offline lattice supports v19-v25, including sunset nodes; v25 is the pinned current major and future
@@ -319,7 +346,9 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
 
 ## Open threads
 
-- Phase 3 must implement the generalized structural and cross-evidence behaviors represented by all
-  nine Failure Atlas rows and six anonymized fixture families; no prospect-specific rule is allowed.
+- Phase 4 needs rootless docker/podman before implementation and must preserve the structural
+  coverage and UNKNOWN-conservation guarantees established in Phase 3.
+- P-009 must be decided before AI triage is operationally connected; no Phase 3 runtime path reaches
+  it.
 - The Exposure Map target and per-version detected-site counts are implemented. The
   production-services line remains "not in this ProofScope" until Phase 4 supplies telemetry.

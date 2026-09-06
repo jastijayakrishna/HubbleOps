@@ -49,6 +49,17 @@ def test_generic_layers_never_import_packs_or_repair() -> None:
     assert offences == [], "law L5: generic layers must receive pack parts as parameters"
 
 
+def test_an_injected_generic_pack_import_is_detected(tmp_path: Path) -> None:
+    source = tmp_path / "leak.py"
+    source.write_text("from hubbleops.packs import google_ads\n", encoding="utf-8")
+    modules = imported_modules(source)
+    assert any(
+        module == prefix or module.startswith(f"{prefix}.")
+        for module in modules
+        for prefix in FORBIDDEN_PREFIXES
+    )
+
+
 def test_verify_never_imports_the_systems_it_judges() -> None:
     verify_dir = PACKAGE_ROOT / "verify"
     if not verify_dir.is_dir():

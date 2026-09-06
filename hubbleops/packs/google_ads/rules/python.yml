@@ -1,0 +1,19 @@
+id: google-ads-python-structure
+message: Google Ads structural sink, carrier, or request
+severity: info
+language: Python
+rule:
+  any:
+    - all:
+        - pattern: $SINK($$$ARGS)
+    - all:
+        - kind: string
+        - pattern: $CARRIER
+        - regex: '(?i)(googleads\.googleapis\.com|google\.ads\.googleads|/v[0-9]+/customers/)'
+    - all:
+        - kind: string
+        - pattern: $REQUEST
+        - regex: '(?is)(SELECT\s+(campaign|ad_group|customer|metrics|segments)\.|FROM\s+(campaign|campaign_budget|ad_group|ad_group_ad|ad_group_criterion|customer|customer_client|keyword_view|search_term_view|change_event|asset|asset_group)\b|metrics\.(impressions|clicks|cost_micros|conversions)|segments\.(date|device|conversion_action))'
+constraints:
+  SINK:
+    regex: '(?i)(^|\.)(get_service|get_type|load_from_storage|search|search_stream|mutate|get|post|put|patch)$'

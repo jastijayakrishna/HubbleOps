@@ -24,8 +24,9 @@ CLAIM_PRECEDENCE: dict[str, tuple[str, ...]] = {
     "package_reference": ("text",),
     "config_reference": ("text",),
     "dependency_state": ("deps",),
-    "file_unscanned": ("text",),
-    "external_boundary": ("text",),
+    "file_unscanned": ("structure", "text"),
+    "structure_unsupported": ("structure",),
+    "external_boundary": ("structure", "text"),
 }
 
 LOCATION_BOUND_CLAIMS = frozenset(
@@ -121,6 +122,22 @@ def _call_version(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]
         }
     )
     location = _location(chosen)
+    unresolved = [
+        record for record in records if record["provider_subject"] is None and rank(record) == best
+    ]
+    if versions and unresolved:
+        return Resolution(
+            status="UNKNOWN",
+            reason=(
+                f"{location} resolves to {', '.join(versions)} on some structural paths but "
+                "other same-precedence paths retain runtime or ambiguous version state"
+            ),
+            close_with=(
+                "resolve every same-precedence wrapper path with configuration evidence, dynamic "
+                "capture, or provider telemetry"
+            ),
+            winner_id=str(chosen["id"]),
+        )
     if len(versions) > 1:
         return Resolution(
             status="UNKNOWN",
@@ -234,10 +251,16 @@ def _dependency_state(
 
 def _file_unscanned(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]) -> Resolution:
     value = as_mapping(chosen["value"])
+    channel = value.get("channel")
+    close_with = (
+        "restore compatible ast-grep structural scanning and rescan without --force"
+        if channel == "structure"
+        else f"make {chosen['path']} readable and decodable and rescan"
+    )
     return Resolution(
         status="UNKNOWN",
         reason=f"{chosen['path']} could not be scanned: {value.get('reason')}",
-        close_with=(f"make {chosen['path']} readable and decodable and rescan"),
+        close_with=close_with,
         winner_id=str(chosen["id"]),
     )
 
@@ -245,6 +268,20 @@ def _file_unscanned(chosen: Mapping[str, Any], records: Sequence[Mapping[str, An
 def _external_boundary(
     chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]
 ) -> Resolution:
+    value = as_mapping(chosen["value"])
+    if chosen["observer"] == "structure":
+        return Resolution(
+            status="UNKNOWN",
+            reason=(
+                f"captured payload {value.get('payload')} crosses {value.get('callee')} at "
+                f"{_location(chosen)}; the receiving service is outside this source proof"
+            ),
+            close_with=(
+                "scan the receiving service in its own ProofScope and bind the carried payload "
+                "with dynamic capture or telemetry"
+            ),
+            winner_id=str(chosen["id"]),
+        )
     return Resolution(
         status="UNKNOWN",
         reason=f"{chosen['path']} leaves the closure root, so its contents are outside this proof",
@@ -329,6 +366,43 @@ def _config_reference(
 
 
 def _request_text(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]) -> Resolution:
+    if chosen["observer"] == "structure":
+        value = as_mapping(chosen["value"])
+        resolution = value.get("resolution")
+        if resolution == "UNKNOWN_QUERY_HOLE":
+            return Resolution(
+                status="UNKNOWN",
+                reason=(
+                    f"UNKNOWN_QUERY_HOLE at {_location(chosen)}: the structural request "
+                    "skeleton retains one or more runtime holes"
+                ),
+                close_with=(
+                    "capture the executed request bound to this source hash or resolve every "
+                    "named hole with deterministic evidence"
+                ),
+                winner_id=str(chosen["id"]),
+            )
+        if resolution != "CONTRACT_VALIDATION_DEFERRED":
+            return Resolution(
+                status="UNKNOWN",
+                reason=f"{resolution} at {_location(chosen)} during the structural wrapper walk",
+                close_with=(
+                    "add deterministic evidence for the named missing path or capture the "
+                    "executed request bound to this source hash"
+                ),
+                winner_id=str(chosen["id"]),
+            )
+        return Resolution(
+            status="UNKNOWN",
+            reason=(
+                f"CONTRACT_VALIDATION_DEFERRED at {_location(chosen)}: structure resolved the "
+                "request skeleton but Phase 3 does not validate provider fields"
+            ),
+            close_with=(
+                "run the Phase 6 contract oracle against this source-bound request skeleton"
+            ),
+            winner_id=str(chosen["id"]),
+        )
     return Resolution(
         status="UNKNOWN",
         reason=(
@@ -338,6 +412,23 @@ def _request_text(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]
         close_with=(
             "extract the request skeleton with the structure observer, or capture the executed "
             "request dynamically"
+        ),
+        winner_id=str(chosen["id"]),
+    )
+
+
+def _structure_unsupported(
+    chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]
+) -> Resolution:
+    value = as_mapping(chosen["value"])
+    return Resolution(
+        status="UNKNOWN",
+        reason=(
+            f"STRUCTURE_UNSUPPORTED: {chosen['path']} is an INSIDE "
+            f"{value.get('language')} file with no active structural rule bundle"
+        ),
+        close_with=(
+            "add and proof-bind a tested structural rule bundle for this language, then rescan"
         ),
         winner_id=str(chosen["id"]),
     )
@@ -353,6 +444,7 @@ HANDLERS = {
     "package_reference": _package_reference,
     "request_text": _request_text,
     "sdk_installed": _sdk_installed,
+    "structure_unsupported": _structure_unsupported,
     "surface_reference": _surface_reference,
 }
 

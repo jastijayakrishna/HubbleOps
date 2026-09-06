@@ -1,323 +1,290 @@
-# Plan — Phase 2 — Google Ads Provider Pack and offline Change Pack lattice
-
-Written before implementation on `phase-02-google-ads-pack-and-change-pack`. Every question is
-answered below. A fresh reviewer must approve this plan before implementation starts.
+# Plan — Phase 3 — Wrapper Engine
 
 ## Scope and maturity
 
-**Classification:** Build. Phase 1 has a fresh `GATE: PASS`; Phase 2 is permitted by frozen
-Architecture §3.1 and §7.1 and accepted proposals P-005 through P-008.
+**Classification:** Build. Phase 2 passed its fresh gate, completed the first real-repo loop, and is
+merged locally into `main` at `2b97be2` with tag `v0.2`. Phase 3 starts from that merge on
+`phase-03-wrapper-engine`.
 
-**Outcome:** HubbleOps can load complete `_mock` and `google_ads` ProviderPacks, reproduce a
-provenance-bearing Google Ads contract lattice for major versions v19 through the current major,
-compute adjacent and multi-hop changes without hand-authored diffs, parse wire and Cloud Console
-records without language-specific code, and prove validation requests cannot mutate provider state.
+**Outcome:** HubbleOps finds provider usage hidden behind first-party wrappers, imports, factories,
+inheritance, decorators, asynchronous calls, configuration, and constructed request text. The
+structural channel remains a conservative source of evidence: every unresolved data-flow path names
+the uncertainty and how to close it, while field and provider-contract validation stay deferred to
+Phase 6.
 
-**Current boundary:** On the 2026-09-04 source snapshot, `v25` is the current major endpoint and
-the v25 catalog includes the latest published backward-compatible v25 minor refresh. Minor releases
-refresh their major node because Google publishes endpoints and protos by major version; they do not
-become separate breaking-change nodes. The historical lattice still includes sunset v19-v21 because
-the phase explicitly requires v19 through current and real repositories still contain those calls.
+**Appetite:** one phase branch. Stop after the Phase 3 gate and required real-repo loop. Do not build
+dynamic capture, verification, obligations, repair, wrapper promotion, Java/C# rules, SCIP, or a
+networked/LLM integration. No push, deployment, or release is authorized.
 
-**Appetite and stop:** one phase branch, no production deployment, credentials, live oracle,
-obligations, verification verdicts, repair, capture hooks, or language rules. Stop on an
-unreconcilable frozen-contract conflict, a required production dependency, an unhashable source,
-or any path that could send a non-validation provider request.
+## Evidence and constraints
 
-## Evidence and rationale
-
-Official Google sources establish the node and ingestion decisions:
-
-- Versioning documents major endpoints as the compatibility boundary and minor versions as
-  backward-compatible updates to an existing endpoint.
-- The release and sunset pages identify v25 as the current major and provide release/sunset dates.
-- The upgrade page publishes version-to-version proto difference tables.
-- Google's Query Builder schemas expose current GoogleAdsFieldService metadata without credentials.
-  The removed v19 catalog comes from version-checked Internet Archive captures of every resource in
-  the official v19 overview; live FieldService calls are deliberately outside this offline gate.
-- The client-library page publishes the language/version compatibility table.
-- Google request-logging examples show the version in the gRPC/REST path. `x-goog-api-client`
-  identifies client runtime/library versions, not reliably the Google Ads API endpoint version.
-
-Accepted P-008 corrects P-006 safely: a wire observation may include `x-goog-api-client`, but the API
-version must come from the versioned request target. Header-only input and any conflicting signal
-return typed UNKNOWN with a reason; they are never guessed into a tuple or dropped.
-
-## Deliverables and boundaries
-
-### Provider contract
-
-`hubbleops/packs/_protocol.py` will contain typed, runtime-checkable protocols and immutable value
-records only for Version, typed wire parse results, catalog/diff results, and validation results.
-Future-slot protocols remain minimal. Protocol docstrings are the only new code docstrings/comments
-permitted by `CLAUDE.md`.
-
-Both packs expose one object satisfying the frozen ProviderPack slots:
-
-- `_mock` has the frozen two fixed nodes, a tiny hand-written source
-  catalog, deterministic diffs, an in-memory safe validator, REST wire parsing, CSV telemetry, and
-  explicit empty implementations for future-phase slots.
-- `google_ads` loads its existing surface plus the shipped source lattice, Google wire parser,
-  Cloud Console telemetry parser, safe ContractOracle, and explicit empty future-phase slots.
-
-`app/registry.py` is the only production importer of pack modules. Generic `core/`, `closure/`,
-`observe/`, `store/`, and later layers continue to receive pack parts as parameters and contain no
-provider name.
-
-### Hashed source and catalog pipeline
-
-`hubbleops/packs/google_ads/data/sources/` is the only offline compiler input. A canonical manifest
-binds every input file to SHA-256, retrieval time, upstream URL, version, and source kind. Inputs are
-normalized snapshots produced from:
-
-1. googleapis proto contents for v18-v25, where v18 exists only as the v19 comparison baseline;
-2. public per-version Google Ads field-reference metadata corresponding to
-   GoogleAdsFieldService: selectable, filterable, sortable, data_type, and selectable_with;
-3. structured claims from the official upgrade guide and release notes;
-4. client-library compatibility and release/sunset metadata.
-
-The implemented acquisition boundary uses Google's Query Builder `fields_index.json` plus every
-listed resource schema for v20-v25. It uses the official v19 overview as the complete 169-resource
-inventory and resolves version-checked Internet Archive captures for every resource. Truncated
-captures are rejected and alternate captures are tried. Original Google URLs and exact archive URLs
-are retained. A redirect or archive response containing a different major is a hard failure, never
-relabelled data. This evidence-driven refinement replaced the earlier tentative v20-v21 archive-page
-approach because the Query Builder publishes complete versioned schemas derived from FieldService.
-
-The refresh path retains fetched raw bytes, hashes them before parsing, and records the normalized
-snapshot hash beside the raw hash. The manifest records expected proto path/symbol counts and every
-field-reference resource/page/field count. Missing, duplicate, or unparsed inputs are fatal; each
-parser must account for its complete input inventory, so a reproducibly partial parse cannot pass.
-The offline build path performs no network calls, verifies every manifest hash before use, and emits sorted canonical
-`data/catalog_v19.jsonl` through `data/catalog_v25.jsonl`. Adding a new major is data-driven: add its
-manifest entries and source snapshots, then invoke the same compiler. No source-specific branch may
-name v25 as a special case.
-
-Every catalog fact contains `subject`, `kind`, normalized attributes, `source_url`, `retrieved_at`,
-`sha256`, and confidence `PROVEN` or `DOCUMENTED`, plus corroborating provenance where applicable.
-Applicability is mechanical: service, message, and enum facts are proto-only; a subject exposed by
-the field inventory requires both proto and field-source reconciliation. Proto-only structural facts
-are PROVEN only for those non-field kinds. A field/resource fact
-is PROVEN only when proto and field metadata agree. Guide/release-note, client-compatibility, and
-release/sunset facts are provider-documentation facts and therefore DOCUMENTED unless a second
-applicable source is explicitly reconciled.
-A missing counterpart, unequal normalized type, or unequal presence for an applicable subject is a
-material contradiction. It is retained as a typed pack conflict and yields
-`UNKNOWN_PROVIDER_CONTRACT`; the compiler never uses an LLM or chooses a convenient source.
-
-The build report records input hashes, per-version catalog hashes/counts, and the full lattice hash.
-Two offline builds from the same source directory must be byte-identical and have the same report.
-
-### Catalog, diff, and composition semantics
-
-`catalog(version)` validates the requested lattice node and reads exactly its catalog. Adjacent
-`diff(a,b)` is computed from normalized subject sets and attributes, annotated by structured docs,
-and cached under `sha256({ordered_from_catalog_hash, ordered_to_catalog_hash})`. Version labels are
-not cache authority. No diff data file is an authority.
-
-Non-adjacent `diff(a,c)` composes every ordered adjacent hop. A subject that survives every hop maps
-to the same result as `compose(diff(a,b), diff(b,c))`. Zero or one exact mapping may compose;
-multiple replacements, contradictory mappings, missing intermediate nodes, or a source conflict
-yield `UNKNOWN_PROVIDER_CONTRACT` with provenance. Removal without replacement remains removal and
-is not treated as ambiguous. Reverse diffs are rejected rather than inferred.
-
-Known v25 removals `CustomerLifecycleGoal` and `CampaignLifecycleGoal` and known current-v25 field
-addition `Campaign.aca_migration_date_time` must be computed from the v24/v25 catalogs with PROVEN
-confidence. A hand-checked v19→v25 fixture covers at least six consecutive hops and must match the
-composed result.
-
-### Validation safety
-
-The Google oracle first validates Search/GAQL field references against the selected local catalog.
-A field absent from a complete, conflict-free catalog is INVALID; incomplete or conflicting catalog
-state is `UNKNOWN_PROVIDER_CONTRACT`. It then accepts an injected `Transport`; the shipped default
-is unavailable and performs no I/O. Search uses `SearchGoogleAdsRequest` with `validate_only=true`.
-SearchStream queries are validated through the semantically equivalent Search validation endpoint,
-because `SearchGoogleAdsStreamRequest` has no validate-only field. Mutate validation always
-overwrites/sets `validate_only=true`, allows only known validation-capable operations, and has no API
-for a non-validation mutation. A fake transport records the exact call and operation.
-Missing credentials/transport, unsupported operation, provider error, or ambiguous catalog state
-returns `ORACLE_UNAVAILABLE` or `UNKNOWN_PROVIDER_CONTRACT`, never pass. Live Google execution is
-Phase 5.
-
-### Wire and telemetry
-
-The wire parser accepts normalized path plus headers and recognizes:
-
-- real gRPC paths such as
-  `/google.ads.googleads.v25.services.GoogleAdsService/SearchStream`;
-- REST paths such as `/v25/customers/123/googleAds:searchStream`;
-- only additional wire forms backed by retained official logged-path fixtures.
-
-Under accepted P-008, `x-goog-api-client` is accepted and tested as accompanying metadata but is
-never mistaken for an API version. Wire parsing returns a typed MATCH or UNKNOWN result; missing
-components, header-only input, and conflicting signals return UNKNOWN with a reason and the original
-input provenance, never absence.
-
-Telemetry accepts RFC 4180 CSV whose header is `Method`, `method`, or a qualified header ending in
-`.method`, matching the Google Ads API Dashboard Methods table and Cloud Monitoring CSV export. Each
-method cell must contain the documented fully-qualified
-`google.ads.googleads.vNN.services.Service.Method` value. Other metric columns are preserved as
-uninterpreted input. Every malformed row yields a typed issue carrying its row number and raw value
-while valid rows remain available; a missing method column is a file-level issue and no row
-disappears. Fixtures cite the Google Ads sunset-page Methods example and Cloud Monitoring's
-documented Download CSV workflow.
-
-### ProofScope and Exposure Map completion
-
-The full lattice hash and existing surface hash are composed into
-`provider_contract_hash = sha256({surface_hash, lattice_hash})`; neither can replace the other.
-Property tests mutate every surface field and every lattice node/fact and prove the proof key moves.
-The scan stores lattice/target metadata only in the existing non-frozen `runs.closure_json`; it does
-not add to ProofScope or overload the run target. Exposure reads only stored run data and never
-reopens a pack.
-
-The frozen Exposure Map is completed by normalizing version labels, printing per-version site
-counts plus `UNKNOWN (n)` and labelling the pack with the stored Change Pack lattice hash. A target
-is shown only when client-compatibility data resolves the installed SDK line; unresolved or multiple
-incompatible SDK lines print an explicit UNKNOWN target rather than hardcoding v25. The extra final
-`EXCLUDED` expansion line is removed while its Discovery count remains, per P-004.
-
-### CLI and packaging
-
-`hops pack verify google_ads` verifies manifest hashes, rebuilds catalogs in a temporary location,
-compares them byte-for-byte with shipped catalogs, checks the full lattice, performs no network I/O,
-and exits nonzero with a precise reason on tampering. A socket-denial guard makes any network attempt
-fail the test. `hops pack verify _mock` exercises the same contract-level checks where applicable.
-A built-wheel inspection and isolated install prove JSON/JSONL/YAML source and catalog data ship.
-
-## Definition-of-done mapping
-
-| DoD | Observable completion |
-|---|---|
-| 1. Full protocols and two packs | Runtime conformance suite parametrized over frozen two-node `_mock` and `google_ads`; every slot called and typed; Google supplies multi-hop composition coverage |
-| 2. v19-current catalogs from four source families | Seven canonical catalog files; retained raw/normalized hashes and expected inventory counts prove total parsing; facts span proto, field, docs, and compatibility sources with required provenance |
-| 3. Cross-check | Agreement, docs-only, and synthetic disagreement tests return PROVEN, DOCUMENTED, and UNKNOWN_PROVIDER_CONTRACT respectively; source contains no AI path |
-| 4. Contract oracle | Local catalog field checks, adjacent/non-adjacent diff properties, catalog-hash cache key, and fake-transport validate-only/unavailable behavior pass |
-| 5. Wire signature | Under P-008, a corpus of real documented gRPC/REST/header combinations returns typed MATCH/UNKNOWN with no language input; conflicts and header-only ambiguity are explicit |
-| 6. Telemetry | CSV Cloud export fixtures parse to exact generic tuples and row-provenance issues; malformed rows are explicit |
-| 7. Offline reproducibility | network-disabled rebuild equals shipped bytes; tamper test fails; `hops pack verify google_ads` exits 0 offline |
-| 8. Known changes and multi-hop | both v25 lifecycle removals and `Campaign.aca_migration_date_time` are PROVEN; v19→v25 expected composition fixture matches |
+- `docs/ARCHITECTURE.md` §6.4 fixes ast-grep plus a language-neutral graph/walker, backward depth 5,
+  query skeletons, explicit boundaries, and structural coverage reporting.
+- P-006 fixes initial rule coverage to Python, PHP, JavaScript, and TypeScript. Other source
+  languages retain the language-independent observers and receive `STRUCTURE_UNSUPPORTED` from the
+  structural observer rather than silence.
+- `docs/FAILURE_ATLAS.md` carries nine Phase 2 real-repo patterns. The six fixture families already
+  present under `tests/fixtures/phase3` are required inputs, including the generated-marker,
+  language-scoping, and lockfile cross-evidence prerequisites as well as the three structural cases.
+- The frozen Observer interface remains `scan(closure, ctx)`. `ObserverContext` may carry normalized,
+  injected rule bundles and run metadata; generic layers may not import or name a provider or pack
+  path.
+- The frozen Evidence schema and Observer contract cannot be changed in place. F-6 requires a
+  proposal before AI triage can be exposed operationally.
+- `ast-grep 0.45.0` was installed for this task at the npm global prefix and is verified by the
+  elevated repository command environment. Runtime lookup accepts the executable path injected by
+  the application or discovers it from `PATH`; its version and all active rule bytes enter the
+  proof scope.
 
 ## Success measures
 
-Engineering completion requires all seven major catalogs present, 100% manifest entries hash-valid,
-100% catalog facts carrying required provenance, two byte-identical clean builds, every computed hop
-covered, zero non-validation fake-transport calls, and the full repository suite/static checks green.
+Engineering completion requires all Phase 3 Definition-of-Done checks and the repository gate to
+pass. Product efficacy is not yet proven: after the gate, the real-repo loop must scan 2–3 public or
+prospect repositories and classify every UNKNOWN. A useful Phase 3 reduces wrapper-related UNKNOWNs
+without reducing total candidate recall, introducing silent language gaps, or closing contract
+uncertainty.
 
-Product success is not claimed by shipping code. The post-gate real-repo loop must scan two or three
-public Google Ads repositories, preserve every UNKNOWN with a closing instruction, produce
-`UNEXPLAINED=0`, and record every genuinely new pattern in `docs/FAILURE_ATLAS.md`. Evidence from that
-loop determines Phase 3 fixtures; it does not retroactively rewrite provider facts.
+Guardrails:
 
-## Non-negotiable invariants
+- candidate/evidence conservation and proof-scope tests do not regress;
+- the pre-Phase-3 suite remains green;
+- structural output is byte-identical for identical closure, rules, tool version, and source bytes;
+- unsupported and unscanned structural coverage is explicit;
+- AI-derived evidence cannot independently change candidate status.
 
-- Laws L1-L11 and all frozen schemas/interfaces/layouts remain intact.
-- Generic layers never import `packs/` or name Google Ads.
-- Surface and full lattice both move `provider_contract_hash`.
-- No hand-authored authoritative diff, LLM adjudication, unpinned source, or silent disagreement.
-- Every network response is cached and SHA-256-bound before parsing; offline verification performs
-  no network access.
-- No live credentials and no callable non-validation mutation path.
-- `UNKNOWN_PROVIDER_CONTRACT` and `ORACLE_UNAVAILABLE` are pack result codes only, never Candidate
-  statuses or verdict values.
-- Unsupported, ambiguous, malformed, missing, or conflicting provider information fails closed to
-  an explicit unknown/unavailable result.
-- Canonical outputs are deterministic, sorted, content-addressed, and timestamped only by the fixed
-  source retrieval metadata.
-- Existing unrelated working-tree changes are preserved.
-- No comments/docstrings outside the protocol exception and tool-required suppressions.
+The post-gate decision is: proceed to Phase 4 only on literal `GATE: PASS` plus a completed
+real-repo loop; otherwise repair Phase 3 or preserve a typed UNKNOWN.
 
-## Authority
+## Smallest complete design
 
-The implementation may inspect and refactor scoped internals, use read-only official network
-sources, create/update source snapshots and required JSONL fixtures, add tests, run local tools,
-and make reversible implementation choices. It may not add a dependency, use credentials, issue a
-provider write, change a frozen schema/contract meaning, commit, push, publish, deploy, or release
-without explicit human approval.
+### Rule bundles and proof binding
 
-## Outside scope
+Each active pack supplies three tested rule families for each supported language: sink calls,
+version carriers, and request-string sinks. Google Ads supplies
+`rules/{python,php,javascript,typescript}.yml`; `_mock` supplies `rules/python.yml`. Every rule has a
+stable id and a corresponding test under `rules/tests/` with must-match and must-not-match snippets.
+The cases run through `ast-grep test` and a pack-local `sgconfig.yml`.
 
-No obligations, repair transforms, repair tools, language rule files, dynamic capture, sentinel,
-verification verdict, Receipt, live Google oracle, scheduled automation, dashboard, recommendation
-engine, or generic multi-provider framework beyond the two required implementations.
+The application layer obtains rule bundles from the selected pack and normalizes them into
+`ObserverContext`. It computes `rules_hash` from sorted logical language/rule identifiers and file
+bytes, never absolute paths or filesystem order. The hash enters `ProofScope.rules_hash`. The
+existing `hubbleops + full observation-pipeline fingerprint + ripgrep` scanner identity is preserved
+and the installed ast-grep version is appended to it. Changing a scanner module, rule, ripgrep, or
+ast-grep version therefore invalidates the proof key.
 
-## Risks, assumptions, and alternatives
+### Generic graph
 
-1. **Highest: stale/incomplete provider facts.** Mitigation: official primary sources, pinned
-   retrieval metadata, full manifest verification, cross-source reconciliation, and conflict
-   preservation. A partial catalog cannot pass verification.
-2. **False rename composition.** Mitigation: compose only unique structured mappings corroborated by
-   subject deltas; all ambiguity becomes UNKNOWN_PROVIDER_CONTRACT.
-3. **Header version confusion.** Mitigation: never infer the endpoint from client-library version
-   tokens in `x-goog-api-client`.
-4. **Proof reuse after data edits.** Mitigation: every source/catalog/lattice and surface mutation
-   has a property test proving the ProofScope key changes.
-5. **Online-only build.** Mitigation: network-disabled verification uses only shipped source inputs.
-6. **Data volume/package cost.** Keep normalized source snapshots rather than redundant raw site
-   chrome while retaining upstream byte hashes and complete machine-relevant facts.
+`graph/imports.py` consumes ast-grep JSON captures for definitions, calls, imports, assignments,
+classes, inheritance, decorators, and factory/registration references and normalizes them into
+provider-neutral nodes and edges. Thin language-specific ast-grep extraction rules capture each
+parameter and argument as an AST node, import sources, assignment right-hand sides, base classes,
+decorators, and registration values. The generic Python code never tokenizes or parses raw source
+syntax. The graph model contains source path, byte/line range, symbol, arity, captured
+parameters/arguments, and edge kind. Serialization sorts every node, edge, path, and captured value,
+and contains no absolute repository path.
 
-Alternatives rejected: one hand-built v22→v25 diff; treating minor releases as breaking nodes;
-querying live FieldService at gate time; trusting docs without proto/field cross-check; deriving API
-version from client library metadata; and introducing a provider framework beyond the two packs.
+Ast-grep, rather than a custom source parser, establishes every syntax node and capture boundary.
+Normalization consumes only discrete captures and resolves already-captured local import references;
+it must not infer provider meaning. Call-to-definition edges use permissive name-plus-arity matching
+and retain every plausible target. Import edges refine local symbol resolution but never prune a
+plausible global target.
 
-## Verification and evidence
+### Structural observer and wrapper walk
 
-The final report must include command, output, and exit code for:
+`observe/structure.py` implements the frozen two-argument observer contract. It validates ast-grep
+availability/version, builds the generic graph, executes the injected rules over exact `INSIDE`
+files, and emits deterministic Evidence records.
 
-```text
-uv run hops pack verify google_ads
-uv run pytest -q tests/unit/test_pack_conformance.py
-uv run pytest -q tests/unit/test_google_ads_changes.py tests/property/test_change_composition.py
-uv run pytest -q tests/unit/test_google_ads_contract.py
-uv run pytest -q tests/unit/test_google_ads_wire.py tests/unit/test_google_ads_telemetry.py
-uv run pytest -q tests/integration/test_google_ads_change_pack.py
-uv run pytest -q
-uv run pytest -q tests/unit/test_imports.py tests/unit/test_no_provider_leak.py
-uv run ruff format --check .
-uv run ruff check .
-uv run pyright
-git diff --check
-```
+For each sink hit, the containing definition is W1. A backward work queue tracks the carried
+argument positions through definitions and callers for at most five call edges. A literal resolves
+at that location; an assignment/imported constant continues through the graph; a config or env read
+emits `UNKNOWN_CONFIG(key)`; an unresolved symbol, ambiguity, parse gap, or depth limit emits a named
+UNKNOWN with a closing instruction. Same-name/same-arity overrides, subclass implementations,
+decorated definitions, registry/factory values, and async definitions inherit wrapper status as a
+conservative superset.
 
-Evidence also includes the compiler build report with all source and catalog hashes, ten catalog or
-diff facts spanning all source kinds, the v19→v25 composition example, the fake transport call log,
-the logged-path corpus result, two catalog-build directory hashes, and a network-denied offline run.
+Every emitted wrapper-chain value records ordered hops, carried parameters, source ranges, and the
+terminal resolution. Multiple plausible targets remain paths grouped under the originating call-site
+candidate. Conflicting terminal resolutions make that one candidate UNKNOWN; they never become
+separate independently AFFECTED candidates. Precision heuristics must not discard any path.
 
-## Release, learning, and architecture record
+### Versions, request skeletons, and boundaries
 
-This phase is local and unreleased. Rollback is removal of Phase 2 code/data while the Phase 1 gate
-remains independently valid. No migration or credential handling exists. P-005 through P-008 already
-record the architectural decisions; no new ADR is needed unless implementation forces a different
-trust boundary, data meaning, or compatibility promise.
+Version-carrier hits resolve direct literals and constants/imports that reach a sink. Effective
+versions are emitted as `call_version` with deterministic provenance. A carrier in a language not
+named by its SurfaceSpec declaration remains a recall-layer reference and cannot become an AFFECTED
+call version.
 
-After the Phase 2 fresh gate says `GATE: PASS`, run the required fresh real-repo loop. Continue only
-when every encountered item has one of the four UNKNOWN dispositions and new patterns are converted
-to anonymized fixtures or explicitly scheduled for the correct later phase.
+Strings reaching request sinks are reduced to ordered literal fragments and named holes using
+ast-grep captures. Concatenation, f-string/interpolation, format, and template chains emit frozen
+`claim_type="request_text"` evidence whose value carries the skeleton. Any hole emits
+`UNKNOWN_QUERY_HOLE`; a hole-free request remains structurally resolved but gets
+`CONTRACT_VALIDATION_DEFERRED`, because only Phase 6 may validate fields against the injected
+ContractOracle.
 
-## Working method and escalation
+Internal HTTP, queue, and RPC calls that carry a query or version across a process/service boundary
+emit an `external_boundary` UNKNOWN naming the payload and a closing instruction. Boundary candidate
+identity includes path, source range, and captured payload identity so distinct payloads in one file
+cannot collapse. They are not silently treated as provider sinks.
 
-Inspect first, make routine reversible choices autonomously, preserve unrelated edits, and continue
-through evidence, fresh gate audit, and real-repo loop. Stop only for a frozen-contract conflict,
-an unsafe/non-validation call, missing authoritative source that would otherwise be guessed, a new
-dependency, credential/cost requirement, or an excluded feature. Report exact evidence and the
-smallest required human decision.
+### Coverage and failure behavior
 
-## Open questions — all answered
+Every `INSIDE` file is mapped to a normalized language id; unknown extensions and extensionless files
+map to `unknown`. Every `INSIDE` file without an active rule bundle emits
+`structure_unsupported` evidence and an UNKNOWN candidate. Structural coverage per language is
+stored in the run's closure summary and printed in the Exposure Map, including supported,
+unsupported, and unscanned counts.
 
-1. **What is “current”?** v25 major at the pinned 2026-09-04 retrieval; latest published minor data
-   refreshes the v25 node. Future releases enter through the same manifest-driven pipeline.
-2. **Are sunset v19-v21 nodes included?** Yes; the explicit v19-current requirement and migration
-   detection need historical nodes even when live calls no longer succeed.
-3. **Does this gate call GoogleAdsFieldService live?** No. It ingests the official public field
-   reference generated from that catalog; v19-v21 use pinned, version-checked archives of the
-   original official pages. Live credentialed comparison is Phase 5.
-4. **Can `x-goog-api-client` alone select an API version?** No. It is accompanying metadata only;
-   a versioned request target is required and disagreement returns typed UNKNOWN.
-5. **How are docs-only mappings treated?** DOCUMENTED, and only uniquely composable mappings may be
-   followed. Ambiguity or source conflict is UNKNOWN_PROVIDER_CONTRACT.
-6. **Is a new dependency required?** No. Parsing, hashing, canonicalization, CSV/JSON, and proto
-   inventory extraction use the standard library and existing project utilities.
-7. **What happens to Phase 1’s uncommitted remediation?** It remains preserved on this branch, is
-   itemized separately in `dev/context.md`, and is the exact tree that earned the Phase 1 gate pass;
-   no commit/push occurs without explicit approval.
+Missing or incompatible ast-grep raises `TOOLING_MISSING` and produces no partial successful run.
+Malformed ast-grep output and tool timeout also reject partial results. `hops scan --force` is the
+explicit fail-closed continuation for missing, incompatible, malformed, or timed-out structure work:
+every `INSIDE` file receives `file_unscanned` evidence naming the structural tool failure. A syntax
+parse failure limited to one file emits `file_unscanned` for that file while other files remain
+accounted for. Timeout evidence remains UNKNOWN and never becomes FAILED.
+
+### AI residue triage and F-6
+
+`observe/ai_triage.py` accepts only candidates still unresolved after deterministic structure work,
+at most two source files, and exactly one question per invocation. A default-off, non-CLI application
+gate is an explicit `enabled=False` input; disabled mode cannot call the injected client. Enabled-mode
+unit tests use a fake client only. The module returns only `DERIVED_AI_EVIDENCE` and has no candidate
+mutation or store authority. The CLI exposes no enabling flag in Phase 3.
+
+Before the module lands, add P-009 to `dev/proposals.md`: evidence-producer attestation at the store
+boundary so an untrusted caller cannot relabel AI output as observed evidence. The proposal compares
+schema-bound attestation, trusted emitter capabilities, and keeping AI disabled. It remains pending
+owner decision; Phase 3 does not amend a frozen schema or Observer contract. AI triage stays
+operationally unreachable until an accepted design mechanically enforces provenance.
+
+## Definition of done
+
+1. Google Ads has Python/PHP/JavaScript/TypeScript sink, version-carrier, and request-string rule
+   families. `_mock` has a minimal equivalent. Every rule id has positive and negative ast-grep test
+   cases, and all pack rule tests pass under ast-grep 0.45.0.
+2. Active rule bytes are included in `rules_hash`; ast-grep identity is composed with the existing
+   HubbleOps/full-pipeline/ripgrep scanner identity. Mutating one scanner module or rule changes the
+   proof key; filesystem order does not.
+3. `graph/imports.py` creates a deterministic provider-neutral import/symbol graph from ast-grep
+   output. Identical inputs serialize byte-identically. Local Python and TypeScript import cases
+   connect to their definitions without excluding ambiguous name/arity matches.
+4. The backward walk follows carried values through up to five call hops and covers gateway class,
+   DI container, abstract adapter plus two subclasses, factory registry, decorator, async wrapper,
+   configuration, and an added intermediate hop. A sixth required hop ends in a named depth UNKNOWN.
+5. Literal version resolution, imported constant resolution, `UNKNOWN_CONFIG(key)`, unresolved
+   variables, ambiguous targets, and language-scoped carriers have positive and negative tests.
+6. F-string, concatenation, format, and JavaScript/TypeScript template requests emit `request_text`
+   with ordered literal fragments and holes. Holes preserve `UNKNOWN_QUERY_HOLE`; hole-free
+   structural requests preserve `CONTRACT_VALIDATION_DEFERRED`. No observer validates provider
+   fields.
+7. Queue, internal HTTP, and RPC payload transfer emits `external_boundary` UNKNOWN evidence naming
+   the carried payload. Two boundary payloads in one file have distinct source-range/payload keys.
+8. Missing/incompatible ast-grep fails with `TOOLING_MISSING`. Timeout or malformed output rejects
+   partial results. Forced scan emits `file_unscanned` for every `INSIDE` file. Per-file parse
+   failures emit `file_unscanned`; unsupported and unknown/extensionless languages emit
+   `structure_unsupported`; Exposure Map prints structural coverage per language.
+9. Metamorphic tests show that renaming a wrapper, moving it to another file, splitting a query
+   across variables, and adding an intermediate hop leave canonical candidate/evidence semantics
+   unchanged apart from expected source identities.
+10. The fixture corpus contains at least ten named wrapper patterns plus all six Phase 2 real-repo
+    families. Fixture tests assert required positive, negative, UNKNOWN, and prerequisite behavior.
+    FA-004/005 retain correct generated-marker classification; FA-008 closes only the manifest
+    dependency uncertainty from matching lock evidence; FA-009 preserves target compatibility as
+    UNKNOWN without a content-hashed mapping or human decision.
+11. `ai_triage.py` has an explicit default-off non-CLI application gate, has no CLI enablement, reads
+    no more than two files, asks once, emits only `DERIVED_AI_EVIDENCE`, and cannot change a candidate
+    status. Fake-client tests cover both gate states. P-009 records the unresolved attestation
+    boundary before the file lands.
+12. Generic layers contain no provider name, hostname, package name, or pack path; no generic layer
+    imports `packs/`; no custom parser or build step is introduced.
+13. The full pytest suite, Ruff, strict Pyright, diff check, import tests, provider-leak tests, rule
+    tests, fixture tests, deterministic tests, and required manual demonstrations pass.
+14. After implementation, run a fresh gate, then the required real-repo loop, then an unconditional
+    final fresh gate on the post-loop tree. `dev/context.md`, `dev/tasks.md`, `docs/BUILD_ORDER.md`,
+    and the Phase 3 prompt record completion only after that final audit returns literal
+    `GATE: PASS`.
+
+## Verification
+
+Required executed evidence:
+
+- `ast-grep test -c hubbleops/packs/google_ads/sgconfig.yml --skip-snapshot-tests`
+- `ast-grep test -c hubbleops/packs/_mock/sgconfig.yml --skip-snapshot-tests`
+- focused graph, structure, fixture, failure-mode, coverage, AI-boundary, and metamorphic pytest runs;
+- a printed DI wrapper chain with every hop and carried parameter;
+- a forced scan with ast-grep unavailable showing one `FILE_UNSCANNED` result per `INSIDE` file;
+- a normal scan containing an unsupported language and `STRUCTURE_UNSUPPORTED` rather than silence;
+- two identical scans/graph exports compared byte-for-byte and metamorphic canonical semantics;
+- `uv run pytest -q`;
+- `uv run ruff check .`;
+- `uv run ruff format --check .`;
+- `uv run pyright`;
+- `uv run pytest -q tests/unit/test_imports.py tests/unit/test_no_provider_leak.py`;
+- `git diff --check`;
+- gate-audit adversarial attempts against Laws L1, L3, L4, L5, and L10.
+
+Record exact commands, outputs, and exit codes. A check not run is not a pass.
+
+## Authority and invariants
+
+Autonomous authority covers inspection, rule/test/fixture creation, generic implementation,
+application wiring, narrow schema-compatible evidence/resolver additions, deterministic refactoring,
+the ast-grep installation completed with explicit tool approval in this task, and local commits
+implied by the user's explicit instruction to merge Phase 2 and execute Phase 3. Push remains
+explicitly prohibited.
+
+Human approval is required for accepting P-009; changing any frozen schema or contract; exposing AI
+triage; adding SCIP, a framework/service/database, Java/C# rules, credentials, material network cost,
+deployment, release, push, or a Phase 4 capability. None is authorized here.
+
+Non-negotiable throughout:
+
+- no candidate or structural gap disappears;
+- UNKNOWN closes only with new evidence or a recorded human decision;
+- same inputs produce byte-identical outputs;
+- generic layers remain provider-neutral and receive pack parts by injection;
+- unsupported, missing-tool, timeout, parse, ambiguity, config, query-hole, and depth failures are
+  explicit and fail closed;
+- AI evidence alone cannot change status;
+- no field validation, build, dynamic execution, network scan, or repair occurs;
+- unrelated work is preserved and nothing is pushed.
+
+## Risks and alternatives
+
+- **Highest risk — false completeness from graph ambiguity.** Prefer a conservative superset and
+  explicit ambiguity over pruning. Metamorphic, multi-target, and depth fixtures falsify misses.
+- **Ast-grep output drift.** Pin verified compatibility behavior, fingerprint the actual version,
+  reject incompatible output, and test malformed JSON/subprocess failures.
+- **Rule precision creates recall loss.** Rules detect broad structural families; deterministic
+  graph and resolver layers explain matches. Negative rule tests constrain obvious noise without
+  permitting silent exclusion.
+- **Path/import resolution differs across ecosystems.** Local import edges refine the graph, while
+  permissive name-plus-arity edges remain as a fallback. No build or package-manager execution is
+  required.
+- **AI provenance remains forgeable at the record API.** Keep AI operationally unreachable and raise
+  P-009 instead of weakening or silently changing the frozen trust boundary.
+- **Alternative: custom parsers/tree-sitter bindings.** Rejected by the frozen stack and no-custom-
+  parser invariant.
+- **Alternative: SCIP now.** Rejected as out of appetite and approval-bounded.
+- **Alternative: text-only heuristics.** Rejected because they cannot provide syntax-bounded wrapper
+  chains and would duplicate, rather than add an independent observation channel.
+
+## Release and learning
+
+Phase 3 is a local, unreleased branch. Rollback is removal of Phase 3 commits while `main` remains at
+the Phase 2 merge. There is no migration or production data change. After a literal fresh-session
+`GATE: PASS`, run the real-repo loop against 2–3 repositories. Every UNKNOWN is classified as closed
+with evidence, closed by recorded human decision, preserved with an instruction, or a new anonymized
+pattern. New patterns extend fixtures/rules/falsifiers before Phase 4; no repository-specific rule is
+allowed. Rerun the full fresh gate on the post-loop tree unconditionally, even when the loop changes
+no tracked byte. Phase 3 is complete only when that final audit returns literal `GATE: PASS`.
+
+## Architecture record
+
+No new ADR is required if implementation stays within frozen §6.4 and accepted P-006. P-009 is the
+required pending architecture proposal because evidence attestation changes a frozen trust boundary.
+
+## Open questions
+
+None. The frozen architecture, accepted P-006, Phase 3 prompt, nine Failure Atlas rows, and existing
+fixtures resolve the implementation choices needed for this phase. P-009 is intentionally not an
+open implementation question because AI remains disabled until the owner decides it.
