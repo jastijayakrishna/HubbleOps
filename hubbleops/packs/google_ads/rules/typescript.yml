@@ -1,0 +1,26 @@
+id: google-ads-typescript-structure
+message: Google Ads structural sink, carrier, or request
+severity: info
+language: TypeScript
+rule:
+  any:
+    - all:
+        - pattern: $SINK($$$ARGS)
+    - all:
+        - any:
+            - kind: string
+            - kind: template_string
+        - pattern: $CARRIER
+        - regex: '(?i)(googleads\.googleapis\.com|/v[0-9]+/customers/)'
+    - all:
+        - pattern: $ROOT[$VERSION]
+        - regex: '(?i)(protos|google\.ads\.googleads)'
+    - all:
+        - any:
+            - kind: string
+            - kind: template_string
+        - pattern: $REQUEST
+        - regex: '(?is)(SELECT\s+(campaign|ad_group|customer|metrics|segments)\.|FROM\s+(campaign|campaign_budget|ad_group|ad_group_ad|ad_group_criterion|customer|customer_client|keyword_view|search_term_view|change_event|asset|asset_group)\b)'
+constraints:
+  SINK:
+    regex: '(?i)(^|\.)(getService|getType|search|searchStream|mutate|request|fetch|post|get)$'

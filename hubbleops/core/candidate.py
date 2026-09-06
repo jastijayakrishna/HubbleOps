@@ -47,8 +47,11 @@ def claim_key(record: Mapping[str, Any]) -> str:
         return f"{ecosystem}:{str(package).lower().replace('_', '-')}"
     if claim_type == "dependency_state":
         return f"{value.get('state')}:{path}"
-    if claim_type in ("file_unscanned", "external_boundary"):
+    if claim_type in ("file_unscanned", "structure_unsupported"):
         return path
+    if claim_type == "external_boundary":
+        payload = value.get("payload")
+        return f"{path}:{line}:{payload}" if payload is not None else path
     raise UnknownClaimType(claim_type)
 
 

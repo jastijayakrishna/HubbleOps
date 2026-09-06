@@ -1,0 +1,9 @@
+id: google-ads-typescript-structure
+valid:
+  - 'console.log("ordinary request")'
+  - 'const value: string = "SELECT unrelated.value FROM unrelated"'
+invalid:
+  - 'client.search(request)'
+  - 'const endpoint = `https://googleads.googleapis.com/v24/customers/1/googleAds:search`'
+  - 'const service = protos.google.ads.googleads[API_RELEASE].services'
+  - 'const query = `SELECT campaign.id FROM campaign`'

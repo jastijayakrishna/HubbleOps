@@ -1,0 +1,8 @@
+id: google-ads-javascript-structure
+valid:
+  - console.log("ordinary request")
+  - const value = "SELECT unrelated.value FROM unrelated"
+invalid:
+  - client.search(request)
+  - const endpoint = `https://googleads.googleapis.com/v24/customers/1/googleAds:search`
+  - const query = `SELECT campaign.id FROM campaign`

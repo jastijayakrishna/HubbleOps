@@ -1,0 +1,24 @@
+id: google-ads-php-structure
+message: Google Ads structural sink, carrier, or request
+severity: info
+language: Php
+rule:
+  any:
+    - all:
+        - pattern: $SINK($$$ARGS)
+    - pattern: $OBJ->$SINK($$$ARGS)
+    - all:
+        - kind: string
+        - regex: '(?i)(googleads\.googleapis\.com|Google\\Ads\\GoogleAds\\V[0-9]+|/v[0-9]+/customers/)'
+    - all:
+        - kind: encapsed_string
+        - regex: '(?i)(googleads\.googleapis\.com|Google\\Ads\\GoogleAds\\V[0-9]+|/v[0-9]+/customers/)'
+    - all:
+        - kind: string
+        - regex: '(?is)(SELECT\s+(campaign|ad_group|customer|metrics|segments)\.|FROM\s+(campaign|campaign_budget|ad_group|ad_group_ad|ad_group_criterion|customer|customer_client|keyword_view|search_term_view|change_event|asset|asset_group)\b)'
+    - all:
+        - kind: encapsed_string
+        - regex: '(?is)(SELECT\s+(campaign|ad_group|customer|metrics|segments)\.|FROM\s+(campaign|campaign_budget|ad_group|ad_group_ad|ad_group_criterion|customer|customer_client|keyword_view|search_term_view|change_event|asset|asset_group)\b)'
+constraints:
+  SINK:
+    regex: '(?i)^(getService|getType|search|searchStream|mutate|request|post|get)$'

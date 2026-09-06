@@ -14,6 +14,8 @@ FIXTURE_IDS = {
     "python_imported_wrapper",
     "python_rest_query_wrapper",
     "typescript_version_symbol",
+    "typescript_parent_import",
+    "wrapper_patterns",
 }
 METADATA_FILES = (
     "expected_candidates.json",
@@ -99,3 +101,10 @@ def test_phase3_fixture_corpus_is_anonymized(fixture: Path) -> None:
         if path.is_file()
     )
     assert not any(identifier in corpus for identifier in BANNED_SOURCE_IDENTIFIERS)
+
+
+def test_phase3_fixture_corpus_names_at_least_ten_wrapper_patterns() -> None:
+    document = load_json(FIXTURE_ROOT / "wrapper_patterns" / "expected_candidates.json")
+    patterns = cast(list[str], document["patterns"])
+    assert len(patterns) >= 10
+    assert len(patterns) == len(set(patterns))

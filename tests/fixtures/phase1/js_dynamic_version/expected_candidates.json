@@ -1,6 +1,12 @@
 {
   "candidates": [
     {
+      "claim_type": "structure_unsupported",
+      "location": "package-lock.json",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "package_reference",
       "location": "package-lock.json:10",
       "provider_subject": "google-ads",
@@ -22,6 +28,12 @@
       "claim_type": "surface_reference",
       "location": "package-lock.json:10",
       "provider_subject": "google-ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "structure_unsupported",
+      "location": "package.json",
+      "provider_subject": null,
       "status": "UNKNOWN"
     },
     {
@@ -84,9 +96,9 @@
     "excluded_with_evidence": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 13,
+    "total": 15,
     "unexplained": 0,
-    "unknown": 12
+    "unknown": 14
   },
   "fixture": "js_dynamic_version",
   "pack": "google_ads"

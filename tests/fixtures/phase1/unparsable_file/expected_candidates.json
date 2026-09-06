@@ -7,6 +7,12 @@
       "status": "UNKNOWN"
     },
     {
+      "claim_type": "structure_unsupported",
+      "location": "composer.json",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "package_reference",
       "location": "composer.json:4",
       "provider_subject": "google-ads",
@@ -48,9 +54,9 @@
     "excluded_with_evidence": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 7,
+    "total": 8,
     "unexplained": 0,
-    "unknown": 7
+    "unknown": 8
   },
   "fixture": "unparsable_file",
   "pack": "google_ads"

@@ -14,6 +14,12 @@ Updated before every session ends. Phase-level status lives in
       ProofScope composition, Exposure Map completion, fixtures, and `hops pack verify`
 - [x] Fresh Phase 2 gate audit returned `GATE: PASS`; the first real-repo loop is complete and
       every NEW_PATTERN is recorded in `docs/FAILURE_ATLAS.md`
+- [x] Plan, review, implement, and verify the Phase 3 provider-neutral structural observer,
+      deterministic import/symbol graph, five-hop wrapper walk, query skeletons, fail-closed
+      structural coverage, Google Ads and `_mock` ast-grep rules, and default-off AI triage boundary
+- [x] Complete the Phase 3 real-repo loop and final fresh audit: FA-010 is closed by the anonymized
+      parent-relative TypeScript import fixture and generalized local-import normalization; the
+      post-loop auditor returned literal `GATE: PASS`
 
 - [x] Finish the four Phase-2-owned carryovers: `Detected` site counts (P-005),
       `<changes_hash>` label, the extra `EXCLUDED` line (P-004), and `wire_signature`/`versions()`
@@ -23,10 +29,11 @@ Updated before every session ends. Phase-level status lives in
       entry (N-6), one unreadable file aborts the whole scan instead of becoming `FILE_UNSCANNED`
       (N-7), the `_mock` map header has a double space (N-8), and the guard hook allows
       `# pragma: no cover`, which is not one of CLAUDE.md's four comment exceptions (N-9)
-- [ ] **Phase 3, before the AI residue filter ships**: raise a proposal for evidence provenance
+- [x] **Phase 3, before the AI residue filter ships**: raise P-009 for evidence provenance
       (**F-6**). The store proves an evidence id matches its content but cannot prove `derivation`
       is truthful, so a caller can label AI-derived evidence `OBSERVED` and close an UNKNOWN. Needs
-      attestation, which touches the frozen Evidence schema or the Observer contract
+      attestation, which touches the frozen Evidence schema or the Observer contract. P-009 remains
+      OPEN and AI triage remains default-off and disconnected pending the owner's decision
 - [x] Fix **M-7**: `write_evidence` commits before any candidate exists and `latest_run` does not
       exclude `finished_at IS NULL`, so a committed state can carry unexplained evidence (L1 letter).
       Evidence is now staged and persisted atomically with its candidates
@@ -59,7 +66,8 @@ Updated before every session ends. Phase-level status lives in
       `docs/ARCHITECTURE.md` and the Phase 2/3/4/6/10 prompts
 - [x] Merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1` — done 2026-09-03 with the
       gate waived, not passed
-- [ ] Install `ast-grep` before Phase 3; rootless docker/podman before Phase 4
+- [x] Install `ast-grep` before Phase 3
+- [ ] Install rootless docker/podman before Phase 4
 - [x] Fix the second gate audit's findings: silent media binaries, evidence-existence at the store
       boundary, and eleven non-blocking items
 - [x] Fix the first gate audit's findings: recall over manifests, L3 enforcement, and eight
@@ -73,7 +81,7 @@ Updated before every session ends. Phase-level status lives in
 
 - [x] Phase 1 — scan + exposure + ledger *(fresh final audit: `GATE: PASS`)*
 - [x] Phase 2 — Google Ads pack + Change Pack version lattice *(fresh `GATE: PASS`; first real-repo loop complete)*
-- [ ] Phase 3 — wrapper engine
+- [x] Phase 3 — wrapper engine *(post-loop fresh `GATE: PASS`; FA-010 closed)*
 - [ ] Phase 4 — dynamic capture + sentinel
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
 - [ ] Phase 6 — obligations + repair

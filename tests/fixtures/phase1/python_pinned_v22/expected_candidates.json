@@ -1,6 +1,18 @@
 {
   "candidates": [
     {
+      "claim_type": "structure_unsupported",
+      "location": "reporting.txt",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "structure_unsupported",
+      "location": "requirements.txt",
+      "provider_subject": null,
+      "status": "UNKNOWN"
+    },
+    {
       "claim_type": "package_reference",
       "location": "requirements.txt:1",
       "provider_subject": "google-ads",
@@ -34,6 +46,12 @@
       "claim_type": "surface_reference",
       "location": "src/reporting.py:1",
       "provider_subject": "googleads",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "request_text",
+      "location": "src/reporting.py:3",
+      "provider_subject": "gaql",
       "status": "UNKNOWN"
     },
     {
@@ -78,9 +96,9 @@
     "excluded_with_evidence": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 12,
+    "total": 15,
     "unexplained": 0,
-    "unknown": 10
+    "unknown": 13
   },
   "fixture": "python_pinned_v22",
   "pack": "google_ads"

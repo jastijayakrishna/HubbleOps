@@ -1,0 +1,7 @@
+ruleDirs:
+  - rules/python.yml
+  - rules/php.yml
+  - rules/javascript.yml
+  - rules/typescript.yml
+testConfigs:
+  - testDir: rules/tests

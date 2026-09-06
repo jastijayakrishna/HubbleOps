@@ -22,6 +22,7 @@ def render(
     target: str,
     repository: str,
     repo_sha: str | None,
+    structural_coverage: Mapping[str, Any] | None = None,
     expand_not_affected: bool = False,
 ) -> str:
     counts = ledger.counts()
@@ -51,6 +52,15 @@ def render(
     lines.append(
         "  Production services accounted for   no telemetry or sentinel observer in this ProofScope"
     )
+    if structural_coverage:
+        lines.append("  Structural coverage")
+        for language, raw_counts in sorted(structural_coverage.items()):
+            language_counts = as_mapping(raw_counts)
+            lines.append(
+                f"    {language:<12} supported={language_counts.get('supported', 0)} "
+                f"unsupported={language_counts.get('unsupported', 0)} "
+                f"unscanned={language_counts.get('unscanned', 0)}"
+            )
 
     lines.append("")
     lines.append(RULE)

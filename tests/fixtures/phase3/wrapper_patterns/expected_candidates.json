@@ -1,0 +1,51 @@
+{
+  "fixture_id": "wrapper_patterns",
+  "phase": 3,
+  "patterns": [
+    "direct_wrapper",
+    "gateway_class",
+    "dependency_injection_entry",
+    "abstract_adapter",
+    "multiple_subclasses",
+    "factory_registry",
+    "decorated_wrapper",
+    "async_wrapper",
+    "configuration_value",
+    "intermediate_hop",
+    "depth_limit",
+    "external_boundary"
+  ],
+  "candidates": [
+    {
+      "id": "resolved_wrapper_request",
+      "path": "wrappers.py",
+      "language": "python",
+      "claim_type": "request_text",
+      "provider_subject": "gaql",
+      "status": "UNKNOWN",
+      "observer": "structure",
+      "confidence": "PROVEN"
+    },
+    {
+      "id": "resolved_wrapper_version",
+      "path": "wrappers.py",
+      "language": "python",
+      "claim_type": "call_version",
+      "provider_subject": "v24",
+      "status": "AFFECTED",
+      "observer": "structure",
+      "confidence": "PROVEN"
+    },
+    {
+      "id": "depth_limit_unknown",
+      "path": "wrappers.py",
+      "language": "python",
+      "claim_type": "request_text",
+      "provider_subject": "gaql",
+      "status": "UNKNOWN",
+      "observer": "structure",
+      "confidence": "PROVEN"
+    }
+  ],
+  "must_not_emit": []
+}

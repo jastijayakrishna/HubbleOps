@@ -1,0 +1,17 @@
+id: mock-provider-python-structure
+message: Mock provider structural sink, carrier, or request
+severity: info
+language: Python
+rule:
+  any:
+    - all:
+        - pattern: $SINK($$$ARGS)
+        - regex: '(MockProvClient|\.call\()'
+    - all:
+        - kind: string
+        - pattern: $CARRIER
+        - regex: '(api\.mockprov\.test|mockprov\.v[0-9]+)'
+    - all:
+        - kind: string
+        - pattern: $REQUEST
+        - regex: '(mockprov_query\s*=|resource=(campaigns|accounts)\b)'

@@ -1,0 +1,25 @@
+{
+  "fixture_id": "typescript_parent_import",
+  "phase": 3,
+  "failure_class": "parent_relative_typescript_import_misses_version_carrier",
+  "should_be_caught_by": [
+    "observe.structure",
+    "graph.imports"
+  ],
+  "must_match": [
+    {
+      "path": "tasks/proto_registry.ts",
+      "assertion": "The parent-relative import resolves to the local exported version literal."
+    },
+    {
+      "path": "tasks/proto_registry.ts",
+      "assertion": "The imported literal survives a local alias assignment and reaches the computed proto lookup."
+    }
+  ],
+  "must_not_match": [
+    {
+      "path": "tasks/proto_registry.ts",
+      "assertion": "A normalized parent-relative import must not remain an unresolved dynamic version."
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+id: google-ads-php-structure
+valid:
+  - |-
+      <?php
+      final class Sample
+      {
+          public function run(): void
+          {
+              echo "ordinary";
+          }
+      }
+  - |-
+      <?php
+      final class Sample
+      {
+          public function run(): void
+          {
+              $value = "SELECT unrelated.value FROM unrelated";
+          }
+      }
+invalid:
+  - |-
+      <?php
+      final class Sample
+      {
+          public function run(): void
+          {
+              $client->search($request);
+          }
+      }
+  - |-
+      'https://googleads.googleapis.com/v24/customers/1/googleAds:search'
+  - |-
+      'SELECT campaign.id FROM campaign'

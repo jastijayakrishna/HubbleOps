@@ -1,0 +1,8 @@
+id: google-ads-python-structure
+valid:
+  - print("ordinary request")
+  - value = "SELECT unrelated.value FROM unrelated"
+invalid:
+  - client.get_service("GoogleAdsService", version="v24")
+  - endpoint = "https://googleads.googleapis.com/v24/customers/1/googleAds:search"
+  - query = "SELECT campaign.id FROM campaign"

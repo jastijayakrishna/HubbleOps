@@ -1,0 +1,12 @@
+{
+  "fixture_id": "wrapper_patterns",
+  "unknowns": [
+    {
+      "candidate_id": "depth_limit_unknown",
+      "candidate_status": "UNKNOWN",
+      "disposition": "PRESERVED_UNKNOWN",
+      "reason": "MAX_DEPTH_5",
+      "close_with": "Add deterministic evidence for the sixth call hop or capture the executed request bound to this source hash."
+    }
+  ]
+}

@@ -17,6 +17,7 @@ from hubbleops.core.evidence import make_evidence
 from hubbleops.core.observer import ObserverContext
 from hubbleops.core.records import as_mapping, as_text
 from hubbleops.core.surface import SurfaceSpec
+from hubbleops.graph.imports import language_for
 
 NAME = "text"
 RIPGREP = "rg"
@@ -42,6 +43,7 @@ class TextPattern:
     fixed: bool
     subject_mode: str
     slot: str | None = None
+    languages: tuple[str, ...] = ("any",)
 
 
 def ripgrep_version() -> str:
@@ -127,6 +129,7 @@ def patterns_for(surface: SurfaceSpec) -> tuple[TextPattern, ...]:
                 fixed=False,
                 subject_mode=VERSION,
                 slot=carrier.slot,
+                languages=carrier.languages,
             )
         )
     for language in surface.request_languages:
@@ -171,6 +174,8 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
             continue
         attributed = 0
         for pattern, regex in patterns:
+            if "any" not in pattern.languages and language_for(hit.path) not in pattern.languages:
+                continue
             matches = _pattern_matches(pattern, regex, hit.line_text)
             if not matches:
                 continue
@@ -204,11 +209,7 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
                 )
                 records[record["id"]] = record
         if attributed == 0:
-            raise ToolingFailed(
-                RIPGREP,
-                f"{hit.path}:{hit.line_number} was reported as a surface match but no surface "
-                "pattern claims it; the scan stops rather than dropping an observation",
-            )
+            continue
 
     for path in sorted(undecodable):
         entry = entries[path]

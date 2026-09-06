@@ -1,18 +1,22 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
+
+import yaml
 
 from hubbleops import __version__
 from hubbleops.app import exposure, registry
 from hubbleops.closure import source_closure
 from hubbleops.core.canonical import export_bytes
-from hubbleops.core.errors import HubbleOpsError, ToolingMissing, ToolingTimeout
-from hubbleops.core.observer import ObserverContext
+from hubbleops.core.errors import HubbleOpsError, ToolingFailed, ToolingMissing, ToolingTimeout
+from hubbleops.core.observer import ObserverContext, StructuralRule
 from hubbleops.core.proof_scope import (
     make_proof_scope,
     proof_scope_hash,
@@ -21,7 +25,8 @@ from hubbleops.core.proof_scope import (
     short_scope,
 )
 from hubbleops.core.records import as_mapping
-from hubbleops.observe import deps, ledger, text
+from hubbleops.graph.imports import AstGrep
+from hubbleops.observe import deps, ledger, structure, text
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
 
@@ -72,6 +77,11 @@ def _parser() -> argparse.ArgumentParser:
     )
     scan.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
     scan.add_argument("--export", default=None, help="also write the ledger export to this path")
+    scan.add_argument(
+        "--force",
+        action="store_true",
+        help="continue fail-closed when structural tooling is unavailable",
+    )
     scan.set_defaults(handler=_scan)
 
     show = subparsers.add_parser("exposure", help="print the exposure map for a run")
@@ -100,6 +110,7 @@ class ScanResult:
     proof_scope_hash: str
     run_id: str
     scanner_version: str
+    structural_coverage: structure.StructuralCoverage
     ledger: ledger.Ledger
 
     def closure_summary(self) -> dict[str, Any]:
@@ -112,23 +123,39 @@ class ScanResult:
                 "changes_hash": self.pack.changes.lattice_hash,
                 "target": self.pack.latest_compatible(self.resolution.dependencies),
             },
+            "structural_coverage": self.structural_coverage.to_mapping(),
         }
 
 
-def scan_repository(target: Path, pack: registry.LoadedPack) -> ScanResult:
+def scan_repository(
+    target: Path,
+    pack: registry.LoadedPack,
+    *,
+    force: bool = False,
+    ast_grep_executable: str = "ast-grep",
+) -> ScanResult:
     resolved = target.resolve()
     closure = source_closure.build(resolved)
     resolution = deps.resolve(closure)
+    rules = _structural_rules(pack)
+    try:
+        ast_grep_version = AstGrep(ast_grep_executable).version()
+    except (ToolingMissing, ToolingFailed, ToolingTimeout):
+        if not force:
+            raise
+        ast_grep_version = "unavailable-forced"
     scanner_version = (
         f"hubbleops={__version__}"
         f";pipeline={scanner_fingerprint(OBSERVATION_SOURCES)}"
         f";rg={text.ripgrep_version()}"
+        f";ast-grep={ast_grep_version}"
     )
     scope = make_proof_scope(
         repo_sha=closure.repo_sha,
         tree_hash=closure.tree_hash(),
         dependency_resolution_hash=resolution.resolution_hash(),
         provider_contract_hash=pack.contract_hash(),
+        rules_hash=structure.rules_hash(rules),
         scanner_version=scanner_version,
     )
     scope_hash = proof_scope_hash(scope)
@@ -142,10 +169,14 @@ def scan_repository(target: Path, pack: registry.LoadedPack) -> ScanResult:
         repo_sha=closure.repo_sha,
         dependency_context_hash=resolution.resolution_hash(),
         surface=pack.surface,
+        rules=rules,
+        ast_grep_executable=ast_grep_executable,
+        force_structure=force,
     )
     records = [
         *text.scan(closure, ctx),
         *deps.scan(closure, ctx, resolution),
+        *structure.scan(closure, ctx),
     ]
     book = ledger.build(
         provider=pack.name,
@@ -163,12 +194,13 @@ def scan_repository(target: Path, pack: registry.LoadedPack) -> ScanResult:
         proof_scope_hash=scope_hash,
         run_id=run_id,
         scanner_version=scanner_version,
+        structural_coverage=structure.coverage(closure, rules, records),
         ledger=book,
     )
 
 
 def _scan(args: argparse.Namespace) -> int:
-    result = scan_repository(Path(args.repo), registry.load_pack(args.pack))
+    result = scan_repository(Path(args.repo), registry.load_pack(args.pack), force=bool(args.force))
     payload = export_bytes(result.ledger.export())
     state_dir = Path(args.state_dir).resolve()
     artifact_path = state_dir / "artifacts" / result.run_id / "ledger.json"
@@ -231,6 +263,7 @@ def _exposure(args: argparse.Namespace) -> int:
             target=target,
             repository=row.target,
             repo_sha=row.repo_sha,
+            structural_coverage=as_mapping(row.closure.get("structural_coverage")),
             expand_not_affected=args.expand,
         ),
         end="",
@@ -281,6 +314,30 @@ def _scan_summary(result: ScanResult) -> str:
         ]
     )
     return chr(10).join(lines)
+
+
+def _structural_rules(pack: registry.LoadedPack) -> tuple[StructuralRule, ...]:
+    rules: list[StructuralRule] = []
+    for language in structure.SUPPORTED_LANGUAGES:
+        bundle = pack.rules(language)
+        for path in bundle.paths:
+            payload = path.read_bytes()
+            loaded: object = yaml.safe_load(payload)
+            if not isinstance(loaded, dict):
+                raise ToolingFailed("ast-grep", f"{path} has no stable rule id")
+            document = cast(Mapping[str, object], loaded)
+            rule_id = document.get("id")
+            if not isinstance(rule_id, str):
+                raise ToolingFailed("ast-grep", f"{path} has no stable rule id")
+            rules.append(
+                StructuralRule(
+                    id=rule_id,
+                    language=language,
+                    path=path.resolve(),
+                    sha256=hashlib.sha256(payload).hexdigest(),
+                )
+            )
+    return tuple(sorted(rules))
 
 
 if __name__ == "__main__":
