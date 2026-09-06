@@ -5,7 +5,23 @@ from pathlib import Path
 from tests.support import PACKAGE_ROOT, generic_layer_dirs
 
 NAMES_FILE = Path(__file__).parent / "provider_names.txt"
-TEXT_SUFFIXES = frozenset({".py", ".json", ".yaml", ".yml", ".toml", ".txt", ".sql", ".md"})
+TEXT_SUFFIXES = frozenset(
+    {
+        ".cjs",
+        ".ini",
+        ".js",
+        ".json",
+        ".md",
+        ".mjs",
+        ".php",
+        ".py",
+        ".sql",
+        ".toml",
+        ".txt",
+        ".yaml",
+        ".yml",
+    }
+)
 
 
 def provider_names() -> list[str]:

@@ -1,0 +1,3 @@
+{"path":"/v25/customers/1234567890/googleAds:search","headers":{"content-type":"application/json"},"request_text":"SELECT campaign.id FROM campaign","request_type":"rest","stack":[],"ts":"2026-09-06T00:00:00Z"}
+{"path":"/google.ads.googleads.v24.services.GoogleAdsService/Mutate","headers":{"content-type":"application/grpc"},"request_text":null,"request_type":"grpc","stack":[],"ts":"2026-09-06T00:00:01Z"}
+{"path":"/v25/customers/1234567890/googleAds:searchStream","headers":{},"request_text":null,"request_type":"rest","stack":[],"ts":"2026-09-06T00:00:02Z"}
