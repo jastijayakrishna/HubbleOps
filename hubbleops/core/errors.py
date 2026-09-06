@@ -131,6 +131,15 @@ class AiEvidenceAlone(HubbleOpsError):
         self.now = now
 
 
+class SentinelSiteEvidence(HubbleOpsError):
+    def __init__(self, claim_type: str) -> None:
+        super().__init__(
+            f"SENTINEL_SITE_EVIDENCE: sentinel cannot emit {claim_type} evidence or attach "
+            "to a static call-site identity; production observation alone never closes UNKNOWN"
+        )
+        self.claim_type = claim_type
+
+
 class PathNotInClosure(HubbleOpsError):
     def __init__(self, claim_type: str, path: str) -> None:
         super().__init__(

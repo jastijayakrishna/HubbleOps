@@ -1,0 +1,8 @@
+[
+  {"headers":{},"path":"/google.ads.googleads.v24.services.GoogleAdsService/SearchStream","result":{"method":"SearchStream","service":"GoogleAdsService","version":"v24"}},
+  {"headers":{},"path":"/v25/customers/123/googleAds:searchStream","result":{"method":"SearchStream","service":"GoogleAdsService","version":"v25"}},
+  {"headers":{":path":"/v25/customers/123/googleAds:mutate"},"path":"","result":{"method":"Mutate","service":"GoogleAdsService","version":"v25"}},
+  {"headers":{":path":"/v25/customers/123/googleAds:search"},"path":"/v24/customers/123/googleAds:search","result":null},
+  {"headers":{},"path":"","result":null},
+  {"headers":{},"path":"/v25/customers/123/googleAds:unknown","result":null}
+]

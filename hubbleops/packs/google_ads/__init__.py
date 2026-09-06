@@ -41,7 +41,27 @@ class GoogleAdsPack:
         return EmptyBundle(normalized, paths)
 
     def capture_hooks(self, language: str) -> CaptureHooks:
-        return EmptyBundle(language)
+        normalized = language.lower()
+        names = {
+            "python": "sitecustomize.py",
+            "php": "prepend.php",
+            "javascript": "hook.cjs",
+            "typescript": "hook.cjs",
+            "node": "hook.cjs",
+        }
+        directories = {
+            "python": "python",
+            "php": "php",
+            "javascript": "node",
+            "typescript": "node",
+            "node": "node",
+        }
+        path = (
+            ROOT / "capture" / directories[normalized] / names[normalized]
+            if normalized in names
+            else None
+        )
+        return EmptyBundle(normalized, () if path is None else (path,))
 
     def repair_transforms(self) -> list[Transform]:
         return []

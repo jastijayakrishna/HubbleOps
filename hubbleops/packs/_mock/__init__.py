@@ -197,7 +197,9 @@ class MockPack:
         return EmptyBundle(normalized, paths)
 
     def capture_hooks(self, language: str) -> CaptureHooks:
-        return EmptyBundle(language)
+        normalized = language.lower()
+        path = ROOT / "capture" / "python" / "sitecustomize.py"
+        return EmptyBundle(normalized, (path,) if normalized == "python" else ())
 
     def repair_transforms(self) -> list[Transform]:
         return []

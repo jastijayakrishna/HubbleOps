@@ -26,6 +26,7 @@ from hubbleops.core.errors import (
     RunIdentityMismatch,
     RunNotFound,
     RunProviderMismatch,
+    SentinelSiteEvidence,
     StoreSchemaMismatch,
     UnexplainedCandidates,
     UnknownNotConserved,
@@ -411,6 +412,11 @@ class Store:
     def write_evidence(self, records: Sequence[dict[str, Any]]) -> None:
         for record in records:
             validate("evidence", record)
+            if record["observer"] == "sentinel" and record["claim_type"] in (
+                "call_version",
+                "request_text",
+            ):
+                raise SentinelSiteEvidence(str(record["claim_type"]))
             derived = evidence_identity(record)
             if str(record["id"]) != derived:
                 raise EvidenceIdentityMismatch(str(record["id"]), derived)

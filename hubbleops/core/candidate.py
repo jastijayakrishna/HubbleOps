@@ -47,6 +47,13 @@ def claim_key(record: Mapping[str, Any]) -> str:
         return f"{ecosystem}:{str(package).lower().replace('_', '-')}"
     if claim_type == "dependency_state":
         return f"{value.get('state')}:{path}"
+    if claim_type == "production_version":
+        return f"{value.get('service')}:{value.get('method')}:{value.get('version')}"
+    if claim_type in ("dynamic_state", "telemetry_state", "sentinel_state"):
+        return (
+            f"{value.get('code')}:{value.get('row')}:{value.get('service')}:"
+            f"{value.get('method')}:{value.get('version')}:{path}"
+        )
     if claim_type in ("file_unscanned", "structure_unsupported"):
         return path
     if claim_type == "external_boundary":

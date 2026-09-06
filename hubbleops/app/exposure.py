@@ -7,6 +7,7 @@ from typing import Any
 from hubbleops.core.proof_scope import short_scope
 from hubbleops.core.records import as_mapping, as_text
 from hubbleops.observe.ledger import Ledger
+from hubbleops.observe.telemetry import production_coverage
 
 RULE = "─" * 56
 LOCATION_WIDTH = 26
@@ -49,9 +50,14 @@ def render(
     lines.append(f"  Human required          {counts['human_required']}")
     lines.append(f"  UNKNOWN                 {counts['unknown']}")
     lines.append(f"  Unexplained             {counts['unexplained']}")
-    lines.append(
-        "  Production services accounted for   no telemetry or sentinel observer in this ProofScope"
-    )
+    production = production_coverage(ledger)
+    if production is None:
+        lines.append(
+            "  Production services accounted for   "
+            "no telemetry or sentinel observer in this ProofScope"
+        )
+    else:
+        lines.append(f"  Production services accounted for   {production[0]}/{production[1]}")
     if structural_coverage:
         lines.append("  Structural coverage")
         for language, raw_counts in sorted(structural_coverage.items()):

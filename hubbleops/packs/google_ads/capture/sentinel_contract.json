@@ -1,0 +1,17 @@
+{
+  "package": "hubbleops-sentinel",
+  "versions": {
+    "0.1.0": {
+      "hook": {
+        "adapter_sha256": "e52d4a0a5f1546eddf1d7eb8c55c05b4ce587cdb9ee5201281288903611e7bc7",
+        "corpus_sha256": "9088cccda5a1c4dbf41c7852009842baabe9dbdd6e06bdda1da306bf4cb09394",
+        "schema_sha256": "7654b575f7b7626f6d4185a71ff0adc44265d43124ef883f3a9ed0307f2914f0"
+      },
+      "proxy": {
+        "adapter_sha256": "e52d4a0a5f1546eddf1d7eb8c55c05b4ce587cdb9ee5201281288903611e7bc7",
+        "corpus_sha256": "9088cccda5a1c4dbf41c7852009842baabe9dbdd6e06bdda1da306bf4cb09394",
+        "schema_sha256": "7654b575f7b7626f6d4185a71ff0adc44265d43124ef883f3a9ed0307f2914f0"
+      }
+    }
+  }
+}

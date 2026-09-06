@@ -27,6 +27,9 @@ CLAIM_PRECEDENCE: dict[str, tuple[str, ...]] = {
     "file_unscanned": ("structure", "text"),
     "structure_unsupported": ("structure",),
     "external_boundary": ("structure", "text"),
+    "dynamic_state": ("dynamic",),
+    "telemetry_state": ("telemetry",),
+    "sentinel_state": ("sentinel",),
 }
 
 LOCATION_BOUND_CLAIMS = frozenset(
@@ -434,6 +437,85 @@ def _structure_unsupported(
     )
 
 
+def _production_version(
+    chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]
+) -> Resolution:
+    value = as_mapping(chosen["value"])
+    location = f"{value.get('service')}.{value.get('method')}@{value.get('version')}"
+    mappings = as_sequence(value.get("candidate_ids"))
+    if chosen["observer"] == "telemetry" and not mappings:
+        return Resolution(
+            status="UNKNOWN",
+            reason=f"TELEMETRY_UNEXPLAINED: {location} maps to no explained candidate",
+            close_with=(
+                "capture this production operation with a source-bound stack or map it by "
+                "recorded human decision"
+            ),
+            winner_id=str(chosen["id"]),
+        )
+    if chosen["observer"] == "telemetry" and len(mappings) > 1:
+        reason = (
+            f"{location} is production-accounted but TELEMETRY_SITE_AMBIGUOUS across "
+            f"{len(mappings)} source candidates"
+        )
+    elif chosen["observer"] in ("dynamic", "sentinel"):
+        reason = f"OBSERVED_NOT_STATIC: {location} was observed by {chosen['observer']}"
+    else:
+        reason = f"production operation {location} is explained by observed evidence"
+    return Resolution(
+        status="AFFECTED",
+        reason=reason,
+        close_with=None,
+        winner_id=str(chosen["id"]),
+    )
+
+
+OBSERVER_STATE_CLOSURES = {
+    "HOOK_NOT_INSTALLED": (
+        "run capture in proxy mode, or fix the loader so the hook runs, then repeat capture in a "
+        "new ProofScope; this run observed nothing and says nothing about usage"
+    ),
+    "UNKNOWN_DYNAMIC": (
+        "exercise this call path from the test command, or capture the same tree in the other "
+        "mode, then repeat capture in a new ProofScope"
+    ),
+    "CAPTURE_EXECUTION_FAILED": (
+        "make the test command exit zero inside the sandbox, then repeat capture in a new "
+        "ProofScope"
+    ),
+    "PROXY_INTERCEPTION_FAILED": (
+        "make the workload trust the capture certificate, or capture in hook mode, then repeat "
+        "capture in a new ProofScope; the requests on those connections were never seen"
+    ),
+    "PROXY_BYPASS_BLOCKED": (
+        "allowlist the destination the workload needs, or capture in hook mode, then repeat "
+        "capture in a new ProofScope"
+    ),
+    "UNKNOWN_WIRE_SIGNATURE": (
+        "extend the pack wire signature to name this request, or capture in hook mode, then "
+        "repeat capture in a new ProofScope"
+    ),
+    "STACK_TRUNCATED": (
+        "reduce the observed call depth or raise the frame bound, then repeat capture in a new "
+        "ProofScope"
+    ),
+}
+
+
+def _observer_state(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]) -> Resolution:
+    value = as_mapping(chosen["value"])
+    code = str(value.get("code"))
+    reason = value.get("reason")
+    return Resolution(
+        status="UNKNOWN",
+        reason=f"{code}: {reason}",
+        close_with=OBSERVER_STATE_CLOSURES.get(
+            code, "resolve the named observer failure and repeat capture in a new ProofScope"
+        ),
+        winner_id=str(chosen["id"]),
+    )
+
+
 HANDLERS = {
     "call_version": _call_version,
     "config_reference": _config_reference,
@@ -446,6 +528,10 @@ HANDLERS = {
     "sdk_installed": _sdk_installed,
     "structure_unsupported": _structure_unsupported,
     "surface_reference": _surface_reference,
+    "production_version": _production_version,
+    "dynamic_state": _observer_state,
+    "telemetry_state": _observer_state,
+    "sentinel_state": _observer_state,
 }
 
 
