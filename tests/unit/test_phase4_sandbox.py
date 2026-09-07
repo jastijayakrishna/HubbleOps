@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import subprocess
 from pathlib import Path
-from typing import Any, cast
 
 import pytest
 
@@ -199,16 +198,21 @@ def test_a_worktree_whose_removal_is_refused_still_restores_the_repository(
         subprocess.run(command, cwd=repository, check=True, capture_output=True)
 
     monkeypatch.setattr(sandbox_capture, "RELEASE_SECONDS", 0.0)
-    executed = subprocess.run
+    executed = sandbox_capture.bounded_process
 
-    def refuse_removal(argv: tuple[str, ...], **options: Any) -> subprocess.CompletedProcess[str]:
+    def refuse_removal(
+        argv: tuple[str, ...], wall_seconds: float, output_bytes: int, tool: str
+    ) -> tuple[str, int | None, bytes, bytes]:
         if "worktree" in argv and "remove" in argv:
-            return subprocess.CompletedProcess(
-                argv, 1, "", "error: failed to delete: Permission denied"
+            return (
+                "NONZERO_EXIT",
+                1,
+                b"",
+                b"error: failed to delete: Permission denied",
             )
-        return cast("subprocess.CompletedProcess[str]", executed(argv, **options))
+        return executed(argv, wall_seconds, output_bytes, tool)
 
-    monkeypatch.setattr(subprocess, "run", refuse_removal)
+    monkeypatch.setattr(sandbox_capture, "bounded_process", refuse_removal)
     manager = DetachedWorktree(repository, tmp_path / "detached", "HEAD")
     with manager as destination:
         assert destination.joinpath("source.py").is_file()

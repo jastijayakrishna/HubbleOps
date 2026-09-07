@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import subprocess
@@ -10,8 +11,10 @@ import pytest
 from hubbleops.app import capture, registry
 from hubbleops.app.cli import EXIT_OK, main
 from hubbleops.closure import source_closure
+from hubbleops.core.errors import ToolingMissing
 from hubbleops.sandbox.image import PROXY_IMAGE
 from hubbleops.sandbox.proxy import FixtureService
+from hubbleops.sandbox.runner import RootlessPodman
 from hubbleops.store.sqlite import Store
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "phase4" / "repo"
@@ -38,6 +41,82 @@ def rootless_available() -> bool:
         return capture.RootlessPodman().identity().endswith("rootless=true")
     except Exception:
         return False
+
+
+def test_a_setup_failure_persists_every_available_command_transcript(tmp_path: Path) -> None:
+    target = repository(tmp_path)
+    closure = source_closure.build(target)
+    state = tmp_path / "attempts"
+    engine = RootlessPodman(("definitely-missing-podman",))
+    with pytest.raises(ToolingMissing, match="failure artifacts"):
+        capture.execute(
+            target,
+            closure.repo_sha,
+            registry.load_pack("google_ads"),
+            "python probe.py",
+            "python",
+            "hook",
+            (),
+            state,
+            engine=engine,
+        )
+    failures = list(state.joinpath("failures").iterdir())
+    assert len(failures) == 1
+    failure = failures[0]
+    assert {path.name for path in failure.iterdir()} == {
+        "engine-commands.jsonl",
+        "failure.json",
+        "git-commands.jsonl",
+        "proxy-commands.jsonl",
+    }
+    engine_commands = [
+        json.loads(line)
+        for line in failure.joinpath("engine-commands.jsonl").read_text("utf-8").splitlines()
+    ]
+    assert engine_commands[-1]["argv"] == ["definitely-missing-podman", "info", "--format", "json"]
+    assert engine_commands[-1]["outcome"] == "TOOL_MISSING"
+    git_commands = [
+        json.loads(line)
+        for line in failure.joinpath("git-commands.jsonl").read_text("utf-8").splitlines()
+    ]
+    assert git_commands[0]["argv"][-2:] == ["status", "--porcelain=v1"]
+    assert failure.joinpath("proxy-commands.jsonl").read_bytes() == b""
+    manifest = json.loads(failure.joinpath("failure.json").read_text("utf-8"))
+    assert manifest["error_type"] == "ToolingMissing"
+    assert manifest["request"]["repo_sha"] == closure.repo_sha
+    for kind in ("engine", "git", "proxy"):
+        data = failure.joinpath(f"{kind}-commands.jsonl").read_bytes()
+        assert manifest[f"{kind}_commands_sha256"] == hashlib.sha256(data).hexdigest()
+
+
+def test_a_dirty_repository_persists_the_bounded_preflight_transcript(tmp_path: Path) -> None:
+    target = repository(tmp_path)
+    target.joinpath("untracked.py").write_text("value = 1\n", encoding="utf-8")
+    closure = source_closure.build(target)
+    state = tmp_path / "attempts"
+    with pytest.raises(capture.CaptureInvalid, match=r"clean repository.*failure artifacts"):
+        capture.execute(
+            target,
+            closure.repo_sha,
+            registry.load_pack("google_ads"),
+            "python probe.py",
+            "python",
+            "hook",
+            (),
+            state,
+            engine=RootlessPodman(("definitely-missing-podman",)),
+        )
+    failure = next(state.joinpath("failures").iterdir())
+    git_commands = [
+        json.loads(line)
+        for line in failure.joinpath("git-commands.jsonl").read_text("utf-8").splitlines()
+    ]
+    assert len(git_commands) == 1
+    assert git_commands[0]["argv"][-2:] == ["status", "--porcelain=v1"]
+    assert git_commands[0]["outcome"] == "COMPLETED"
+    assert git_commands[0]["stdout_size"] > 0
+    assert git_commands[0]["stdout_truncated"] is False
+    assert failure.joinpath("engine-commands.jsonl").read_bytes() == b""
 
 
 @pytest.mark.skipif(not rootless_available(), reason="rootless Podman is unavailable")
@@ -229,6 +308,15 @@ def test_capture_cli_persists_a_scoped_ledger_and_promotes_observed_wrapper(
         "engine-commands.jsonl",
         "events.jsonl",
         "execution-manifest.json",
+        "git-commands.jsonl",
         "ledger.json",
         "proxy-commands.jsonl",
     } <= artifact_names
+    git_commands = [
+        json.loads(line)
+        for line in state.joinpath("artifacts", run.run_id, "git-commands.jsonl")
+        .read_text("utf-8")
+        .splitlines()
+    ]
+    assert git_commands[0]["argv"][-2:] == ["status", "--porcelain=v1"]
+    assert all("duration_seconds" in command for command in git_commands)

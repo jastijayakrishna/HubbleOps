@@ -3,15 +3,16 @@ from __future__ import annotations
 import hashlib
 import inspect
 import json
-import subprocess
+import os
 import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from hubbleops.app.registry import LoadedPack
 from hubbleops.core.canonical import canonical_bytes, content_id
-from hubbleops.core.errors import HubbleOpsError
+from hubbleops.core.errors import HubbleOpsError, ToolingMissing
 from hubbleops.core.records import as_mapping, as_sequence, as_text
 from hubbleops.observe.dynamic.loaders import (
     ATTESTATION_FILENAME,
@@ -40,7 +41,14 @@ from hubbleops.sandbox.limits import ResourceLimits
 from hubbleops.sandbox.mounts import Mount
 from hubbleops.sandbox.network import NetworkPolicy
 from hubbleops.sandbox.proxy import FixtureService, ProxySession, interception_failures
-from hubbleops.sandbox.runner import RootlessPodman, RunResult, RunSpec
+from hubbleops.sandbox.runner import (
+    RootlessPodman,
+    RunResult,
+    RunSpec,
+    bounded_process,
+    command_record,
+    command_transcript,
+)
 
 SENTINEL_MANIFEST_KEYS = frozenset(
     {
@@ -83,6 +91,67 @@ class ProductionInput:
         return content_id(self.manifest)
 
 
+@dataclass(slots=True)
+class _CaptureJournal:
+    state_dir: Path
+    request: dict[str, Any]
+    engine: RootlessPodman
+    git_records: list[dict[str, Any]] = field(default_factory=lambda: list[dict[str, Any]]())
+    worktree: DetachedWorktree | None = None
+    proxy: ProxySession | None = None
+
+    def __enter__(self) -> _CaptureJournal:
+        return self
+
+    def __exit__(
+        self,
+        _exc_type: type[BaseException] | None,
+        error: BaseException | None,
+        _traceback: object,
+    ) -> None:
+        if error is not None:
+            directory = self._persist(error)
+            if isinstance(error, HubbleOpsError):
+                error.args = (f"{error}; failure artifacts: {directory}",)
+
+    def git_transcript(self) -> bytes:
+        worktree = b"" if self.worktree is None else self.worktree.transcript()
+        return command_transcript(self.git_records) + worktree
+
+    def proxy_transcript(self) -> bytes:
+        return b"" if self.proxy is None else self.proxy.transcript()
+
+    def _persist(self, error: BaseException) -> Path:
+        git_commands = self.git_transcript()
+        engine_commands = self.engine.transcript()
+        proxy_commands = self.proxy_transcript()
+        error_bytes = str(error).encode("utf-8", errors="replace")
+        manifest = {
+            "engine_commands_sha256": _hash(engine_commands),
+            "error": error_bytes[:65_536].decode("utf-8", errors="replace"),
+            "error_sha256": _hash(error_bytes),
+            "error_size": len(error_bytes),
+            "error_truncated": len(error_bytes) > 65_536,
+            "error_type": type(error).__name__,
+            "git_commands_sha256": _hash(git_commands),
+            "proxy_commands_sha256": _hash(proxy_commands),
+            "request": self.request,
+        }
+        manifest_bytes = canonical_bytes(manifest) + b"\n"
+        directory = self.state_dir / "failures" / content_id(manifest)
+        if directory.exists():
+            return directory
+        directory.mkdir(parents=True, exist_ok=False)
+        for name, data in (
+            ("engine-commands.jsonl", engine_commands),
+            ("failure.json", manifest_bytes),
+            ("git-commands.jsonl", git_commands),
+            ("proxy-commands.jsonl", proxy_commands),
+        ):
+            _exclusive_write(directory / name, data)
+        return directory
+
+
 def execute(
     repository: Path,
     repo_sha: str | None,
@@ -103,15 +172,76 @@ def execute(
         raise CaptureInvalid("capture mode must be hook or proxy")
     if fixture is not None and mode != "proxy":
         raise CaptureInvalid("the test-only fixture service requires proxy mode")
-    _require_clean(repository)
     selected_engine = engine or RootlessPodman()
     selected_limits = limits or ResourceLimits()
     policy = NetworkPolicy.from_values(allowlist)
     hooks = pack.capture_hooks(language)
     loader = loader_plan(language, hooks.paths) if mode == "hook" else None
     image = _image(language)
-    state_dir.resolve().mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="hops-attempt-", dir=state_dir.resolve()) as raw:
+    state_root = state_dir.resolve()
+    state_root.mkdir(parents=True, exist_ok=True)
+    journal = _CaptureJournal(
+        state_root,
+        {
+            "allowlist": list(allowlist),
+            "command": command,
+            "fixture": (
+                None
+                if fixture is None
+                else {
+                    "hostname": fixture.hostname,
+                    "image": fixture.image.fingerprint(),
+                    "port": fixture.port,
+                    "script_sha256": _hash(fixture.script.read_bytes()),
+                }
+            ),
+            "image": image.fingerprint(),
+            "language": language.casefold(),
+            "limits": selected_limits.fingerprint(),
+            "mode": mode,
+            "provider": pack.name,
+            "repo_sha": repo_sha,
+            "repository": str(repository.resolve()),
+        },
+        selected_engine,
+    )
+    with journal:
+        return _execute_attempt(
+            repository,
+            repo_sha,
+            pack,
+            command,
+            language,
+            mode,
+            policy,
+            state_root,
+            selected_engine,
+            selected_limits,
+            fixture,
+            loader,
+            image,
+            journal,
+        )
+
+
+def _execute_attempt(
+    repository: Path,
+    repo_sha: str,
+    pack: LoadedPack,
+    command: str,
+    language: str,
+    mode: str,
+    policy: NetworkPolicy,
+    state_root: Path,
+    selected_engine: RootlessPodman,
+    selected_limits: ResourceLimits,
+    fixture: FixtureService | None,
+    loader: LoaderPlan | None,
+    image: ImageSpec,
+    journal: _CaptureJournal,
+) -> CaptureAttempt:
+    _require_clean(repository, journal.git_records)
+    with tempfile.TemporaryDirectory(prefix="hops-attempt-", dir=state_root) as raw:
         attempt = Path(raw).resolve()
         worktree_path = attempt / "worktree"
         output = attempt / "output"
@@ -122,6 +252,7 @@ def execute(
         installed: bool | None = None
         proxy_commands = b""
         worktree_manager = DetachedWorktree(repository, worktree_path, repo_sha)
+        journal.worktree = worktree_manager
         with worktree_manager as worktree:
             if mode == "hook":
                 result, proxy_identity, execution_spec = _run_hook(
@@ -159,6 +290,7 @@ def execute(
                     selected_limits,
                     attempt.name,
                     fixture,
+                    journal,
                 )
                 batch = _proxy_events(raw_events, pack)
         issues = list(batch.issues)
@@ -202,6 +334,7 @@ def execute(
         command_log = result.log_path.read_bytes()
         engine_identity = selected_engine.identity()
         engine_commands = selected_engine.transcript()
+        git_commands = journal.git_transcript()
         manifest = {
             "allowlist": [item.mapping() for item in policy.destinations],
             "command": command,
@@ -211,6 +344,7 @@ def execute(
             "event_schema_sha256": event_schema_hash(),
             "events_sha256": _hash(batch.bytes()),
             "execution_spec": execution_spec,
+            "git_commands_sha256": _hash(git_commands),
             "hook": _loader_mapping(loader),
             "hook_installed": installed,
             "image": image.fingerprint(),
@@ -239,6 +373,7 @@ def execute(
             ATTESTATION_FILENAME: _read_bounded(output / ATTESTATION_FILENAME),
             "events.jsonl": batch.bytes(),
             "engine-commands.jsonl": engine_commands,
+            "git-commands.jsonl": git_commands,
             "proxy.log": proxy_log,
             "proxy-commands.jsonl": proxy_commands,
             "raw-events.jsonl": raw_events,
@@ -408,9 +543,11 @@ def _run_proxy(
     limits: ResourceLimits,
     nonce: str,
     fixture: FixtureService | None,
+    journal: _CaptureJournal,
 ) -> tuple[RunResult, dict[str, object], bytes, bytes, bytes, str]:
     proxy_dir = output / "proxy"
     session = ProxySession(engine, proxy_dir, policy, nonce, limits, fixture)
+    journal.proxy = session
     with session as proxy:
         environment = (
             ("ALL_PROXY", "http://capture-proxy:8080"),
@@ -545,22 +682,34 @@ def _bounded_input(path: Path, maximum: int, label: str) -> bytes:
     return data
 
 
-def _require_clean(repository: Path) -> None:
+def _require_clean(repository: Path, records: list[dict[str, Any]]) -> None:
+    argv = ("git", "-C", str(repository.resolve()), "status", "--porcelain=v1")
+    started = time.monotonic()
     try:
-        completed = subprocess.run(
-            ("git", "-C", str(repository.resolve()), "status", "--porcelain=v1"),
-            check=False,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            timeout=30,
+        outcome, exit_code, stdout, stderr = bounded_process(argv, 30, 65_536, "git")
+    except ToolingMissing as error:
+        records.append(
+            command_record(
+                argv,
+                time.monotonic() - started,
+                None,
+                b"",
+                str(error),
+                "TOOL_MISSING",
+            )
         )
-    except (FileNotFoundError, subprocess.TimeoutExpired) as error:
         raise CaptureInvalid(f"capture could not verify repository state: {error}") from error
-    if completed.returncode != 0:
-        detail = completed.stderr.strip() or "capture repository is not readable by Git"
+    duration = time.monotonic() - started
+    records.append(command_record(argv, duration, exit_code, stdout, stderr, outcome))
+    if outcome == "WALL_TIMEOUT":
+        raise CaptureInvalid("capture repository status exceeded its 30s wall-time bound")
+    if outcome == "OUTPUT_LIMIT":
+        raise CaptureInvalid("capture repository status exceeded its 65536-byte output bound")
+    if exit_code != 0:
+        detail = stderr.decode("utf-8", errors="replace").strip()
+        detail = detail or "capture repository is not readable by Git"
         raise CaptureInvalid(detail)
-    if completed.stdout:
+    if stdout:
         raise CaptureInvalid(
             "capture requires a clean repository so execution and ProofScope agree"
         )
@@ -568,6 +717,16 @@ def _require_clean(repository: Path) -> None:
 
 def _hash(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def _exclusive_write(path: Path, data: bytes) -> None:
+    try:
+        with path.open("xb") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as error:
+        raise CaptureInvalid(f"capture failure artifact already exists: {path}") from error
 
 
 __all__ = [

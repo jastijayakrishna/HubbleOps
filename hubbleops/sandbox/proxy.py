@@ -19,6 +19,7 @@ from hubbleops.sandbox.mounts import wsl_path
 from hubbleops.sandbox.network import NetworkPolicy
 from hubbleops.sandbox.runner import (
     RootlessPodman,
+    bounded_process,
     command_record,
     command_transcript,
 )
@@ -370,17 +371,8 @@ class ProxySession:
         argv = (*self.engine.prefix, *arguments)
         started = time.monotonic()
         try:
-            completed = subprocess.run(
-                argv,
-                check=False,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=30,
-                env=_host_environment(),
-            )
-        except FileNotFoundError as error:
+            outcome, exit_code, stdout, stderr = bounded_process(argv, 30, 65_536, "podman")
+        except ToolingMissing as error:
             self._commands.append(
                 command_record(
                     argv,
@@ -392,36 +384,23 @@ class ProxySession:
                 )
             )
             raise ToolingMissing("podman", f"{argv[0]!r} is not executable") from error
-        except subprocess.TimeoutExpired as error:
-            self._commands.append(
-                command_record(
-                    argv,
-                    time.monotonic() - started,
-                    None,
-                    error.stdout or b"",
-                    error.stderr or b"",
-                    "WALL_TIMEOUT",
-                )
-            )
-            raise ToolingFailed("podman", "proxy lifecycle command timed out") from error
         self._commands.append(
-            command_record(
-                argv,
-                time.monotonic() - started,
-                completed.returncode,
-                completed.stdout,
-                completed.stderr,
-                "COMPLETED" if completed.returncode == 0 else "NONZERO_EXIT",
-            )
+            command_record(argv, time.monotonic() - started, exit_code, stdout, stderr, outcome)
         )
-        if check and completed.returncode != 0:
+        if outcome == "WALL_TIMEOUT":
+            raise ToolingFailed("podman", "proxy lifecycle command timed out")
+        if outcome == "OUTPUT_LIMIT":
+            raise ToolingFailed("podman", "proxy lifecycle command exceeded its output bound")
+        return_code = -1 if exit_code is None else exit_code
+        completed = subprocess.CompletedProcess(
+            argv,
+            return_code,
+            stdout.decode("utf-8", errors="replace"),
+            stderr.decode("utf-8", errors="replace"),
+        )
+        if check and return_code != 0:
             raise ToolingFailed("podman", completed.stderr.strip() or "proxy command failed")
         return completed
-
-
-def _host_environment() -> dict[str, str]:
-    allowed = ("PATH", "PATHEXT", "SYSTEMROOT", "WINDIR", "TEMP", "TMP")
-    return {key: os.environ[key] for key in allowed if key in os.environ}
 
 
 @dataclass(frozen=True, slots=True)

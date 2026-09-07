@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import shutil
 import stat
-import subprocess
 import time
 from collections.abc import Callable
 from contextlib import suppress
@@ -12,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from hubbleops.core.errors import HubbleOpsError, ToolingFailed, ToolingMissing
-from hubbleops.sandbox.runner import command_record
+from hubbleops.sandbox.runner import bounded_process, command_record, command_transcript
 
 RELEASE_SECONDS = 15.0
 RELEASE_INTERVAL = 0.2
@@ -123,6 +122,9 @@ class DetachedWorktree:
             "recovered": self._recovered,
         }
 
+    def transcript(self) -> bytes:
+        return command_transcript(self._commands)
+
     @staticmethod
     def _entries(metadata: Path) -> tuple[str, ...]:
         if not metadata.exists():
@@ -133,15 +135,8 @@ class DetachedWorktree:
         argv = (self.git_executable, "-C", str(self.repository.resolve()), *arguments)
         started = time.monotonic()
         try:
-            completed = subprocess.run(
-                argv,
-                check=False,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                timeout=30,
-            )
-        except FileNotFoundError as error:
+            outcome, exit_code, stdout, stderr = bounded_process(argv, 30, 65_536, "git")
+        except ToolingMissing as error:
             self._commands.append(
                 command_record(
                     argv,
@@ -153,31 +148,17 @@ class DetachedWorktree:
                 )
             )
             raise ToolingMissing("git", f"{self.git_executable!r} is not executable") from error
-        except subprocess.TimeoutExpired as error:
-            self._commands.append(
-                command_record(
-                    argv,
-                    time.monotonic() - started,
-                    None,
-                    error.stdout or b"",
-                    error.stderr or b"",
-                    "WALL_TIMEOUT",
-                )
-            )
-            raise ToolingFailed("git", "worktree command timed out") from error
         self._commands.append(
-            command_record(
-                argv,
-                time.monotonic() - started,
-                completed.returncode,
-                completed.stdout,
-                completed.stderr,
-                "COMPLETED" if completed.returncode == 0 else "NONZERO_EXIT",
-            )
+            command_record(argv, time.monotonic() - started, exit_code, stdout, stderr, outcome)
         )
-        if completed.returncode != 0:
-            raise ToolingFailed("git", completed.stderr.strip() or "worktree command failed")
-        return completed.stdout
+        if outcome == "WALL_TIMEOUT":
+            raise ToolingFailed("git", "worktree command timed out")
+        if outcome == "OUTPUT_LIMIT":
+            raise ToolingFailed("git", "worktree command exceeded its output bound")
+        if exit_code != 0:
+            detail = stderr.decode("utf-8", errors="replace").strip() or "worktree command failed"
+            raise ToolingFailed("git", detail)
+        return stdout.decode("utf-8", errors="replace")
 
 
 __all__ = ["DetachedWorktree", "WorktreeInvalid", "remove_tree"]

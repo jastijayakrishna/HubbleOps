@@ -159,8 +159,8 @@ class RootlessPodman:
         argv = self.command(spec)
         started = time.monotonic()
         try:
-            outcome, exit_code, stdout, stderr = _bounded_process(
-                argv, spec.limits.wall_seconds, spec.limits.output_bytes
+            outcome, exit_code, stdout, stderr = bounded_process(
+                argv, spec.limits.wall_seconds, spec.limits.output_bytes, "podman"
             )
         except ToolingMissing as error:
             self._commands.append(
@@ -196,15 +196,8 @@ class RootlessPodman:
     def _check(self, argv: tuple[str, ...]) -> subprocess.CompletedProcess[str]:
         started = time.monotonic()
         try:
-            completed = subprocess.run(
-                argv,
-                check=False,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                timeout=15,
-            )
-        except FileNotFoundError as error:
+            outcome, exit_code, stdout, stderr = bounded_process(argv, 15, 65_536, "podman")
+        except ToolingMissing as error:
             self._commands.append(
                 command_record(
                     argv,
@@ -216,35 +209,26 @@ class RootlessPodman:
                 )
             )
             raise ToolingMissing("podman", f"{self.prefix[0]!r} is not executable") from error
-        except subprocess.TimeoutExpired as error:
-            self._commands.append(
-                command_record(
-                    argv,
-                    time.monotonic() - started,
-                    None,
-                    error.stdout or b"",
-                    error.stderr or b"",
-                    "WALL_TIMEOUT",
-                )
-            )
-            raise ToolingFailed("podman", "engine identity check timed out") from error
         self._commands.append(
-            command_record(
-                argv,
-                time.monotonic() - started,
-                completed.returncode,
-                completed.stdout,
-                completed.stderr,
-                "COMPLETED" if completed.returncode == 0 else "NONZERO_EXIT",
-            )
+            command_record(argv, time.monotonic() - started, exit_code, stdout, stderr, outcome)
         )
-        if completed.returncode != 0:
-            raise ToolingFailed("podman", completed.stderr.strip() or "engine check failed")
-        return completed
+        if outcome == "WALL_TIMEOUT":
+            raise ToolingFailed("podman", "engine identity check timed out")
+        if outcome == "OUTPUT_LIMIT":
+            raise ToolingFailed("podman", "engine identity check exceeded its output bound")
+        if exit_code != 0:
+            detail = stderr.decode("utf-8", errors="replace").strip() or "engine check failed"
+            raise ToolingFailed("podman", detail)
+        return subprocess.CompletedProcess(
+            argv,
+            0,
+            stdout.decode("utf-8", errors="replace"),
+            stderr.decode("utf-8", errors="replace"),
+        )
 
 
-def _bounded_process(
-    argv: tuple[str, ...], wall_seconds: float, output_bytes: int
+def bounded_process(
+    argv: tuple[str, ...], wall_seconds: float, output_bytes: int, tool: str
 ) -> tuple[str, int | None, bytes, bytes]:
     try:
         process = subprocess.Popen(
@@ -255,7 +239,7 @@ def _bounded_process(
             env=_host_process_environment(),
         )
     except FileNotFoundError as error:
-        raise ToolingMissing("podman", f"{argv[0]!r} is not executable") from error
+        raise ToolingMissing(tool, f"{argv[0]!r} is not executable") from error
     streams = {"stdout": bytearray(), "stderr": bytearray()}
     overflow = threading.Event()
     threads = [
@@ -357,6 +341,7 @@ __all__ = [
     "RunResult",
     "RunSpec",
     "SandboxInvalid",
+    "bounded_process",
     "command_record",
     "command_transcript",
 ]
