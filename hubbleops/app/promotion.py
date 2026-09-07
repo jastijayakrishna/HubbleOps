@@ -88,7 +88,7 @@ def promote(
     selected = _observed_frame(evidence)
     if selected is None:
         raise PromotionInvalid("promotion requires observed dynamic or sentinel repository stack")
-    frame, record = selected
+    frame, expected = selected
     source_path = as_text(frame.get("path"))
     symbol = as_text(frame.get("function"))
     if (
@@ -99,8 +99,7 @@ def promote(
         raise PromotionInvalid("promotion stack frame has no supported source symbol")
     source = _source(root, source_path)
     source_hash = hashlib.sha256(source.read_bytes()).hexdigest()
-    expected = str(record["source_hash"])
-    if record["path"] != "." and source_hash != expected:
+    if source_hash != expected:
         raise PromotionInvalid("PROMOTION_SOURCE_DRIFT: evidence source bytes changed")
     language = LANGUAGES.get(source.suffix.lower())
     if language is None:
@@ -208,12 +207,18 @@ def _validate_entry(entry: Mapping[str, Any]) -> None:
 
 def _observed_frame(
     evidence: list[dict[str, Any]],
-) -> tuple[dict[str, Any], dict[str, Any]] | None:
+) -> tuple[dict[str, Any], str] | None:
     for record in evidence:
+        source_hashes = {
+            str(item.get("path")): str(item.get("source_hash"))
+            for raw in as_sequence(as_mapping(record["value"]).get("stack_sources"))
+            if (item := as_mapping(raw))
+        }
         for raw in as_sequence(as_mapping(record["value"]).get("stack")):
             frame = dict(as_mapping(raw))
-            if frame.get("kind") == "repository":
-                return frame, record
+            expected = source_hashes.get(str(frame.get("path")))
+            if frame.get("kind") == "repository" and expected is not None:
+                return frame, expected
     return None
 
 

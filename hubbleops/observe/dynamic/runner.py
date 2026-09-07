@@ -137,11 +137,12 @@ def events_to_evidence(
     for event in batch.events:
         key = (str(event["service"]), str(event["method"]), str(event["version"]))
         mappings = () if candidate_ids is None else candidate_ids.get(key, ())
-        records.append(_production_evidence(event, ctx, observer, mappings))
+        stack_sources = _stack_sources(event, repository)
+        records.append(_production_evidence(event, ctx, observer, mappings, stack_sources))
         if allow_site_claims:
             frame = _repository_frame(event)
             if frame is not None:
-                records.extend(_site_evidence(event, frame, ctx, repository))
+                records.extend(_site_evidence(event, frame, ctx, repository, stack_sources))
     for issue in batch.issues:
         records.append(_issue_evidence(issue, ctx, observer))
     return records
@@ -152,6 +153,7 @@ def _production_evidence(
     ctx: ObserverContext,
     observer: str,
     candidate_ids: tuple[str, ...],
+    stack_sources: tuple[dict[str, str], ...],
 ) -> dict[str, Any]:
     value = {
         "event_hash": hashlib.sha256(canonical_bytes(event)).hexdigest(),
@@ -161,6 +163,7 @@ def _production_evidence(
         "service": event["service"],
         "version": event["version"],
         "stack": event["stack"],
+        "stack_sources": list(stack_sources),
         "candidate_ids": list(candidate_ids),
     }
     return make_evidence(
@@ -182,7 +185,11 @@ def _production_evidence(
 
 
 def _site_evidence(
-    event: dict[str, Any], frame: dict[str, Any], ctx: ObserverContext, repository: Path
+    event: dict[str, Any],
+    frame: dict[str, Any],
+    ctx: ObserverContext,
+    repository: Path,
+    stack_sources: tuple[dict[str, str], ...],
 ) -> list[dict[str, Any]]:
     relative = str(frame["path"])
     source = (repository.resolve() / PurePosixPath(relative)).resolve()
@@ -199,6 +206,7 @@ def _site_evidence(
         "mode": event.get("mode"),
         "service": event["service"],
         "stack": event["stack"],
+        "stack_sources": list(stack_sources),
     }
     records = [
         make_evidence(
@@ -238,6 +246,29 @@ def _site_evidence(
             )
         )
     return records
+
+
+def _stack_sources(event: dict[str, Any], repository: Path) -> tuple[dict[str, str], ...]:
+    root = repository.resolve()
+    sources: dict[str, str] = {}
+    for raw in as_sequence(event.get("stack")):
+        frame = as_mapping(raw)
+        if frame.get("kind") != "repository":
+            continue
+        relative = as_text(frame.get("path"))
+        if relative is None:
+            raise DynamicEventInvalid("repository stack frame has no source path")
+        source = (root / PurePosixPath(relative)).resolve()
+        try:
+            source.relative_to(root)
+        except ValueError as error:
+            raise DynamicEventInvalid(f"event stack path escapes repository: {relative}") from error
+        if not source.is_file():
+            raise DynamicEventInvalid(f"event stack source is missing: {relative}")
+        sources[relative] = hashlib.sha256(source.read_bytes()).hexdigest()
+    return tuple(
+        {"path": path, "source_hash": source_hash} for path, source_hash in sorted(sources.items())
+    )
 
 
 def _repository_frame(event: dict[str, Any]) -> dict[str, Any] | None:

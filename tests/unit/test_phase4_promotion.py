@@ -33,6 +33,7 @@ def observed(repository: Path) -> tuple[FakeStore, str]:
         "def observed_wrapper(version):\n    return version\n\nobserved_wrapper('v22')\n",
         encoding="utf-8",
     )
+    source_hash = hashlib.sha256(source.read_bytes()).hexdigest()
     evidence = {
         "confidence": "PROVEN",
         "derivation": "OBSERVED",
@@ -48,7 +49,8 @@ def observed(repository: Path) -> tuple[FakeStore, str]:
                     "line": 1,
                     "path": "wrapper.py",
                 }
-            ]
+            ],
+            "stack_sources": [{"path": "wrapper.py", "source_hash": source_hash}],
         },
     }
     candidate = {"evidence_ids": [evidence["id"]], "id": "c" * 64}
@@ -115,4 +117,11 @@ def test_promotion_rejects_missing_observed_repository_stack(tmp_path: Path) -> 
     store, candidate_id = observed(tmp_path)
     store.evidence["value"] = {"stack": []}
     with pytest.raises(promotion.PromotionInvalid, match="requires observed"):
+        promotion.promote(tmp_path, cast(Any, store), "r" * 64, candidate_id, revoke=False)
+
+
+def test_promotion_rejects_a_stack_source_hash_that_does_not_match(tmp_path: Path) -> None:
+    store, candidate_id = observed(tmp_path)
+    store.evidence["value"]["stack_sources"][0]["source_hash"] = "0" * 64
+    with pytest.raises(promotion.PromotionInvalid, match="PROMOTION_SOURCE_DRIFT"):
         promotion.promote(tmp_path, cast(Any, store), "r" * 64, candidate_id, revoke=False)

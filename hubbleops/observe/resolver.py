@@ -458,8 +458,13 @@ def _production_version(
             f"{location} is production-accounted but TELEMETRY_SITE_AMBIGUOUS across "
             f"{len(mappings)} source candidates"
         )
-    elif chosen["observer"] in ("dynamic", "sentinel"):
+    elif chosen["observer"] in ("dynamic", "sentinel") and not mappings:
         reason = f"OBSERVED_NOT_STATIC: {location} was observed by {chosen['observer']}"
+    elif chosen["observer"] in ("dynamic", "sentinel"):
+        reason = (
+            f"{location} was observed by {chosen['observer']} and maps to "
+            f"{len(mappings)} static candidate(s)"
+        )
     else:
         reason = f"production operation {location} is explained by observed evidence"
     return Resolution(

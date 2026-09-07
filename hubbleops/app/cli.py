@@ -442,7 +442,42 @@ def _capture_repository(
             *deps.scan(closure, ctx, resolution),
             *structure.scan(closure, ctx),
         ]
-        records.extend(dynamic.events_to_evidence(attempt.batch, ctx, target))
+        static_book = ledger.build(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            evidence=records,
+            closure=closure,
+        )
+        provisional = dynamic.events_to_evidence(attempt.batch, ctx, target)
+        provisional_book = ledger.build(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            evidence=(*records, *provisional),
+            closure=closure,
+        )
+        static_ids = {str(candidate["id"]) for candidate in static_book.candidates}
+        dynamic_mappings = {
+            (
+                str(event["service"]),
+                str(event["method"]),
+                str(event["version"]),
+            ): tuple(
+                candidate_id
+                for candidate_id in telemetry.candidate_ids(
+                    provisional_book,
+                    telemetry.ProductionTuple(
+                        str(event["service"]), str(event["method"]), str(event["version"])
+                    ),
+                )
+                if candidate_id in static_ids
+            )
+            for event in attempt.batch.events
+        }
+        records.extend(
+            dynamic.events_to_evidence(attempt.batch, ctx, target, candidate_ids=dynamic_mappings)
+        )
         observed_book = ledger.build(
             provider=pack.name,
             run_id=run_id,
@@ -457,11 +492,17 @@ def _capture_repository(
                         str(event["service"]),
                         str(event["method"]),
                         str(event["version"]),
-                    ): telemetry.candidate_ids(
-                        observed_book,
-                        telemetry.ProductionTuple(
-                            str(event["service"]), str(event["method"]), str(event["version"])
-                        ),
+                    ): tuple(
+                        candidate_id
+                        for candidate_id in telemetry.candidate_ids(
+                            observed_book,
+                            telemetry.ProductionTuple(
+                                str(event["service"]),
+                                str(event["method"]),
+                                str(event["version"]),
+                            ),
+                        )
+                        if candidate_id in static_ids
                     )
                     for event in imported.batch.events
                 }

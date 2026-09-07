@@ -15,14 +15,19 @@ from hubbleops_sentinel.wire import parse
 _original = http.client.HTTPConnection.request
 
 
-def _stack() -> list[dict[str, Any]]:
+def _stack(repository: Path) -> list[dict[str, Any]]:
     frames: list[dict[str, Any]] = []
-    captured = inspect.stack()[3:]
+    captured = inspect.stack()[2:]
     for frame in captured[:255]:
         path = Path(frame.filename).as_posix()
-        if "/workspace/" in path:
+        resolved = Path(frame.filename).resolve()
+        try:
+            relative = resolved.relative_to(repository)
+        except ValueError:
+            relative = None
+        if relative is not None:
             kind = "repository"
-            path = path.split("/workspace/", 1)[1]
+            path = relative.as_posix()
         elif "site-packages/" in path:
             kind = "dependency"
             path = "<dependency>/" + path.split("site-packages/", 1)[1]
@@ -48,8 +53,9 @@ def _stack() -> list[dict[str, Any]]:
 Request = Callable[..., None]
 
 
-def install(output: Path) -> Request:
+def install(output: Path, repository: Path) -> Request:
     destination = output.resolve()
+    root = repository.resolve()
 
     def request(
         connection: http.client.HTTPConnection,
@@ -68,7 +74,7 @@ def install(output: Path) -> Request:
                     **matched,
                     "request_text": text,
                     "request_type": "http",
-                    "stack": _stack(),
+                    "stack": _stack(root),
                     "ts": datetime.datetime.now(datetime.UTC)
                     .isoformat(timespec="microseconds")
                     .replace("+00:00", "Z"),

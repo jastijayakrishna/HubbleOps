@@ -3,12 +3,12 @@
   "versions": {
     "0.1.0": {
       "hook": {
-        "adapter_sha256": "ddbcdc0a2e28bdd881c39bd0a6ce24d706319d9f354ca5432bd589d705dc1685",
+        "adapter_sha256": "ecbcb8ec03a650e4580410a3ad9826b5dcf7e2c5cd041662d1484694e0c078aa",
         "corpus_sha256": "9088cccda5a1c4dbf41c7852009842baabe9dbdd6e06bdda1da306bf4cb09394",
         "schema_sha256": "7654b575f7b7626f6d4185a71ff0adc44265d43124ef883f3a9ed0307f2914f0"
       },
       "proxy": {
-        "adapter_sha256": "ddbcdc0a2e28bdd881c39bd0a6ce24d706319d9f354ca5432bd589d705dc1685",
+        "adapter_sha256": "ecbcb8ec03a650e4580410a3ad9826b5dcf7e2c5cd041662d1484694e0c078aa",
         "corpus_sha256": "9088cccda5a1c4dbf41c7852009842baabe9dbdd6e06bdda1da306bf4cb09394",
         "schema_sha256": "7654b575f7b7626f6d4185a71ff0adc44265d43124ef883f3a9ed0307f2914f0"
       }

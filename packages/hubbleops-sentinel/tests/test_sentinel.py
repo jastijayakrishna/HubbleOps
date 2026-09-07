@@ -57,6 +57,42 @@ def test_hook_installs_the_independent_adapter_and_restores_http_client(tmp_path
         "v24",
     )
     assert event["mode"] == "hook"
+    repository_frames = [frame for frame in event["stack"] if frame["kind"] == "repository"]
+    assert repository_frames
+    assert repository_frames[-1]["path"] == "app.py"
+
+
+def test_hook_accepts_an_explicit_repository_root(tmp_path: Path) -> None:
+    source = tmp_path / "src" / "app.py"
+    source.parent.mkdir()
+    source.write_text(
+        "import http.client\n"
+        "connection = http.client.HTTPConnection('127.0.0.1', 9, timeout=0.01)\n"
+        "try:\n"
+        "    connection.request('POST', "
+        "'/google.ads.googleads.v24.services.GoogleAdsService/Search')\n"
+        "except OSError:\n"
+        "    pass\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "events.jsonl"
+    assert (
+        main(
+            [
+                "hook",
+                "--input",
+                str(source),
+                "--output",
+                str(output),
+                "--repo-root",
+                str(tmp_path),
+            ]
+        )
+        == 0
+    )
+    event = json.loads(output.read_text("utf-8"))
+    repository_frames = [frame for frame in event["stack"] if frame["kind"] == "repository"]
+    assert repository_frames[-1]["path"] == "src/app.py"
 
 
 def test_both_modes_smoke_the_shipped_fixtures(tmp_path: Path) -> None:

@@ -36,11 +36,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("mode", choices=("hook", "proxy"), nargs="?", default="proxy")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--repo-root")
     parser.add_argument("--export-url")
     parser.add_argument("--timeout", type=float, default=5.0)
     args = parser.parse_args(argv)
     try:
-        events, issues = _read(Path(args.input), args.mode)
+        repository = None if args.repo_root is None else Path(args.repo_root)
+        events, issues = _read(Path(args.input), args.mode, repository)
         output = Path(args.output).resolve()
         payload = b"".join(canonical(event) + b"\n" for event in events)
         write_atomic(output, payload)
@@ -54,8 +56,10 @@ def main(argv: list[str] | None = None) -> int:
     return 5 if issues else 0
 
 
-def _read(path: Path, mode: str) -> tuple[list[dict[str, Any]], list[dict[str, object]]]:
-    data = _hook_data(path) if mode == "hook" else path.read_bytes()
+def _read(
+    path: Path, mode: str, repository: Path | None
+) -> tuple[list[dict[str, Any]], list[dict[str, object]]]:
+    data = _hook_data(path, repository) if mode == "hook" else path.read_bytes()
     if len(data) > MAX_INPUT_BYTES:
         raise EventInvalid("input exceeds byte bound")
     events: list[dict[str, Any]] = []
@@ -90,14 +94,22 @@ def _read(path: Path, mode: str) -> tuple[list[dict[str, Any]], list[dict[str, o
     return sorted(events, key=canonical), issues
 
 
-def _hook_data(path: Path) -> bytes:
+def _hook_data(path: Path, repository: Path | None) -> bytes:
     if path.suffix.casefold() != ".py":
         raise EventInvalid("hook input must be a Python application entrypoint")
+    source = path.resolve()
+    root = source.parent if repository is None else repository.resolve()
+    if not root.is_dir():
+        raise EventInvalid("hook repository root must be a directory")
+    try:
+        source.relative_to(root)
+    except ValueError as error:
+        raise EventInvalid("hook input must be inside the repository root") from error
     with tempfile.TemporaryDirectory(prefix="hubbleops-sentinel-") as temporary:
         events = Path(temporary) / "events.jsonl"
-        original = install(events)
+        original = install(events, root)
         try:
-            runpy.run_path(str(path.resolve()), run_name="__main__")
+            runpy.run_path(str(source), run_name="__main__")
         finally:
             uninstall(original)
         return events.read_bytes() if events.is_file() else b""

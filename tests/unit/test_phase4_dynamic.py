@@ -11,6 +11,7 @@ import pytest
 from hubbleops.app import capture, registry
 from hubbleops.core.canonical import content_id
 from hubbleops.core.observer import ObserverContext
+from hubbleops.observe import resolver
 from hubbleops.observe.dynamic.runner import (
     DynamicEventInvalid,
     EventBatch,
@@ -108,6 +109,24 @@ def test_dynamic_events_emit_production_and_source_bound_site_evidence(tmp_path:
     }
     site = next(record for record in records if record["path"] == "wrapper.py")
     assert site["source_hash"] == hashlib.sha256(source.read_bytes()).hexdigest()
+    production = next(record for record in records if record["path"] == ".")
+    assert production["value"]["stack_sources"] == [
+        {"path": "wrapper.py", "source_hash": site["source_hash"]}
+    ]
+
+
+def test_observed_not_static_is_reserved_for_an_unmapped_production_tuple(tmp_path: Path) -> None:
+    mapped = events_to_evidence(
+        EventBatch((normalize_event(event()),), ()),
+        context(),
+        tmp_path,
+        candidate_ids={("GoogleAdsService", "Search", "v22"): ("c" * 64,)},
+    )
+    explained = resolver.resolve_claim("production_version", mapped, {})
+    assert "OBSERVED_NOT_STATIC" not in explained.reason
+    unmapped = events_to_evidence(EventBatch((normalize_event(event()),), ()), context(), tmp_path)
+    observed_only = resolver.resolve_claim("production_version", unmapped, {})
+    assert "OBSERVED_NOT_STATIC" in observed_only.reason
 
 
 def test_sentinel_cannot_claim_a_static_site(tmp_path: Path) -> None:
