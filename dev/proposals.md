@@ -419,3 +419,64 @@ future advisory tool; keeping it unreachable preserves the option without wideni
 triage remains default-off, has no CLI or scan-pipeline path, and cannot write to the ledger or store.
 
 ---
+
+## P-010 — Local environment and run-output directories are accounted, not enumerated
+
+| | |
+|---|---|
+| **Raised** | 2026-09-07, Phase 4 |
+| **Touches** | `ProofScope.tree_hash` semantics (frozen schema unchanged; its input changes) |
+| **Status** | OPEN |
+
+**What forced this.** `source_closure.build` descended into every directory except `.git`, fully read
+and SHA-256'd every file it found, and only then classified the file as `VENDORED` and excluded it
+from scanning. Measured on this repository: 14,329 files probed, of which roughly 1,553 are source.
+`_probe` accounted for 41.7 s of a 49.4 s walk, and the walk was 80% of a 51.9 s scan. Two categories
+drove it. First, `.venv` and the tool caches — 6,609 files that git does not track, that `.gitignore`
+already excludes, and that every developer regenerates. Second, `.hubbleops/artifacts`, `toolchain`
+and `uv-cache` — HubbleOps's own run output, 5,590 entries, which means run *n+1* scans and hashes the
+artifacts of runs 1..*n*. On a customer repository that cost compounds with every scan.
+
+The proof consequence is worse than the latency. Because `tree_hash` is
+`content_id([[entry.path, entry.blob_sha] …])` over all entries, rebuilding a virtualenv or running a
+second scan changed `tree_hash`, therefore changed the ProofScope, therefore killed a Receipt that
+nothing about the repository's source had invalidated. A proof was bound to bytes that are not the
+repository.
+
+**What changes.** Two directory sets are pruned at the walk, not at classification:
+`ENVIRONMENT_DIRECTORIES` (`.venv`, `venv`, `virtualenv`, `__pycache__`, `.pytest_cache`,
+`.ruff_cache`, `.mypy_cache`, `.hypothesis`, `.tox`, `.nox`) and the run-output subdirectories under
+`.hubbleops/`. `.venv`, `venv` and `virtualenv` move out of `VENDOR_DIRECTORIES` into the new set.
+Each pruned directory still yields exactly one `ClosureEntry`, classified `UNSCANNED` with a precise
+reason, so it flows through `_closure_records` as `file_unscanned` evidence and the closure remains
+fully accounted: UNEXPLAINED stays 0. The entry's `blob_sha` is derived from its path, so a rebuilt
+environment no longer moves the ProofScope.
+
+`node_modules`, `vendor`, `third_party`, `site-packages`, `bower_components`, `Pods` and `.yarn`
+deliberately stay in `VENDOR_DIRECTORIES` and are still probed per file. They can be committed and
+can carry real provider usage; FA-015 already records the decision not to auto-dismiss third-party
+material. A bare `site-packages` outside a virtualenv is still hashed.
+
+**Blast radius.** `tree_hash` changes for any repository containing one of these directories, so
+ProofScope, run ids and Receipts change with it. This is the designed invalidation path and it is
+automatic: `scanner_version` carries `scanner_fingerprint(OBSERVATION_SOURCES)`, which hashes every
+`.py` in the package, so editing `source_closure.py` already moves the scope. No stored proof is
+silently reinterpreted; each is superseded. The Phase 2/3/4 real-repo loop numbers were taken on
+repositories with no dependencies installed and no `.hubbleops/` present, so the recorded candidate,
+evidence and UNKNOWN counts are unaffected and stay comparable.
+
+**Alternatives rejected, and why.** Keep probing but skip hashing for excluded files — still opens
+and reads every file, and still changes `tree_hash`, so it pays the cost without the benefit. Prune
+`node_modules` and `vendor` too — larger win, but a committed vendored client library is exactly
+where provider usage hides; refused on FA-015 grounds. Add a stat-based `(size, mtime)` probe cache —
+faster still, but mtime is not content, and a cache that can lie about a file's identity is a
+proof-affecting shortcut; refused under L7, memory may reduce work, never proof. Derive the closure
+from `git ls-files` — free exclusion of everything untracked, but untracked-yet-present files would
+vanish from the closure entirely, which is precisely the silent absence the closure exists to prevent.
+
+**Decision.** Pending repository-owner decision. The code change is implemented and covered by
+`test_environment_directories_are_accounted_but_never_enumerated`,
+`test_run_output_under_the_state_directory_is_accounted_but_not_enumerated`, and
+`test_excluded_directory_identity_does_not_depend_on_its_contents`.
+
+---
