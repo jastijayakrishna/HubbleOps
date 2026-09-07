@@ -1,10 +1,43 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Any, cast
 
 EMPTY_MAPPING: Mapping[str, Any] = {}
 EMPTY_SEQUENCE: Sequence[Any] = ()
+
+MAX_JSON_BYTES = 16_777_216
+
+
+@dataclass(frozen=True, slots=True)
+class ParsedJson:
+    value: Any
+    reason: str | None
+
+    def ok(self) -> bool:
+        return self.reason is None
+
+
+def parse_json(payload: bytes | str, maximum: int = MAX_JSON_BYTES) -> ParsedJson:
+    size = len(payload)
+    if size > maximum:
+        return ParsedJson(None, f"oversize: {size} exceeds the {maximum} byte parse bound")
+    text = payload
+    if isinstance(text, bytes):
+        try:
+            text = text.decode("utf-8")
+        except UnicodeDecodeError as error:
+            return ParsedJson(None, f"not_utf8: {error.reason} at byte {error.start}")
+    try:
+        return ParsedJson(json.loads(text), None)
+    except json.JSONDecodeError as error:
+        return ParsedJson(
+            None, f"invalid_json: {error.msg} (line {error.lineno} column {error.colno})"
+        )
+    except RecursionError:
+        return ParsedJson(None, "invalid_json: nesting depth exceeds the parser bound")
 
 
 def is_mapping(value: Any) -> bool:

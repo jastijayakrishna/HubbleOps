@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +8,7 @@ from typing import cast
 
 from hubbleops.core.canonical import content_id
 from hubbleops.core.errors import HubbleOpsError
+from hubbleops.core.records import parse_json
 
 ATTESTATION_FILENAME = "install.jsonl"
 ATTESTATION_CONTAINER_PATH = f"/hops/output/{ATTESTATION_FILENAME}"
@@ -71,10 +71,10 @@ def attested(data: bytes, nonce: str) -> bool:
     for line in data.splitlines():
         if not line.strip():
             continue
-        try:
-            record = json.loads(line)
-        except (json.JSONDecodeError, UnicodeDecodeError):
+        parsed = parse_json(line)
+        if not parsed.ok():
             continue
+        record = parsed.value
         if isinstance(record, dict) and cast(dict[str, object], record).get("nonce") == nonce:
             return True
     return False
