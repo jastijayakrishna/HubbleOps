@@ -7,15 +7,16 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from functools import cache
 from pathlib import Path, PurePosixPath
-from typing import Any, cast
-
-from jsonschema import Draft202012Validator, FormatChecker
+from typing import TYPE_CHECKING, Any, cast
 
 from hubbleops.core.canonical import EMPTY_SHA256, canonical_bytes
 from hubbleops.core.errors import HubbleOpsError
 from hubbleops.core.evidence import make_evidence
 from hubbleops.core.observer import ObserverContext
-from hubbleops.core.records import as_mapping, as_sequence, as_text
+from hubbleops.core.records import as_mapping, as_sequence, as_text, parse_json
+
+if TYPE_CHECKING:
+    from jsonschema import Draft202012Validator
 
 SCHEMA_PATH = Path(__file__).parent / "schema.json"
 MAX_EVENT_FILE_BYTES = 16_777_216
@@ -54,8 +55,11 @@ def event_schema_hash() -> str:
 
 @cache
 def _validator() -> Draft202012Validator:
+    from jsonschema import Draft202012Validator as ValidatorImpl
+    from jsonschema import FormatChecker
+
     document: dict[str, Any] = json.loads(event_schema_bytes())
-    return Draft202012Validator(document, format_checker=FormatChecker())
+    return ValidatorImpl(document, format_checker=FormatChecker())
 
 
 def normalize_event(value: object) -> dict[str, Any]:
@@ -109,10 +113,13 @@ def events_from_jsonl(data: bytes) -> EventBatch:
         if len(events) >= MAX_EVENTS:
             issues.append(EventIssue("EVENT_COUNT_LIMIT", row, "event count exceeds bound"))
             break
+        parsed = parse_json(line)
+        if not parsed.ok():
+            issues.append(EventIssue("EVENT_INVALID", row, str(parsed.reason)))
+            continue
         try:
-            raw = json.loads(line)
-            event = normalize_event(raw)
-        except (json.JSONDecodeError, UnicodeDecodeError, DynamicEventInvalid) as error:
+            event = normalize_event(parsed.value)
+        except DynamicEventInvalid as error:
             issues.append(EventIssue("EVENT_INVALID", row, str(error)))
             continue
         if any(as_mapping(frame).get("kind") == "truncation" for frame in event["stack"]):

@@ -3,33 +3,39 @@ from __future__ import annotations
 import json
 from functools import cache
 from pathlib import Path
-from typing import Any
-
-from jsonschema import Draft202012Validator
-from referencing import Registry, Resource
+from typing import TYPE_CHECKING, Any
 
 from hubbleops.core.errors import SchemaViolation
+
+if TYPE_CHECKING:
+    from jsonschema import Draft202012Validator
+    from referencing import Registry
 
 SCHEMA_DIR = Path(__file__).parent / "schemas"
 
 
 @cache
 def _registry() -> Registry[Any]:
-    resources: list[tuple[str, Resource[Any]]] = []
+    from referencing import Registry as RegistryImpl
+    from referencing import Resource as ResourceImpl
+
+    resources: list[tuple[str, Any]] = []
     for path in sorted(SCHEMA_DIR.glob("*.json")):
         document: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
-        resources.append((str(document["$id"]), Resource.from_contents(document)))
-    registry: Registry[Any] = Registry()
+        resources.append((str(document["$id"]), ResourceImpl.from_contents(document)))
+    registry: Registry[Any] = RegistryImpl()
     return registry.with_resources(resources)
 
 
 @cache
 def validator_for(name: str) -> Draft202012Validator:
+    from jsonschema import Draft202012Validator as ValidatorImpl
+
     path = SCHEMA_DIR / f"{name}.json"
     if not path.is_file():
         raise SchemaViolation(f"no frozen schema named {name!r} in {SCHEMA_DIR}")
     document: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
-    return Draft202012Validator(document, registry=_registry())
+    return ValidatorImpl(document, registry=_registry())
 
 
 def validate(name: str, record: dict[str, Any]) -> dict[str, Any]:
