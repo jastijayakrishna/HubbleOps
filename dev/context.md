@@ -7,10 +7,10 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 4 implemented and real-repo loop complete; two fresh gates found seven total gaps, all repaired, and a new final fresh gate is pending |
-| **Branch** | `phase-04-dynamic-capture-and-sentinel`, cut from `main` at `v0.3` |
-| **Last gate passed** | Phase 3. The post-real-repo-loop fresh audit returned literal `GATE: PASS` |
-| **Next action** | Run the final fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on the post-loop tree. Only a literal `GATE: PASS` permits merging and tagging `v0.4`. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
+| **Current phase** | 4 complete: implementation, repeated real-repo loop, final fresh gate, local merge, and `v0.4` |
+| **Branch** | `main` at local tag `v0.4`; Phase 4 branch retained |
+| **Last gate passed** | Phase 4. The final post-repair fresh audit on `e408545` returned literal `GATE: PASS` |
+| **Next action** | Begin Phase 5 only from an outcome-driven plan and fresh plan review. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
 
 Phase 4 progress (2026-09-07): the sandbox (runner, image, limits, network, mounts, capture worktree,
 proxy, verifier image), the versioned dynamic event schema with generic Python/PHP/Node loaders,
@@ -81,7 +81,9 @@ bounded process runner and includes it in successful `git-commands.jsonl`. Any l
 persists a content-addressed failure directory containing hash-bound Git, engine, and proxy JSONL
 transcripts plus the exact request and bounded error manifest; the raised error identifies that
 directory. Missing-engine and dirty-repository attacks prove both failure paths persist before they
-fail closed. A new fresh gate is still required on these post-audit bytes.
+fail closed. The final fresh audit on these bytes returned literal `GATE: PASS`: 430 tests with one
+future-phase skip, 33 live runtime integrations, every literal plan command, isolated sentinel
+build/install/smokes, five Law attacks, static quality checks, and the repeated real-repo loop passed.
 
 The Phase 4 real-repo loop ran `scan`, `exposure` and `capture` read-only at the pinned commits.
 Static results are unchanged from Phase 3, so nothing Phase 4 added altered what a scan finds:
@@ -273,9 +275,7 @@ unscannable `rg` hit is preserved as evidence.
 
 ## Blocking
 
-- The Phase 4 real-repo loop is complete. Two fresh audits failed and every reported gap is repaired,
-  but no Phase 4 gate has passed yet; nothing may merge to `main` until a new fresh auditor returns
-  literal `GATE: PASS`.
+- Nothing blocks completed Phase 4; its final fresh audit returned literal `GATE: PASS`.
 - Nothing blocks the completed Phase 3 gate. `ast-grep` 0.45.0 is installed and its identity is
   proof-bound.
 - Podman 4.9.3 runs rootless in Ubuntu WSL and is the only eligible capture engine; the host's
@@ -483,8 +483,7 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
 
 ## Open threads
 
-- Phase 4 needs one new fresh gate audit of the repaired post-loop tree. Only literal `GATE: PASS`
-  permits the local merge and `v0.4` tag; pushing remains unauthorized.
+- Phase 4 is complete and tagged locally as `v0.4`; nothing was pushed.
 - P-009 must be decided before AI triage is operationally connected; no Phase 3 or Phase 4 runtime
   path reaches it.
 - The Exposure Map production-services line is live: it prints `N/M` once a telemetry or sentinel

@@ -24,14 +24,16 @@ Updated before every session ends. Phase-level status lives in
       both captures failed closed on absent dependencies with zero unexplained candidates. Found
       FA-014 (a read-only worktree metadata directory left state inside a prospect repository) and
       recorded FA-015 (package-manager egress is correctly denied and named)
-- [ ] Run the repaired tree through a new fresh-session
+- [x] Run the repaired tree through a new fresh-session
       [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4. The first completed audit's
       five findings are repaired. The next audit passed all executable checks but returned
       `GATE: FAIL` because preflight `git status` bypassed the transcript and setup-failure records
       were discarded with the temporary attempt. Preflight Git is now bounded and transcripted;
-      failures persist hash-bound Git/engine/proxy records plus their request and error manifest
-- [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4`, only after a literal
-      `GATE: PASS`
+      failures persist hash-bound Git/engine/proxy records plus their request and error manifest.
+      The final fresh audit on `e408545` returned literal `GATE: PASS`: 430 tests, all 33 runtime
+      integrations, standalone package checks, Law attacks, and the repeated real-repo loop passed
+- [x] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4` locally after the
+      literal `GATE: PASS`; do not push
 
 - [x] Owner accepted P-008: correct frozen P-006 so Google Ads endpoint versions come from the
       gRPC/REST request target, while `x-goog-api-client` remains metadata and ambiguity emits a
@@ -109,7 +111,7 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 1 — scan + exposure + ledger *(fresh final audit: `GATE: PASS`)*
 - [x] Phase 2 — Google Ads pack + Change Pack version lattice *(fresh `GATE: PASS`; first real-repo loop complete)*
 - [x] Phase 3 — wrapper engine *(post-loop fresh `GATE: PASS`; FA-010 closed)*
-- [ ] Phase 4 — dynamic capture + sentinel *(implemented; real-repo loop complete; final gate pending)*
+- [x] Phase 4 — dynamic capture + sentinel *(post-loop fresh `GATE: PASS`; local `v0.4`)*
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard
