@@ -4,7 +4,8 @@ import argparse
 import hashlib
 import sys
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -15,6 +16,7 @@ import yaml
 from hubbleops import __version__
 from hubbleops.app import capture, exposure, promotion, registry
 from hubbleops.closure import source_closure
+from hubbleops.core import runlog
 from hubbleops.core.canonical import canonical_bytes, content_id, export_bytes
 from hubbleops.core.errors import HubbleOpsError, ToolingFailed, ToolingMissing, ToolingTimeout
 from hubbleops.core.observer import ObserverContext, StructuralRule
@@ -45,6 +47,7 @@ EXIT_UNKNOWN = 5
 def main(argv: list[str] | None = None) -> int:
     _use_utf8(sys.stdout)
     _use_utf8(sys.stderr)
+    runlog.configure()
     parser = _parser()
     args = parser.parse_args(argv)
     try:
@@ -171,6 +174,34 @@ class CaptureResult:
     inputs: tuple[capture.ProductionInput, ...]
 
 
+def _observe(
+    log: runlog.RunLogger, name: str, run: Callable[[], list[dict[str, Any]]]
+) -> list[dict[str, Any]]:
+    with log.stage("observer", observer=name) as fields:
+        records = run()
+        fields["records"] = len(records)
+        return records
+
+
+def _observe_all(
+    closure: source_closure.SourceClosure,
+    ctx: ObserverContext,
+    resolution: deps.DependencyResolution,
+    run_id: str,
+) -> list[dict[str, Any]]:
+    log = runlog.logger("scan", run_id)
+    with log.stage("observers") as totals:
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = [
+                pool.submit(_observe, log, "text", lambda: text.scan(closure, ctx)),
+                pool.submit(_observe, log, "deps", lambda: deps.scan(closure, ctx, resolution)),
+                pool.submit(_observe, log, "structure", lambda: structure.scan(closure, ctx)),
+            ]
+            records = [record for future in futures for record in future.result()]
+        totals["records"] = len(records)
+    return records
+
+
 def scan_repository(
     target: Path,
     pack: registry.LoadedPack,
@@ -179,8 +210,12 @@ def scan_repository(
     ast_grep_executable: str = "ast-grep",
 ) -> ScanResult:
     resolved = target.resolve()
-    closure = source_closure.build(resolved)
-    resolution = deps.resolve(closure)
+    boot = runlog.logger("scan")
+    with boot.stage("source_closure", target=str(resolved)) as counts:
+        closure = source_closure.build(resolved)
+        counts["entries"] = len(closure.entries)
+    with boot.stage("dependency_resolution"):
+        resolution = deps.resolve(closure)
     with tempfile.TemporaryDirectory(prefix="hops-promoted-rules-") as temporary:
         rules = (*_structural_rules(pack), *promotion.materialize_active(resolved, Path(temporary)))
         try:
@@ -218,11 +253,7 @@ def scan_repository(
             ast_grep_executable=ast_grep_executable,
             force_structure=force,
         )
-        records = [
-            *text.scan(closure, ctx),
-            *deps.scan(closure, ctx, resolution),
-            *structure.scan(closure, ctx),
-        ]
+        records = _observe_all(closure, ctx, resolution, run_id)
         book = ledger.build(
             provider=pack.name,
             run_id=run_id,
@@ -437,11 +468,7 @@ def _capture_repository(
             ast_grep_executable=ast_grep_executable,
             force_structure=force,
         )
-        records = [
-            *text.scan(closure, ctx),
-            *deps.scan(closure, ctx, resolution),
-            *structure.scan(closure, ctx),
-        ]
+        records = _observe_all(closure, ctx, resolution, run_id)
         static_book = ledger.build(
             provider=pack.name,
             run_id=run_id,
