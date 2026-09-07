@@ -38,6 +38,7 @@ from hubbleops.core.schema import validate
 
 DATABASE_FILENAME = "hubbleops.sqlite"
 SCHEMA_VERSION = 1
+BUSY_TIMEOUT_MILLISECONDS = 30_000
 
 TABLE_NAMES = frozenset({"runs", "evidence", "candidates", "obligations", "checks", "artifacts"})
 
@@ -152,6 +153,7 @@ class Store:
         self.connection.execute("PRAGMA journal_mode=WAL")
         self.connection.execute("PRAGMA foreign_keys=ON")
         self.connection.execute("PRAGMA synchronous=FULL")
+        self.connection.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_MILLISECONDS}")
         self._guard_schema_version()
         for statement in SCHEMA_STATEMENTS:
             self.connection.execute(statement)
