@@ -19,9 +19,17 @@ Updated before every session ends. Phase-level status lives in
       chain, the same fixture in proxy mode producing an equivalent candidate, a deliberately
       unmatched telemetry tuple, the sentinel installed from its wheel and smoked in both modes, a
       promotion round trip, and `test_no_provider_leak` over `observe/dynamic`
-- [ ] Run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4
-- [ ] Run the Phase 4 [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) — now including
-      `hops capture` — then rerun the fresh gate on the post-loop tree
+- [x] Run the Phase 4 [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) including
+      `hops capture`. Static results are unchanged from Phase 3 on both pinned repositories and
+      both captures failed closed on absent dependencies with zero unexplained candidates. Found
+      FA-014 (a read-only worktree metadata directory left state inside a prospect repository) and
+      recorded FA-015 (package-manager egress is correctly denied and named)
+- [ ] Run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4. The
+      first attempt ended early on a session rate limit before reaching a verdict, so no gate has
+      been claimed. The mechanical checks were run directly in the meantime: the suite is green,
+      the only comments in Phase 4 code are three tool-demanded `# noqa`, there are no docstrings
+      or new `.md` files, and each of L1, L3, L4, L10 and the sentinel site-claim boundary was
+      attacked and refused with a typed error
 - [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4`, only after a literal
       `GATE: PASS`
 

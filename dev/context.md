@@ -48,6 +48,31 @@ listening line was invisible; the PHP loader mount exposed all of `observe/dynam
 and the CA copy was written into a directory the proxy container had mounted read-write; and the
 provider-leak scan did not read the `.ini`, `.cjs` or `.php` asset types Phase 4 introduced.
 
+The Phase 4 real-repo loop ran `scan`, `exposure` and `capture` read-only at the pinned commits.
+Static results are unchanged from Phase 3, so nothing Phase 4 added altered what a scan finds:
+`mcp-google-ads` again produced 422 candidates, 9 AFFECTED, 413 preserved UNKNOWNs and 434 evidence
+records; `google-ads-api` again produced 2,471 candidates, 3 AFFECTED, 2,066 evidence-backed
+exclusions, 402 preserved UNKNOWNs and 2,488 evidence records. Both remain at zero unexplained.
+
+`capture` is new and behaved as the plan requires. Neither repository has its dependencies
+installed and none were installed, so both runs ended `CAPTURE_EXECUTION_FAILED` with the missing
+imports preserved in the stderr artifact — never a reason to enable network. `google-ads-api`
+additionally proved the egress policy against a real package manager: `npm test` reached for
+`registry.npmjs.org`, the deny-all proxy observed and denied it (`DESTINATION_NOT_ALLOWLISTED`),
+and because it is not provider traffic it became a named `UNKNOWN_WIRE_SIGNATURE` rather than a
+dropped record. Zero unexplained candidates in both captures. No prospect repository was modified,
+verified after every run.
+
+The loop found one defect, FA-014: Git refuses to delete its own worktree metadata when that
+directory carries the read-only attribute, so the first capture left state inside a repository we
+promise not to touch, and the second failed closed rather than leaving it. `shutil.rmtree` with
+`ignore_errors=True` was hiding the read-only case that `rm -rf` handles. Removal now retries,
+clears the attribute, prunes, and still fails closed if the metadata does not return to its prior
+state; the attestation records `recovered`. It fired on both pinned repositories, so it is
+load-bearing. FA-015 records the package-manager egress pattern as a deliberate PRESERVED UNKNOWN:
+dismissing non-provider hosts automatically was rejected, because an incomplete pack host list
+would then hide real usage.
+
 Phase 3 progress (2026-09-06): the provider-neutral structural observer, deterministic import/symbol
 graph, five-hop wrapper walk, inheritance/decorator/factory/registry propagation, query skeletons,
 cross-service boundaries, fail-closed per-file coverage, Google Ads Python/PHP/JavaScript/TypeScript
