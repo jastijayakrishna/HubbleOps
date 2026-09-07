@@ -9,7 +9,29 @@ from tests.support import (
     PACKAGE_ROOT,
     PHASE_ONE_LAYERS,
     generic_layer_dirs,
+    import_cycles,
+    internal_imports,
+    module_layer,
     python_sources,
+)
+
+VOCABULARY_LAYERS = frozenset({"core"})
+
+TOLERATED_DEEP_IMPORTS = frozenset(
+    {
+        "app -> hubbleops.graph.imports",
+        "app -> hubbleops.observe.deps",
+        "app -> hubbleops.observe.dynamic",
+        "app -> hubbleops.observe.dynamic.loaders",
+        "app -> hubbleops.observe.dynamic.runner",
+        "app -> hubbleops.observe.ledger",
+        "app -> hubbleops.observe.telemetry",
+        "app -> hubbleops.packs._protocol",
+        "app -> hubbleops.store.artifacts",
+        "app -> hubbleops.store.sqlite",
+        "observe -> hubbleops.closure.source_closure",
+        "observe -> hubbleops.graph.imports",
+    }
 )
 
 FORBIDDEN_PREFIXES = ("hubbleops.packs", "packs", "hubbleops.repair", "repair")
@@ -84,6 +106,39 @@ def test_app_is_the_only_importer_of_packs() -> None:
             if module == "hubbleops.packs" or module.startswith("hubbleops.packs."):
                 importers.add(relative.parts[0])
     assert importers <= {"app"}, f"only app/ may import packs/, found: {sorted(importers)}"
+
+
+def test_layer_imports_form_an_acyclic_graph() -> None:
+    cycles = import_cycles()
+    assert cycles == [], f"layers must stay acyclic, found: {[' -> '.join(c) for c in cycles]}"
+
+
+def test_cross_layer_imports_address_a_layer_surface() -> None:
+    offences: list[str] = []
+    for origin, module, source in internal_imports():
+        target = module_layer(module)
+        if target is None or target in VOCABULARY_LAYERS:
+            continue
+        if len(module.split(".")) <= 2:
+            continue
+        edge = f"{origin} -> {module}"
+        if edge in TOLERATED_DEEP_IMPORTS:
+            continue
+        offences.append(f"{source.relative_to(PACKAGE_ROOT.parent)} imports {module}")
+    assert offences == [], (
+        "cross-layer imports address the layer package, not its internals; "
+        f"add a re-export to that layer's __init__.py instead: {offences}"
+    )
+
+
+def test_the_tolerated_deep_import_list_never_grows_stale() -> None:
+    present = {
+        f"{origin} -> {module}"
+        for origin, module, _ in internal_imports()
+        if module_layer(module) not in VOCABULARY_LAYERS and len(module.split(".")) > 2
+    }
+    stale = sorted(TOLERATED_DEEP_IMPORTS - present)
+    assert stale == [], f"these deep imports are gone; delete them from the list: {stale}"
 
 
 def test_generic_layers_never_name_a_pack_path() -> None:
