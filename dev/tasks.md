@@ -24,11 +24,13 @@ Updated before every session ends. Phase-level status lives in
       both captures failed closed on absent dependencies with zero unexplained candidates. Found
       FA-014 (a read-only worktree metadata directory left state inside a prospect repository) and
       recorded FA-015 (package-manager egress is correctly denied and named)
-- [ ] Run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4. The
-      first attempt ended early on a session rate limit before reaching a verdict, so no gate has
-      been claimed. The builder audit then closed proxy rlimit attestation, explicit cross-language
-      stack truncation, sidecar hash validation, and bounded failed-input retention gaps; all 31
-      real-runtime probes pass on the post-loop tree
+- [ ] Run the repaired tree through a new fresh-session
+      [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4. The first completed audit
+      returned `GATE: FAIL`: promotion trusted an unbound source hash, the private TLS fixture was
+      unreachable, standalone hook stacks assumed `/workspace`, mapped observations used an
+      unmatched reason, and Git/proxy/engine subprocess transcripts were incomplete. All five are
+      repaired; 396 repository tests, 31 real-runtime probes, 12 standalone sentinel tests, both
+      installed-wheel smokes, Ruff, formatting, and strict Pyright now pass
 - [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4`, only after a literal
       `GATE: PASS`
 

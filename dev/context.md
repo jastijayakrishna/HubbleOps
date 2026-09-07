@@ -7,7 +7,7 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 4 implemented, real-repo loop complete, and post-loop audit hardening green; the final fresh gate is pending |
+| **Current phase** | 4 implemented and real-repo loop complete; the first fresh gate failed, its five findings are repaired, and a new final fresh gate is pending |
 | **Branch** | `phase-04-dynamic-capture-and-sentinel`, cut from `main` at `v0.3` |
 | **Last gate passed** | Phase 3. The post-real-repo-loop fresh audit returned literal `GATE: PASS` |
 | **Next action** | Run the final fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on the post-loop tree. Only a literal `GATE: PASS` permits merging and tagging `v0.4`. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
@@ -56,6 +56,21 @@ all retain an explicit truncation frame, and sentinel import preserves that obse
 corpus hashes—not only local pack bytes—to the pack-owned compatibility contract, checks the declared
 limits, reads inputs with hard bounds, and retains bounded copies of both inputs on failure. The
 real-runtime sandbox and capture suites pass all 31 probes after these changes.
+
+The first completed independent post-loop audit returned `GATE: FAIL` on five concrete gaps. A
+production evidence row could carry the placeholder path `.` and bypass a current-source hash check;
+promotion now requires a repository stack frame whose captured path and source hash match the live
+file. The proxy test allowlisted a public name but never proved a reachable private TLS exception;
+the integration fixture now runs a separate self-signed HTTPS service on the isolated egress network,
+binds its actual container, network, address, hostname, and port into the execution manifest, and
+permits only that exact tuple. The standalone hook recognized repository frames only below literal
+`/workspace`; it now derives paths from an explicit confined repository root. Dynamic and sentinel
+observations now use `OBSERVED_NOT_STATIC` only when no static candidate maps. Finally, Git, engine,
+and proxy invocations join workload invocations in bounded JSONL transcripts with exact argv,
+duration, exit, outcome, and hashed/truncated stdout and stderr. The repaired tree passes 396 tests
+with 33 expected sandbox/environment skips, all 31 separately executed rootless runtime probes, 76
+focused tests with one environment skip, 12 independent sentinel tests, both isolated-wheel command
+smokes, Ruff, formatting over 148 files, strict Pyright, and diff checks.
 
 The Phase 4 real-repo loop ran `scan`, `exposure` and `capture` read-only at the pinned commits.
 Static results are unchanged from Phase 3, so nothing Phase 4 added altered what a scan finds:
@@ -247,8 +262,9 @@ unscannable `rg` hit is preserved as evidence.
 
 ## Blocking
 
-- The Phase 4 gate audit and real-repo loop have not been run. Implementation is complete and the
-  suite is green, but no Phase 4 gate has passed and nothing may merge to `main` until one does.
+- The Phase 4 real-repo loop is complete. The first completed fresh audit failed and every reported
+  gap is repaired, but no Phase 4 gate has passed yet; nothing may merge to `main` until a new fresh
+  auditor returns literal `GATE: PASS`.
 - Nothing blocks the completed Phase 3 gate. `ast-grep` 0.45.0 is installed and its identity is
   proof-bound.
 - Podman 4.9.3 runs rootless in Ubuntu WSL and is the only eligible capture engine; the host's
@@ -291,6 +307,14 @@ unscannable `rg` hit is preserved as evidence.
   Python entrypoint to run, not a JSONL file, so the fixture is
   `tests/fixtures/phase4/inputs/sentinel_hook_app.py`. Phase 4 fixtures are split into `repo/`
   (the capture target, which must stay clean for `_require_clean`) and `inputs/` (command inputs).
+- Dynamic and sentinel promotion provenance is source-bound at observation time. A repository frame
+  without a captured source hash is not promotion evidence, and source drift invalidates promotion.
+- Private destinations stay denied except for the test-only fixture object supplied directly to the
+  capture API. The public CLI cannot declare an exception, and the actual fixture identity is bound
+  into the execution manifest.
+- Every Git, engine, proxy, and workload subprocess has a bounded, hash-preserving transcript in the
+  run artifacts. A truncated rendering retains the hash and byte size of the captured stream, and
+  missing-tool and timeout outcomes are recorded before they fail closed.
 
 **Phase-3 completion decisions (2026-09-06).** Structural language differences live in pack-owned
 ast-grep rules; the generic graph consumes neutral captured facts and contains no provider knowledge.
@@ -447,10 +471,8 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
 
 ## Open threads
 
-- Phase 4 needs its fresh gate audit and real-repo loop. The loop must run `scan`, `exposure` and
-  `capture` on the two pinned public repositories under `.hubbleops/artifacts/phase2-real-repos/`,
-  with a deny-all network, no credentials and no dependency installation; a missing offline
-  dependency is a `CAPTURE_EXECUTION_FAILED` UNKNOWN, never a reason to enable network.
+- Phase 4 needs one new fresh gate audit of the repaired post-loop tree. Only literal `GATE: PASS`
+  permits the local merge and `v0.4` tag; pushing remains unauthorized.
 - P-009 must be decided before AI triage is operationally connected; no Phase 3 or Phase 4 runtime
   path reaches it.
 - The Exposure Map production-services line is live: it prints `N/M` once a telemetry or sentinel

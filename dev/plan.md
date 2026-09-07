@@ -408,19 +408,20 @@ wsl.exe -d Ubuntu -- sh -ceu 'test "$(podman info --format "{{.Host.Security.Roo
 wsl.exe -d Ubuntu -- podman run --rm --user 65532:65532 --cap-drop=all --security-opt=no-new-privileges --network=none --read-only --tmpfs /tmp:rw,noexec,nosuid,nodev,size=16m docker.io/library/alpine@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce sh -ceu "ulimit -t 2; ulimit -v 131072; ulimit -u 64; ulimit -n 64; ulimit -f 128; id; test ! -w /"
 wsl.exe -d Ubuntu -- podman run --rm --user 1000:1000 --cap-drop=all --security-opt=no-new-privileges --network=none --read-only --tmpfs /tmp:rw,noexec,nosuid,nodev,size=16m --tmpfs /home/mitmproxy/.mitmproxy:rw,noexec,nosuid,nodev,size=16m --entrypoint /usr/local/bin/mitmdump docker.io/mitmproxy/mitmproxy@sha256:00b77b5d8804c8ad18cb6caefbf9d5849e895e8986c5ce011f4ae30f4385962f --version
 uv run pytest -q
-uv run pytest -q tests/unit/test_sandbox_*.py tests/unit/test_dynamic*.py tests/unit/test_telemetry.py
-uv run pytest -q tests/integration/test_sandbox_runtime.py -k "rootless or cpu_limit or memory_limit or process_limit or file_descriptor_limit or file_size_limit or wall_timeout or output_limit or environment or mount or network"
-uv run pytest -q tests/integration/test_capture_*.py tests/integration/test_promotion.py
+uv run pytest -q tests/unit/test_phase4_sandbox.py tests/unit/test_phase4_dynamic.py tests/unit/test_telemetry.py
+uv run pytest -q tests/integration/test_phase4_capture.py tests/integration/test_sandbox_runtime.py
+uv run pytest -q tests/unit/test_phase4_promotion.py
 uv run pytest -q tests/property/test_phase4_*.py
 uv run pytest -q tests/unit/test_imports.py tests/unit/test_no_provider_leak.py
 uv run ruff check .
 uv run ruff format --check .
 uv run pyright
+uv run --package hubbleops-sentinel pytest -c pyproject.toml --override-ini="testpaths=packages/hubbleops-sentinel/tests" --override-ini="pythonpath=packages/hubbleops-sentinel/src" packages/hubbleops-sentinel/tests -q
 uv build --package hubbleops-sentinel --out-dir .hubbleops/artifacts/phase4-sentinel-dist
 uv venv --seed --clear .hubbleops/artifacts/phase4-sentinel-venv
 uv pip install --python .hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe --no-deps .hubbleops/artifacts/phase4-sentinel-dist/hubbleops_sentinel-0.1.0-py3-none-any.whl
-.hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe -I -m hubbleops_sentinel hook --input tests/fixtures/phase4/sentinel_hook_input.jsonl --output .hubbleops/artifacts/phase4-sentinel-hook.jsonl
-.hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe -I -m hubbleops_sentinel proxy --input tests/fixtures/phase4/sentinel_proxy_input.jsonl --output .hubbleops/artifacts/phase4-sentinel-proxy.jsonl
+.hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe -I -m hubbleops_sentinel hook --input tests/fixtures/phase4/inputs/sentinel_hook_app.py --output .hubbleops/artifacts/phase4-sentinel-hook.jsonl
+.hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe -I -m hubbleops_sentinel proxy --input tests/fixtures/phase4/inputs/sentinel_proxy_input.jsonl --output .hubbleops/artifacts/phase4-sentinel-proxy.jsonl
 git diff --check
 ```
 
