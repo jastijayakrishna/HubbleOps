@@ -231,9 +231,7 @@ def execute(
 
 
 def telemetry_input(path: Path, pack: LoadedPack) -> ProductionInput:
-    data = path.resolve().read_bytes()
-    if len(data) > MAX_EVENT_FILE_BYTES:
-        raise CaptureInvalid("telemetry input exceeds byte bound")
+    data = _bounded_input(path, MAX_EVENT_FILE_BYTES, "telemetry input")
     parsed = pack.telemetry.parse(data.decode("utf-8"))
     observations = tuple(
         ProductionTuple(item.service, item.method, item.version) for item in parsed.observations
@@ -261,12 +259,8 @@ def telemetry_input(path: Path, pack: LoadedPack) -> ProductionInput:
 
 
 def sentinel_input(events_path: Path, manifest_path: Path, pack: LoadedPack) -> ProductionInput:
-    events_data = events_path.resolve().read_bytes()
-    if len(events_data) > MAX_EVENT_FILE_BYTES:
-        raise CaptureInvalid("sentinel events exceed byte bound")
-    sidecar_data = manifest_path.resolve().read_bytes()
-    if len(sidecar_data) > 1_048_576:
-        raise CaptureInvalid("sentinel manifest exceeds byte bound")
+    events_data = _bounded_input(events_path, MAX_EVENT_FILE_BYTES, "sentinel events")
+    sidecar_data = _bounded_input(manifest_path, 1_048_576, "sentinel manifest")
     try:
         raw = json.loads(sidecar_data)
     except (json.JSONDecodeError, UnicodeDecodeError) as error:
@@ -288,22 +282,39 @@ def sentinel_input(events_path: Path, manifest_path: Path, pack: LoadedPack) -> 
         supported = as_mapping(as_mapping(versions.get(version)).get(mode))
     except (OSError, json.JSONDecodeError, UnicodeDecodeError) as error:
         raise CaptureInvalid(f"sentinel compatibility contract is invalid: {error}") from error
-    actual = {
+    producer = {
         "adapter_sha256": sidecar.get("adapter_sha256"),
+        "corpus_sha256": sidecar.get("corpus_sha256"),
+        "schema_sha256": sidecar.get("schema_sha256"),
+    }
+    installed = {
         "corpus_sha256": _hash(corpus.read_bytes()),
         "schema_sha256": event_schema_hash(),
     }
-    if not supported or dict(supported) != actual:
+    if (
+        not supported
+        or dict(supported) != producer
+        or supported.get("corpus_sha256") != installed["corpus_sha256"]
+        or supported.get("schema_sha256") != installed["schema_sha256"]
+    ):
         raise CaptureInvalid("sentinel package is not byte-compatible with the selected pack")
-    for key, value in actual.items():
-        if sidecar.get(key) != value:
-            raise CaptureInvalid(f"sentinel manifest {key} does not match local contract")
+    if sidecar.get("output_limits") != {
+        "events": 10_000,
+        "input_bytes": MAX_EVENT_FILE_BYTES,
+    }:
+        raise CaptureInvalid("sentinel output limits do not match the supported contract")
     batch = events_from_jsonl(events_data)
-    if batch.issues:
-        raise CaptureInvalid("sentinel event file contains invalid or truncated records")
+    if any(issue.code != "STACK_TRUNCATED" for issue in batch.issues):
+        raise CaptureInvalid("sentinel event file contains invalid records")
     if any(event.get("mode") != mode for event in batch.events):
         raise CaptureInvalid("sentinel event mode disagrees with its manifest")
     sidecar_issues = _sentinel_issues(sidecar.get("issues"))
+    combined_issues = {
+        (issue.code, issue.row, issue.reason): issue for issue in (*batch.issues, *sidecar_issues)
+    }
+    sidecar_issues = tuple(
+        combined_issues[key] for key in sorted(combined_issues, key=lambda item: (item[1], item[0]))
+    )
     if not batch.events and not sidecar_issues:
         sidecar_issues = (
             EventIssue("SENTINEL_EMPTY", 0, "sentinel output contains no observations"),
@@ -315,8 +326,11 @@ def sentinel_input(events_path: Path, manifest_path: Path, pack: LoadedPack) -> 
         "input_kind": "sentinel",
         "manifest_sha256": _hash(sidecar_data),
         "mode": mode,
+        "output_limits": sidecar["output_limits"],
         "package_version": version,
-        **actual,
+        "parser_limit": MAX_EVENT_FILE_BYTES,
+        "sidecar_limit": 1_048_576,
+        **producer,
     }
     return ProductionInput(
         manifest,
@@ -377,7 +391,7 @@ def _run_proxy(
     nonce: str,
 ) -> tuple[RunResult, dict[str, str], bytes, bytes, str]:
     proxy_dir = output / "proxy"
-    session = ProxySession(engine, proxy_dir, policy, nonce)
+    session = ProxySession(engine, proxy_dir, policy, nonce, limits)
     with session as proxy:
         environment = (
             ("ALL_PROXY", "http://capture-proxy:8080"),
@@ -501,6 +515,14 @@ def _read_bounded(path: Path) -> bytes:
         return b""
     with path.open("rb") as handle:
         return handle.read(MAX_EVENT_FILE_BYTES + 1)
+
+
+def _bounded_input(path: Path, maximum: int, label: str) -> bytes:
+    with path.resolve().open("rb") as handle:
+        data = handle.read(maximum + 1)
+    if len(data) > maximum:
+        raise CaptureInvalid(f"{label} exceeds byte bound")
+    return data
 
 
 def _require_clean(repository: Path) -> None:

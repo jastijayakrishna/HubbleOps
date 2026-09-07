@@ -15,12 +15,18 @@ function target(path) {
 }
 
 function stack() {
-  return new Error().stack.split("\n").slice(3, 259).map((line) => {
+  const priorLimit = Error.stackTraceLimit;
+  Error.stackTraceLimit = 300;
+  const lines = new Error().stack.split("\n").slice(3);
+  Error.stackTraceLimit = priorLimit;
+  const frames = lines.slice(0, 255).map((line) => {
     const normalized = line.replaceAll("\\", "/");
     const repository = normalized.includes("/workspace/");
     const path = repository ? normalized.split("/workspace/", 2)[1] : `<runtime>/${normalized.trim()}`;
     return {kind: repository ? "repository" : "runtime", path, line: null, function: null};
   });
+  if (lines.length > 255) frames.push({kind: "truncation", path: "<runtime>/truncated", line: null, function: null, omitted: lines.length - 255});
+  return frames;
 }
 
 function emit(path) {

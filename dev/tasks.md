@@ -26,10 +26,9 @@ Updated before every session ends. Phase-level status lives in
       recorded FA-015 (package-manager egress is correctly denied and named)
 - [ ] Run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4. The
       first attempt ended early on a session rate limit before reaching a verdict, so no gate has
-      been claimed. The mechanical checks were run directly in the meantime: the suite is green,
-      the only comments in Phase 4 code are three tool-demanded `# noqa`, there are no docstrings
-      or new `.md` files, and each of L1, L3, L4, L10 and the sentinel site-claim boundary was
-      attacked and refused with a typed error
+      been claimed. The builder audit then closed proxy rlimit attestation, explicit cross-language
+      stack truncation, sidecar hash validation, and bounded failed-input retention gaps; all 31
+      real-runtime probes pass on the post-loop tree
 - [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4`, only after a literal
       `GATE: PASS`
 
@@ -109,7 +108,7 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 1 — scan + exposure + ledger *(fresh final audit: `GATE: PASS`)*
 - [x] Phase 2 — Google Ads pack + Change Pack version lattice *(fresh `GATE: PASS`; first real-repo loop complete)*
 - [x] Phase 3 — wrapper engine *(post-loop fresh `GATE: PASS`; FA-010 closed)*
-- [ ] Phase 4 — dynamic capture + sentinel *(implemented and green; gate audit and real-repo loop not yet run)*
+- [ ] Phase 4 — dynamic capture + sentinel *(implemented; real-repo loop complete; final gate pending)*
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard

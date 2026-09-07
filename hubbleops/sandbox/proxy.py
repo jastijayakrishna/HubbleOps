@@ -8,14 +8,16 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from hubbleops.core.canonical import content_id
+from hubbleops.core.canonical import canonical_bytes, content_id
 from hubbleops.core.errors import ToolingFailed, ToolingMissing
 from hubbleops.sandbox.image import PROXY_IMAGE
+from hubbleops.sandbox.limits import ResourceLimits
 from hubbleops.sandbox.mounts import wsl_path
 from hubbleops.sandbox.network import NetworkPolicy
 from hubbleops.sandbox.runner import RootlessPodman
 
 ADDON = Path(__file__).with_name("proxy_addon.py")
+ENTRYPOINT = Path(__file__).with_name("proxy_entrypoint.py")
 LISTENING = b"proxy listening at"
 HANDSHAKE_FAILED = b"TLS handshake failed"
 PEM_FOOTER = "-----END CERTIFICATE-----"
@@ -33,12 +35,14 @@ class ProxyIdentity:
     certificate: Path
     certificate_sha256: str
     implementation_sha256: str
+    limits_sha256: str
 
     def mapping(self) -> dict[str, str]:
         return {
             "certificate_sha256": self.certificate_sha256,
             "image": PROXY_IMAGE.fingerprint(),
             "implementation_sha256": self.implementation_sha256,
+            "limits_sha256": self.limits_sha256,
         }
 
     def fingerprint(self) -> str:
@@ -52,10 +56,12 @@ class ProxySession:
         artifact_dir: Path,
         policy: NetworkPolicy,
         nonce: str,
+        limits: ResourceLimits,
     ) -> None:
         self.engine = engine
         self.artifact_dir = artifact_dir.resolve()
         self.policy = policy
+        self.limits = limits
         suffix = content_id(nonce)[:12]
         self.internal = f"hops-{suffix}-internal"
         self.egress = f"hops-{suffix}-egress"
@@ -76,59 +82,7 @@ class ProxySession:
             self._created.append(("network", self.internal))
             self._run("network", "create", self.egress)
             self._created.append(("network", self.egress))
-            allowlist = json.dumps(
-                [item.mapping() for item in self.policy.destinations],
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            arguments = (
-                "run",
-                "--detach",
-                "--pull=never",
-                "--name",
-                self.container,
-                "--user",
-                PROXY_IMAGE.user,
-                "--cap-drop=all",
-                "--security-opt=no-new-privileges",
-                "--network",
-                self.internal,
-                "--network-alias",
-                "capture-proxy",
-                "--read-only",
-                "--no-hosts",
-                "--pids-limit",
-                "128",
-                "--memory",
-                "536870912",
-                "--env",
-                "HOME=/home/mitmproxy",
-                "--env",
-                "PYTHONUNBUFFERED=1",
-                "--tmpfs",
-                "/tmp:rw,noexec,nosuid,nodev,size=16m",
-                "--volume",
-                f"{wsl_path(ADDON)}:/hops/proxy/addon.py:ro,nosuid,nodev",
-                "--volume",
-                f"{wsl_path(ca)}:/home/mitmproxy:rw,nosuid,nodev",
-                "--volume",
-                f"{wsl_path(output)}:/hops/output:rw,nosuid,nodev",
-                "--entrypoint",
-                str(PROXY_IMAGE.entrypoint),
-                PROXY_IMAGE.reference,
-                "--listen-host",
-                "0.0.0.0",
-                "--listen-port",
-                "8080",
-                "--set",
-                "hops_output=/hops/output/flows.jsonl",
-                "--set",
-                f"hops_allowlist={allowlist}",
-                "--set",
-                "connection_strategy=lazy",
-                "--scripts",
-                "/hops/proxy/addon.py",
-            )
+            arguments = self.start_arguments(ca, output)
             self._run(*arguments)
             self._created.append(("container", self.container))
             self._run("network", "connect", self.egress, self.container)
@@ -177,6 +131,12 @@ class ProxySession:
                 raise ToolingFailed(
                     "mitmproxy", "the disposable CA did not read back as the bytes just written"
                 )
+            limits_path = output / "limits.json"
+            if not limits_path.is_file():
+                raise ToolingFailed("mitmproxy", "proxy resource-limit attestation is missing")
+            limits_data = limits_path.read_bytes()
+            if limits_data != canonical_bytes(self._expected_limits()) + b"\n":
+                raise ToolingFailed("mitmproxy", "proxy resource limits do not match the request")
             self._await_listener()
             return ProxyIdentity(
                 self.internal,
@@ -184,11 +144,99 @@ class ProxySession:
                 self.container,
                 certificate,
                 digest,
-                hashlib.sha256(ADDON.read_bytes()).hexdigest(),
+                content_id(
+                    {
+                        "addon": hashlib.sha256(ADDON.read_bytes()).hexdigest(),
+                        "entrypoint": hashlib.sha256(ENTRYPOINT.read_bytes()).hexdigest(),
+                    }
+                ),
+                hashlib.sha256(limits_data).hexdigest(),
             )
         except BaseException:
             self._cleanup()
             raise
+
+    def start_arguments(self, ca: Path, output: Path) -> tuple[str, ...]:
+        allowlist = json.dumps(
+            [item.mapping() for item in self.policy.destinations],
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        limits = self.limits
+        return (
+            "run",
+            "--detach",
+            "--pull=never",
+            "--name",
+            self.container,
+            "--user",
+            PROXY_IMAGE.user,
+            "--cap-drop=all",
+            "--security-opt=no-new-privileges",
+            "--network",
+            self.internal,
+            "--network-alias",
+            "capture-proxy",
+            "--read-only",
+            "--no-hosts",
+            "--pids-limit",
+            str(limits.processes),
+            "--memory",
+            str(limits.memory_bytes),
+            "--log-driver",
+            "k8s-file",
+            "--log-opt",
+            f"max-size={limits.output_bytes}",
+            "--env",
+            "HOME=/home/mitmproxy",
+            "--env",
+            "PYTHONUNBUFFERED=1",
+            "--tmpfs",
+            "/tmp:rw,noexec,nosuid,nodev,size=16m",
+            "--volume",
+            f"{wsl_path(ADDON)}:/hops/proxy/addon.py:ro,nosuid,nodev",
+            "--volume",
+            f"{wsl_path(ENTRYPOINT)}:/hops/proxy/entrypoint.py:ro,nosuid,nodev",
+            "--volume",
+            f"{wsl_path(ca)}:/home/mitmproxy:rw,nosuid,nodev",
+            "--volume",
+            f"{wsl_path(output)}:/hops/output:rw,nosuid,nodev",
+            "--entrypoint",
+            str(PROXY_IMAGE.entrypoint),
+            PROXY_IMAGE.reference,
+            "/hops/proxy/entrypoint.py",
+            str(limits.cpu_seconds),
+            str(limits.memory_bytes),
+            str(limits.address_space_bytes),
+            str(limits.processes),
+            str(limits.open_files),
+            str(limits.file_bytes),
+            "--",
+            "/usr/local/bin/mitmdump",
+            "--listen-host",
+            "0.0.0.0",
+            "--listen-port",
+            "8080",
+            "--set",
+            "hops_output=/hops/output/flows.jsonl",
+            "--set",
+            f"hops_allowlist={allowlist}",
+            "--set",
+            "connection_strategy=lazy",
+            "--scripts",
+            "/hops/proxy/addon.py",
+        )
+
+    def _expected_limits(self) -> dict[str, list[int]]:
+        limits = self.limits
+        return {
+            "address_space": [limits.address_space_bytes, limits.address_space_bytes],
+            "cpu": [limits.cpu_seconds, limits.cpu_seconds],
+            "data": [limits.memory_bytes, limits.memory_bytes],
+            "file_size": [limits.file_bytes, limits.file_bytes],
+            "open_files": [limits.open_files, limits.open_files],
+            "processes": [limits.processes, limits.processes],
+        }
 
     def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
         self._cleanup()

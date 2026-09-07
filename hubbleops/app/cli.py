@@ -305,14 +305,14 @@ def _capture(args: argparse.Namespace) -> int:
         try:
             inputs.append(capture.telemetry_input(telemetry_path, pack))
         except (OSError, UnicodeDecodeError, capture.CaptureInvalid) as error:
-            inputs.append(_failed_input("telemetry", telemetry_path, error))
+            inputs.append(_failed_input("telemetry", (telemetry_path,), error))
     if args.sentinel_events and args.sentinel_manifest:
         event_path = Path(args.sentinel_events).resolve()
         manifest_path = Path(args.sentinel_manifest).resolve()
         try:
             inputs.append(capture.sentinel_input(event_path, manifest_path, pack))
         except (OSError, capture.CaptureInvalid) as error:
-            inputs.append(_failed_input("sentinel", event_path, error))
+            inputs.append(_failed_input("sentinel", (event_path, manifest_path), error))
     result = _capture_repository(
         target,
         pack,
@@ -503,22 +503,47 @@ def _capture_repository(
         return CaptureResult(scan, attempt, bound_inputs)
 
 
-def _failed_input(kind: str, path: Path, error: BaseException) -> capture.ProductionInput:
-    data = path.read_bytes() if path.is_file() else b""
+def _failed_input(
+    kind: str, paths: tuple[Path, ...], error: BaseException
+) -> capture.ProductionInput:
+    records = [_bounded_artifact(path, dynamic.MAX_EVENT_FILE_BYTES) for path in paths]
     manifest = {
         "error": str(error),
         "input_kind": kind,
-        "input_sha256": hashlib.sha256(data).hexdigest(),
+        "inputs": [
+            {"name": path.name, "sha256": digest, "size": size}
+            for path, (digest, size, _) in zip(paths, records, strict=True)
+        ],
         "parser_limit": dynamic.MAX_EVENT_FILE_BYTES,
+    }
+    artifacts = {
+        f"{kind}-{index}-{path.name}": retained
+        for index, (path, (_, _, retained)) in enumerate(zip(paths, records, strict=True), start=1)
     }
     if kind == "sentinel":
         batch = dynamic.EventBatch(
             (),
             (dynamic.EventIssue("SENTINEL_IMPORT_INVALID", 0, str(error)),),
         )
-        return capture.ProductionInput(manifest, batch=batch, artifacts={kind: data})
+        return capture.ProductionInput(manifest, batch=batch, artifacts=artifacts)
     issue = telemetry.AdapterIssue(0, "", f"{kind.upper()}_IMPORT_INVALID: {error}")
-    return capture.ProductionInput(manifest, issues=(issue,), artifacts={kind: data})
+    return capture.ProductionInput(manifest, issues=(issue,), artifacts=artifacts)
+
+
+def _bounded_artifact(path: Path, maximum: int) -> tuple[str, int, bytes]:
+    digest = hashlib.sha256()
+    size = 0
+    retained = bytearray()
+    if not path.is_file():
+        return digest.hexdigest(), size, bytes(retained)
+    with path.open("rb") as handle:
+        while chunk := handle.read(65_536):
+            digest.update(chunk)
+            size += len(chunk)
+            remaining = maximum - len(retained)
+            if remaining > 0:
+                retained.extend(chunk[:remaining])
+    return digest.hexdigest(), size, bytes(retained)
 
 
 def _write_capture_artifacts(run_dir: Path, values: Mapping[str, bytes]) -> dict[str, Path]:

@@ -10,7 +10,7 @@ import pytest
 from hubbleops.app import registry
 from hubbleops.sandbox import capture as sandbox_capture
 from hubbleops.sandbox.capture import DetachedWorktree
-from hubbleops.sandbox.image import CAPTURE_IMAGE, ImageInvalid, ImageSpec
+from hubbleops.sandbox.image import CAPTURE_IMAGE, PROXY_IMAGE, ImageInvalid, ImageSpec
 from hubbleops.sandbox.limits import LimitsInvalid, ResourceLimits
 from hubbleops.sandbox.mounts import Mount, MountInvalid, validate_mounts
 from hubbleops.sandbox.network import (
@@ -19,6 +19,7 @@ from hubbleops.sandbox.network import (
     NetworkPolicyInvalid,
     redact_headers,
 )
+from hubbleops.sandbox.proxy import ProxySession
 from hubbleops.sandbox.runner import RootlessPodman, RunSpec, SandboxInvalid
 
 
@@ -102,6 +103,28 @@ def test_runner_command_is_hardened_and_contains_no_host_environment(tmp_path: P
     assert "--read-only" in joined
     assert "--network none" in joined
     assert "AWS_SECRET_ACCESS_KEY" not in joined
+
+
+def test_proxy_command_has_the_same_kernel_and_output_bounds(tmp_path: Path) -> None:
+    limits = ResourceLimits(
+        cpu_seconds=7,
+        memory_bytes=134_217_728,
+        address_space_bytes=268_435_456,
+        processes=17,
+        open_files=31,
+        file_bytes=1_048_576,
+        output_bytes=131_072,
+    )
+    session = ProxySession(RootlessPodman(), tmp_path / "proxy", NetworkPolicy(), "nonce", limits)
+    argv = session.start_arguments(tmp_path / "ca", tmp_path / "output")
+    joined = " ".join(argv)
+    assert f"--user {PROXY_IMAGE.user}" in joined
+    assert "--cap-drop=all" in joined
+    assert "--security-opt=no-new-privileges" in joined
+    assert "--read-only" in joined
+    assert "/hops/proxy/entrypoint.py" in joined
+    assert "7 134217728 268435456 17 31 1048576" in joined
+    assert "max-size=131072" in joined
 
 
 def test_runner_refuses_credential_like_environment_names(tmp_path: Path) -> None:

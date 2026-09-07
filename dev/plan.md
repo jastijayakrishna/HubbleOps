@@ -109,8 +109,9 @@ bypass the proxy.
 
 The proxy is the official mitmproxy 12.2.3 image pinned as
 `docker.io/mitmproxy/mitmproxy@sha256:00b77b5d8804c8ad18cb6caefbf9d5849e895e8986c5ce011f4ae30f4385962f`,
-invoked through its direct entrypoint as uid/gid 1000 with the same capability, filesystem, process,
-and output bounds as the workload. A generic mounted add-on owns policy and emits neutral flow
+invoked through a fixed container-only Python entrypoint that applies and attests the mandatory
+rlimits before replacing itself with `mitmdump`, as uid/gid 1000 with the same capability,
+filesystem, process, and output bounds as the workload. A generic mounted add-on owns policy and emits neutral flow
 records; provider parsing remains injected in `app/`.
 
 The proxy allowlist consists of exact normalized `(scheme, host, port)` entries. An empty allowlist

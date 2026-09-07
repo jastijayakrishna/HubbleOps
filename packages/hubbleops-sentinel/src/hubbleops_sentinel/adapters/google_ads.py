@@ -17,7 +17,8 @@ _original = http.client.HTTPConnection.request
 
 def _stack() -> list[dict[str, Any]]:
     frames: list[dict[str, Any]] = []
-    for frame in inspect.stack()[3:259]:
+    captured = inspect.stack()[3:]
+    for frame in captured[:255]:
         path = Path(frame.filename).as_posix()
         if "/workspace/" in path:
             kind = "repository"
@@ -30,6 +31,16 @@ def _stack() -> list[dict[str, Any]]:
             path = "<runtime>/" + Path(path).name
         frames.append(
             {"kind": kind, "path": path, "line": frame.lineno, "function": frame.function}
+        )
+    if len(captured) > 255:
+        frames.append(
+            {
+                "kind": "truncation",
+                "path": "<runtime>/truncated",
+                "line": None,
+                "function": None,
+                "omitted": len(captured) - 255,
+            }
         )
     return frames
 

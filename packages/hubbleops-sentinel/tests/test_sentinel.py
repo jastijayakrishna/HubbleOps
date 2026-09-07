@@ -146,6 +146,43 @@ def test_a_malformed_record_is_named_and_never_silently_dropped(tmp_path: Path) 
     assert output.read_bytes() == b""
 
 
+def test_a_truncated_stack_is_retained_and_named(tmp_path: Path) -> None:
+    frames: list[dict[str, object]] = [
+        {"kind": "runtime", "path": "<runtime>/frame", "line": 1, "function": "call"}
+        for _ in range(255)
+    ]
+    frames.append(
+        {
+            "kind": "truncation",
+            "path": "<runtime>/truncated",
+            "line": None,
+            "function": None,
+            "omitted": 4,
+        }
+    )
+    source = tmp_path / "input.jsonl"
+    source.write_text(
+        json.dumps(
+            {
+                "path": "/v25/customers/123/googleAds:search",
+                "headers": {},
+                "request_text": None,
+                "request_type": "rest",
+                "stack": frames,
+                "ts": "2026-09-06T00:00:00Z",
+            }
+        ),
+        encoding="utf-8",
+    )
+    output = tmp_path / "events.jsonl"
+    assert main(["proxy", "--input", str(source), "--output", str(output)]) == 5
+    manifest = json.loads(output.with_name("events.jsonl.manifest.json").read_text("utf-8"))
+    assert manifest["issues"] == [
+        {"code": "STACK_TRUNCATED", "reason": "event stack exceeded frame bound", "row": 1}
+    ]
+    assert json.loads(output.read_text("utf-8"))["stack"][-1]["omitted"] == 4
+
+
 def test_the_sensor_emits_observations_and_never_a_verdict(tmp_path: Path) -> None:
     output = tmp_path / "events.jsonl"
     main(

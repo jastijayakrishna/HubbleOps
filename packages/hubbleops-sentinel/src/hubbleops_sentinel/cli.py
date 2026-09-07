@@ -78,6 +78,14 @@ def _read(path: Path, mode: str) -> tuple[list[dict[str, Any]], list[dict[str, o
         ) as error:
             issues.append({"code": "EVENT_INVALID", "row": row, "reason": str(error)})
             continue
+        if any(frame.get("kind") == "truncation" for frame in event["stack"]):
+            issues.append(
+                {
+                    "code": "STACK_TRUNCATED",
+                    "row": row,
+                    "reason": "event stack exceeded frame bound",
+                }
+            )
         events.append(event)
     return sorted(events, key=canonical), issues
 

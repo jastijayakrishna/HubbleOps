@@ -7,10 +7,10 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 4 implemented and green — the Phase 4 gate audit and real-repo loop have **not** been run |
+| **Current phase** | 4 implemented, real-repo loop complete, and post-loop audit hardening green; the final fresh gate is pending |
 | **Branch** | `phase-04-dynamic-capture-and-sentinel`, cut from `main` at `v0.3` |
 | **Last gate passed** | Phase 3. The post-real-repo-loop fresh audit returned literal `GATE: PASS` |
-| **Next action** | Run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on this tree, then the [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) including `hops capture`, then a final fresh gate. Only then merge and tag `v0.4`. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
+| **Next action** | Run the final fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on the post-loop tree. Only a literal `GATE: PASS` permits merging and tagging `v0.4`. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
 
 Phase 4 progress (2026-09-07): the sandbox (runner, image, limits, network, mounts, capture worktree,
 proxy, verifier image), the versioned dynamic event schema with generic Python/PHP/Node loaders,
@@ -47,6 +47,15 @@ readiness was inferred from its certificate rather than its listener, and its lo
 listening line was invisible; the PHP loader mount exposed all of `observe/dynamic/` to the workload
 and the CA copy was written into a directory the proxy container had mounted read-write; and the
 provider-leak scan did not read the `.ini`, `.cjs` or `.php` asset types Phase 4 introduced.
+
+The post-loop builder audit closed three further gaps before the final independent gate. The proxy
+now applies all six mandatory rlimits through a container-only launcher, verifies the live values
+from an in-container attestation, and caps its Podman log. Python, Node, PHP, and sentinel hook stacks
+all retain an explicit truncation frame, and sentinel import preserves that observation with a named
+`STACK_TRUNCATED` issue. Sentinel ingestion now compares the producer sidecar's adapter, schema, and
+corpus hashes—not only local pack bytes—to the pack-owned compatibility contract, checks the declared
+limits, reads inputs with hard bounds, and retains bounded copies of both inputs on failure. The
+real-runtime sandbox and capture suites pass all 31 probes after these changes.
 
 The Phase 4 real-repo loop ran `scan`, `exposure` and `capture` read-only at the pinned commits.
 Static results are unchanged from Phase 3, so nothing Phase 4 added altered what a scan finds:

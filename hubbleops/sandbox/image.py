@@ -48,7 +48,7 @@ PHP_CAPTURE_IMAGE = ImageSpec(
 PROXY_IMAGE = ImageSpec(
     "docker.io/mitmproxy/mitmproxy@sha256:00b77b5d8804c8ad18cb6caefbf9d5849e895e8986c5ce011f4ae30f4385962f",
     "1000:1000",
-    "/usr/local/bin/mitmdump",
+    "/usr/local/bin/python",
 )
 
 __all__ = [

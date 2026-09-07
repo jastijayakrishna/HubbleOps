@@ -26,11 +26,15 @@ function hubbleops_google_ads_capture(string $path, ?string $body = null): void
         return;
     }
     $frames = [];
-    foreach (array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 1, 255) as $frame) {
+    $trace = array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 1);
+    foreach (array_slice($trace, 0, 255) as $frame) {
         $file = str_replace('\\', '/', $frame['file'] ?? '<runtime>/unknown');
         $kind = str_starts_with($file, '/workspace/') ? 'repository' : 'runtime';
         $file = $kind === 'repository' ? substr($file, 11) : '<runtime>/' . basename($file);
         $frames[] = ['kind' => $kind, 'path' => $file, 'line' => $frame['line'] ?? null, 'function' => $frame['function'] ?? null];
+    }
+    if (count($trace) > 255) {
+        $frames[] = ['kind' => 'truncation', 'path' => '<runtime>/truncated', 'line' => null, 'function' => null, 'omitted' => count($trace) - 255];
     }
     $event = ['version' => $matched[0], 'service' => $matched[1], 'method' => $matched[2], 'request_text' => $body === null ? null : substr($body, 0, 65536), 'request_type' => $matched[3], 'stack' => $frames, 'ts' => gmdate('Y-m-d\TH:i:s\Z'), 'mode' => 'hook'];
     file_put_contents($destination, json_encode($event, JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND | LOCK_EX);

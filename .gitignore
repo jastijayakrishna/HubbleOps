@@ -14,6 +14,8 @@ build/
 .mypy_cache/
 .coverage
 htmlcov/
+/.hubbleops/toolchain/
+/.hubbleops/uv-cache/
 
 # HubbleOps run state — regenerated, never proof
 artifacts/

@@ -218,6 +218,74 @@ def test_sentinel_contract_rejects_tampering_before_evidence(tmp_path: Path) -> 
         capture.sentinel_input(events, manifest, pack)
 
 
+@pytest.mark.parametrize("field", ("adapter_sha256", "corpus_sha256", "schema_sha256"))
+def test_sentinel_contract_rejects_each_tampered_compatibility_hash(
+    tmp_path: Path, field: str
+) -> None:
+    pack = registry.load_pack("google_ads")
+    payload = (
+        json.dumps(event(mode="proxy"), sort_keys=True, separators=(",", ":")).encode() + b"\n"
+    )
+    events = tmp_path / "events.jsonl"
+    events.write_bytes(payload)
+    contract = json.loads(
+        pack.root.joinpath("capture", "sentinel_contract.json").read_text("utf-8")
+    )
+    sidecar: dict[str, object] = {
+        **contract["versions"]["0.1.0"]["proxy"],
+        "events_sha256": hashlib.sha256(payload).hexdigest(),
+        "issues": [],
+        "mode": "proxy",
+        "output_limits": {"events": 10_000, "input_bytes": 16_777_216},
+        "package_version": "0.1.0",
+    }
+    sidecar[field] = "0" * 64
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps(sidecar), encoding="utf-8")
+    with pytest.raises(capture.CaptureInvalid, match="not byte-compatible"):
+        capture.sentinel_input(events, manifest, pack)
+
+
+def test_sentinel_import_retains_an_event_with_a_named_truncated_stack(tmp_path: Path) -> None:
+    pack = registry.load_pack("google_ads")
+    frame = {
+        "function": None,
+        "kind": "truncation",
+        "line": None,
+        "omitted": 3,
+        "path": "<runtime>/truncated",
+    }
+    payload = (
+        json.dumps(
+            event(mode="proxy", stack=[frame]), sort_keys=True, separators=(",", ":")
+        ).encode()
+        + b"\n"
+    )
+    events = tmp_path / "events.jsonl"
+    events.write_bytes(payload)
+    supported = json.loads(
+        pack.root.joinpath("capture", "sentinel_contract.json").read_text("utf-8")
+    )["versions"]["0.1.0"]["proxy"]
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                **supported,
+                "events_sha256": hashlib.sha256(payload).hexdigest(),
+                "issues": [],
+                "mode": "proxy",
+                "output_limits": {"events": 10_000, "input_bytes": 16_777_216},
+                "package_version": "0.1.0",
+            }
+        ),
+        encoding="utf-8",
+    )
+    imported = capture.sentinel_input(events, manifest, pack)
+    assert imported.batch is not None
+    assert len(imported.batch.events) == 1
+    assert [issue.code for issue in imported.batch.issues] == ["STACK_TRUNCATED"]
+
+
 def test_schema_hash_is_stable_for_the_exact_shipped_bytes() -> None:
     path = Path("hubbleops/observe/dynamic/schema.json")
     assert event_schema_hash() == hashlib.sha256(path.read_bytes()).hexdigest()
