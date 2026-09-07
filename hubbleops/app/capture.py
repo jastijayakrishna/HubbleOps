@@ -13,7 +13,7 @@ from typing import Any
 from hubbleops.app.registry import LoadedPack
 from hubbleops.core.canonical import canonical_bytes, content_id
 from hubbleops.core.errors import HubbleOpsError, ToolingMissing
-from hubbleops.core.records import as_mapping, as_sequence, as_text
+from hubbleops.core.records import as_mapping, as_sequence, as_text, parse_json
 from hubbleops.observe.dynamic.loaders import (
     ATTESTATION_FILENAME,
     LoaderPlan,
@@ -30,24 +30,24 @@ from hubbleops.observe.dynamic.runner import (
     events_from_jsonl,
 )
 from hubbleops.observe.telemetry import AdapterIssue, ProductionTuple
-from hubbleops.sandbox.capture import DetachedWorktree
-from hubbleops.sandbox.image import (
+from hubbleops.sandbox import (
     CAPTURE_IMAGE,
     NODE_CAPTURE_IMAGE,
     PHP_CAPTURE_IMAGE,
+    DetachedWorktree,
+    FixtureService,
     ImageSpec,
-)
-from hubbleops.sandbox.limits import ResourceLimits
-from hubbleops.sandbox.mounts import Mount
-from hubbleops.sandbox.network import NetworkPolicy
-from hubbleops.sandbox.proxy import FixtureService, ProxySession, interception_failures
-from hubbleops.sandbox.runner import (
+    Mount,
+    NetworkPolicy,
+    ProxySession,
+    ResourceLimits,
     RootlessPodman,
     RunResult,
     RunSpec,
     bounded_process,
     command_record,
     command_transcript,
+    interception_failures,
 )
 
 SENTINEL_MANIFEST_KEYS = frozenset(
@@ -414,11 +414,10 @@ def telemetry_input(path: Path, pack: LoadedPack) -> ProductionInput:
 def sentinel_input(events_path: Path, manifest_path: Path, pack: LoadedPack) -> ProductionInput:
     events_data = _bounded_input(events_path, MAX_EVENT_FILE_BYTES, "sentinel events")
     sidecar_data = _bounded_input(manifest_path, 1_048_576, "sentinel manifest")
-    try:
-        raw = json.loads(sidecar_data)
-    except (json.JSONDecodeError, UnicodeDecodeError) as error:
-        raise CaptureInvalid(f"sentinel manifest is invalid JSON: {error}") from error
-    sidecar = as_mapping(raw)
+    parsed = parse_json(sidecar_data)
+    if not parsed.ok():
+        raise CaptureInvalid(f"sentinel manifest is invalid JSON: {parsed.reason}")
+    sidecar = as_mapping(parsed.value)
     if frozenset(sidecar.keys()) != SENTINEL_MANIFEST_KEYS:
         raise CaptureInvalid("sentinel manifest fields do not match the supported contract")
     mode = as_text(sidecar.get("mode"))
@@ -588,8 +587,12 @@ def _proxy_events(data: bytes, pack: LoadedPack) -> EventBatch:
     events: list[dict[str, Any]] = []
     issues: list[EventIssue] = []
     for row, line in enumerate(data.splitlines(), start=1):
+        parsed = parse_json(line)
+        if not parsed.ok():
+            issues.append(EventIssue("EVENT_INVALID", row, str(parsed.reason)))
+            continue
         try:
-            record = as_mapping(json.loads(line))
+            record = as_mapping(parsed.value)
             path = as_text(record.get("path"))
             if path is None:
                 raise DynamicEventInvalid("proxy record has no request path")
