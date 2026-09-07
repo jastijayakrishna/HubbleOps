@@ -39,7 +39,7 @@ from hubbleops.sandbox.image import (
 from hubbleops.sandbox.limits import ResourceLimits
 from hubbleops.sandbox.mounts import Mount
 from hubbleops.sandbox.network import NetworkPolicy
-from hubbleops.sandbox.proxy import ProxySession, interception_failures
+from hubbleops.sandbox.proxy import FixtureService, ProxySession, interception_failures
 from hubbleops.sandbox.runner import RootlessPodman, RunResult, RunSpec
 
 SENTINEL_MANIFEST_KEYS = frozenset(
@@ -95,11 +95,14 @@ def execute(
     *,
     engine: RootlessPodman | None = None,
     limits: ResourceLimits | None = None,
+    fixture: FixtureService | None = None,
 ) -> CaptureAttempt:
     if repo_sha is None:
         raise CaptureInvalid("capture requires a Git repository with a committed HEAD")
     if mode not in ("hook", "proxy"):
         raise CaptureInvalid("capture mode must be hook or proxy")
+    if fixture is not None and mode != "proxy":
+        raise CaptureInvalid("the test-only fixture service requires proxy mode")
     _require_clean(repository)
     selected_engine = engine or RootlessPodman()
     selected_limits = limits or ResourceLimits()
@@ -117,6 +120,7 @@ def execute(
         loader_dir.mkdir()
         nonce = content_id({"attempt": attempt.name, "repo_sha": repo_sha, "command": command})
         installed: bool | None = None
+        proxy_commands = b""
         worktree_manager = DetachedWorktree(repository, worktree_path, repo_sha)
         with worktree_manager as worktree:
             if mode == "hook":
@@ -137,7 +141,14 @@ def execute(
                 installed = attested(_read_bounded(output / ATTESTATION_FILENAME), nonce)
                 proxy_log = b""
             else:
-                result, proxy_identity, raw_events, proxy_log, execution_spec = _run_proxy(
+                (
+                    result,
+                    proxy_identity,
+                    raw_events,
+                    proxy_log,
+                    proxy_commands,
+                    execution_spec,
+                ) = _run_proxy(
                     selected_engine,
                     image,
                     worktree,
@@ -147,6 +158,7 @@ def execute(
                     policy,
                     selected_limits,
                     attempt.name,
+                    fixture,
                 )
                 batch = _proxy_events(raw_events, pack)
         issues = list(batch.issues)
@@ -188,11 +200,14 @@ def execute(
                 )
         batch = EventBatch(batch.events, tuple(issues))
         command_log = result.log_path.read_bytes()
+        engine_identity = selected_engine.identity()
+        engine_commands = selected_engine.transcript()
         manifest = {
             "allowlist": [item.mapping() for item in policy.destinations],
             "command": command,
             "command_log_sha256": _hash(command_log),
-            "engine": selected_engine.identity(),
+            "engine": engine_identity,
+            "engine_commands_sha256": _hash(engine_commands),
             "event_schema_sha256": event_schema_hash(),
             "events_sha256": _hash(batch.bytes()),
             "execution_spec": execution_spec,
@@ -206,6 +221,7 @@ def execute(
             "outcome": result.outcome,
             "proxy": proxy_identity,
             "proxy_log_sha256": _hash(proxy_log),
+            "proxy_commands_sha256": _hash(proxy_commands),
             "raw_events_sha256": _hash(raw_events),
             "repo_sha": repo_sha,
             "stderr_sha256": _hash(result.stderr),
@@ -222,7 +238,9 @@ def execute(
             "command.json": command_log,
             ATTESTATION_FILENAME: _read_bounded(output / ATTESTATION_FILENAME),
             "events.jsonl": batch.bytes(),
+            "engine-commands.jsonl": engine_commands,
             "proxy.log": proxy_log,
+            "proxy-commands.jsonl": proxy_commands,
             "raw-events.jsonl": raw_events,
             "stderr.log": result.stderr,
             "stdout.log": result.stdout,
@@ -389,9 +407,10 @@ def _run_proxy(
     policy: NetworkPolicy,
     limits: ResourceLimits,
     nonce: str,
-) -> tuple[RunResult, dict[str, str], bytes, bytes, str]:
+    fixture: FixtureService | None,
+) -> tuple[RunResult, dict[str, object], bytes, bytes, bytes, str]:
     proxy_dir = output / "proxy"
-    session = ProxySession(engine, proxy_dir, policy, nonce, limits)
+    session = ProxySession(engine, proxy_dir, policy, nonce, limits, fixture)
     with session as proxy:
         environment = (
             ("ALL_PROXY", "http://capture-proxy:8080"),
@@ -421,7 +440,8 @@ def _run_proxy(
         flows = _read_bounded(flow_path)
         identity = proxy.mapping()
         execution_spec = spec.fingerprint()
-    return result, identity, flows, proxy_log, execution_spec
+    proxy_commands = session.transcript()
+    return result, identity, flows, proxy_log, proxy_commands, execution_spec
 
 
 def _proxy_events(data: bytes, pack: LoadedPack) -> EventBatch:

@@ -7,11 +7,12 @@ import subprocess
 import time
 from collections.abc import Callable
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from hubbleops.core.errors import HubbleOpsError, ToolingFailed, ToolingMissing
+from hubbleops.sandbox.runner import command_record
 
 RELEASE_SECONDS = 15.0
 RELEASE_INTERVAL = 0.2
@@ -43,6 +44,9 @@ class DetachedWorktree:
     _after_cleanup: tuple[str, ...] = ()
     _completed: bool = False
     _recovered: bool = False
+    _commands: list[dict[str, Any]] = field(
+        default_factory=lambda: list[dict[str, Any]](), init=False
+    )
 
     def __enter__(self) -> Path:
         repository = self.repository.resolve()
@@ -114,6 +118,7 @@ class DetachedWorktree:
             "after_cleanup": list(self._after_cleanup),
             "before": list(self._before),
             "created": list(self._created_entries),
+            "commands": list(self._commands),
             "metadata_root": str(self._metadata),
             "recovered": self._recovered,
         }
@@ -125,9 +130,11 @@ class DetachedWorktree:
         return tuple(sorted(path.name for path in metadata.iterdir() if path.is_dir()))
 
     def _git(self, *arguments: str) -> str:
+        argv = (self.git_executable, "-C", str(self.repository.resolve()), *arguments)
+        started = time.monotonic()
         try:
             completed = subprocess.run(
-                (self.git_executable, "-C", str(self.repository.resolve()), *arguments),
+                argv,
                 check=False,
                 capture_output=True,
                 text=True,
@@ -135,9 +142,39 @@ class DetachedWorktree:
                 timeout=30,
             )
         except FileNotFoundError as error:
+            self._commands.append(
+                command_record(
+                    argv,
+                    time.monotonic() - started,
+                    None,
+                    b"",
+                    str(error),
+                    "TOOL_MISSING",
+                )
+            )
             raise ToolingMissing("git", f"{self.git_executable!r} is not executable") from error
         except subprocess.TimeoutExpired as error:
+            self._commands.append(
+                command_record(
+                    argv,
+                    time.monotonic() - started,
+                    None,
+                    error.stdout or b"",
+                    error.stderr or b"",
+                    "WALL_TIMEOUT",
+                )
+            )
             raise ToolingFailed("git", "worktree command timed out") from error
+        self._commands.append(
+            command_record(
+                argv,
+                time.monotonic() - started,
+                completed.returncode,
+                completed.stdout,
+                completed.stderr,
+                "COMPLETED" if completed.returncode == 0 else "NONZERO_EXIT",
+            )
+        )
         if completed.returncode != 0:
             raise ToolingFailed("git", completed.stderr.strip() or "worktree command failed")
         return completed.stdout

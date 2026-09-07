@@ -17,6 +17,7 @@ from hubbleops.sandbox.limits import ResourceLimits
 from hubbleops.sandbox.mounts import Mount, validate_mounts
 
 SAFE_ENV = {"HOME": "/tmp/home", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "TZ": "UTC"}
+MAX_COMMAND_LOG_BYTES = 65_536
 
 
 class SandboxInvalid(HubbleOpsError):
@@ -87,6 +88,7 @@ class RunResult:
 class RootlessPodman:
     def __init__(self, prefix: tuple[str, ...] = ("wsl.exe", "-d", "Ubuntu", "--", "podman")):
         self.prefix = prefix
+        self._commands: list[dict[str, Any]] = []
 
     def identity(self) -> str:
         completed = self._check((*self.prefix, "info", "--format", "json"))
@@ -156,9 +158,22 @@ class RootlessPodman:
         artifact_dir.mkdir(parents=True, exist_ok=True)
         argv = self.command(spec)
         started = time.monotonic()
-        outcome, exit_code, stdout, stderr = _bounded_process(
-            argv, spec.limits.wall_seconds, spec.limits.output_bytes
-        )
+        try:
+            outcome, exit_code, stdout, stderr = _bounded_process(
+                argv, spec.limits.wall_seconds, spec.limits.output_bytes
+            )
+        except ToolingMissing as error:
+            self._commands.append(
+                command_record(
+                    argv,
+                    time.monotonic() - started,
+                    None,
+                    b"",
+                    str(error),
+                    "TOOL_MISSING",
+                )
+            )
+            raise
         duration = time.monotonic() - started
         log = {
             "argv": list(argv),
@@ -172,9 +187,14 @@ class RootlessPodman:
         }
         path = artifact_dir / "command.json"
         _exclusive_write(path, canonical_bytes(log) + b"\n")
+        self._commands.append(command_record(argv, duration, exit_code, stdout, stderr, outcome))
         return RunResult(argv, exit_code, stdout, stderr, duration, outcome, path)
 
+    def transcript(self) -> bytes:
+        return command_transcript(self._commands)
+
     def _check(self, argv: tuple[str, ...]) -> subprocess.CompletedProcess[str]:
+        started = time.monotonic()
         try:
             completed = subprocess.run(
                 argv,
@@ -185,9 +205,39 @@ class RootlessPodman:
                 timeout=15,
             )
         except FileNotFoundError as error:
+            self._commands.append(
+                command_record(
+                    argv,
+                    time.monotonic() - started,
+                    None,
+                    b"",
+                    str(error),
+                    "TOOL_MISSING",
+                )
+            )
             raise ToolingMissing("podman", f"{self.prefix[0]!r} is not executable") from error
         except subprocess.TimeoutExpired as error:
+            self._commands.append(
+                command_record(
+                    argv,
+                    time.monotonic() - started,
+                    None,
+                    error.stdout or b"",
+                    error.stderr or b"",
+                    "WALL_TIMEOUT",
+                )
+            )
             raise ToolingFailed("podman", "engine identity check timed out") from error
+        self._commands.append(
+            command_record(
+                argv,
+                time.monotonic() - started,
+                completed.returncode,
+                completed.stdout,
+                completed.stderr,
+                "COMPLETED" if completed.returncode == 0 else "NONZERO_EXIT",
+            )
+        )
         if completed.returncode != 0:
             raise ToolingFailed("podman", completed.stderr.strip() or "engine check failed")
         return completed
@@ -272,4 +322,41 @@ def _exclusive_write(path: Path, data: bytes) -> None:
         raise SandboxInvalid(f"capture artifact already exists: {path}") from error
 
 
-__all__ = ["RootlessPodman", "RunResult", "RunSpec", "SandboxInvalid"]
+def command_record(
+    argv: tuple[str, ...],
+    duration_seconds: float,
+    exit_code: int | None,
+    stdout: str | bytes,
+    stderr: str | bytes,
+    outcome: str,
+) -> dict[str, Any]:
+    stdout_bytes = stdout.encode("utf-8", errors="replace") if isinstance(stdout, str) else stdout
+    stderr_bytes = stderr.encode("utf-8", errors="replace") if isinstance(stderr, str) else stderr
+    return {
+        "argv": list(argv),
+        "duration_seconds": round(duration_seconds, 6),
+        "exit_code": exit_code,
+        "outcome": outcome,
+        "stderr": stderr_bytes[:MAX_COMMAND_LOG_BYTES].decode("utf-8", errors="replace"),
+        "stderr_sha256": hashlib.sha256(stderr_bytes).hexdigest(),
+        "stderr_size": len(stderr_bytes),
+        "stderr_truncated": len(stderr_bytes) > MAX_COMMAND_LOG_BYTES,
+        "stdout": stdout_bytes[:MAX_COMMAND_LOG_BYTES].decode("utf-8", errors="replace"),
+        "stdout_sha256": hashlib.sha256(stdout_bytes).hexdigest(),
+        "stdout_size": len(stdout_bytes),
+        "stdout_truncated": len(stdout_bytes) > MAX_COMMAND_LOG_BYTES,
+    }
+
+
+def command_transcript(records: list[dict[str, Any]]) -> bytes:
+    return b"".join(canonical_bytes(record) + b"\n" for record in records)
+
+
+__all__ = [
+    "RootlessPodman",
+    "RunResult",
+    "RunSpec",
+    "SandboxInvalid",
+    "command_record",
+    "command_transcript",
+]

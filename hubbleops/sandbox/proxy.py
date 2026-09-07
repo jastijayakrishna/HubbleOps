@@ -1,20 +1,27 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
+import re
 import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, cast
 
 from hubbleops.core.canonical import canonical_bytes, content_id
 from hubbleops.core.errors import ToolingFailed, ToolingMissing
-from hubbleops.sandbox.image import PROXY_IMAGE
+from hubbleops.sandbox.image import PROXY_IMAGE, ImageSpec
 from hubbleops.sandbox.limits import ResourceLimits
 from hubbleops.sandbox.mounts import wsl_path
 from hubbleops.sandbox.network import NetworkPolicy
-from hubbleops.sandbox.runner import RootlessPodman
+from hubbleops.sandbox.runner import (
+    RootlessPodman,
+    command_record,
+    command_transcript,
+)
 
 ADDON = Path(__file__).with_name("proxy_addon.py")
 ENTRYPOINT = Path(__file__).with_name("proxy_entrypoint.py")
@@ -36,13 +43,15 @@ class ProxyIdentity:
     certificate_sha256: str
     implementation_sha256: str
     limits_sha256: str
+    fixture: dict[str, object] | None
 
-    def mapping(self) -> dict[str, str]:
+    def mapping(self) -> dict[str, object]:
         return {
             "certificate_sha256": self.certificate_sha256,
             "image": PROXY_IMAGE.fingerprint(),
             "implementation_sha256": self.implementation_sha256,
             "limits_sha256": self.limits_sha256,
+            "fixture": self.fixture,
         }
 
     def fingerprint(self) -> str:
@@ -57,16 +66,19 @@ class ProxySession:
         policy: NetworkPolicy,
         nonce: str,
         limits: ResourceLimits,
+        fixture: FixtureService | None = None,
     ) -> None:
         self.engine = engine
         self.artifact_dir = artifact_dir.resolve()
         self.policy = policy
         self.limits = limits
+        self.fixture = fixture
         suffix = content_id(nonce)[:12]
         self.internal = f"hops-{suffix}-internal"
         self.egress = f"hops-{suffix}-egress"
         self.container = f"hops-{suffix}-proxy"
         self._created: list[tuple[str, str]] = []
+        self._commands: list[dict[str, Any]] = []
 
     def __enter__(self) -> ProxyIdentity:
         self.engine.identity()
@@ -82,7 +94,8 @@ class ProxySession:
             self._created.append(("network", self.internal))
             self._run("network", "create", self.egress)
             self._created.append(("network", self.egress))
-            arguments = self.start_arguments(ca, output)
+            fixture_identity = self._start_fixture() if self.fixture is not None else None
+            arguments = self.start_arguments(ca, output, fixture_identity)
             self._run(*arguments)
             self._created.append(("container", self.container))
             self._run("network", "connect", self.egress, self.container)
@@ -151,17 +164,21 @@ class ProxySession:
                     }
                 ),
                 hashlib.sha256(limits_data).hexdigest(),
+                fixture_identity,
             )
         except BaseException:
             self._cleanup()
             raise
 
-    def start_arguments(self, ca: Path, output: Path) -> tuple[str, ...]:
-        allowlist = json.dumps(
-            [item.mapping() for item in self.policy.destinations],
-            sort_keys=True,
-            separators=(",", ":"),
-        )
+    def start_arguments(
+        self,
+        ca: Path,
+        output: Path,
+        fixture: dict[str, object] | None = None,
+    ) -> tuple[str, ...]:
+        allowlist = _encoded([item.mapping() for item in self.policy.destinations])
+        fixture_option = _encoded(fixture or {})
+        fixture_options = ("--set", "ssl_insecure=true") if fixture is not None else ()
         limits = self.limits
         return (
             "run",
@@ -222,10 +239,91 @@ class ProxySession:
             "--set",
             f"hops_allowlist={allowlist}",
             "--set",
+            f"hops_fixture={fixture_option}",
+            "--set",
             "connection_strategy=lazy",
+            *fixture_options,
             "--scripts",
             "/hops/proxy/addon.py",
         )
+
+    def _start_fixture(self) -> dict[str, object]:
+        fixture = self.fixture
+        if fixture is None:
+            raise ToolingFailed("fixture-service", "fixture configuration is missing")
+        name = f"{self.container}-fixture"
+        arguments = (
+            "run",
+            "--detach",
+            "--pull=never",
+            "--name",
+            name,
+            "--hostname",
+            fixture.hostname,
+            "--network",
+            self.egress,
+            "--network-alias",
+            fixture.hostname,
+            "--user",
+            fixture.image.user,
+            "--cap-drop=all",
+            "--security-opt=no-new-privileges",
+            "--read-only",
+            "--no-hosts",
+            "--pids-limit",
+            str(self.limits.processes),
+            "--memory",
+            str(self.limits.memory_bytes),
+            "--log-driver",
+            "k8s-file",
+            "--log-opt",
+            f"max-size={self.limits.output_bytes}",
+            "--tmpfs",
+            "/tmp:rw,noexec,nosuid,nodev,size=16m",
+            "--volume",
+            f"{wsl_path(fixture.script)}:/hops/fixture-service.py:ro,nosuid,nodev",
+            "--entrypoint",
+            "/usr/local/bin/python",
+            fixture.image.reference,
+            "/hops/fixture-service.py",
+            str(fixture.port),
+        )
+        self._run(*arguments)
+        self._created.append(("container", name))
+        self._await_fixture(name, fixture.port)
+        network = _document(self._run("network", "inspect", self.egress).stdout)[0]
+        container = _document(self._run("inspect", name).stdout)[0]
+        try:
+            networks = container["NetworkSettings"]["Networks"]
+            connection = networks[self.egress]
+            address = str(connection["IPAddress"])
+            container_id = str(container["Id"])
+            network_id = str(network.get("id") or network["Id"])
+        except (KeyError, TypeError) as error:
+            raise ToolingFailed(
+                "fixture-service", "fixture runtime identity is malformed"
+            ) from error
+        identity: dict[str, object] = {
+            "address": address,
+            "container_id": container_id,
+            "hostname": fixture.hostname,
+            "network_id": network_id,
+            "port": fixture.port,
+            "script_sha256": hashlib.sha256(fixture.script.read_bytes()).hexdigest(),
+        }
+        if not identity["address"] or not identity["container_id"] or not identity["network_id"]:
+            raise ToolingFailed("fixture-service", "fixture identity is incomplete")
+        return identity
+
+    def _await_fixture(self, name: str, port: int) -> None:
+        deadline = time.monotonic() + 15
+        probe = f"import socket; s=socket.create_connection(('127.0.0.1',{port}),1); s.close()"
+        while time.monotonic() < deadline:
+            completed = self._run("exec", name, "/usr/local/bin/python", "-c", probe, check=False)
+            if completed.returncode == 0:
+                return
+            time.sleep(0.05)
+        raise ToolingFailed("fixture-service", "fixture service did not begin listening")
 
     def _expected_limits(self) -> dict[str, list[int]]:
         limits = self.limits
@@ -244,6 +342,9 @@ class ProxySession:
     def logs(self, maximum: int) -> bytes:
         completed = self._run("logs", self.container, check=False)
         return (completed.stdout + completed.stderr).encode("utf-8")[:maximum]
+
+    def transcript(self) -> bytes:
+        return command_transcript(self._commands)
 
     def _await_listener(self) -> None:
         deadline = time.monotonic() + 30
@@ -267,6 +368,7 @@ class ProxySession:
 
     def _run(self, *arguments: str, check: bool = True) -> subprocess.CompletedProcess[str]:
         argv = (*self.engine.prefix, *arguments)
+        started = time.monotonic()
         try:
             completed = subprocess.run(
                 argv,
@@ -279,9 +381,39 @@ class ProxySession:
                 env=_host_environment(),
             )
         except FileNotFoundError as error:
+            self._commands.append(
+                command_record(
+                    argv,
+                    time.monotonic() - started,
+                    None,
+                    b"",
+                    str(error),
+                    "TOOL_MISSING",
+                )
+            )
             raise ToolingMissing("podman", f"{argv[0]!r} is not executable") from error
         except subprocess.TimeoutExpired as error:
+            self._commands.append(
+                command_record(
+                    argv,
+                    time.monotonic() - started,
+                    None,
+                    error.stdout or b"",
+                    error.stderr or b"",
+                    "WALL_TIMEOUT",
+                )
+            )
             raise ToolingFailed("podman", "proxy lifecycle command timed out") from error
+        self._commands.append(
+            command_record(
+                argv,
+                time.monotonic() - started,
+                completed.returncode,
+                completed.stdout,
+                completed.stderr,
+                "COMPLETED" if completed.returncode == 0 else "NONZERO_EXIT",
+            )
+        )
         if check and completed.returncode != 0:
             raise ToolingFailed("podman", completed.stderr.strip() or "proxy command failed")
         return completed
@@ -292,4 +424,37 @@ def _host_environment() -> dict[str, str]:
     return {key: os.environ[key] for key in allowed if key in os.environ}
 
 
-__all__ = ["ProxyIdentity", "ProxySession", "interception_failures"]
+@dataclass(frozen=True, slots=True)
+class FixtureService:
+    image: ImageSpec
+    script: Path
+    hostname: str
+    port: int
+
+    def __post_init__(self) -> None:
+        script = self.script.resolve()
+        if not script.is_file():
+            raise ToolingFailed("fixture-service", "fixture script is missing")
+        if re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", self.hostname) is None:
+            raise ToolingFailed("fixture-service", "fixture hostname is invalid")
+        if not 1024 <= self.port <= 65535:
+            raise ToolingFailed("fixture-service", "fixture port is invalid")
+        object.__setattr__(self, "script", script)
+
+
+def _document(value: str) -> list[dict[str, Any]]:
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError as error:
+        raise ToolingFailed("podman", "runtime inspect output is invalid JSON") from error
+    if not isinstance(parsed, list) or not parsed or not isinstance(parsed[0], dict):
+        raise ToolingFailed("podman", "runtime inspect output has no object")
+    return cast(list[dict[str, Any]], parsed)
+
+
+def _encoded(value: object) -> str:
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii")
+
+
+__all__ = ["FixtureService", "ProxyIdentity", "ProxySession", "interception_failures"]

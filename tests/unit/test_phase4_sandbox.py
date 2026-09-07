@@ -20,7 +20,7 @@ from hubbleops.sandbox.network import (
     redact_headers,
 )
 from hubbleops.sandbox.proxy import ProxySession
-from hubbleops.sandbox.runner import RootlessPodman, RunSpec, SandboxInvalid
+from hubbleops.sandbox.runner import RootlessPodman, RunSpec, SandboxInvalid, command_record
 
 
 def test_images_require_an_immutable_digest_and_numeric_user() -> None:
@@ -105,6 +105,18 @@ def test_runner_command_is_hardened_and_contains_no_host_environment(tmp_path: P
     assert "AWS_SECRET_ACCESS_KEY" not in joined
 
 
+def test_subprocess_transcript_is_bounded_and_records_exact_outcome() -> None:
+    record = command_record(("tool", "arg"), 1.25, 7, b"x" * 70_000, b"failure", "NONZERO_EXIT")
+    assert record["argv"] == ["tool", "arg"]
+    assert record["duration_seconds"] == 1.25
+    assert record["exit_code"] == 7
+    assert record["outcome"] == "NONZERO_EXIT"
+    assert record["stdout_size"] == 70_000
+    assert record["stdout_truncated"] is True
+    assert len(str(record["stdout"])) == 65_536
+    assert record["stderr"] == "failure"
+
+
 def test_proxy_command_has_the_same_kernel_and_output_bounds(tmp_path: Path) -> None:
     limits = ResourceLimits(
         cpu_seconds=7,
@@ -167,6 +179,8 @@ def test_detached_worktree_records_and_restores_exact_git_metadata(tmp_path: Pat
     assert len(attestation["created"]) == 1
     assert attestation["before"] == attestation["after_cleanup"]
     assert attestation["recovered"] is False
+    assert len(attestation["commands"]) == 4
+    assert all("stdout" in record and "stderr" in record for record in attestation["commands"])
 
 
 def test_a_worktree_whose_removal_is_refused_still_restores_the_repository(

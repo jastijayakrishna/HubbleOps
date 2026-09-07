@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -9,6 +10,8 @@ import pytest
 from hubbleops.app import capture, registry
 from hubbleops.app.cli import EXIT_OK, main
 from hubbleops.closure import source_closure
+from hubbleops.sandbox.image import PROXY_IMAGE
+from hubbleops.sandbox.proxy import FixtureService
 from hubbleops.store.sqlite import Store
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "phase4" / "repo"
@@ -42,15 +45,21 @@ def rootless_available() -> bool:
 def test_rootless_capture_observes_the_same_tuple_in_both_modes(tmp_path: Path, mode: str) -> None:
     target = repository(tmp_path)
     closure = source_closure.build(target)
+    fixture = (
+        FixtureService(PROXY_IMAGE, FIXTURE / "fixture_service.py", "fixture-service", 8443)
+        if mode == "proxy"
+        else None
+    )
     result = capture.execute(
         target,
         closure.repo_sha,
         registry.load_pack("google_ads"),
-        "python probe.py",
+        "python proxy_probe.py" if mode == "proxy" else "python probe.py",
         "python",
         mode,
-        (),
+        ("https://fixture-service:8443",) if mode == "proxy" else (),
         tmp_path / "attempts",
+        fixture=fixture,
     )
     tuples = {
         (event["service"], event["method"], event["version"]) for event in result.batch.events
@@ -58,6 +67,19 @@ def test_rootless_capture_observes_the_same_tuple_in_both_modes(tmp_path: Path, 
     assert tuples == {("GoogleAdsService", "Search", "v22")}
     assert result.manifest["engine"].endswith("rootless=true")
     assert result.manifest["image"]
+    if mode == "proxy":
+        raw = json.loads(result.artifacts["raw-events.jsonl"])
+        assert raw["policy"] == "ALLOW"
+        assert raw["policy_reason"] == "FIXTURE_DESTINATION"
+        identity = result.manifest["proxy"]["fixture"]
+        assert identity["hostname"] == "fixture-service"
+        assert identity["port"] == 8443
+        assert all(identity[field] for field in ("address", "container_id", "network_id"))
+        commands = [
+            json.loads(line) for line in result.artifacts["proxy-commands.jsonl"].splitlines()
+        ]
+        assert commands
+        assert all("duration_seconds" in command for command in commands)
 
 
 @pytest.mark.skipif(not rootless_available(), reason="rootless Podman is unavailable")
@@ -204,7 +226,9 @@ def test_capture_cli_persists_a_scoped_ledger_and_promotes_observed_wrapper(
     artifact_names = {path.name for path in state.joinpath("artifacts", run.run_id).iterdir()}
     assert {
         "command.json",
+        "engine-commands.jsonl",
         "events.jsonl",
         "execution-manifest.json",
         "ledger.json",
+        "proxy-commands.jsonl",
     } <= artifact_names

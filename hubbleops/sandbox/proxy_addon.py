@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import ipaddress
 import json
 import os
@@ -18,7 +19,8 @@ SENSITIVE = frozenset({"api-key", "authorization", "cookie", "set-cookie", "x-ap
 class CaptureAddon:
     def load(self, loader: object) -> None:
         loader.add_option("hops_output", str, "", "neutral JSONL capture output")
-        loader.add_option("hops_allowlist", str, "[]", "exact destination allowlist")
+        loader.add_option("hops_allowlist", str, "W10=", "exact destination allowlist")
+        loader.add_option("hops_fixture", str, "e30=", "test-only fixture destination")
 
     def request(self, flow: http.HTTPFlow) -> None:
         request = flow.request
@@ -76,7 +78,7 @@ class CaptureAddon:
 
     def _allowed(self, scheme: str, host: str, port: int) -> tuple[bool, str, str | None]:
         offered = {"host": host, "port": port, "scheme": scheme}
-        allowlist = json.loads(ctx.options.hops_allowlist)
+        allowlist = _decoded(ctx.options.hops_allowlist)
         if offered not in allowlist:
             return False, "DESTINATION_NOT_ALLOWLISTED", None
         try:
@@ -86,6 +88,17 @@ class CaptureAddon:
             return False, "DESTINATION_DNS_FAILED", None
         if not addresses:
             return False, "DESTINATION_DNS_FAILED", None
+        fixture = _decoded(ctx.options.hops_fixture)
+        fixture_match = (
+            isinstance(fixture, dict)
+            and fixture.get("container_id")
+            and fixture.get("network_id")
+            and fixture.get("hostname") == host
+            and fixture.get("port") == port
+            and set(addresses) == {fixture.get("address")}
+        )
+        if fixture_match:
+            return True, "FIXTURE_DESTINATION", sorted(addresses)[0]
         if any(_forbidden(ipaddress.ip_address(value)) for value in addresses):
             return False, "DESTINATION_ADDRESS_FORBIDDEN", None
         return True, "DESTINATION_ALLOWLISTED", sorted(addresses)[0]
@@ -106,6 +119,10 @@ def _forbidden(address: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
 
 def _canonical(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+
+
+def _decoded(value: str) -> object:
+    return json.loads(base64.urlsafe_b64decode(value.encode("ascii")))
 
 
 addons = [CaptureAddon()]
