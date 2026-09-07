@@ -7,7 +7,7 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 4 implemented and real-repo loop complete; the first fresh gate failed, its five findings are repaired, and a new final fresh gate is pending |
+| **Current phase** | 4 implemented and real-repo loop complete; two fresh gates found seven total gaps, all repaired, and a new final fresh gate is pending |
 | **Branch** | `phase-04-dynamic-capture-and-sentinel`, cut from `main` at `v0.3` |
 | **Last gate passed** | Phase 3. The post-real-repo-loop fresh audit returned literal `GATE: PASS` |
 | **Next action** | Run the final fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on the post-loop tree. Only a literal `GATE: PASS` permits merging and tagging `v0.4`. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
@@ -71,6 +71,17 @@ duration, exit, outcome, and hashed/truncated stdout and stderr. The repaired tr
 with one future-phase skip when the full suite has rootless runtime access, all 31 rootless probes, 76
 focused tests with one environment skip, 12 independent sentinel tests, both isolated-wheel command
 smokes, Ruff, formatting over 148 files, strict Pyright, and diff checks.
+
+The next fresh audit independently passed the full 428-test suite with one future-phase skip, all 31
+rootless probes, every literal plan command, package isolation, static checks, five repaired-blocker
+experiments, Law attacks, and the real-repo record, but correctly returned `GATE: FAIL` on one final
+transcript boundary. Preflight `git status` still ran directly and setup failures discarded the
+in-memory records with the temporary attempt. Capture now journals that preflight through the same
+bounded process runner and includes it in successful `git-commands.jsonl`. Any later setup failure
+persists a content-addressed failure directory containing hash-bound Git, engine, and proxy JSONL
+transcripts plus the exact request and bounded error manifest; the raised error identifies that
+directory. Missing-engine and dirty-repository attacks prove both failure paths persist before they
+fail closed. A new fresh gate is still required on these post-audit bytes.
 
 The Phase 4 real-repo loop ran `scan`, `exposure` and `capture` read-only at the pinned commits.
 Static results are unchanged from Phase 3, so nothing Phase 4 added altered what a scan finds:
@@ -262,9 +273,9 @@ unscannable `rg` hit is preserved as evidence.
 
 ## Blocking
 
-- The Phase 4 real-repo loop is complete. The first completed fresh audit failed and every reported
-  gap is repaired, but no Phase 4 gate has passed yet; nothing may merge to `main` until a new fresh
-  auditor returns literal `GATE: PASS`.
+- The Phase 4 real-repo loop is complete. Two fresh audits failed and every reported gap is repaired,
+  but no Phase 4 gate has passed yet; nothing may merge to `main` until a new fresh auditor returns
+  literal `GATE: PASS`.
 - Nothing blocks the completed Phase 3 gate. `ast-grep` 0.45.0 is installed and its identity is
   proof-bound.
 - Podman 4.9.3 runs rootless in Ubuntu WSL and is the only eligible capture engine; the host's
@@ -313,8 +324,9 @@ unscannable `rg` hit is preserved as evidence.
   capture API. The public CLI cannot declare an exception, and the actual fixture identity is bound
   into the execution manifest.
 - Every Git, engine, proxy, and workload subprocess has a bounded, hash-preserving transcript in the
-  run artifacts. A truncated rendering retains the hash and byte size of the captured stream, and
-  missing-tool and timeout outcomes are recorded before they fail closed.
+  run artifacts. Preflight Git uses the bounded runner too. A truncated rendering retains the hash
+  and byte size of the captured stream, and setup failures persist their available transcripts and
+  bounded error manifest before they fail closed.
 
 **Phase-3 completion decisions (2026-09-06).** Structural language differences live in pack-owned
 ast-grep rules; the generic graph consumes neutral captured facts and contains no provider knowledge.

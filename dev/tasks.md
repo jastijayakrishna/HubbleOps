@@ -25,12 +25,11 @@ Updated before every session ends. Phase-level status lives in
       FA-014 (a read-only worktree metadata directory left state inside a prospect repository) and
       recorded FA-015 (package-manager egress is correctly denied and named)
 - [ ] Run the repaired tree through a new fresh-session
-      [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4. The first completed audit
-      returned `GATE: FAIL`: promotion trusted an unbound source hash, the private TLS fixture was
-      unreachable, standalone hook stacks assumed `/workspace`, mapped observations used an
-      unmatched reason, and Git/proxy/engine subprocess transcripts were incomplete. All five are
-      repaired; 428 repository tests including 31 real-runtime probes, 12 standalone sentinel
-      tests, both installed-wheel smokes, Ruff, formatting, and strict Pyright now pass
+      [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4. The first completed audit's
+      five findings are repaired. The next audit passed all executable checks but returned
+      `GATE: FAIL` because preflight `git status` bypassed the transcript and setup-failure records
+      were discarded with the temporary attempt. Preflight Git is now bounded and transcripted;
+      failures persist hash-bound Git/engine/proxy records plus their request and error manifest
 - [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4`, only after a literal
       `GATE: PASS`
 
