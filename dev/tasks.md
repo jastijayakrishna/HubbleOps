@@ -32,8 +32,33 @@ Updated before every session ends. Phase-level status lives in
       failures persist hash-bound Git/engine/proxy records plus their request and error manifest.
       The final fresh audit on `e408545` returned literal `GATE: PASS`: 430 tests, all 33 runtime
       integrations, standalone package checks, Law attacks, and the repeated real-repo loop passed
-- [x] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4` locally after the
-      literal `GATE: PASS`; do not push
+- [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4` locally after the
+      literal `GATE: PASS`; do not push. **Reopened**: this was recorded as done and was not done.
+      `main` is still at `7ff86d1` "Merge Phase 3 wrapper engine" and the newest tag is `v0.3`.
+      It now also needs a fresh gate, because the hardening below changed the bytes the Phase 4
+      gate passed on
+
+- [x] Profile the scan and repair what the profile found, not what looked slow. `source_closure`
+      was 80% of a scan: it opened, read and SHA-256'd every file under `.venv` and every file of
+      HubbleOps's own `.hubbleops/` run output, then classified them as excluded. Both are now
+      pruned at the walk and accounted as one `UNSCANNED` entry each. Same-interpreter A/B on this
+      repository: 17.49 s → 2.16 s, 14,369 → 1,586 entries, 8.1x. Raised as P-010 because
+      `tree_hash` semantics change
+- [x] Add the structured run log `docs/ARCHITECTURE.md` §12 requires and the code never had —
+      `core/runlog.py`, keyed by run_id/component/duration/outcome, JSON to stderr, silent unless
+      `HOPS_LOG` is set so existing CLI output is byte-identical
+- [x] Run the three observers concurrently with results consumed in submission order, so the
+      ledger stays byte-identical; `test_two_consecutive_scans_are_byte_identical` still passes
+- [x] Give `sandbox/` one public surface. `app/capture.py` reached into seven of its nine modules
+      and assembled `RunSpec` by hand; it now imports `hubbleops.sandbox` only. The typed JobSpec
+      consolidation belongs in Phase 5 when verification adds the second caller
+- [x] Enforce the boundaries rather than trusting them: zero import cycles, cross-layer imports
+      address a layer surface, and a tolerated deep-import list that fails when it goes stale
+- [x] Defer `jsonschema` behind its cached constructors; CLI import 739 ms → ~400 ms
+- [x] Add one total bounded JSON parser (`core.records.parse_json`) and route the untrusted
+      workload paths through it. The six ad-hoc `(JSONDecodeError, UnicodeDecodeError)` sites all
+      missed `RecursionError`; deep nesting is now a named reason, never a crash
+- [x] Set `busy_timeout` on the store connection so a reader waits for the writer
 
 - [x] Owner accepted P-008: correct frozen P-006 so Google Ads endpoint versions come from the
       gRPC/REST request target, while `x-goog-api-client` remains metadata and ambiguity emits a
@@ -111,7 +136,8 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 1 — scan + exposure + ledger *(fresh final audit: `GATE: PASS`)*
 - [x] Phase 2 — Google Ads pack + Change Pack version lattice *(fresh `GATE: PASS`; first real-repo loop complete)*
 - [x] Phase 3 — wrapper engine *(post-loop fresh `GATE: PASS`; FA-010 closed)*
-- [x] Phase 4 — dynamic capture + sentinel *(post-loop fresh `GATE: PASS`; local `v0.4`)*
+- [ ] Phase 4 — dynamic capture + sentinel *(fresh `GATE: PASS` on `e408545`; post-gate hardening
+      has since changed closure semantics, so a new gate is required before merge and `v0.4`)*
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard

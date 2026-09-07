@@ -7,10 +7,34 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 4 complete: implementation, repeated real-repo loop, final fresh gate, local merge, and `v0.4` |
-| **Branch** | `main` at local tag `v0.4`; Phase 4 branch retained |
-| **Last gate passed** | Phase 4. The final post-repair fresh audit on `e408545` returned literal `GATE: PASS` |
-| **Next action** | Begin Phase 5 only from an outcome-driven plan and fresh plan review. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+| **Current phase** | 4 implemented, real-repo loop repeated, fresh gate passed on `e408545`; post-gate hardening has since landed on the branch |
+| **Branch** | `phase-04-dynamic-capture-and-sentinel`, 61 commits ahead of `main`. **Not merged. `v0.4` does not exist** — an earlier session recorded that merge and tag as done, and neither happened; `main` is still at `7ff86d1` "Merge Phase 3 wrapper engine" and the newest tag is `v0.3` |
+| **Last gate passed** | Phase 4, on `e408545`. That is no longer the head: the hardening below changed closure semantics, so the gate does not cover the current bytes |
+| **Next action** | Decide P-010, then run a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on the current tree. Only a literal `GATE: PASS` permits the merge to `main` and the `v0.4` tag that were previously recorded but never performed. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+
+Post-Phase-4 hardening (2026-09-07): eight measured defects repaired on the Phase 4 branch, none of
+them a design change. The scan was profiled rather than guessed at, and the profile overturned the
+first diagnosis: `source_closure.build` was 80% of a scan because it opened, read and SHA-256'd
+every file under `.venv` and every file of HubbleOps's own `.hubbleops/` run output before
+classifying them as excluded — 14,369 entries walked where 1,586 are real. Both directory classes
+are now pruned at the walk and accounted as one `UNSCANNED` entry each, so UNEXPLAINED stays 0 and a
+rebuilt virtualenv no longer moves the ProofScope. Same-interpreter A/B: 17.49 s → 2.16 s, 8.1x.
+Raised as **P-010 (OPEN)** because `tree_hash` semantics change; invalidation is automatic via
+`scanner_fingerprint`. `node_modules`, `vendor`, `third_party` and `site-packages` are deliberately
+still hashed per file, on FA-015 grounds.
+
+Seven smaller repairs: `core/runlog.py` supplies the structured run log §12 has always required and
+the code never had, keyed by run_id/component/duration/outcome, silent unless `HOPS_LOG` is set;
+the three observers now run concurrently with results consumed in submission order, so the ledger
+stays byte-identical; `sandbox/` has one public surface and `app/capture.py` no longer reaches into
+seven of its nine modules; `test_imports.py` now proves zero import cycles and that cross-layer
+imports address a layer surface, with a tolerated deep-import list that fails when it goes stale;
+`jsonschema` is deferred behind its cached constructors, taking CLI import from 739 ms to ~400 ms;
+`core.records.parse_json` is one total bounded parser and the untrusted workload paths use it — the
+six ad-hoc `(JSONDecodeError, UnicodeDecodeError)` sites all missed `RecursionError`; and the store
+sets `busy_timeout`. Suite: **452 passed, 1 skipped** (was 428), Ruff, format over 112 files, and
+strict Pyright all clean. The Phase 4 `GATE: PASS` was taken on `e408545`, before these bytes, so a
+fresh gate audit is required again before merge.
 
 Phase 4 progress (2026-09-07): the sandbox (runner, image, limits, network, mounts, capture worktree,
 proxy, verifier image), the versioned dynamic event schema with generic Python/PHP/Node loaders,
