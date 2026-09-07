@@ -3,10 +3,12 @@ from __future__ import annotations
 import hashlib
 import subprocess
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
 from hubbleops.app import registry
+from hubbleops.sandbox import capture as sandbox_capture
 from hubbleops.sandbox.capture import DetachedWorktree
 from hubbleops.sandbox.image import CAPTURE_IMAGE, ImageInvalid, ImageSpec
 from hubbleops.sandbox.limits import LimitsInvalid, ResourceLimits
@@ -141,3 +143,52 @@ def test_detached_worktree_records_and_restores_exact_git_metadata(tmp_path: Pat
     attestation = manager.attestation()
     assert len(attestation["created"]) == 1
     assert attestation["before"] == attestation["after_cleanup"]
+    assert attestation["recovered"] is False
+
+
+def test_a_worktree_whose_removal_is_refused_still_restores_the_repository(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repo"
+    repository.mkdir()
+    repository.joinpath("source.py").write_text("value = 1\n", encoding="utf-8")
+    for command in (
+        ("git", "init", "-q"),
+        ("git", "config", "user.email", "phase4@example.invalid"),
+        ("git", "config", "user.name", "Phase 4"),
+        ("git", "add", "source.py"),
+        ("git", "commit", "-q", "-m", "fixture"),
+    ):
+        subprocess.run(command, cwd=repository, check=True, capture_output=True)
+
+    monkeypatch.setattr(sandbox_capture, "RELEASE_SECONDS", 0.0)
+    executed = subprocess.run
+
+    def refuse_removal(argv: tuple[str, ...], **options: Any) -> subprocess.CompletedProcess[str]:
+        if "worktree" in argv and "remove" in argv:
+            return subprocess.CompletedProcess(
+                argv, 1, "", "error: failed to delete: Permission denied"
+            )
+        return cast("subprocess.CompletedProcess[str]", executed(argv, **options))
+
+    monkeypatch.setattr(subprocess, "run", refuse_removal)
+    manager = DetachedWorktree(repository, tmp_path / "detached", "HEAD")
+    with manager as destination:
+        assert destination.joinpath("source.py").is_file()
+    attestation = manager.attestation()
+    assert attestation["recovered"] is True
+    assert attestation["before"] == attestation["after_cleanup"]
+    residue = repository / ".git" / "worktrees"
+    assert not residue.exists() or not list(residue.iterdir())
+    assert (
+        subprocess.run(
+            ("git", "status", "--porcelain"), cwd=repository, capture_output=True, text=True
+        ).stdout
+        == ""
+    )
+    assert (
+        subprocess.run(
+            ("git", "worktree", "list"), cwd=repository, capture_output=True, text=True
+        ).stdout.count("\n")
+        == 1
+    )

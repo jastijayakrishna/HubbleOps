@@ -1,15 +1,33 @@
 from __future__ import annotations
 
+import os
+import shutil
+import stat
 import subprocess
+import time
+from collections.abc import Callable
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from hubbleops.core.errors import HubbleOpsError, ToolingFailed, ToolingMissing
 
+RELEASE_SECONDS = 15.0
+RELEASE_INTERVAL = 0.2
+
 
 class WorktreeInvalid(HubbleOpsError):
     pass
+
+
+def remove_tree(path: Path) -> None:
+    def writable(action: Callable[..., object], target: str, error: BaseException) -> None:
+        os.chmod(target, stat.S_IWRITE)
+        action(target)
+
+    with suppress(OSError):
+        shutil.rmtree(path, onexc=writable)
 
 
 @dataclass(slots=True)
@@ -24,6 +42,7 @@ class DetachedWorktree:
     _created_entries: tuple[str, ...] = ()
     _after_cleanup: tuple[str, ...] = ()
     _completed: bool = False
+    _recovered: bool = False
 
     def __enter__(self) -> Path:
         repository = self.repository.resolve()
@@ -52,13 +71,41 @@ class DetachedWorktree:
 
     def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
         if self._created:
-            self._git("worktree", "remove", "--force", str(self.destination.resolve()))
+            self._release()
             self._created = False
         if self._metadata is not None:
             self._after_cleanup = self._entries(self._metadata)
             if self._after_cleanup != self._before:
                 raise WorktreeInvalid("Git worktree metadata did not return to its prior state")
         self._completed = True
+
+    def _release(self) -> None:
+        destination = self.destination.resolve()
+        deadline = time.monotonic() + RELEASE_SECONDS
+        while True:
+            try:
+                self._git("worktree", "remove", "--force", str(destination))
+                return
+            except ToolingFailed:
+                if time.monotonic() >= deadline:
+                    break
+                time.sleep(RELEASE_INTERVAL)
+        self._recovered = True
+        deadline = time.monotonic() + RELEASE_SECONDS
+        while True:
+            remove_tree(destination)
+            with suppress(ToolingFailed):
+                self._git("worktree", "prune")
+            if self._metadata is None:
+                return
+            residue = sorted(set(self._entries(self._metadata)) - set(self._before))
+            if not residue:
+                return
+            for name in residue:
+                remove_tree(self._metadata / name)
+            if time.monotonic() >= deadline:
+                return
+            time.sleep(RELEASE_INTERVAL)
 
     def attestation(self) -> dict[str, Any]:
         if self._metadata is None or not self._completed:
@@ -68,6 +115,7 @@ class DetachedWorktree:
             "before": list(self._before),
             "created": list(self._created_entries),
             "metadata_root": str(self._metadata),
+            "recovered": self._recovered,
         }
 
     @staticmethod
@@ -95,4 +143,4 @@ class DetachedWorktree:
         return completed.stdout
 
 
-__all__ = ["DetachedWorktree", "WorktreeInvalid"]
+__all__ = ["DetachedWorktree", "WorktreeInvalid", "remove_tree"]
