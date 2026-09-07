@@ -67,8 +67,8 @@ permits only that exact tuple. The standalone hook recognized repository frames 
 `/workspace`; it now derives paths from an explicit confined repository root. Dynamic and sentinel
 observations now use `OBSERVED_NOT_STATIC` only when no static candidate maps. Finally, Git, engine,
 and proxy invocations join workload invocations in bounded JSONL transcripts with exact argv,
-duration, exit, outcome, and hashed/truncated stdout and stderr. The repaired tree passes 396 tests
-with 33 expected sandbox/environment skips, all 31 separately executed rootless runtime probes, 76
+duration, exit, outcome, and hashed/truncated stdout and stderr. The repaired tree passes 428 tests
+with one future-phase skip when the full suite has rootless runtime access, all 31 rootless probes, 76
 focused tests with one environment skip, 12 independent sentinel tests, both isolated-wheel command
 smokes, Ruff, formatting over 148 files, strict Pyright, and diff checks.
 

@@ -29,8 +29,8 @@ Updated before every session ends. Phase-level status lives in
       returned `GATE: FAIL`: promotion trusted an unbound source hash, the private TLS fixture was
       unreachable, standalone hook stacks assumed `/workspace`, mapped observations used an
       unmatched reason, and Git/proxy/engine subprocess transcripts were incomplete. All five are
-      repaired; 396 repository tests, 31 real-runtime probes, 12 standalone sentinel tests, both
-      installed-wheel smokes, Ruff, formatting, and strict Pyright now pass
+      repaired; 428 repository tests including 31 real-runtime probes, 12 standalone sentinel
+      tests, both installed-wheel smokes, Ruff, formatting, and strict Pyright now pass
 - [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4`, only after a literal
       `GATE: PASS`
 
