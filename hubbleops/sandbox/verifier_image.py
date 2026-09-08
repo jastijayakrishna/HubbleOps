@@ -11,7 +11,7 @@ from hubbleops.sandbox.mounts import Mount
 
 VERIFIER_REFERENCE = (
     "docker.io/library/python@sha256:"
-    "782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254"
+    "46ee549c88617e9bc8acb843a326f1a5c0fa5608d7f9703509efe6d53b55f318"
 )
 CANDIDATE_TARGET = "/verify/candidate"
 BASE_TARGET = "/verify/base"
