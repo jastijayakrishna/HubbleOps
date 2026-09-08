@@ -6,18 +6,27 @@ import posixpath
 import re
 import shutil
 import subprocess
-from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from collections.abc import Iterable, Iterator, Mapping, Sequence
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
 from hubbleops.core.canonical import canonical_text, content_id
 from hubbleops.core.errors import ToolingFailed, ToolingMissing, ToolingTimeout
 from hubbleops.core.records import as_mapping, as_sequence
 
+
+class _HasPath(Protocol):
+    @property
+    def path(self) -> str: ...
+
+
 AST_GREP_MINIMUM = (0, 45, 0)
 AST_GREP_MAXIMUM = (0, 46, 0)
 AST_GREP_TIMEOUT_SECONDS = 30.0
+ARGUMENT_BUDGET_CHARS = 24_000
+MAX_OUTPUT_CHARS = 512 * 1024 * 1024
+MAX_MATCHES_PER_INVOCATION = 2_000_000
 LANGUAGE_EXTENSIONS = {
     ".cs": "csharp",
     ".go": "go",
@@ -214,6 +223,15 @@ class ClassRelation:
 
 
 @dataclass(frozen=True, slots=True)
+class _GraphIndex:
+    atoms: dict[str, list[SyntaxMatch]]
+    definitions: dict[str, list[Definition]]
+    assignments: dict[str, list[Assignment]]
+    imports: dict[str, list[ImportBinding]]
+    definitions_by_id: dict[str, Definition]
+
+
+@dataclass(frozen=True, slots=True)
 class ImportGraph:
     definitions: tuple[Definition, ...]
     calls: tuple[Call, ...]
@@ -226,6 +244,32 @@ class ImportGraph:
     parse_errors: tuple[SyntaxMatch, ...]
     concatenations: tuple[SyntaxMatch, ...]
     formats: tuple[SyntaxMatch, ...]
+    _index: _GraphIndex = field(init=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "_index",
+            _GraphIndex(
+                atoms=_group_by_path(self.atoms),
+                definitions=_group_by_path(self.definitions),
+                assignments=_group_by_path(self.assignments),
+                imports=_group_by_path(self.imports),
+                definitions_by_id={item.id: item for item in self.definitions},
+            ),
+        )
+
+    def atoms_in(self, path: str) -> Sequence[SyntaxMatch]:
+        return self._index.atoms.get(path, ())
+
+    def definitions_in(self, path: str) -> Sequence[Definition]:
+        return self._index.definitions.get(path, ())
+
+    def assignments_in(self, path: str) -> Sequence[Assignment]:
+        return self._index.assignments.get(path, ())
+
+    def imports_in(self, path: str) -> Sequence[ImportBinding]:
+        return self._index.imports.get(path, ())
 
     def serialize(self) -> bytes:
         value = {
@@ -248,7 +292,9 @@ class ImportGraph:
         return tuple(item for item in self.definitions if item.name == tail)
 
     def definition(self, identifier: str | None) -> Definition | None:
-        return next((item for item in self.definitions if item.id == identifier), None)
+        if identifier is None:
+            return None
+        return self._index.definitions_by_id.get(identifier)
 
     def callers(self, definition: Definition) -> tuple[Call, ...]:
         return tuple(
@@ -436,8 +482,12 @@ class AstGrep:
             raise ValueError("ast-grep query requires a pattern or node kind")
         if query.selector is not None:
             args.extend(["--selector", query.selector])
-        args.extend(["-l", AST_GREP_LANGUAGES[language], "--json=compact", *paths])
-        return self.decode(self._run(args, root).stdout, root, query.kind)
+        args.extend(["-l", AST_GREP_LANGUAGES[language], "--json=compact"])
+        matches: list[SyntaxMatch] = []
+        for batch in argument_batches(paths):
+            completed = self._run([*args, *batch], root)
+            matches.extend(self.decode(completed.stdout, root, query.kind))
+        return tuple(matches)
 
     def rule(
         self,
@@ -448,8 +498,12 @@ class AstGrep:
     ) -> tuple[SyntaxMatch, ...]:
         if not paths:
             return ()
-        args = ["scan", "-r", str(rule_path), "--json=compact", *paths]
-        return self.decode(self._run(args, root).stdout, root, f"rule:{language}")
+        args = ["scan", "-r", str(rule_path), "--json=compact"]
+        matches: list[SyntaxMatch] = []
+        for batch in argument_batches(paths):
+            completed = self._run([*args, *batch], root)
+            matches.extend(self.decode(completed.stdout, root, f"rule:{language}"))
+        return tuple(matches)
 
     def _run(self, args: Sequence[str], cwd: Path | None) -> subprocess.CompletedProcess[str]:
         try:
@@ -463,9 +517,14 @@ class AstGrep:
                 timeout=self.timeout_seconds,
                 check=False,
             )
-        except FileNotFoundError as error:
-            raise ToolingMissing("ast-grep", f"{self.executable!r} is not executable") from error
-        except PermissionError as error:
+        except (FileNotFoundError, PermissionError) as error:
+            if Path(self.executable).is_file():
+                length = sum(len(argument) + 1 for argument in args)
+                raise ToolingFailed(
+                    "ast-grep",
+                    f"{self.executable!r} exists but the operating system refused to start it "
+                    f"with a {length} character argument list of {len(args)} arguments",
+                ) from error
             raise ToolingMissing("ast-grep", f"{self.executable!r} is not executable") from error
         except subprocess.TimeoutExpired as error:
             raise ToolingTimeout("ast-grep", self.timeout_seconds) from error
@@ -477,15 +536,46 @@ class AstGrep:
         return completed
 
     def decode(self, payload: str, root: Path, kind: str) -> tuple[SyntaxMatch, ...]:
+        if len(payload) > MAX_OUTPUT_CHARS:
+            raise ToolingFailed(
+                "ast-grep",
+                f"a single {kind} invocation returned {len(payload)} characters, over the "
+                f"{MAX_OUTPUT_CHARS} character bound; narrow the rule or split the closure",
+            )
         try:
             decoded: object = json.loads(payload or "[]")
         except json.JSONDecodeError as error:
             raise ToolingFailed("ast-grep", "output was malformed JSON") from error
+        except RecursionError as error:
+            raise ToolingFailed("ast-grep", "output nesting exceeded the parser bound") from error
         if not isinstance(decoded, list):
             raise ToolingFailed("ast-grep", "output JSON root was not an array")
         entries = cast(list[object], decoded)
+        if len(entries) > MAX_MATCHES_PER_INVOCATION:
+            raise ToolingFailed(
+                "ast-grep",
+                f"a single {kind} invocation matched {len(entries)} nodes, over the "
+                f"{MAX_MATCHES_PER_INVOCATION} match bound; narrow the rule",
+            )
         matches = tuple(_decode_match(item, root, kind) for item in entries)
         return tuple(sorted(set(matches)))
+
+
+def argument_batches(
+    paths: Sequence[str], budget: int = ARGUMENT_BUDGET_CHARS
+) -> Iterator[tuple[str, ...]]:
+    current: list[str] = []
+    used = 0
+    for path in paths:
+        cost = len(path) + 1
+        if current and used + cost > budget:
+            yield tuple(current)
+            current = []
+            used = 0
+        current.append(path)
+        used += cost
+    if current:
+        yield tuple(current)
 
 
 def language_for(path: str) -> str:
@@ -500,6 +590,8 @@ def build(
     matches: list[SyntaxMatch] = []
     for language in sorted(paths_by_language):
         paths = tuple(sorted(paths_by_language[language]))
+        if not paths:
+            continue
         for query in (*COMMON_QUERIES, *LANGUAGE_QUERIES.get(language, ())):
             matches.extend(runner.query(root, paths, language, query))
     unique = tuple(sorted(set(matches)))
@@ -541,6 +633,8 @@ def scan_rules(
     matches: list[SyntaxMatch] = []
     for language in sorted(rules):
         paths = tuple(sorted(paths_by_language.get(language, ())))
+        if not paths:
+            continue
         for rule_path in sorted(rules[language]):
             matches.extend(runner.rule(root, paths, language, rule_path))
     return tuple(sorted(set(matches)))
@@ -597,7 +691,7 @@ def _relative(root: Path, value: str) -> str:
 
 def _definitions(matches: Iterable[SyntaxMatch]) -> tuple[Definition, ...]:
     materialized = tuple(matches)
-    identifiers = tuple(item for item in materialized if item.kind == "identifier")
+    identifiers = _group_by_path(item for item in materialized if item.kind == "identifier")
     definitions: list[Definition] = []
     for match in materialized:
         if match.kind != "definition":
@@ -633,6 +727,7 @@ def _definitions(matches: Iterable[SyntaxMatch]) -> tuple[Definition, ...]:
 
 
 def _calls(matches: Iterable[SyntaxMatch], definitions: Sequence[Definition]) -> tuple[Call, ...]:
+    owners = _group_by_path(definitions)
     calls: list[Call] = []
     for match in matches:
         if match.kind != "call":
@@ -643,7 +738,7 @@ def _calls(matches: Iterable[SyntaxMatch], definitions: Sequence[Definition]) ->
         arguments = tuple(
             item for item in match.captures_named("ARGS") if item.text not in (",", "(", ")")
         )
-        owner = _owner(match.path, match.range, definitions)
+        owner = _owner(match.path, match.range, owners)
         identity = content_id(
             {"path": match.path, "start": match.range.start_byte, "callee": callee.text}
         )
@@ -664,6 +759,7 @@ def _calls(matches: Iterable[SyntaxMatch], definitions: Sequence[Definition]) ->
 def _assignments(
     matches: Iterable[SyntaxMatch], definitions: Sequence[Definition]
 ) -> tuple[Assignment, ...]:
+    owners = _group_by_path(definitions)
     assignments: list[Assignment] = []
     for match in matches:
         if match.kind != "assignment":
@@ -672,7 +768,7 @@ def _assignments(
         value = match.capture("VALUE")
         if target is None or value is None:
             continue
-        owner = _owner(match.path, match.range, definitions)
+        owner = _owner(match.path, match.range, owners)
         identity = content_id(
             {"path": match.path, "start": match.range.start_byte, "target": target.text}
         )
@@ -758,10 +854,17 @@ def _classes(matches: Iterable[SyntaxMatch]) -> tuple[ClassRelation, ...]:
     return tuple(sorted(set(classes)))
 
 
-def _owner(path: str, source_range: SourceRange, definitions: Sequence[Definition]) -> str | None:
-    candidates = [
-        item for item in definitions if item.path == path and item.range.contains(source_range)
-    ]
+def _group_by_path[T: _HasPath](items: Iterable[T]) -> dict[str, list[T]]:
+    grouped: dict[str, list[T]] = {}
+    for item in items:
+        grouped.setdefault(item.path, []).append(item)
+    return grouped
+
+
+def _owner(
+    path: str, source_range: SourceRange, definitions: Mapping[str, Sequence[Definition]]
+) -> str | None:
+    candidates = [item for item in definitions.get(path, ()) if item.range.contains(source_range)]
     if not candidates:
         return None
     return min(candidates, key=lambda item: item.range.end_byte - item.range.start_byte).id
@@ -798,10 +901,10 @@ def _arity_matches(call: int, definition: int) -> bool:
     return call == definition or definition == 0 or call + 1 == definition
 
 
-def _parameter_name(path: str, capture: Capture, identifiers: Sequence[SyntaxMatch]) -> str:
-    inside = [
-        item for item in identifiers if item.path == path and capture.range.contains(item.range)
-    ]
+def _parameter_name(
+    path: str, capture: Capture, identifiers: Mapping[str, Sequence[SyntaxMatch]]
+) -> str:
+    inside = [item for item in identifiers.get(path, ()) if capture.range.contains(item.range)]
     if inside:
         return min(inside, key=lambda item: item.range.start_byte).text
     return capture.text
