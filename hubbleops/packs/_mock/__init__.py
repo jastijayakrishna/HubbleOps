@@ -12,7 +12,9 @@ import yaml
 
 from hubbleops.core.canonical import blob_hash, canonical_text, content_id
 from hubbleops.core.errors import PackDataError
+from hubbleops.core.records import as_mapping
 from hubbleops.core.surface import SurfaceSpec
+from hubbleops.core.verification import FalsifierInput, FalsifierOutcome
 from hubbleops.packs._protocol import (
     BuildReport,
     CaptureHooks,
@@ -39,6 +41,36 @@ ROOT = Path(__file__).resolve().parent
 class EmptyBundle:
     language: str
     paths: tuple[Path, ...] = ()
+
+
+@dataclass(slots=True)
+class MockRemovedField:
+    name: str = "removed_field_in_request"
+    failure_class: str = "request_text"
+
+    def check(self, subject: FalsifierInput) -> FalsifierOutcome:
+        removed = {change.subject for change in subject.changes.removed()}
+        if not removed:
+            return FalsifierOutcome(result="PASS", reason="this Change Pack removes no subject")
+        sites: list[str] = []
+        for record in subject.evidence_of(self.failure_class):
+            value = as_mapping(record.get("value"))
+            text = str(value.get("text") or value.get("query") or "")
+            sites.extend(
+                f"{record.get('path')}:{record.get('line_start')} names {name}"
+                for name in sorted(removed)
+                if re.search(rf"\b{re.escape(name)}\b", text)
+            )
+        if sites:
+            return FalsifierOutcome(
+                result="FAIL",
+                reason="a request still names a removed subject",
+                sites=tuple(sorted(set(sites))),
+            )
+        return FalsifierOutcome(result="PASS", reason="no request names a removed subject")
+
+
+MOCK_FALSIFIER: Falsifier = MockRemovedField()
 
 
 def _fact(subject: str, kind: str, attributes: Mapping[str, Any]) -> CatalogFact:
@@ -208,7 +240,7 @@ class MockPack:
         return []
 
     def falsifiers(self) -> list[Falsifier]:
-        return []
+        return [MOCK_FALSIFIER]
 
 
 PACK = MockPack()

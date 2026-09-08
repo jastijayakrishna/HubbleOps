@@ -9,6 +9,7 @@ from hubbleops.core.surface import SurfaceSpec
 from hubbleops.packs._protocol import CaptureHooks, Falsifier, RuleSet, ToolSpec, Transform, Version
 from hubbleops.packs.google_ads.changes import CHANGES
 from hubbleops.packs.google_ads.contract import CONTRACT
+from hubbleops.packs.google_ads.falsifiers import FALSIFIERS
 from hubbleops.packs.google_ads.telemetry import TELEMETRY
 from hubbleops.packs.google_ads.wire import WIRE_SIGNATURE
 
@@ -70,7 +71,7 @@ class GoogleAdsPack:
         return []
 
     def falsifiers(self) -> list[Falsifier]:
-        return []
+        return list(FALSIFIERS)
 
 
 PACK = GoogleAdsPack()

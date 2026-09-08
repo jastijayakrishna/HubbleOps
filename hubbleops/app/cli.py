@@ -14,7 +14,7 @@ from typing import Any, cast
 import yaml
 
 from hubbleops import __version__
-from hubbleops.app import capture, exposure, promotion, registry
+from hubbleops.app import capture, exposure, promotion, registry, verification
 from hubbleops.closure import source_closure
 from hubbleops.core import runlog
 from hubbleops.core.canonical import canonical_bytes, content_id, export_bytes
@@ -31,6 +31,7 @@ from hubbleops.core.records import as_mapping
 from hubbleops.graph.imports import AstGrep
 from hubbleops.observe import deps, ledger, structure, telemetry, text
 from hubbleops.observe.dynamic import runner as dynamic
+from hubbleops.proof import receipt
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
 
@@ -131,6 +132,26 @@ def _parser() -> argparse.ArgumentParser:
     promote_command.add_argument("--revoke", action="store_true")
     promote_command.set_defaults(handler=_promote)
 
+    verify_command = subparsers.add_parser(
+        "verify", help="judge a candidate SHA against a base SHA and return a Receipt"
+    )
+    verify_command.add_argument("base_sha", help="the commit the migration starts from")
+    verify_command.add_argument("candidate_sha", help="the commit the migration produced")
+    verify_command.add_argument(
+        "--pack", required=True, help=f"one of: {', '.join(registry.available_packs())}"
+    )
+    verify_command.add_argument("--repo", default=".", help="path to the repository")
+    verify_command.add_argument("--from", dest="from_version", default=None)
+    verify_command.add_argument("--to", dest="to_version", default=None)
+    verify_command.add_argument("--obligations", default=None)
+    verify_command.add_argument("--decisions", default=None)
+    verify_command.add_argument("--base-capture", default=None)
+    verify_command.add_argument("--candidate-capture", default=None)
+    verify_command.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
+    verify_command.add_argument("--receipt", default=None, help="also write receipt.json here")
+    verify_command.add_argument("--force", action="store_true")
+    verify_command.set_defaults(handler=_verify)
+
     pack = subparsers.add_parser("pack", help="inspect and verify provider packs")
     pack_commands = pack.add_subparsers(dest="pack_verb", required=True)
     pack_verify = pack_commands.add_parser("verify", help="verify an offline provider pack")
@@ -217,7 +238,10 @@ def scan_repository(
     with boot.stage("dependency_resolution"):
         resolution = deps.resolve(closure)
     with tempfile.TemporaryDirectory(prefix="hops-promoted-rules-") as temporary:
-        rules = (*_structural_rules(pack), *promotion.materialize_active(resolved, Path(temporary)))
+        rules = (
+            *structural_rules_of(pack),
+            *promotion.materialize_active(resolved, Path(temporary)),
+        )
         try:
             ast_grep_version = AstGrep(ast_grep_executable).version()
         except (ToolingMissing, ToolingFailed, ToolingTimeout):
@@ -430,7 +454,7 @@ def _capture_repository(
         }
     )
     with tempfile.TemporaryDirectory(prefix="hops-promoted-rules-") as temporary:
-        rules = (*_structural_rules(pack), *promotion.materialize_active(target, Path(temporary)))
+        rules = (*structural_rules_of(pack), *promotion.materialize_active(target, Path(temporary)))
         try:
             ast_grep_version = AstGrep(ast_grep_executable).version()
         except (ToolingMissing, ToolingFailed, ToolingTimeout):
@@ -691,6 +715,91 @@ def _exposure(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _verify(args: argparse.Namespace) -> int:
+    pack = registry.load_pack(args.pack)
+    request = verification.VerificationRequest(
+        repository=Path(args.repo),
+        pack=pack,
+        base=str(args.base_sha),
+        candidate=str(args.candidate_sha),
+        from_version=args.from_version,
+        to_version=args.to_version,
+        obligations_path=_optional_path(args.obligations),
+        decisions_path=_optional_path(args.decisions),
+        base_capture_path=_optional_path(args.base_capture),
+        candidate_capture_path=_optional_path(args.candidate_capture),
+        force=bool(args.force),
+    )
+    run = verification.execute(request)
+    document = receipt.build(
+        evaluation=run.evaluation,
+        proof_scope=run.proof_scope,
+        provider=pack.name,
+        changes_hash=run.changes_hash,
+        base_sha=run.base_sha,
+        candidate_sha=run.candidate_sha,
+        from_version=run.from_version,
+        to_version=run.to_version,
+    )
+    state_dir = Path(args.state_dir).resolve()
+    run_dir = state_dir / "artifacts" / run.run_id
+    payload = document.json_bytes()
+    rendered = receipt.render(document).encode("utf-8")
+    json_path = run_dir / "receipt.json"
+    markdown_path = run_dir / "receipt.md"
+    with Store(state_dir) as store:
+        store.start_run(
+            run_id=run.run_id,
+            proof_scope=run.proof_scope,
+            proof_scope_hash=run.proof_scope_hash,
+            provider=pack.name,
+            verb="verify",
+            target=f"{run.base_sha}..{run.candidate_sha}",
+            closure_summary={
+                "base_sha": run.base_sha,
+                "candidate_sha": run.candidate_sha,
+                "from_version": run.from_version,
+                "to_version": run.to_version,
+                "oracle_mode": run.oracle_mode,
+                "verdict": document.verdict(),
+                "receipt_body_hash": document.body_hash(),
+            },
+            started_at=datetime.now(UTC).isoformat(),
+        )
+        for path, data, kind in (
+            (json_path, payload, "receipt.json"),
+            (markdown_path, rendered, "receipt.md"),
+        ):
+            digest = write_atomic(path, data)
+            store.write_artifact(
+                run_id=run.run_id,
+                proof_scope_hash=run.proof_scope_hash,
+                kind=kind,
+                path=str(path),
+                sha256=digest,
+                size=len(data),
+            )
+        store.finish_run(run.run_id, datetime.now(UTC).isoformat())
+    if args.receipt:
+        write_atomic(Path(args.receipt).resolve(), payload)
+    print(receipt.render(document))
+    print(f"RECEIPT  {json_path}")
+    print(f"  body   {document.body_hash()}")
+    return _verdict_exit(document.verdict())
+
+
+def _verdict_exit(verdict: str) -> int:
+    if verdict == "VERIFIED_FOR_SCOPE":
+        return EXIT_OK
+    if verdict == "FAILED":
+        return EXIT_FAILED
+    return EXIT_UNKNOWN
+
+
+def _optional_path(value: str | None) -> Path | None:
+    return Path(value).resolve() if value else None
+
+
 def _pack_verify(args: argparse.Namespace) -> int:
     pack = registry.load_pack(args.name)
     report = pack.changes.verify()
@@ -736,7 +845,7 @@ def _scan_summary(result: ScanResult) -> str:
     return chr(10).join(lines)
 
 
-def _structural_rules(pack: registry.LoadedPack) -> tuple[StructuralRule, ...]:
+def structural_rules_of(pack: registry.LoadedPack) -> tuple[StructuralRule, ...]:
     rules: list[StructuralRule] = []
     for language in structure.SUPPORTED_LANGUAGES:
         bundle = pack.rules(language)
