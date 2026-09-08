@@ -12,6 +12,41 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Last gate passed** | Phase 4, on `e408545`. That is no longer the head: the hardening below changed closure semantics, so the gate does not cover the current bytes |
 | **Next action** | Decide P-010, then run a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on the current tree. Only a literal `GATE: PASS` permits the merge to `main` and the `v0.4` tag that were previously recorded but never performed. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
 
+Scale and reliability hardening (2026-09-08): profiling the scan a second time found three defects
+the first pass missed, and the run log added the day before caught a fourth on its first real run.
+
+- **FA-016, the worst of them.** Every source path was passed on one command line, so past roughly
+  500-800 files the operating system refused to start ast-grep — and the failure was reported as
+  `TOOLING_MISSING` naming a tool that was installed and working. A customer with a normal-sized
+  repository could not scan it and was told to install something they already had. Paths are now
+  batched under a 24,000 character budget against the 32,767 character Windows `CreateProcess`
+  limit; measured 800 files failing before and 4,000 passing after.
+- **FA-017**, caught by the new structured log on the first real scan: closure pruning left ripgrep
+  walking `.hubbleops/uv-cache/`, it matched a path the closure no longer enumerated, and the scan
+  correctly stopped. Two hand-maintained exclusion lists for one invariant.
+  `SourceClosure.search_exclusions()` is now the single source both read.
+- **FA-018.** Wrapper-walk lookups scanned every match in the repository and filtered by path;
+  `SourceRange.contains` ran 1.5 M times per build. The graph now indexes by path and id. Build
+  5.64 s → 3.39 s on 60 files, and because the complexity class changed the saving grows with
+  repository size.
+
+Also: analyzer output and match counts are bounded, so a pathological rule fails closed with a named
+reason instead of exhausting memory; `tests/property/test_cost_budgets.py` asserts deterministic
+counters — batch counts, invocation counts, entries enumerated — which catch a cost regression on any
+machine without timing anything; `tests/property/test_adversarial_trees.py` generates hostile trees
+with Hypothesis and asserts the closure is total, deterministic, and never enumerates what it pruned;
+and `.github/workflows/ci.yml` runs the checks, inert until the repository is first pushed.
+
+Two things measured and deliberately **not** done. Running the 18 ast-grep queries concurrently was
+1.0-1.1x, because ast-grep already saturates the CPU internally, so the change was reverted rather
+than kept as dead complexity. Collapsing those 18 invocations into one multi-rule pass is the real
+remaining win — a four-language repository is parsed 73 times — and it stays open because it needs a
+match-equivalence proof first.
+
+One caveat on the numbers: `hops scan . --pack google_ads` on this repository is pathological, not
+customer-representative. It produced 289,391 text records because the Google Ads pack's own catalog
+data is in the tree, so HubbleOps was scanning its own surface definition.
+
 Post-Phase-4 hardening (2026-09-07): eight measured defects repaired on the Phase 4 branch, none of
 them a design change. The scan was profiled rather than guessed at, and the profile overturned the
 first diagnosis: `source_closure.build` was 80% of a scan because it opened, read and SHA-256'd

@@ -60,6 +60,32 @@ Updated before every session ends. Phase-level status lives in
       missed `RecursionError`; deep nesting is now a named reason, never a crash
 - [x] Set `busy_timeout` on the store connection so a reader waits for the writer
 
+- [x] Repair the regression the new run log caught on its first real scan: pruning the closure left
+      ripgrep walking `.hubbleops/uv-cache/`, which matched a path the closure no longer enumerated
+      and correctly stopped the scan. `SourceClosure.search_exclusions()` is now the one source of
+      truth both the enumerator and the searcher read. Recorded as FA-017
+- [x] Batch analyzer paths under a 24,000 character budget. Measured before: 800 files failed with
+      `TOOLING_MISSING` naming a tool that was installed. After: 4,000 files pass. A refused start
+      with the executable present is now `TOOLING_FAILED` naming the argument length. FA-016
+- [x] Index the import graph by path and id. Wrapper-walk lookups scanned every match in the
+      repository and filtered by path; `SourceRange.contains` was called 1.5 M times per build.
+      Graph build 5.64 s → 3.39 s on 60 files, and the complexity class changed, so the saving grows
+      with repository size. FA-018
+- [x] Bound the analyzer's output and match count so a pathological rule fails closed with a named
+      reason instead of exhausting memory
+- [x] Add `tests/property/test_cost_budgets.py`: deterministic counter assertions (batch counts,
+      invocation counts, entries enumerated) that catch a cost regression on any machine without
+      timing anything, and `tests/property/test_adversarial_trees.py`: Hypothesis-generated hostile
+      repository trees asserting the closure is total, deterministic, and never enumerates what it
+      pruned
+- [x] Add `.github/workflows/ci.yml` so lint, format, types, tests and the cost budgets run without
+      anyone remembering. Inert until the repository is first pushed
+
+- [ ] Consider collapsing the 18 per-language ast-grep invocations into one multi-rule pass. Each
+      invocation reparses every file, so a four-language repository is parsed 73 times. Parallelism
+      was measured and rejected: 1.0-1.1x, because ast-grep already saturates the CPU internally.
+      One `scan` over a merged rule file is the real fix and needs a match-equivalence proof first
+
 - [x] Owner accepted P-008: correct frozen P-006 so Google Ads endpoint versions come from the
       gRPC/REST request target, while `x-goog-api-client` remains metadata and ambiguity emits a
       typed UNKNOWN instead of silence
