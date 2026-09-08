@@ -439,10 +439,18 @@ unscannable `rg` hit is preserved as evidence.
   is the boundary the Law exists to hold.
 - `verify/tests.py` is named `verify/suites.py`, and its record types are `SuiteRun`/`SuiteCase`, so
   pytest does not try to collect the verifier. Do not rename them back.
-- Three verification-only Python versions of one idea were rejected: a name-based test-to-module map
-  (trap 2), treating "tests pass" as "radius covered" (trap 3), and letting `app/` compute
-  `falsifiers_pass` and hand the verifier a boolean (which would move an authority check outside the
-  authority).
+- Three tempting shortcuts were rejected: a name-based test-to-module map (trap 2), treating "tests
+  pass" as "radius covered" (trap 3), and letting `app/` compute `falsifiers_pass` and hand the
+  verifier a boolean (which would move an authority check outside the authority).
+- **Versions are never guessed.** `from` is the version the base rescan detected and `to` is the
+  latest in `pack.versions()`, both overridable by `--from`/`--to`. Detection that is ambiguous or
+  empty raises rather than picking one; the error names `--from`.
+- **`hops verify` has no `--force`.** It fell back to an empty import graph when ast-grep was
+  missing, which emptied the reachable set and made the blast radius vacuously clean. A verification
+  that cannot build the graph cannot compute a radius. Do not reintroduce a degraded verify mode.
+- The verifier's isolation is proved twice: `tests/unit/test_isolation.py` for the policy and
+  `tests/integration/test_verifier_runtime.py` for a real container, which skips without Podman.
+  The verdict never depends on whether the container ran — it depends on whether the checks ran.
 
 **Phase-4 decisions (2026-09-07).**
 - A memory bound is `RLIMIT_DATA`, never `RLIMIT_AS`. `RLIMIT_AS` is a separate, larger
