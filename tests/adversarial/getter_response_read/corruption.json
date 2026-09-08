@@ -1,0 +1,8 @@
+{
+  "summary": "the response reader keeps the removed field but fetches it with .get() instead of a subscript, so the literal sits after '(' rather than after '[' or '.'",
+  "expected_verdict": "FAILED",
+  "reason_contains": "response handling still reads",
+  "caught_by": "response-consumer check (a removed name is a read anywhere except in dict-literal key position)",
+  "delete": [],
+  "obligation_sites": []
+}

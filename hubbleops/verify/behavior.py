@@ -190,7 +190,7 @@ def consumers(graph: ImportGraph, changes: ChangeSet, root: Path) -> ConsumerChe
         if source is None:
             unresolved.add(f"response_consumer_check: {atom.path} could not be read")
             continue
-        if _is_read_position(source, atom.range.start_byte):
+        if _is_read_position(source, atom.range.end_byte):
             hits.add(f"{name} at {atom.path}:{atom.range.start_line}")
     for built in (*graph.concatenations, *graph.formats):
         assembled = _assembled(built)
@@ -224,11 +224,11 @@ def _read(path: Path) -> bytes | None:
         return None
 
 
-def _is_read_position(source: bytes, start_byte: int) -> bool:
-    index = start_byte - 1
-    while index >= 0 and source[index : index + 1].isspace():
-        index -= 1
-    return index >= 0 and source[index : index + 1] in (b"[", b".")
+def _is_read_position(source: bytes, end_byte: int) -> bool:
+    index = end_byte
+    while index < len(source) and source[index : index + 1].isspace():
+        index += 1
+    return source[index : index + 1] != b":"
 
 
 def _unquote(text: str) -> str:
