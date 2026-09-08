@@ -37,6 +37,7 @@ class FalsifierRun:
 @dataclass(frozen=True, slots=True)
 class FalsifierReview:
     runs: tuple[FalsifierRun, ...]
+    disarmed: bool = False
 
     def failures(self) -> tuple[FalsifierRun, ...]:
         return tuple(item for item in self.runs if item.result == "FAIL")
@@ -44,15 +45,28 @@ class FalsifierReview:
     def undecided(self) -> tuple[FalsifierRun, ...]:
         return tuple(item for item in self.runs if item.result == "UNKNOWN")
 
+    def executed(self) -> tuple[FalsifierRun, ...]:
+        return tuple(item for item in self.runs if item.result != SKIPPED)
+
     def report(self) -> CheckReport:
         failures = self.failures()
+        disarmed = (
+            (
+                "every falsifier was skipped because this run detected none of their failure "
+                "classes, so falsifiers_pass proves nothing about a Change Pack that does "
+                "change subjects",
+            )
+            if self.disarmed
+            else ()
+        )
         return CheckReport(
             name="falsifiers",
             passed=not failures,
             reasons=tuple(f"falsifier {item.name} FAILED: {item.reason}" for item in failures),
             unresolved=tuple(
                 sorted(
-                    f"falsifier {item.name} undecided: {item.reason}" for item in self.undecided()
+                    [f"falsifier {item.name} undecided: {item.reason}" for item in self.undecided()]
+                    + list(disarmed)
                 )
             ),
             detail={
@@ -116,7 +130,11 @@ def run(
                 sites=outcome.sites,
             )
         )
-    return FalsifierReview(runs=tuple(runs))
+    executed = [item for item in runs if item.result != SKIPPED]
+    return FalsifierReview(
+        runs=tuple(runs),
+        disarmed=bool(runs) and not executed and bool(changes.changes),
+    )
 
 
 def _check(falsifier: FalsifierView, subject: FalsifierInput) -> FalsifierOutcome:

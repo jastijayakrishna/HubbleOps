@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,10 +8,12 @@ from typing import Any
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text, is_mapping
 from hubbleops.core.verification import ChangeSet, CheckReport, ObligationView
-from hubbleops.graph import ImportGraph
+from hubbleops.graph import ImportGraph, SyntaxMatch
 from hubbleops.observe import Ledger
 
 REQUEST_CLAIM_TYPE = "request_text"
+LITERAL = re.compile(r'"[^"\\]*(?:\\.[^"\\]*)*"' + r"|'[^'\\]*(?:\\.[^'\\]*)*'")
+ASSEMBLY_GLUE = ("", "%s", "{}", "+", ".")
 STATIC_SOURCE = "STATIC_SKELETON"
 CAPTURED_SOURCE = "DYNAMIC_CAPTURE"
 
@@ -144,10 +147,15 @@ def differential(
     subjects = {item.provider_change_id for item in obligations} | {
         item.verification_method.partition(":")[2].strip() for item in obligations
     }
+    patterns = [
+        re.compile(rf"(?<![\w.]){re.escape(subject)}(?![\w.])")
+        for subject in sorted(subjects)
+        if subject
+    ]
     mapped: list[str] = []
     unmapped: list[str] = []
     for shape in (*added, *removed):
-        if any(subject and subject in shape for subject in subjects):
+        if any(pattern.search(shape) for pattern in patterns):
             mapped.append(shape)
         else:
             unmapped.append(shape)
@@ -184,9 +192,29 @@ def consumers(graph: ImportGraph, changes: ChangeSet, root: Path) -> ConsumerChe
             continue
         if _is_read_position(source, atom.range.start_byte):
             hits.add(f"{name} at {atom.path}:{atom.range.start_line}")
+    for built in (*graph.concatenations, *graph.formats):
+        assembled = _assembled(built)
+        if assembled is None:
+            unresolved.add(
+                f"response_consumer_check: {built.path}:{built.range.start_line} assembles a "
+                "name from parts this build cannot resolve"
+            )
+            continue
+        if assembled in watched:
+            hits.add(f"{assembled} at {built.path}:{built.range.start_line}")
     for error in graph.parse_errors:
         unresolved.add(f"response_consumer_check: {error.path} did not parse")
     return ConsumerCheck(hits=tuple(sorted(hits)), unresolved=tuple(sorted(unresolved)))
+
+
+def _assembled(built: SyntaxMatch) -> str | None:
+    pieces = [_unquote(token.group(0)) for token in LITERAL.finditer(built.text)]
+    if not pieces:
+        return None
+    glue = LITERAL.sub("\x00", built.text).replace("\x00", " ").split()
+    if any(token not in ASSEMBLY_GLUE for token in glue):
+        return None
+    return "".join(pieces)
 
 
 def _read(path: Path) -> bytes | None:

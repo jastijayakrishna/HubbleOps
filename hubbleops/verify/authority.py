@@ -76,7 +76,12 @@ def evaluate(inputs: Inputs) -> Evaluation:
     audit_result = audit.run(inputs.candidate_ledger, inputs.changes, inputs.obligations)
     requests, unreachable = oracle.requests_from(inputs.candidate_ledger, inputs.candidate_captured)
     oracle_result = oracle.review(
-        inputs.oracle, requests, inputs.changes.to_version, inputs.now, unreachable
+        inputs.oracle,
+        requests,
+        inputs.changes.to_version,
+        inputs.now,
+        unreachable,
+        subjects_changed=bool(inputs.changes.changes),
     )
     containment = radius.contain(
         inputs.delta,

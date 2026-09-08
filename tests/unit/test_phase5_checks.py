@@ -10,13 +10,14 @@ from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.evidence import AI_DERIVATION, make_evidence
 from hubbleops.core.verification import (
     ChangeSet,
+    FalsifierOutcome,
     OracleOutcome,
     SubjectChange,
     SuiteCase,
     SuiteRun,
 )
 from hubbleops.observe.ledger import Ledger
-from hubbleops.verify import conserve, coverage, gitdiff, oracle, radius
+from hubbleops.verify import conserve, coverage, falsify, gitdiff, oracle, radius
 from hubbleops.verify.suites import suite_paths
 
 SCOPE = "0" * 64
@@ -44,13 +45,15 @@ def evidence(
     )
 
 
-def ledger_of(records: list[dict[str, Any]], statuses: dict[str, str]) -> Ledger:
+def ledger_of(
+    records: list[dict[str, Any]], statuses: dict[str, str], key_suffix: str = ""
+) -> Ledger:
     candidates: list[dict[str, Any]] = []
     for key, status in sorted(statuses.items()):
         attached = [item["id"] for item in records if item["path"] == key]
         candidates.append(
             make_candidate(
-                candidate_id=candidate_identity("p", "surface_reference", key),
+                candidate_id=candidate_identity("p", "surface_reference", f"{key}{key_suffix}"),
                 run_id=RUN,
                 proof_scope_hash=SCOPE,
                 provider="p",
@@ -154,6 +157,87 @@ def test_a_readable_request_reaches_the_oracle() -> None:
 class _AcceptingOracle:
     def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome:
         return OracleOutcome(code="VALID", reason="fixture accepts")
+
+
+def test_an_oracle_that_saw_nothing_while_subjects_changed_is_unresolved() -> None:
+    silent = oracle.review(_AcceptingOracle(), (), "v2", subjects_changed=True).report()
+    assert silent.passed is True
+    assert any("proves nothing" in item for item in silent.unresolved)
+
+    quiet = oracle.review(_AcceptingOracle(), (), "v2", subjects_changed=False).report()
+    assert quiet.unresolved == (), "a Change Pack that changes nothing has nothing to validate"
+
+
+def test_a_falsifier_set_that_never_ran_is_unresolved_not_a_pass() -> None:
+    book = ledger_of(
+        [evidence("a.py", "surface_reference", {"pattern": "x"})], {"a.py": "AFFECTED"}
+    )
+    changed = ChangeSet(
+        from_version="v1",
+        to_version="v2",
+        pair_hash="h",
+        changes=(SubjectChange("campaigns.gone", "REMOVED", None, "VALID", ""),),
+    )
+    review = falsify.run((_RequestFalsifier(),), book, changed, "/candidate")
+    assert review.runs[0].result == "SKIPPED"
+    assert review.executed() == ()
+    report = review.report()
+    assert report.passed is True
+    assert any("skipped" in item for item in report.unresolved), (
+        "a falsifier set that never ran cannot make falsifiers_pass mean anything"
+    )
+
+
+def test_a_falsifier_that_ran_leaves_no_disarmed_note() -> None:
+    book = ledger_of(
+        [evidence("a.py", "request_text", {"skeleton": {"fragments": ["q"]}})], {"a.py": "AFFECTED"}
+    )
+    changed = ChangeSet(
+        from_version="v1",
+        to_version="v2",
+        pair_hash="h",
+        changes=(SubjectChange("campaigns.gone", "REMOVED", None, "VALID", ""),),
+    )
+    review = falsify.run((_RequestFalsifier(),), book, changed, "/candidate")
+    assert review.runs[0].result == "PASS"
+    assert review.report().unresolved == ()
+
+
+def test_an_unknown_that_vanishes_entirely_is_a_conservation_failure() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"})
+    after = evidence("a.py", "surface_reference", {"pattern": "y"})
+    base = ledger_of([before], {"a.py": "UNKNOWN"})
+    candidate = ledger_of([after], {"a.py": "NOT_AFFECTED_WITH_EVIDENCE"}, key_suffix=":moved")
+    result = conserve.compare(base, candidate)
+    assert result.report().passed is False, (
+        "an UNKNOWN whose candidate id is simply gone was dropped, not closed; silently skipping "
+        "it is how a conservation check passes without checking anything"
+    )
+    assert any("dropped rather than closed" in item.justification for item in result.violations)
+
+
+def test_an_unknown_that_moved_but_stayed_open_is_not_a_violation() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"})
+    after = evidence("a.py", "surface_reference", {"pattern": "y"})
+    base = ledger_of([before], {"a.py": "UNKNOWN"})
+    candidate = ledger_of([after], {"a.py": "UNKNOWN"}, key_suffix=":moved")
+    assert conserve.compare(base, candidate).report().passed is True
+
+
+def test_an_unknown_on_a_path_the_candidate_no_longer_observes_is_not_a_violation() -> None:
+    before = evidence("gone.py", "surface_reference", {"pattern": "x"})
+    elsewhere = evidence("b.py", "surface_reference", {"pattern": "y"})
+    base = ledger_of([before], {"gone.py": "UNKNOWN"})
+    candidate = ledger_of([elsewhere], {"b.py": "AFFECTED"})
+    assert conserve.compare(base, candidate).report().passed is True
+
+
+class _RequestFalsifier:
+    name = "request_only"
+    failure_class = "request_text"
+
+    def check(self, subject: object) -> FalsifierOutcome:
+        return FalsifierOutcome(result="PASS", reason="fixture")
 
 
 def test_a_hunk_parses_into_line_spans() -> None:

@@ -23,6 +23,7 @@ from pathlib import Path
 
 ROOT = Path(os.environ["HOPS_COVERAGE_ROOT"]).resolve()
 REPORT = Path(os.environ["HOPS_COVERAGE_REPORT"])
+PLUGIN = "hops_coverage_plugin.py"
 TOOL_ID = 4
 
 _active: set[str] = set()
@@ -30,6 +31,8 @@ _registered = False
 
 
 def _relative(filename: str) -> str | None:
+    if not filename or filename.startswith("<") or filename.endswith(PLUGIN):
+        return None
     try:
         resolved = Path(filename).resolve()
     except (OSError, ValueError):

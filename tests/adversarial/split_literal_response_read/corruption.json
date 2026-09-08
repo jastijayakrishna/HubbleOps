@@ -1,0 +1,8 @@
+{
+  "summary": "P0 REGRESSION: the query selects campaigns.name while the response reader still reads the removed campaigns.legacy, spelled as a concatenation so no single atom carries the removed name. Every one of the eight checks passed and the authority returned VERIFIED_FOR_SCOPE. This test stays red until the response-consumer check stops depending on the removed name appearing as one contiguous literal.",
+  "expected_verdict": "FAILED",
+  "reason_contains": "response handling still reads",
+  "caught_by": "response-consumer check (currently catches nothing: verify/behavior.py::consumers only matches an atom whose whole text equals the watched subject and that sits immediately after '[' or '.')",
+  "delete": [],
+  "obligation_sites": []
+}

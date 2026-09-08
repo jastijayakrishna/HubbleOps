@@ -23,6 +23,7 @@ class OracleReview:
     checks: tuple[OracleCheck, ...]
     available: bool
     unreachable: tuple[str, ...] = ()
+    silent: bool = False
 
     def accepted(self) -> tuple[OracleCheck, ...]:
         return tuple(item for item in self.checks if item.code == "VALID")
@@ -54,6 +55,14 @@ class OracleReview:
                         "is unproven rather than proven"
                         for site in self.unreachable
                     ]
+                    + (
+                        [
+                            "the Change Pack changes provider subjects and not one request "
+                            "reached the oracle, so oracle_all_accepted proves nothing"
+                        ]
+                        if self.silent
+                        else []
+                    )
                 )
             ),
             detail={
@@ -63,6 +72,7 @@ class OracleReview:
                 "rejected": len(rejected),
                 "undecided": len(self.undecided()),
                 "unreachable": list(self.unreachable),
+                "silent": self.silent,
             },
         )
 
@@ -133,6 +143,7 @@ def review(
     target_version: str,
     now: datetime | None = None,
     unreachable: Sequence[str] = (),
+    subjects_changed: bool = False,
 ) -> OracleReview:
     stamp = (now or datetime.now(UTC)).isoformat()
     checks: list[OracleCheck] = []
@@ -157,6 +168,7 @@ def review(
         checks=tuple(checks),
         available=available,
         unreachable=tuple(sorted(set(unreachable))),
+        silent=subjects_changed and not checks,
     )
 
 

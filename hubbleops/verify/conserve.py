@@ -74,11 +74,24 @@ def compare(
     candidate_evidence = candidate.evidence_by_id()
     decided = {str(item.get("candidate_id", "")): item for item in decisions}
 
+    open_sites = {
+        (_claim_type(item, candidate_evidence), _site(item, candidate_evidence))
+        for item in candidate.candidates
+        if item["status"] in OPEN_STATUSES
+    }
+    base_evidence = base.evidence_by_id()
+
     closures: list[Closure] = []
     violations: list[Closure] = []
     for candidate_id in sorted(before):
         now = candidate_by_id.get(candidate_id)
-        if now is None or now["status"] in OPEN_STATUSES:
+        if now is None:
+            vanished = _vanished(before[candidate_id], base_evidence, open_sites, candidate)
+            if vanished is not None:
+                violations.append(vanished)
+                closures.append(vanished)
+            continue
+        if now["status"] in OPEN_STATUSES:
             continue
         fresh = tuple(
             sorted(
@@ -103,6 +116,42 @@ def compare(
         item for item in candidate.ordered_candidates() if item["status"] in OPEN_STATUSES
     )
     return Conservation(closures=tuple(closures), violations=tuple(violations), preserved=preserved)
+
+
+def _site(item: Mapping[str, Any], evidence: Mapping[str, Mapping[str, Any]]) -> str:
+    paths = sorted(str(evidence[eid]["path"]) for eid in item["evidence_ids"] if eid in evidence)
+    return paths[0] if paths else "."
+
+
+def _vanished(
+    item: Mapping[str, Any],
+    base_evidence: Mapping[str, Mapping[str, Any]],
+    open_sites: set[tuple[str, str]],
+    candidate: Ledger,
+) -> Closure | None:
+    claim_type = _claim_type(item, base_evidence)
+    site = _site(item, base_evidence)
+    if (claim_type, site) in open_sites:
+        return None
+    if not any(str(record["path"]) == site for record in candidate.evidence):
+        return None
+    return Closure(
+        candidate_id=str(item["id"]),
+        was=str(item["status"]),
+        now="ABSENT",
+        justification=(
+            f"the candidate run still observes {site} but carries no open candidate for its "
+            f"{claim_type} claim, so this UNKNOWN was dropped rather than closed"
+        ),
+        new_evidence_ids=(),
+    )
+
+
+def _claim_type(item: Mapping[str, Any], evidence: Mapping[str, Mapping[str, Any]]) -> str:
+    kinds = sorted(
+        str(evidence[eid]["claim_type"]) for eid in item["evidence_ids"] if eid in evidence
+    )
+    return kinds[0] if kinds else ""
 
 
 def _justification(fresh: Sequence[str], decision: Mapping[str, Any] | None) -> str:
