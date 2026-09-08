@@ -8,6 +8,7 @@ from hubbleops.packs._protocol import (
     CaptureHooks,
     ChangeCompiler,
     ContractOracle,
+    Falsifier,
     ProviderPack,
     RuleSet,
     TelemetryAdapter,
@@ -27,7 +28,14 @@ def test_full_provider_contract(name: str, tmp_path: Path) -> None:
     assert isinstance(pack.capture_hooks("python"), CaptureHooks)
     assert pack.rules("unknown-language").paths == ()
     assert pack.capture_hooks("unknown-language").paths == ()
-    assert pack.repair_transforms() == pack.repair_tools() == pack.falsifiers() == []
+    assert pack.repair_transforms() == pack.repair_tools() == [], (
+        "repair transforms and tools ship in Phase 6"
+    )
+    falsifiers = pack.falsifiers()
+    assert falsifiers, "a pack with no falsifier makes falsifiers_pass vacuous"
+    assert all(isinstance(item, Falsifier) for item in falsifiers)
+    assert len({item.name for item in falsifiers}) == len(falsifiers)
+    assert all(item.failure_class for item in falsifiers)
     versions = pack.versions()
     assert len(versions) >= 2
     for version in versions:

@@ -13,7 +13,7 @@ from hubbleops.core.verification import (
     OracleView,
     request_identity,
 )
-from hubbleops.observe.ledger import Ledger
+from hubbleops.observe import Ledger
 
 REQUEST_CLAIM_TYPE = "request_text"
 

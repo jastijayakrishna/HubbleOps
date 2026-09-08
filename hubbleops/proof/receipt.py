@@ -8,7 +8,7 @@ from hubbleops.core.canonical import content_id, export_bytes
 from hubbleops.core.proof_scope import short_scope
 from hubbleops.core.records import as_mapping, as_sequence, is_list, is_mapping
 from hubbleops.core.schema import validate
-from hubbleops.verify.authority import Evaluation
+from hubbleops.verify import Evaluation
 
 RULE = "─" * 44
 TIMESTAMP_KEYS = frozenset({"checked_at", "started_at", "finished_at", "duration_seconds"})
@@ -76,16 +76,18 @@ def build(
 
 
 def _counts(evaluation: Evaluation) -> dict[str, int]:
-    preserved = len(evaluation.conservation.preserved)
-    closed = len(evaluation.conservation.closures)
+    counts = evaluation.candidate_counts
     return {
-        "total": preserved + closed,
-        "affected": len(evaluation.audit.reconciliations),
-        "not_affected_with_evidence": closed,
-        "unknown": preserved,
-        "human_required": len(evaluation.blast.unknown_blast),
-        "excluded_with_evidence": 0,
-        "unexplained": 0,
+        key: int(counts.get(key, 0))
+        for key in (
+            "total",
+            "affected",
+            "not_affected_with_evidence",
+            "unknown",
+            "human_required",
+            "excluded_with_evidence",
+            "unexplained",
+        )
     }
 
 
@@ -129,7 +131,8 @@ def render(receipt: Receipt) -> str:
         "",
         RULE,
         "DISCOVERY",
-        f"  candidates {counts['total']} · obligations {counts['affected']} · "
+        f"  candidates {counts['total']} · affected {counts['affected']} · "
+        f"not affected (evidence) {counts['not_affected_with_evidence']} · "
         f"UNKNOWN {counts['unknown']} · unexplained {counts['unexplained']}",
         f"  production services accounted for {_coverage(audit)}",
         "",

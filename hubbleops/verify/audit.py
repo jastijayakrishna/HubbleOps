@@ -7,7 +7,7 @@ from typing import Any
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text
 from hubbleops.core.verification import ChangeSet, CheckReport, ObligationView
-from hubbleops.observe.ledger import Ledger
+from hubbleops.observe import Ledger
 
 RESIDUE_CLAIM_TYPES = ("call_version", "endpoint_reference", "config_reference")
 SURFACE_CLAIM_TYPES = ("surface_reference", "request_text")

@@ -11,7 +11,7 @@ from hubbleops.core.verification import (
     FalsifierOutcome,
     FalsifierView,
 )
-from hubbleops.observe.ledger import Ledger
+from hubbleops.observe import Ledger
 
 SKIPPED = "SKIPPED"
 

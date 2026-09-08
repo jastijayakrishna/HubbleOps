@@ -117,7 +117,7 @@ def test_verify_imports_only_the_verifier_image_from_sandbox() -> None:
         for module in imported(source):
             if module == ALLOWED_SANDBOX_IMPORT:
                 continue
-            for prefix in FORBIDDEN_FOR_VERIFY:
+            for prefix in (*FORBIDDEN_FOR_VERIFY, "hubbleops.sandbox"):
                 if module == prefix or module.startswith(f"{prefix}."):
                     offences.append(f"{source.name} imports {module}")
     assert offences == [], (

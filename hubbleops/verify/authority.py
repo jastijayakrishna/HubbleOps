@@ -15,8 +15,8 @@ from hubbleops.core.verification import (
     SuiteRun,
     VerificationResult,
 )
-from hubbleops.graph.imports import ImportGraph
-from hubbleops.observe.ledger import Ledger
+from hubbleops.graph import ImportGraph
+from hubbleops.observe import Ledger
 from hubbleops.verify import audit, behavior, conserve, falsify, oracle, radius
 from hubbleops.verify.gitdiff import Delta
 from hubbleops.verify.verdict import Judgement, decide
@@ -34,6 +34,7 @@ class Evaluation:
     consumers: behavior.ConsumerCheck
     falsifiers: falsify.FalsifierReview
     conservation: conserve.Conservation
+    candidate_counts: Mapping[str, int]
     result: VerificationResult
     judgement: Judgement
 
@@ -133,6 +134,7 @@ def evaluate(inputs: Inputs) -> Evaluation:
         consumers=consumers,
         falsifiers=falsifiers,
         conservation=conservation,
+        candidate_counts=inputs.candidate_ledger.counts(),
         result=result,
         judgement=decide(result),
     )

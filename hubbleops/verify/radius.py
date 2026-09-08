@@ -13,7 +13,7 @@ from hubbleops.core.verification import (
     ObligationView,
     SuiteRun,
 )
-from hubbleops.graph.imports import Definition, ImportGraph
+from hubbleops.graph import Definition, ImportGraph
 from hubbleops.verify.gitdiff import Delta
 
 MAX_REACH_HOPS = 5

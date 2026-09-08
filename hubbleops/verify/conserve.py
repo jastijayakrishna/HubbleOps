@@ -7,7 +7,7 @@ from typing import Any
 from hubbleops.core.candidate import OPEN_STATUSES
 from hubbleops.core.evidence import AI_DERIVATION
 from hubbleops.core.verification import CheckReport
-from hubbleops.observe.ledger import Ledger
+from hubbleops.observe import Ledger
 
 DECISION_CLAIM_TYPE = "human_decision"
 

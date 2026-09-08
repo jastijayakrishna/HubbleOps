@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from hubbleops.app import registry
-from hubbleops.closure.source_closure import Classification
+from hubbleops.closure import Classification
 from hubbleops.core.canonical import content_id
 from hubbleops.core.errors import HubbleOpsError, PackDataError
 from hubbleops.core.observer import StructuralRule
@@ -30,8 +30,7 @@ from hubbleops.observe import structure
 from hubbleops.packs._protocol import ContractOracle
 from hubbleops.sandbox import DetachedWorktree
 from hubbleops.sandbox.verifier_image import VERIFIER_IMAGE, VerifierIsolationViolated
-from hubbleops.verify import authority, gitdiff, suites
-from hubbleops.verify.coverage import unsupported_modules
+from hubbleops.verify import authority, gitdiff, suites, unsupported_modules
 
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
 VERIFY_SOURCES = tuple(sorted((PACKAGE_ROOT / "verify").rglob("*.py")))

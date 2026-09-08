@@ -1,3 +1,19 @@
-from hubbleops.graph.imports import ImportGraph, build
+from hubbleops.graph.imports import (
+    AstGrep,
+    Definition,
+    ImportGraph,
+    SourceRange,
+    SyntaxMatch,
+    build,
+    language_for,
+)
 
-__all__ = ["ImportGraph", "build"]
+__all__ = [
+    "AstGrep",
+    "Definition",
+    "ImportGraph",
+    "SourceRange",
+    "SyntaxMatch",
+    "build",
+    "language_for",
+]

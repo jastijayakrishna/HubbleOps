@@ -7,8 +7,8 @@ from typing import Any
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text, is_mapping
 from hubbleops.core.verification import ChangeSet, CheckReport, ObligationView
-from hubbleops.graph.imports import ImportGraph
-from hubbleops.observe.ledger import Ledger
+from hubbleops.graph import ImportGraph
+from hubbleops.observe import Ledger
 
 REQUEST_CLAIM_TYPE = "request_text"
 STATIC_SOURCE = "STATIC_SKELETON"
