@@ -1,0 +1,81 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_FROZEN: "1"
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Install ast-grep
+        run: |
+          curl -fsSL https://github.com/ast-grep/ast-grep/releases/download/0.45.0/app-x86_64-unknown-linux-gnu.zip -o ast-grep.zip
+          unzip -o ast-grep.zip -d "$HOME/.local/bin"
+          chmod +x "$HOME/.local/bin/ast-grep"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Record tool versions
+        run: |
+          uv --version
+          rg --version | head -1
+          ast-grep --version
+
+      - name: Sync
+        run: uv sync --frozen
+
+      - name: Lint
+        run: uv run ruff check hubbleops tests packages
+
+      - name: Format
+        run: uv run ruff format --check hubbleops tests packages
+
+      - name: Types
+        run: uv run pyright
+
+      - name: Tests
+        run: uv run pytest tests -q
+
+      - name: Sentinel package isolation
+        run: uv run pytest packages/hubbleops-sentinel/tests -q
+
+  cost:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Sync
+        run: uv sync --frozen
+
+      - name: Deterministic cost budgets
+        run: uv run pytest tests/property/test_cost_budgets.py -q
