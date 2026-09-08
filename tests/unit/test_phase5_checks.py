@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -7,9 +8,15 @@ import pytest
 
 from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.evidence import AI_DERIVATION, make_evidence
-from hubbleops.core.verification import ChangeSet, SubjectChange, SuiteCase, SuiteRun
+from hubbleops.core.verification import (
+    ChangeSet,
+    OracleOutcome,
+    SubjectChange,
+    SuiteCase,
+    SuiteRun,
+)
 from hubbleops.observe.ledger import Ledger
-from hubbleops.verify import conserve, coverage, gitdiff, radius
+from hubbleops.verify import conserve, coverage, gitdiff, oracle, radius
 from hubbleops.verify.suites import suite_paths
 
 SCOPE = "0" * 64
@@ -108,6 +115,45 @@ def test_a_new_unknown_is_preserved_not_a_violation() -> None:
     assert [item["close_with"] for item in result.preserved_unknowns()] == [
         "run the closing instruction"
     ]
+
+
+def test_a_request_the_oracle_could_not_read_is_unresolved_not_accepted() -> None:
+    holed = evidence(
+        "q.py",
+        "request_text",
+        {"skeleton": {"fragments": ["select "], "holes": ["$FIELD"]}},
+    )
+    book = ledger_of([holed], {"q.py": "UNKNOWN"})
+    requests, unreachable = oracle.requests_from(book, ())
+    assert requests == ()
+    assert unreachable == ("q.py:1",)
+    report = oracle.review(_AcceptingOracle(), requests, "v2", unreachable=unreachable).report()
+    assert report.passed is True
+    assert report.unresolved, (
+        "a request the oracle never saw is unproven, not proven; it must reach the verdict as "
+        "unresolved rather than as a silent pass"
+    )
+
+
+def test_a_readable_request_reaches_the_oracle() -> None:
+    plain = evidence(
+        "q.py",
+        "request_text",
+        {"skeleton": {"fragments": ["select campaigns.id"], "holes": []}},
+    )
+    book = ledger_of([plain], {"q.py": "AFFECTED"})
+    requests, unreachable = oracle.requests_from(book, ())
+    assert len(requests) == 1
+    assert unreachable == ()
+    review = oracle.review(_AcceptingOracle(), requests, "v2", unreachable=unreachable)
+    assert review.report().passed is True
+    assert review.report().unresolved == ()
+    assert review.checks[0].request_hash
+
+
+class _AcceptingOracle:
+    def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome:
+        return OracleOutcome(code="VALID", reason="fixture accepts")
 
 
 def test_a_hunk_parses_into_line_spans() -> None:

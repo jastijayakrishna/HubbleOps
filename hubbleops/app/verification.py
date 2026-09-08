@@ -52,7 +52,6 @@ class VerificationRequest:
     decisions_path: Path | None = None
     base_capture_path: Path | None = None
     candidate_capture_path: Path | None = None
-    force: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,11 +104,9 @@ def execute(request: VerificationRequest) -> VerificationRun:
             ) as candidate,
         ):
             refuse_repair_inputs(request)
-            base_scan = scan_repository(
-                base, request.pack, force=request.force, run_target=f"commit:{base_sha}"
-            )
+            base_scan = scan_repository(base, request.pack, run_target=f"commit:{base_sha}")
             candidate_scan = scan_repository(
-                candidate, request.pack, force=request.force, run_target=f"commit:{candidate_sha}"
+                candidate, request.pack, run_target=f"commit:{candidate_sha}"
             )
             from_version, to_version = _versions(request, base_scan)
             changes = change_set(request.pack, from_version, to_version)
@@ -118,7 +115,7 @@ def execute(request: VerificationRequest) -> VerificationRun:
             frozen = suites.run_frozen(plan, _python())
             candidate_tests = suites.run_candidate(candidate, root / "candidate-tests", _python())
 
-            graph = _graph(candidate_scan, request.pack, request.force)
+            graph = _graph(candidate_scan, request.pack)
             reachable = {entry.path for entry in candidate_scan.closure.entries}
             uncoverable = unsupported_modules(reachable, suites.languages_of(sorted(reachable)))
 
@@ -273,7 +270,7 @@ def structural_rules(pack: registry.LoadedPack) -> tuple[StructuralRule, ...]:
     return structural_rules_of(pack)
 
 
-def _graph(scan: Any, pack: registry.LoadedPack, force: bool) -> ImportGraph:
+def _graph(scan: Any, pack: registry.LoadedPack) -> ImportGraph:
     active = {rule.language for rule in structural_rules(pack)}
     paths_by_language: dict[str, tuple[str, ...]] = {}
     for entry in scan.closure.entries:
@@ -282,14 +279,7 @@ def _graph(scan: Any, pack: registry.LoadedPack, force: bool) -> ImportGraph:
         language = language_for(entry.path)
         if language in active:
             paths_by_language[language] = (*paths_by_language.get(language, ()), entry.path)
-    if not paths_by_language:
-        return build_graph(scan.closure.root, {}, AstGrep())
-    try:
-        return build_graph(scan.closure.root, paths_by_language, AstGrep())
-    except HubbleOpsError:
-        if not force:
-            raise
-        return build_graph(scan.closure.root, {}, AstGrep())
+    return build_graph(scan.closure.root, paths_by_language, AstGrep())
 
 
 def _scope(scan: Any, pack: registry.LoadedPack) -> tuple[dict[str, Any], str]:

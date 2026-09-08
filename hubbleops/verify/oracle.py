@@ -22,6 +22,7 @@ REQUEST_CLAIM_TYPE = "request_text"
 class OracleReview:
     checks: tuple[OracleCheck, ...]
     available: bool
+    unreachable: tuple[str, ...] = ()
 
     def accepted(self) -> tuple[OracleCheck, ...]:
         return tuple(item for item in self.checks if item.code == "VALID")
@@ -44,8 +45,15 @@ class OracleReview:
             ),
             unresolved=tuple(
                 sorted(
-                    f"oracle undecided for request {item.request_hash[:12]}: {item.reason}"
-                    for item in self.undecided()
+                    [
+                        f"oracle undecided for request {item.request_hash[:12]}: {item.reason}"
+                        for item in self.undecided()
+                    ]
+                    + [
+                        f"a request at {site} never reached the oracle, so its acceptance "
+                        "is unproven rather than proven"
+                        for site in self.unreachable
+                    ]
                 )
             ),
             detail={
@@ -54,14 +62,16 @@ class OracleReview:
                 "accepted": len(self.accepted()),
                 "rejected": len(rejected),
                 "undecided": len(self.undecided()),
+                "unreachable": list(self.unreachable),
             },
         )
 
 
 def requests_from(
     ledger: Ledger, captured: Sequence[Mapping[str, Any]]
-) -> tuple[tuple[str, Mapping[str, Any]], ...]:
+) -> tuple[tuple[tuple[str, Mapping[str, Any]], ...], tuple[str, ...]]:
     found: dict[str, Mapping[str, Any]] = {}
+    unreachable: set[str] = set()
     evidence = ledger.evidence_by_id()
     attached = {eid for candidate in ledger.candidates for eid in candidate["evidence_ids"]}
     for eid in sorted(attached):
@@ -69,13 +79,21 @@ def requests_from(
         if record is None or record["claim_type"] != REQUEST_CLAIM_TYPE:
             continue
         request = _static_request(record)
-        if request is not None:
+        if request is None:
+            unreachable.add(f"{record['path']}:{record['line_start'] or 0}")
+        else:
             found.setdefault(request_identity(request), request)
     for event in captured:
         request = _captured_request(event)
-        if request is not None:
+        if request is None:
+            unreachable.add("a captured event carried no service, method or body")
+        else:
             found.setdefault(request_identity(request), request)
-    return tuple((key, found[key]) for key in sorted(found))
+    reached = {str(item["origin"]).removeprefix("static:") for item in found.values()}
+    return (
+        tuple((key, found[key]) for key in sorted(found)),
+        tuple(sorted(unreachable - reached)),
+    )
 
 
 def _static_request(record: Mapping[str, Any]) -> Mapping[str, Any] | None:
@@ -114,6 +132,7 @@ def review(
     requests: Sequence[tuple[str, Mapping[str, Any]]],
     target_version: str,
     now: datetime | None = None,
+    unreachable: Sequence[str] = (),
 ) -> OracleReview:
     stamp = (now or datetime.now(UTC)).isoformat()
     checks: list[OracleCheck] = []
@@ -134,7 +153,11 @@ def review(
                 checked_at=stamp,
             )
         )
-    return OracleReview(checks=tuple(checks), available=available)
+    return OracleReview(
+        checks=tuple(checks),
+        available=available,
+        unreachable=tuple(sorted(set(unreachable))),
+    )
 
 
 def _validate(oracle: OracleView, request: Mapping[str, Any], target_version: str) -> OracleOutcome:

@@ -149,7 +149,6 @@ def _parser() -> argparse.ArgumentParser:
     verify_command.add_argument("--candidate-capture", default=None)
     verify_command.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
     verify_command.add_argument("--receipt", default=None, help="also write receipt.json here")
-    verify_command.add_argument("--force", action="store_true")
     verify_command.set_defaults(handler=_verify)
 
     pack = subparsers.add_parser("pack", help="inspect and verify provider packs")
@@ -728,7 +727,6 @@ def _verify(args: argparse.Namespace) -> int:
         decisions_path=_optional_path(args.decisions),
         base_capture_path=_optional_path(args.base_capture),
         candidate_capture_path=_optional_path(args.candidate_capture),
-        force=bool(args.force),
     )
     run = verification.execute(request)
     document = receipt.build(
