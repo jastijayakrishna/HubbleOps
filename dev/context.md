@@ -10,7 +10,35 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Current phase** | 5 — Independent Verification Authority. Phase 4 is merged to `main` and tagged `v0.4` |
 | **Branch** | `phase-05-verification-authority`, cut from `main` at `v0.4` |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
-| **Next action** | Implement Phase 5 per `dev/plan.md`, then the fresh gate audit, red-team, and real-repo loop. P-009 must still be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+| **Next action** | Phase 5 is implemented and its own suites are green. Remaining: red-team, a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md), then the real-repo loop. P-009 must still be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+
+Phase 5 (2026-09-08): `hops verify <base> <candidate> --pack <name>` ships. `verify/` holds the six
+checks and the pure verdict; `proof/receipt.py` writes `receipt.json` and `receipt.md` in the §16
+layout; `sandbox/verifier_image.py` stops being a stub.
+
+Five things a later phase must not undo.
+
+- **The frozen suite is the base's, staged over candidate source.** `verify/suites.py` copies the
+  candidate tree to a scratch workspace and then copies the base SHA's test directories over it. A
+  candidate that weakens or deletes its own assertions still faces the base's. Candidate tests run
+  separately and are recorded as evidence; they never touch the verdict.
+- **Coverage is execution-derived.** A stdlib `sys.monitoring` line tracer, injected as a mounted
+  pytest plugin, emits one JSON line per test naming the files that test actually executed. No new
+  dependency and it works with `network=none`. There is no `test_foo.py → foo.py` heuristic anywhere
+  in the phase, and a language the tracer cannot follow is `COVERAGE_UNSUPPORTED`, which puts its
+  modules in `UNKNOWN_BLAST` rather than assuming them covered.
+- **The diff comes from `git`, inside `verify/`.** `verify/gitdiff.py` shells out itself and
+  cross-checks `--unified=0` against `--numstat`, so no caller can substitute a change manifest. A
+  hunk under `hubbleops/verify/`, `hubbleops/proof/` or the state directory is never COLLATERAL.
+- **An obligation locates itself by `current_state`.** Evidence ids are run-scoped, so resolving an
+  obligation's site only through them fails across runs. Containment reads the `file:line` the frozen
+  `obligation.json` already says `current_state` carries, and uses evidence ids when they resolve.
+- **The rescan's run id is the commit, not the worktree.** It used to be the temporary checkout path,
+  so two verifications of the same two commits produced different evidence ids and different
+  receipts. `scan_repository` now takes `run_target`, and verification passes `commit:<sha>`.
+
+Determinism is asserted, not assumed: `receipt_body_hash` is the content id of the receipt with
+every timestamp field stripped, and two runs of one scope must agree on it.
 
 Phase 4 merge (2026-09-08): merged to `main` as a `--no-ff` commit and tagged `v0.4`, on the
 repository owner's instruction. Two things a later session must not misread. First, the merged bytes
@@ -363,6 +391,35 @@ unscannable `rg` hit is preserved as evidence.
 
 *(record here anything a later phase must not re-litigate — with the phase it was decided in)*
 
+**Phase-5 decisions (2026-09-08).**
+- **P-011 ACCEPTED.** `Falsifier` gains `failure_class` and `check(FalsifierInput) ->
+  FalsifierOutcome`, with both types in `core/verification.py` so `verify/` never imports `packs/`.
+  `Transform` and `ToolSpec` carry the identical deferral and are deliberately untouched; Phase 6
+  raises its own proposal with the repair loop's evidence in hand.
+- The neutral verification vocabulary lives in `core/verification.py`, following `core/surface.py`
+  and `core/observer.py`. `app/` converts the pack's contract diff into a `ChangeSet` and passes an
+  `OracleView` and `FalsifierView`s in. Do not move these into `verify/`.
+- `bounded_process`, `command_record` and `command_transcript` live in `core/process.py`;
+  `sandbox/runner.py` re-exports them. `verify/` may not import `sandbox/runner`, and one safety
+  property implemented twice is two places to get it wrong.
+- **Verdict precedence is FAILED > UNKNOWN > HUMAN_REQUIRED > VERIFIED_FOR_SCOPE.** A definite
+  failure is more informative than an absence, so a candidate that both fails a falsifier and has an
+  unavailable oracle is FAILED. `UNKNOWN_BLAST ≠ ∅` with every other conjunct true is the only route
+  to HUMAN_REQUIRED.
+- Obligations are an **input** to Phase 5, not an output: read from `--obligations` and validated
+  against the frozen schema. With none supplied, containment requires every hunk to be
+  `COLLATERAL(reason)`, which is the strict reading. Phase 6 wires the engine's output into the same
+  input; it does not change the containment rule to be lenient.
+- `app -> hubbleops.sandbox.verifier_image` stays a tolerated deep import. Re-exporting the verifier
+  image through `sandbox/__init__.py` would hand `verify/` a route to the rest of the sandbox, which
+  is the boundary the Law exists to hold.
+- `verify/tests.py` is named `verify/suites.py`, and its record types are `SuiteRun`/`SuiteCase`, so
+  pytest does not try to collect the verifier. Do not rename them back.
+- Three verification-only Python versions of one idea were rejected: a name-based test-to-module map
+  (trap 2), treating "tests pass" as "radius covered" (trap 3), and letting `app/` compute
+  `falsifiers_pass` and hand the verifier a boolean (which would move an authority check outside the
+  authority).
+
 **Phase-4 decisions (2026-09-07).**
 - A memory bound is `RLIMIT_DATA`, never `RLIMIT_AS`. `RLIMIT_AS` is a separate, larger
   address-space bound because managed runtimes reserve address space they never touch. Do not
@@ -552,6 +609,13 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
 ## Open threads
 
 - Phase 4 is merged to `main` and tagged `v0.4`; nothing was pushed.
+- Phase 5 needs a fresh gate audit and a real-repo loop before it merges. The red-team run is part of
+  its gate and then recurs nightly.
+- The Phase 5 live-oracle requirement is met only as far as the environment allows: no Google Ads
+  test-account credentials are present on this machine, so the shipped transport is the offline one
+  and a `google_ads` verification would report `ORACLE_UNAVAILABLE` and cap at UNKNOWN, which is the
+  designed and correct outcome rather than a skipped check. The `_mock` pack's oracle validates
+  locally, so the oracle path is exercised end to end with real request hashes.
 - P-009 must be decided before AI triage is operationally connected; no Phase 3 or Phase 4 runtime
   path reaches it.
 - The Exposure Map production-services line is live: it prints `N/M` once a telemetry or sentinel

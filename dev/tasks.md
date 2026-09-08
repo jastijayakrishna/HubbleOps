@@ -5,6 +5,32 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] Merge Phase 4 to `main` and tag `v0.4` on the owner's instruction, recording that the merged
+      bytes rest on a green full suite rather than a second gate audit, and that the merge is the
+      decision on P-010
+- [x] Plan Phase 5 and answer every open question in `dev/plan.md` before implementing
+- [x] Raise and decide **P-011**: `Falsifier` gains `failure_class` and `check()`. A conjunct of the
+      frozen verdict rule wired to a constant is a weakened verdict rule, which is an approval
+      boundary, so the protocol had to get the shape it deferred to this phase
+- [x] Implement Phase 5: `verify/{gitdiff,audit,oracle,radius,coverage,suites,behavior,falsify,
+      conserve,verdict,authority}.py`, `proof/receipt.py`, a real `sandbox/verifier_image.py`,
+      `hops verify`, and eight Google Ads falsifiers
+- [x] Fix the five defects the first end-to-end run found: the response-consumer check flagged
+      dict-literal test data as a read; the oracle, the shape differential and both packs'
+      falsifiers all looked for request text under keys the observer does not write, so three checks
+      passed vacuously; obligation reconciliation could not see a field named inside a query;
+      containment resolved obligation sites only through run-scoped evidence ids; and the rescan's
+      run id came from the temporary worktree path, so two verifications of the same two commits
+      produced different receipts
+- [ ] Run the [red-team](../prompts/cross-cutting/red-team.md) against the finished authority, then a
+      fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md), then the Phase 5
+      [real-repo loop](../prompts/cross-cutting/real-repo-loop.md). Only a literal `GATE: PASS`
+      permits the merge to `main` and the `v0.5` tag
+- [ ] Phase 5 ships no live Google Ads oracle run: no test-account credentials exist on this machine,
+      so `google_ads` verification reports `ORACLE_UNAVAILABLE` and caps at UNKNOWN by design. The
+      oracle path itself is exercised end to end against the `_mock` pack with real request hashes.
+      Supply credentials via env to close this
+
 - [x] Install rootless Podman for Phase 4 — 4.9.3 in Ubuntu WSL, measured rootless, local,
       uid/gid-remapped and seccomp-enabled; the host's rootful Docker Desktop engine is refused
 - [x] Implement Phase 4: `sandbox/`, `observe/dynamic/`, `observe/telemetry.py`, `hops capture` in
@@ -165,7 +191,8 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 4 — dynamic capture + sentinel *(fresh `GATE: PASS` on `e408545`; merged to `main` and
       tagged `v0.4` on 2026-09-08 by the owner's instruction, on a green full suite rather than a
       second audit of the hardening commits)*
-- [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
+- [ ] Phase 5 — verification authority *(implemented; red-team, fresh gate audit and real-repo loop
+      still owed before merge and `v0.5`)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard
 - [ ] Phase 8 — incremental system
@@ -178,7 +205,8 @@ loop (from Phase 2).
 ## Recurring
 
 - [ ] Weekly: [spec-drift audit](../prompts/cross-cutting/spec-drift-audit.md)
-- [ ] Nightly from Phase 5: [red-team](../prompts/cross-cutting/red-team.md)
+- [ ] Nightly from Phase 5: [red-team](../prompts/cross-cutting/red-team.md) — now live, since the
+      authority it attacks exists
 
 ## Blocked / parked
 
