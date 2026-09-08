@@ -126,7 +126,7 @@ def render(receipt: Receipt) -> str:
         "",
         f"Base       {audit['base_sha'][:7]}          Candidate   {audit['candidate_sha'][:7]}",
         f"ProofScope {short_scope(content_id(scope))}         "
-        f"Verifier image  {scope.get('verifier_image_hash') or 'not recorded'}",
+        f"Verifier image  {_short(scope.get('verifier_image_hash'))}",
         f"Contract   {audit['provider']}@{audit['changes_hash'][:12]}",
         "",
         RULE,
@@ -141,7 +141,7 @@ def render(receipt: Receipt) -> str:
         f"{sum(1 for item in record['obligations'] if item['status'] == 'DISCHARGED')} resolved · "
         f"{sum(1 for item in record['obligations'] if item['status'] == 'OPEN')} open · "
         f"{sum(1 for item in record['obligations'] if item['status'] == 'UNRECONCILABLE')} "
-        "unreconcilable",
+        "unexplained",
         "",
         f"MIGRATION AUDIT                              {_mark(audit['passed'])}",
         f"  old-version residue {_none_or(audit['detail']['old_version_residue'])} · "
@@ -193,6 +193,10 @@ def render(receipt: Receipt) -> str:
 
 def _mark(passed: bool) -> str:
     return "PASS" if passed else "FAIL"
+
+
+def _short(value: Any) -> str:
+    return f"sha256:{str(value)[:16]}…" if value else "not recorded"
 
 
 def _none_or(values: list[Any]) -> str:
