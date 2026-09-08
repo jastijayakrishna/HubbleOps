@@ -40,6 +40,30 @@ Five things a later phase must not undo.
 Determinism is asserted, not assumed: `receipt_body_hash` is the content id of the receipt with
 every timestamp field stripped, and two runs of one scope must agree on it.
 
+**The Phase 5 red-team found a P0 and it is closed.** A response reader that keeps a removed field
+by writing `"campaigns." + "legacy"` defeated the consumer check, which only ever compared whole
+atoms. Every other conjunct was honestly clean, so a migration that raises `KeyError` against a real
+response reached `VERIFIED_FOR_SCOPE`. Recorded as **FA-019**; the check now reads the graph's
+`concatenation` and `format` nodes, reassembles a name whose parts are all literals, and emits a
+named UNKNOWN when an assembly mixes in something it cannot resolve. The corruption is kept as a
+permanent regression at `tests/adversarial/split_literal_response_read`.
+
+The same run found three checks that passed by having nothing to look at (**FA-020**): zero requests
+reaching the oracle while the Change Pack changes subjects, a falsifier set entirely skipped for want
+of its failure classes, and a base UNKNOWN whose candidate id simply vanished. Each now reports
+itself unresolved, capping the verdict at UNKNOWN. **The general lesson, which later phases inherit:
+a conjunct of the frozen verdict rule that cannot fail is a conjunct that is not there.** When adding
+a check, add the case where it has no input, and make that case unresolved rather than passing.
+
+Starting the verifier container for the first time also found the image wrong: a Debian-based Python
+has `dash` as `/bin/sh`, whose `ulimit` has no `-u`, so the mandatory process bound could not be
+applied and every verifier run refused to start. The capture images are Alpine; the verifier is now a
+distinct Alpine digest, measured applying all six rlimits. Do not move it to a Debian base.
+
+Eight of the eleven corruptions are still caught by exactly one stage. That is recorded rather than
+fixed: defence in depth for the response-consumer class is the obvious next hardening, and the
+red-team's own note names it.
+
 Phase 4 merge (2026-09-08): merged to `main` as a `--no-ff` commit and tagged `v0.4`, on the
 repository owner's instruction. Two things a later session must not misread. First, the merged bytes
 did not carry their own fresh `GATE: PASS` — `e408545` did, and eight hardening commits landed after

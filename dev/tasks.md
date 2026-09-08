@@ -22,8 +22,19 @@ Updated before every session ends. Phase-level status lives in
       containment resolved obligation sites only through run-scoped evidence ids; and the rescan's
       run id came from the temporary worktree path, so two verifications of the same two commits
       produced different receipts
-- [ ] Run the [red-team](../prompts/cross-cutting/red-team.md) against the finished authority, then a
-      fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md), then the Phase 5
+- [x] Run the [red-team](../prompts/cross-cutting/red-team.md) against the finished authority. It
+      found a **P0** — a split string literal (`"campaigns." + "legacy"`) walked past the
+      response-consumer check and a broken migration reached `VERIFIED_FOR_SCOPE` — plus three checks
+      that passed by having nothing to look at. All closed, recorded as FA-019 and FA-020, and the
+      corruption is kept as a permanent regression
+- [x] Start the verifier container for the first time rather than only asserting its policy. A
+      Debian-based image's `dash` has no `ulimit -u`, so the mandatory process bound could not be
+      applied and the verifier could not start at all. Moved to a distinct Alpine digest, measured
+      applying all six rlimits
+- [ ] Add defence in depth for the response-consumer class. Eight of the eleven corruptions are
+      caught by exactly one stage, and the P0 showed what a single stage is worth: the consumer check
+      is the only thing standing between a renamed field and a green verdict
+- [ ] Run a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md), then the Phase 5
       [real-repo loop](../prompts/cross-cutting/real-repo-loop.md). Only a literal `GATE: PASS`
       permits the merge to `main` and the `v0.5` tag
 - [ ] Phase 5 ships no live Google Ads oracle run: no test-account credentials exist on this machine,
