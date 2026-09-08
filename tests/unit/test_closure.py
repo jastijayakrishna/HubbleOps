@@ -151,3 +151,51 @@ def test_an_internal_directory_symlink_is_a_bound_alias_not_a_missing_path(tmp_p
     assert by_path["alias"].classification is Classification.INSIDE
     assert by_path["alias"].blob_sha is not None
     assert by_path["actual/app.py"].classification is Classification.INSIDE
+
+
+def test_environment_directories_are_accounted_but_never_enumerated(tmp_path: Path) -> None:
+    build_tree(tmp_path)
+    (tmp_path / ".venv" / "lib" / "site-packages" / "dep").mkdir(parents=True)
+    (tmp_path / ".venv" / "lib" / "site-packages" / "dep" / "mod.py").write_text(
+        "value = 3\n", encoding="utf-8"
+    )
+    (tmp_path / ".pytest_cache").mkdir()
+    (tmp_path / ".pytest_cache" / "lastfailed").write_text("{}\n", encoding="utf-8")
+
+    by_path = source_closure.build(tmp_path).by_path()
+
+    assert by_path[".venv"].classification is Classification.UNSCANNED
+    assert by_path[".venv"].reason.startswith("environment_directory: .venv/")
+    assert by_path[".pytest_cache"].classification is Classification.UNSCANNED
+    enumerated = [path for path in by_path if path.startswith((".venv/", ".pytest_cache/"))]
+    assert enumerated == [], f"environment contents must not be enumerated: {enumerated}"
+
+
+def test_run_output_under_the_state_directory_is_accounted_but_not_enumerated(
+    tmp_path: Path,
+) -> None:
+    build_tree(tmp_path)
+    (tmp_path / ".hubbleops" / "artifacts" / "run").mkdir(parents=True)
+    (tmp_path / ".hubbleops" / "artifacts" / "run" / "ledger.json").write_text(
+        "{}\n", encoding="utf-8"
+    )
+    (tmp_path / ".hubbleops" / "surface.yml").write_text("rules: []\n", encoding="utf-8")
+
+    by_path = source_closure.build(tmp_path).by_path()
+
+    assert by_path[".hubbleops/artifacts"].classification is Classification.UNSCANNED
+    assert by_path[".hubbleops/artifacts"].reason.startswith("state_output:")
+    assert ".hubbleops/artifacts/run/ledger.json" not in by_path
+    assert by_path[".hubbleops/surface.yml"].classification is Classification.INSIDE
+
+
+def test_excluded_directory_identity_does_not_depend_on_its_contents(tmp_path: Path) -> None:
+    build_tree(tmp_path)
+    (tmp_path / ".venv").mkdir()
+    (tmp_path / ".venv" / "first.py").write_text("value = 1\n", encoding="utf-8")
+    before = source_closure.build(tmp_path).tree_hash()
+
+    (tmp_path / ".venv" / "second.py").write_text("value = 2\n", encoding="utf-8")
+    after = source_closure.build(tmp_path).tree_hash()
+
+    assert before == after, "rebuilding a local environment must not invalidate the proof scope"

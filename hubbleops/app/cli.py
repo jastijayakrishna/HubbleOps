@@ -3,7 +3,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import sys
-from collections.abc import Mapping
+import tempfile
+from collections.abc import Callable, Mapping
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -12,9 +14,10 @@ from typing import Any, cast
 import yaml
 
 from hubbleops import __version__
-from hubbleops.app import exposure, registry
+from hubbleops.app import capture, exposure, promotion, registry
 from hubbleops.closure import source_closure
-from hubbleops.core.canonical import export_bytes
+from hubbleops.core import runlog
+from hubbleops.core.canonical import canonical_bytes, content_id, export_bytes
 from hubbleops.core.errors import HubbleOpsError, ToolingFailed, ToolingMissing, ToolingTimeout
 from hubbleops.core.observer import ObserverContext, StructuralRule
 from hubbleops.core.proof_scope import (
@@ -26,7 +29,8 @@ from hubbleops.core.proof_scope import (
 )
 from hubbleops.core.records import as_mapping
 from hubbleops.graph.imports import AstGrep
-from hubbleops.observe import deps, ledger, structure, text
+from hubbleops.observe import deps, ledger, structure, telemetry, text
+from hubbleops.observe.dynamic import runner as dynamic
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
 
@@ -43,6 +47,7 @@ EXIT_UNKNOWN = 5
 def main(argv: list[str] | None = None) -> int:
     _use_utf8(sys.stdout)
     _use_utf8(sys.stderr)
+    runlog.configure()
     parser = _parser()
     args = parser.parse_args(argv)
     try:
@@ -84,12 +89,47 @@ def _parser() -> argparse.ArgumentParser:
     )
     scan.set_defaults(handler=_scan)
 
+    capture_command = subparsers.add_parser(
+        "capture", help="build a ledger from isolated test execution"
+    )
+    capture_command.add_argument("repo", help="path to the repository to capture")
+    capture_command.add_argument(
+        "--pack", required=True, help=f"one of: {', '.join(registry.available_packs())}"
+    )
+    capture_command.add_argument("--cmd", required=True, help="test command executed in isolation")
+    capture_command.add_argument("--capture-mode", choices=("proxy", "hook"), default="proxy")
+    capture_command.add_argument(
+        "--language",
+        choices=("python", "php", "javascript", "typescript", "node"),
+        default="python",
+    )
+    capture_command.add_argument(
+        "--allow", action="append", default=[], help="exact scheme://host:port proxy destination"
+    )
+    capture_command.add_argument("--telemetry-export")
+    capture_command.add_argument("--sentinel-events")
+    capture_command.add_argument("--sentinel-manifest")
+    capture_command.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
+    capture_command.add_argument("--export", default=None)
+    capture_command.add_argument("--force", action="store_true")
+    capture_command.set_defaults(handler=_capture)
+
     show = subparsers.add_parser("exposure", help="print the exposure map for a run")
     show.add_argument("--run", default=None, help="run id; defaults to the most recent run")
     show.add_argument("--pack", default=None, help="restrict the default run lookup to this pack")
     show.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
     show.add_argument("--expand", action="store_true", help="list explained-away candidates too")
     show.set_defaults(handler=_exposure)
+
+    promote_command = subparsers.add_parser(
+        "promote", help="promote or revoke a captured repository wrapper"
+    )
+    promote_command.add_argument("repo", help="path to the repository")
+    promote_command.add_argument("--run", required=True, help="capture run id")
+    promote_command.add_argument("--candidate", required=True, help="candidate or promotion id")
+    promote_command.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
+    promote_command.add_argument("--revoke", action="store_true")
+    promote_command.set_defaults(handler=_promote)
 
     pack = subparsers.add_parser("pack", help="inspect and verify provider packs")
     pack_commands = pack.add_subparsers(dest="pack_verb", required=True)
@@ -127,6 +167,41 @@ class ScanResult:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class CaptureResult:
+    scan: ScanResult
+    attempt: capture.CaptureAttempt
+    inputs: tuple[capture.ProductionInput, ...]
+
+
+def _observe(
+    log: runlog.RunLogger, name: str, run: Callable[[], list[dict[str, Any]]]
+) -> list[dict[str, Any]]:
+    with log.stage("observer", observer=name) as fields:
+        records = run()
+        fields["records"] = len(records)
+        return records
+
+
+def _observe_all(
+    closure: source_closure.SourceClosure,
+    ctx: ObserverContext,
+    resolution: deps.DependencyResolution,
+    run_id: str,
+) -> list[dict[str, Any]]:
+    log = runlog.logger("scan", run_id)
+    with log.stage("observers") as totals:
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = [
+                pool.submit(_observe, log, "text", lambda: text.scan(closure, ctx)),
+                pool.submit(_observe, log, "deps", lambda: deps.scan(closure, ctx, resolution)),
+                pool.submit(_observe, log, "structure", lambda: structure.scan(closure, ctx)),
+            ]
+            records = [record for future in futures for record in future.result()]
+        totals["records"] = len(records)
+    return records
+
+
 def scan_repository(
     target: Path,
     pack: registry.LoadedPack,
@@ -135,68 +210,69 @@ def scan_repository(
     ast_grep_executable: str = "ast-grep",
 ) -> ScanResult:
     resolved = target.resolve()
-    closure = source_closure.build(resolved)
-    resolution = deps.resolve(closure)
-    rules = _structural_rules(pack)
-    try:
-        ast_grep_version = AstGrep(ast_grep_executable).version()
-    except (ToolingMissing, ToolingFailed, ToolingTimeout):
-        if not force:
-            raise
-        ast_grep_version = "unavailable-forced"
-    scanner_version = (
-        f"hubbleops={__version__}"
-        f";pipeline={scanner_fingerprint(OBSERVATION_SOURCES)}"
-        f";rg={text.ripgrep_version()}"
-        f";ast-grep={ast_grep_version}"
-    )
-    scope = make_proof_scope(
-        repo_sha=closure.repo_sha,
-        tree_hash=closure.tree_hash(),
-        dependency_resolution_hash=resolution.resolution_hash(),
-        provider_contract_hash=pack.contract_hash(),
-        rules_hash=structure.rules_hash(rules),
-        scanner_version=scanner_version,
-    )
-    scope_hash = proof_scope_hash(scope)
-    run_id = run_id_for(
-        scope_hash=scope_hash, provider=pack.name, verb="scan", target=str(resolved)
-    )
-    ctx = ObserverContext(
-        provider=pack.name,
-        run_id=run_id,
-        proof_scope_hash=scope_hash,
-        repo_sha=closure.repo_sha,
-        dependency_context_hash=resolution.resolution_hash(),
-        surface=pack.surface,
-        rules=rules,
-        ast_grep_executable=ast_grep_executable,
-        force_structure=force,
-    )
-    records = [
-        *text.scan(closure, ctx),
-        *deps.scan(closure, ctx, resolution),
-        *structure.scan(closure, ctx),
-    ]
-    book = ledger.build(
-        provider=pack.name,
-        run_id=run_id,
-        proof_scope_hash=scope_hash,
-        evidence=records,
-        closure=closure,
-    )
-    return ScanResult(
-        target=resolved,
-        pack=pack,
-        closure=closure,
-        resolution=resolution,
-        proof_scope=scope,
-        proof_scope_hash=scope_hash,
-        run_id=run_id,
-        scanner_version=scanner_version,
-        structural_coverage=structure.coverage(closure, rules, records),
-        ledger=book,
-    )
+    boot = runlog.logger("scan")
+    with boot.stage("source_closure", target=str(resolved)) as counts:
+        closure = source_closure.build(resolved)
+        counts["entries"] = len(closure.entries)
+    with boot.stage("dependency_resolution"):
+        resolution = deps.resolve(closure)
+    with tempfile.TemporaryDirectory(prefix="hops-promoted-rules-") as temporary:
+        rules = (*_structural_rules(pack), *promotion.materialize_active(resolved, Path(temporary)))
+        try:
+            ast_grep_version = AstGrep(ast_grep_executable).version()
+        except (ToolingMissing, ToolingFailed, ToolingTimeout):
+            if not force:
+                raise
+            ast_grep_version = "unavailable-forced"
+        scanner_version = (
+            f"hubbleops={__version__}"
+            f";pipeline={scanner_fingerprint(OBSERVATION_SOURCES)}"
+            f";rg={text.ripgrep_version()}"
+            f";ast-grep={ast_grep_version}"
+        )
+        scope = make_proof_scope(
+            repo_sha=closure.repo_sha,
+            tree_hash=closure.tree_hash(),
+            dependency_resolution_hash=resolution.resolution_hash(),
+            provider_contract_hash=pack.contract_hash(),
+            rules_hash=structure.rules_hash(rules),
+            scanner_version=scanner_version,
+        )
+        scope_hash = proof_scope_hash(scope)
+        run_id = run_id_for(
+            scope_hash=scope_hash, provider=pack.name, verb="scan", target=str(resolved)
+        )
+        ctx = ObserverContext(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            repo_sha=closure.repo_sha,
+            dependency_context_hash=resolution.resolution_hash(),
+            surface=pack.surface,
+            rules=rules,
+            ast_grep_executable=ast_grep_executable,
+            force_structure=force,
+        )
+        records = _observe_all(closure, ctx, resolution, run_id)
+        book = ledger.build(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            evidence=records,
+            closure=closure,
+        )
+        return ScanResult(
+            target=resolved,
+            pack=pack,
+            closure=closure,
+            resolution=resolution,
+            proof_scope=scope,
+            proof_scope_hash=scope_hash,
+            run_id=run_id,
+            scanner_version=scanner_version,
+            structural_coverage=structure.coverage(closure, rules, records),
+            ledger=book,
+        )
 
 
 def _scan(args: argparse.Namespace) -> int:
@@ -232,6 +308,350 @@ def _scan(args: argparse.Namespace) -> int:
     print(_scan_summary(result))
     print(f"LEDGER  {artifact_path}")
     print(f"  sha256  {digest}")
+    return EXIT_OK
+
+
+def _capture(args: argparse.Namespace) -> int:
+    if bool(args.sentinel_events) != bool(args.sentinel_manifest):
+        raise capture.CaptureInvalid(
+            "--sentinel-events and --sentinel-manifest must be supplied together"
+        )
+    target = Path(args.repo).resolve()
+    pack = registry.load_pack(args.pack)
+    state_dir = Path(args.state_dir).resolve()
+    initial = source_closure.build(target)
+    attempt = capture.execute(
+        target,
+        initial.repo_sha,
+        pack,
+        str(args.cmd),
+        str(args.language),
+        str(args.capture_mode),
+        tuple(str(item) for item in args.allow),
+        state_dir / "attempts",
+    )
+    inputs: list[capture.ProductionInput] = []
+    if args.telemetry_export:
+        telemetry_path = Path(args.telemetry_export).resolve()
+        try:
+            inputs.append(capture.telemetry_input(telemetry_path, pack))
+        except (OSError, UnicodeDecodeError, capture.CaptureInvalid) as error:
+            inputs.append(_failed_input("telemetry", (telemetry_path,), error))
+    if args.sentinel_events and args.sentinel_manifest:
+        event_path = Path(args.sentinel_events).resolve()
+        manifest_path = Path(args.sentinel_manifest).resolve()
+        try:
+            inputs.append(capture.sentinel_input(event_path, manifest_path, pack))
+        except (OSError, capture.CaptureInvalid) as error:
+            inputs.append(_failed_input("sentinel", (event_path, manifest_path), error))
+    result = _capture_repository(
+        target,
+        pack,
+        attempt,
+        tuple(inputs),
+        str(args.cmd),
+        force=bool(args.force),
+    )
+    payload = export_bytes(result.scan.ledger.export())
+    run_dir = state_dir / "artifacts" / result.scan.run_id
+    artifact_payloads = {
+        **result.attempt.artifacts,
+        "execution-manifest.json": canonical_bytes(result.attempt.manifest) + b"\n",
+        "ledger.json": payload,
+    }
+    for index, imported in enumerate(result.inputs, start=1):
+        name = f"input-{index}-manifest.json"
+        artifact_payloads[name] = canonical_bytes(imported.manifest) + b"\n"
+        for artifact_name, data in imported.artifacts.items():
+            artifact_payloads[f"input-{index}-{artifact_name}"] = data
+    written = _write_capture_artifacts(run_dir, artifact_payloads)
+    with Store(state_dir) as store:
+        store.start_run(
+            run_id=result.scan.run_id,
+            proof_scope=result.scan.proof_scope,
+            proof_scope_hash=result.scan.proof_scope_hash,
+            provider=pack.name,
+            verb="capture",
+            target=str(target),
+            closure_summary=result.scan.closure_summary(),
+            started_at=datetime.now(UTC).isoformat(),
+        )
+        store.write_evidence(result.scan.ledger.evidence)
+        store.write_candidates(result.scan.ledger.candidates)
+        for name, path in written.items():
+            data = artifact_payloads[name]
+            store.write_artifact(
+                run_id=result.scan.run_id,
+                proof_scope_hash=result.scan.proof_scope_hash,
+                kind=name,
+                path=str(path),
+                sha256=hashlib.sha256(data).hexdigest(),
+                size=len(data),
+            )
+        store.finish_run(result.scan.run_id, datetime.now(UTC).isoformat())
+    if args.export:
+        write_atomic(Path(args.export).resolve(), payload)
+    print(_capture_summary(result))
+    print(f"LEDGER  {written['ledger.json']}")
+    return EXIT_UNKNOWN if result.attempt.batch.issues else EXIT_OK
+
+
+def _capture_repository(
+    target: Path,
+    pack: registry.LoadedPack,
+    attempt: capture.CaptureAttempt,
+    inputs: tuple[capture.ProductionInput, ...],
+    command: str,
+    *,
+    force: bool,
+    ast_grep_executable: str = "ast-grep",
+) -> CaptureResult:
+    closure = source_closure.build(target)
+    resolution = deps.resolve(closure)
+    bound_inputs = tuple(
+        capture.ProductionInput(
+            {
+                **item.manifest,
+                "dependency_resolution_hash": resolution.resolution_hash(),
+                "repo_sha": closure.repo_sha,
+                "tree_hash": closure.tree_hash(),
+            },
+            item.batch,
+            item.observations,
+            item.issues,
+            item.artifacts,
+        )
+        for item in inputs
+    )
+    configuration = content_id(
+        {
+            "execution": attempt.manifest,
+            "production_inputs": [item.manifest for item in bound_inputs],
+        }
+    )
+    with tempfile.TemporaryDirectory(prefix="hops-promoted-rules-") as temporary:
+        rules = (*_structural_rules(pack), *promotion.materialize_active(target, Path(temporary)))
+        try:
+            ast_grep_version = AstGrep(ast_grep_executable).version()
+        except (ToolingMissing, ToolingFailed, ToolingTimeout):
+            if not force:
+                raise
+            ast_grep_version = "unavailable-forced"
+        scanner_version = (
+            f"hubbleops={__version__}"
+            f";pipeline={scanner_fingerprint(OBSERVATION_SOURCES)}"
+            f";rg={text.ripgrep_version()}"
+            f";ast-grep={ast_grep_version}"
+        )
+        scope = make_proof_scope(
+            repo_sha=closure.repo_sha,
+            tree_hash=closure.tree_hash(),
+            dependency_resolution_hash=resolution.resolution_hash(),
+            build_command=command,
+            build_config_hash=configuration,
+            provider_contract_hash=pack.contract_hash(),
+            rules_hash=structure.rules_hash(rules),
+            scanner_version=scanner_version,
+        )
+        scope_hash = proof_scope_hash(scope)
+        run_id = run_id_for(
+            scope_hash=scope_hash, provider=pack.name, verb="capture", target=str(target)
+        )
+        ctx = ObserverContext(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            repo_sha=closure.repo_sha,
+            dependency_context_hash=resolution.resolution_hash(),
+            surface=pack.surface,
+            rules=rules,
+            ast_grep_executable=ast_grep_executable,
+            force_structure=force,
+        )
+        records = _observe_all(closure, ctx, resolution, run_id)
+        static_book = ledger.build(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            evidence=records,
+            closure=closure,
+        )
+        provisional = dynamic.events_to_evidence(attempt.batch, ctx, target)
+        provisional_book = ledger.build(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            evidence=(*records, *provisional),
+            closure=closure,
+        )
+        static_ids = {str(candidate["id"]) for candidate in static_book.candidates}
+        dynamic_mappings = {
+            (
+                str(event["service"]),
+                str(event["method"]),
+                str(event["version"]),
+            ): tuple(
+                candidate_id
+                for candidate_id in telemetry.candidate_ids(
+                    provisional_book,
+                    telemetry.ProductionTuple(
+                        str(event["service"]), str(event["method"]), str(event["version"])
+                    ),
+                )
+                if candidate_id in static_ids
+            )
+            for event in attempt.batch.events
+        }
+        records.extend(
+            dynamic.events_to_evidence(attempt.batch, ctx, target, candidate_ids=dynamic_mappings)
+        )
+        observed_book = ledger.build(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            evidence=records,
+            closure=closure,
+        )
+        for imported in bound_inputs:
+            if imported.batch is not None:
+                mappings = {
+                    (
+                        str(event["service"]),
+                        str(event["method"]),
+                        str(event["version"]),
+                    ): tuple(
+                        candidate_id
+                        for candidate_id in telemetry.candidate_ids(
+                            observed_book,
+                            telemetry.ProductionTuple(
+                                str(event["service"]),
+                                str(event["method"]),
+                                str(event["version"]),
+                            ),
+                        )
+                        if candidate_id in static_ids
+                    )
+                    for event in imported.batch.events
+                }
+                records.extend(
+                    dynamic.events_to_evidence(
+                        imported.batch,
+                        ctx,
+                        target,
+                        observer="sentinel",
+                        allow_site_claims=False,
+                        candidate_ids=mappings,
+                    )
+                )
+            elif imported.observations or imported.issues:
+                records.extend(
+                    telemetry.reconcile(
+                        imported.observations, imported.issues, observed_book, ctx
+                    ).evidence
+                )
+        book = ledger.build(
+            provider=pack.name,
+            run_id=run_id,
+            proof_scope_hash=scope_hash,
+            evidence=records,
+            closure=closure,
+        )
+        scan = ScanResult(
+            target,
+            pack,
+            closure,
+            resolution,
+            scope,
+            scope_hash,
+            run_id,
+            scanner_version,
+            structure.coverage(closure, rules, records),
+            book,
+        )
+        return CaptureResult(scan, attempt, bound_inputs)
+
+
+def _failed_input(
+    kind: str, paths: tuple[Path, ...], error: BaseException
+) -> capture.ProductionInput:
+    records = [_bounded_artifact(path, dynamic.MAX_EVENT_FILE_BYTES) for path in paths]
+    manifest = {
+        "error": str(error),
+        "input_kind": kind,
+        "inputs": [
+            {"name": path.name, "sha256": digest, "size": size}
+            for path, (digest, size, _) in zip(paths, records, strict=True)
+        ],
+        "parser_limit": dynamic.MAX_EVENT_FILE_BYTES,
+    }
+    artifacts = {
+        f"{kind}-{index}-{path.name}": retained
+        for index, (path, (_, _, retained)) in enumerate(zip(paths, records, strict=True), start=1)
+    }
+    if kind == "sentinel":
+        batch = dynamic.EventBatch(
+            (),
+            (dynamic.EventIssue("SENTINEL_IMPORT_INVALID", 0, str(error)),),
+        )
+        return capture.ProductionInput(manifest, batch=batch, artifacts=artifacts)
+    issue = telemetry.AdapterIssue(0, "", f"{kind.upper()}_IMPORT_INVALID: {error}")
+    return capture.ProductionInput(manifest, issues=(issue,), artifacts=artifacts)
+
+
+def _bounded_artifact(path: Path, maximum: int) -> tuple[str, int, bytes]:
+    digest = hashlib.sha256()
+    size = 0
+    retained = bytearray()
+    if not path.is_file():
+        return digest.hexdigest(), size, bytes(retained)
+    with path.open("rb") as handle:
+        while chunk := handle.read(65_536):
+            digest.update(chunk)
+            size += len(chunk)
+            remaining = maximum - len(retained)
+            if remaining > 0:
+                retained.extend(chunk[:remaining])
+    return digest.hexdigest(), size, bytes(retained)
+
+
+def _write_capture_artifacts(run_dir: Path, values: Mapping[str, bytes]) -> dict[str, Path]:
+    run_dir.mkdir(parents=True, exist_ok=False)
+    paths: dict[str, Path] = {}
+    for name, data in sorted(values.items()):
+        path = run_dir / name
+        with path.open("xb") as handle:
+            handle.write(data)
+            handle.flush()
+        paths[name] = path
+    return paths
+
+
+def _capture_summary(result: CaptureResult) -> str:
+    issues = ", ".join(sorted({item.code for item in result.attempt.batch.issues})) or "none"
+    return "\n".join(
+        (
+            f"HubbleOps capture - {result.scan.pack.name}",
+            f"  Repository   {result.scan.target}",
+            f"  ProofScope   {short_scope(result.scan.proof_scope_hash)}",
+            f"  Run          {result.scan.run_id}",
+            f"  Events       {len(result.attempt.batch.events)}",
+            f"  Issues       {issues}",
+            f"  Unexplained  {result.scan.ledger.unexplained()}",
+        )
+    )
+
+
+def _promote(args: argparse.Namespace) -> int:
+    with Store(Path(args.state_dir).resolve()) as store:
+        path = promotion.promote(
+            Path(args.repo),
+            store,
+            str(args.run),
+            str(args.candidate),
+            revoke=bool(args.revoke),
+        )
+    action = "REVOKED" if args.revoke else "PROMOTED"
+    print(f"{action}  {path}")
     return EXIT_OK
 
 

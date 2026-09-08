@@ -5,6 +5,87 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] Install rootless Podman for Phase 4 — 4.9.3 in Ubuntu WSL, measured rootless, local,
+      uid/gid-remapped and seccomp-enabled; the host's rootful Docker Desktop engine is refused
+- [x] Implement Phase 4: `sandbox/`, `observe/dynamic/`, `observe/telemetry.py`, `hops capture` in
+      proxy and hook modes, `hops promote`, and the standalone `hubbleops-sentinel` package
+- [x] Fix the five defects found while completing Phase 4, each a confident absence in place of a
+      named uncertainty: V8 cannot start under the address-space limit that was carrying the memory
+      bound (FA-011); an uninstalled hook reported "no events" (FA-012); a failed TLS interception
+      reported "no events" (FA-013); telemetry reconciled against a static-only ledger and
+      manufactured `TELEMETRY_UNEXPLAINED` for tuples the run had just observed; the sentinel wheel
+      could not build at all
+- [x] Add the Phase 4 evidence the prompt requires: DI-fixture hook capture with a recorded wrapper
+      chain, the same fixture in proxy mode producing an equivalent candidate, a deliberately
+      unmatched telemetry tuple, the sentinel installed from its wheel and smoked in both modes, a
+      promotion round trip, and `test_no_provider_leak` over `observe/dynamic`
+- [x] Run the Phase 4 [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) including
+      `hops capture`. Static results are unchanged from Phase 3 on both pinned repositories and
+      both captures failed closed on absent dependencies with zero unexplained candidates. Found
+      FA-014 (a read-only worktree metadata directory left state inside a prospect repository) and
+      recorded FA-015 (package-manager egress is correctly denied and named)
+- [x] Run the repaired tree through a new fresh-session
+      [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 4. The first completed audit's
+      five findings are repaired. The next audit passed all executable checks but returned
+      `GATE: FAIL` because preflight `git status` bypassed the transcript and setup-failure records
+      were discarded with the temporary attempt. Preflight Git is now bounded and transcripted;
+      failures persist hash-bound Git/engine/proxy records plus their request and error manifest.
+      The final fresh audit on `e408545` returned literal `GATE: PASS`: 430 tests, all 33 runtime
+      integrations, standalone package checks, Law attacks, and the repeated real-repo loop passed
+- [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4` locally after the
+      literal `GATE: PASS`; do not push. **Reopened**: this was recorded as done and was not done.
+      `main` is still at `7ff86d1` "Merge Phase 3 wrapper engine" and the newest tag is `v0.3`.
+      It now also needs a fresh gate, because the hardening below changed the bytes the Phase 4
+      gate passed on
+
+- [x] Profile the scan and repair what the profile found, not what looked slow. `source_closure`
+      was 80% of a scan: it opened, read and SHA-256'd every file under `.venv` and every file of
+      HubbleOps's own `.hubbleops/` run output, then classified them as excluded. Both are now
+      pruned at the walk and accounted as one `UNSCANNED` entry each. Same-interpreter A/B on this
+      repository: 17.49 s → 2.16 s, 14,369 → 1,586 entries, 8.1x. Raised as P-010 because
+      `tree_hash` semantics change
+- [x] Add the structured run log `docs/ARCHITECTURE.md` §12 requires and the code never had —
+      `core/runlog.py`, keyed by run_id/component/duration/outcome, JSON to stderr, silent unless
+      `HOPS_LOG` is set so existing CLI output is byte-identical
+- [x] Run the three observers concurrently with results consumed in submission order, so the
+      ledger stays byte-identical; `test_two_consecutive_scans_are_byte_identical` still passes
+- [x] Give `sandbox/` one public surface. `app/capture.py` reached into seven of its nine modules
+      and assembled `RunSpec` by hand; it now imports `hubbleops.sandbox` only. The typed JobSpec
+      consolidation belongs in Phase 5 when verification adds the second caller
+- [x] Enforce the boundaries rather than trusting them: zero import cycles, cross-layer imports
+      address a layer surface, and a tolerated deep-import list that fails when it goes stale
+- [x] Defer `jsonschema` behind its cached constructors; CLI import 739 ms → ~400 ms
+- [x] Add one total bounded JSON parser (`core.records.parse_json`) and route the untrusted
+      workload paths through it. The six ad-hoc `(JSONDecodeError, UnicodeDecodeError)` sites all
+      missed `RecursionError`; deep nesting is now a named reason, never a crash
+- [x] Set `busy_timeout` on the store connection so a reader waits for the writer
+
+- [x] Repair the regression the new run log caught on its first real scan: pruning the closure left
+      ripgrep walking `.hubbleops/uv-cache/`, which matched a path the closure no longer enumerated
+      and correctly stopped the scan. `SourceClosure.search_exclusions()` is now the one source of
+      truth both the enumerator and the searcher read. Recorded as FA-017
+- [x] Batch analyzer paths under a 24,000 character budget. Measured before: 800 files failed with
+      `TOOLING_MISSING` naming a tool that was installed. After: 4,000 files pass. A refused start
+      with the executable present is now `TOOLING_FAILED` naming the argument length. FA-016
+- [x] Index the import graph by path and id. Wrapper-walk lookups scanned every match in the
+      repository and filtered by path; `SourceRange.contains` was called 1.5 M times per build.
+      Graph build 5.64 s → 3.39 s on 60 files, and the complexity class changed, so the saving grows
+      with repository size. FA-018
+- [x] Bound the analyzer's output and match count so a pathological rule fails closed with a named
+      reason instead of exhausting memory
+- [x] Add `tests/property/test_cost_budgets.py`: deterministic counter assertions (batch counts,
+      invocation counts, entries enumerated) that catch a cost regression on any machine without
+      timing anything, and `tests/property/test_adversarial_trees.py`: Hypothesis-generated hostile
+      repository trees asserting the closure is total, deterministic, and never enumerates what it
+      pruned
+- [x] Add `.github/workflows/ci.yml` so lint, format, types, tests and the cost budgets run without
+      anyone remembering. Inert until the repository is first pushed
+
+- [ ] Consider collapsing the 18 per-language ast-grep invocations into one multi-rule pass. Each
+      invocation reparses every file, so a four-language repository is parsed 73 times. Parallelism
+      was measured and rejected: 1.0-1.1x, because ast-grep already saturates the CPU internally.
+      One `scan` over a merged rule file is the real fix and needs a match-equivalence proof first
+
 - [x] Owner accepted P-008: correct frozen P-006 so Google Ads endpoint versions come from the
       gRPC/REST request target, while `x-goog-api-client` remains metadata and ambiguity emits a
       typed UNKNOWN instead of silence
@@ -67,7 +148,6 @@ Updated before every session ends. Phase-level status lives in
 - [x] Merge `phase-01-source-closure-and-ledger` to `main`, tag `v0.1` — done 2026-09-03 with the
       gate waived, not passed
 - [x] Install `ast-grep` before Phase 3
-- [ ] Install rootless docker/podman before Phase 4
 - [x] Fix the second gate audit's findings: silent media binaries, evidence-existence at the store
       boundary, and eleven non-blocking items
 - [x] Fix the first gate audit's findings: recall over manifests, L3 enforcement, and eight
@@ -82,7 +162,9 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 1 — scan + exposure + ledger *(fresh final audit: `GATE: PASS`)*
 - [x] Phase 2 — Google Ads pack + Change Pack version lattice *(fresh `GATE: PASS`; first real-repo loop complete)*
 - [x] Phase 3 — wrapper engine *(post-loop fresh `GATE: PASS`; FA-010 closed)*
-- [ ] Phase 4 — dynamic capture + sentinel
+- [x] Phase 4 — dynamic capture + sentinel *(fresh `GATE: PASS` on `e408545`; merged to `main` and
+      tagged `v0.4` on 2026-09-08 by the owner's instruction, on a green full suite rather than a
+      second audit of the hardening commits)*
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard
@@ -100,5 +182,5 @@ loop (from Phase 2).
 
 ## Blocked / parked
 
-- Telemetry and production-services accounting in the Exposure Map print "not in this ProofScope"
-  until Phase 4 supplies a `TelemetryAdapter`; the Change Pack now supplies the `Target` line.
+- Nothing is parked. Production-services accounting now prints `N/M` whenever a telemetry or
+  sentinel observer is in the ProofScope, and "not in this ProofScope" only when neither is.

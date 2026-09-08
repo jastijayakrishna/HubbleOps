@@ -26,7 +26,7 @@ from hubbleops.core.errors import (
 from hubbleops.core.evidence import evidence_identity, make_evidence
 from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash, run_id_for
 from hubbleops.store.artifacts import write_atomic
-from hubbleops.store.sqlite import Store
+from hubbleops.store.sqlite import BUSY_TIMEOUT_MILLISECONDS, Store
 
 EXPECTED_TABLES = {"runs", "evidence", "candidates", "obligations", "checks", "artifacts"}
 
@@ -89,6 +89,15 @@ def test_write_ahead_logging_and_foreign_keys_are_on(tmp_path: Path) -> None:
     store = Store(tmp_path)
     assert store.connection.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
     assert store.connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+    store.close()
+
+
+def test_a_reader_waits_for_the_writer_instead_of_failing(tmp_path: Path) -> None:
+    store = Store(tmp_path)
+    assert (
+        store.connection.execute("PRAGMA busy_timeout").fetchone()[0] == BUSY_TIMEOUT_MILLISECONDS
+    )
+    assert store.connection.execute("PRAGMA synchronous").fetchone()[0] == 2
     store.close()
 
 

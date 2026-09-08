@@ -710,11 +710,7 @@ def _matching_call(graph: ImportGraph, hit: SyntaxMatch) -> Call | None:
 
 
 def _owner_id(graph: ImportGraph, path: str, source_range: SourceRange) -> str | None:
-    definitions = [
-        item
-        for item in graph.definitions
-        if item.path == path and item.range.contains(source_range)
-    ]
+    definitions = [item for item in graph.definitions_in(path) if item.range.contains(source_range)]
     if not definitions:
         return None
     return min(definitions, key=lambda item: item.range.end_byte - item.range.start_byte).id
@@ -729,9 +725,8 @@ def _assignment(
 ) -> Assignment | None:
     candidates = [
         item
-        for item in graph.assignments
-        if item.path == path
-        and item.target.text == name_value
+        for item in graph.assignments_in(path)
+        if item.target.text == name_value
         and item.range.start_byte < source_range.start_byte
         and item.definition_id in (None, owner_id)
     ]
@@ -741,13 +736,14 @@ def _assignment(
 def _import_assignment(graph: ImportGraph, path: str, symbol: str) -> Assignment | None:
     targets = {
         item.target_path
-        for item in graph.imports
-        if item.path == path and symbol in item.symbols and item.target_path is not None
+        for item in graph.imports_in(path)
+        if symbol in item.symbols and item.target_path is not None
     }
     candidates = [
         item
-        for item in graph.assignments
-        if item.path in targets and item.target.text == symbol and item.definition_id is None
+        for target in sorted(targets)
+        for item in graph.assignments_in(target)
+        if item.target.text == symbol and item.definition_id is None
     ]
     return (
         min(candidates, key=lambda item: (item.path, item.range.start_byte)) if candidates else None
@@ -763,9 +759,8 @@ def _exact_atom(
     return next(
         (
             item
-            for item in graph.atoms
-            if item.path == path
-            and item.kind in kinds
+            for item in graph.atoms_in(path)
+            if item.kind in kinds
             and item.range.start_byte == source_range.start_byte
             and item.range.end_byte == source_range.end_byte
         ),
@@ -776,9 +771,7 @@ def _exact_atom(
 def _contained_atoms(
     graph: ImportGraph, path: str, source_range: SourceRange
 ) -> tuple[SyntaxMatch, ...]:
-    atoms = [
-        item for item in graph.atoms if item.path == path and source_range.contains(item.range)
-    ]
+    atoms = [item for item in graph.atoms_in(path) if source_range.contains(item.range)]
     return tuple(sorted(atoms, key=lambda item: (item.range.start_byte, -item.range.end_byte)))
 
 

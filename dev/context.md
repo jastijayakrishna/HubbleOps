@@ -7,10 +7,175 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 3 complete — Phase 4 Dynamic Capture + Sandbox + Sentinel + Telemetry is next |
-| **Branch** | `main` after the authorized local Phase 3 merge and `v0.3` tag; no push performed |
-| **Last gate passed** | Phase 3. The post-real-repo-loop fresh audit returned literal `GATE: PASS`; the final implementation suite passed 342 tests with 1 environment skip, and all rule, static, boundary, provider-neutrality, determinism, and diff checks were clean |
-| **Next action** | Install rootless docker/podman, then plan Phase 4. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. No push authorized. |
+| **Current phase** | 5 — Independent Verification Authority. Phase 4 is merged to `main` and tagged `v0.4` |
+| **Branch** | `phase-05-verification-authority`, cut from `main` at `v0.4` |
+| **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
+| **Next action** | Implement Phase 5 per `dev/plan.md`, then the fresh gate audit, red-team, and real-repo loop. P-009 must still be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+
+Phase 4 merge (2026-09-08): merged to `main` as a `--no-ff` commit and tagged `v0.4`, on the
+repository owner's instruction. Two things a later session must not misread. First, the merged bytes
+did not carry their own fresh `GATE: PASS` — `e408545` did, and eight hardening commits landed after
+it; the full suite was green at the merge and that is the evidence the merge rests on. Second,
+**P-010 is ACCEPTED** as of that merge: environment and run-output directories are accounted as one
+`UNSCANNED` closure entry each rather than enumerated, so `tree_hash` no longer moves when a
+virtualenv is rebuilt or a second scan writes artifacts. Do not re-litigate it.
+
+Scale and reliability hardening (2026-09-08): profiling the scan a second time found three defects
+the first pass missed, and the run log added the day before caught a fourth on its first real run.
+
+- **FA-016, the worst of them.** Every source path was passed on one command line, so past roughly
+  500-800 files the operating system refused to start ast-grep — and the failure was reported as
+  `TOOLING_MISSING` naming a tool that was installed and working. A customer with a normal-sized
+  repository could not scan it and was told to install something they already had. Paths are now
+  batched under a 24,000 character budget against the 32,767 character Windows `CreateProcess`
+  limit; measured 800 files failing before and 4,000 passing after.
+- **FA-017**, caught by the new structured log on the first real scan: closure pruning left ripgrep
+  walking `.hubbleops/uv-cache/`, it matched a path the closure no longer enumerated, and the scan
+  correctly stopped. Two hand-maintained exclusion lists for one invariant.
+  `SourceClosure.search_exclusions()` is now the single source both read.
+- **FA-018.** Wrapper-walk lookups scanned every match in the repository and filtered by path;
+  `SourceRange.contains` ran 1.5 M times per build. The graph now indexes by path and id. Build
+  5.64 s → 3.39 s on 60 files, and because the complexity class changed the saving grows with
+  repository size.
+
+Also: analyzer output and match counts are bounded, so a pathological rule fails closed with a named
+reason instead of exhausting memory; `tests/property/test_cost_budgets.py` asserts deterministic
+counters — batch counts, invocation counts, entries enumerated — which catch a cost regression on any
+machine without timing anything; `tests/property/test_adversarial_trees.py` generates hostile trees
+with Hypothesis and asserts the closure is total, deterministic, and never enumerates what it pruned;
+and `.github/workflows/ci.yml` runs the checks, inert until the repository is first pushed.
+
+Two things measured and deliberately **not** done. Running the 18 ast-grep queries concurrently was
+1.0-1.1x, because ast-grep already saturates the CPU internally, so the change was reverted rather
+than kept as dead complexity. Collapsing those 18 invocations into one multi-rule pass is the real
+remaining win — a four-language repository is parsed 73 times — and it stays open because it needs a
+match-equivalence proof first.
+
+One caveat on the numbers: `hops scan . --pack google_ads` on this repository is pathological, not
+customer-representative. It produced 289,391 text records because the Google Ads pack's own catalog
+data is in the tree, so HubbleOps was scanning its own surface definition.
+
+Post-Phase-4 hardening (2026-09-07): eight measured defects repaired on the Phase 4 branch, none of
+them a design change. The scan was profiled rather than guessed at, and the profile overturned the
+first diagnosis: `source_closure.build` was 80% of a scan because it opened, read and SHA-256'd
+every file under `.venv` and every file of HubbleOps's own `.hubbleops/` run output before
+classifying them as excluded — 14,369 entries walked where 1,586 are real. Both directory classes
+are now pruned at the walk and accounted as one `UNSCANNED` entry each, so UNEXPLAINED stays 0 and a
+rebuilt virtualenv no longer moves the ProofScope. Same-interpreter A/B: 17.49 s → 2.16 s, 8.1x.
+Raised as **P-010 (OPEN)** because `tree_hash` semantics change; invalidation is automatic via
+`scanner_fingerprint`. `node_modules`, `vendor`, `third_party` and `site-packages` are deliberately
+still hashed per file, on FA-015 grounds.
+
+Seven smaller repairs: `core/runlog.py` supplies the structured run log §12 has always required and
+the code never had, keyed by run_id/component/duration/outcome, silent unless `HOPS_LOG` is set;
+the three observers now run concurrently with results consumed in submission order, so the ledger
+stays byte-identical; `sandbox/` has one public surface and `app/capture.py` no longer reaches into
+seven of its nine modules; `test_imports.py` now proves zero import cycles and that cross-layer
+imports address a layer surface, with a tolerated deep-import list that fails when it goes stale;
+`jsonschema` is deferred behind its cached constructors, taking CLI import from 739 ms to ~400 ms;
+`core.records.parse_json` is one total bounded parser and the untrusted workload paths use it — the
+six ad-hoc `(JSONDecodeError, UnicodeDecodeError)` sites all missed `RecursionError`; and the store
+sets `busy_timeout`. Suite: **452 passed, 1 skipped** (was 428), Ruff, format over 112 files, and
+strict Pyright all clean. The Phase 4 `GATE: PASS` was taken on `e408545`, before these bytes, so a
+fresh gate audit is required again before merge.
+
+Phase 4 progress (2026-09-07): the sandbox (runner, image, limits, network, mounts, capture worktree,
+proxy, verifier image), the versioned dynamic event schema with generic Python/PHP/Node loaders,
+`hops capture` in proxy and hook modes, telemetry reconciliation, `hops promote`, and the standalone
+`hubbleops-sentinel` package are implemented. Ubuntu WSL runs Podman 4.9.3 rootless.
+
+Five real defects were found and fixed while completing the phase, each one a case where the system
+would have reported a confident absence instead of a named uncertainty:
+
+- **Node capture was impossible.** `ulimit -v` was carrying the memory bound, and V8 cannot start
+  under a 512 MiB address-space limit, so hook capture of any JavaScript suite died before the
+  first test while Python and PHP passed. `memory_bytes` is now `RLIMIT_DATA` (`ulimit -d`) and
+  `address_space_bytes` is a separate, larger `RLIMIT_AS`; both are proved against all three capture
+  runtimes in `tests/integration/test_sandbox_runtime.py`. Recorded as FA-011.
+- **Hook installation was unattested.** PHP does not apply `auto_prepend_file` to `php -r`, so the
+  hook never loaded and capture reported `UNKNOWN_DYNAMIC: test execution emitted no events` — a
+  claim about the customer's tests when the truth was that the sensor never ran. Every pack hook now
+  writes a per-run nonce to `/hops/output/install.jsonl`, and capture emits `HOOK_NOT_INSTALLED`
+  instead. Recorded as FA-012.
+- **A failed TLS interception looked like no usage.** When the workload cannot trust the capture CA,
+  the proxy logs a handshake failure and observes nothing; capture called that "no events". Failed
+  handshakes are now counted from the proxy's own log and reported as `PROXY_INTERCEPTION_FAILED`,
+  which suppresses the `UNKNOWN_DYNAMIC` claim. Recorded as FA-013.
+- **Telemetry reconciled against a static-only ledger.** A production tuple that the same run had
+  just observed dynamically was still reported `TELEMETRY_UNEXPLAINED`, manufacturing an UNKNOWN the
+  run held the evidence to close and understating `Production services accounted for N/M`.
+  Reconciliation and sentinel candidate mapping now use the static-plus-dynamic ledger.
+- **The sentinel wheel could not build.** A redundant `force-include` duplicated the data directory,
+  so `uv build` failed outright and DoD 5's "separate pip package" was unbuildable.
+
+Four smaller fixes: `json.loads` over untrusted bytes raised an uncaught `UnicodeDecodeError` in five
+places (one non-UTF-8 byte aborted a whole capture instead of becoming a named issue); the proxy's
+readiness was inferred from its certificate rather than its listener, and its log was buffered so the
+listening line was invisible; the PHP loader mount exposed all of `observe/dynamic/` to the workload
+and the CA copy was written into a directory the proxy container had mounted read-write; and the
+provider-leak scan did not read the `.ini`, `.cjs` or `.php` asset types Phase 4 introduced.
+
+The post-loop builder audit closed three further gaps before the final independent gate. The proxy
+now applies all six mandatory rlimits through a container-only launcher, verifies the live values
+from an in-container attestation, and caps its Podman log. Python, Node, PHP, and sentinel hook stacks
+all retain an explicit truncation frame, and sentinel import preserves that observation with a named
+`STACK_TRUNCATED` issue. Sentinel ingestion now compares the producer sidecar's adapter, schema, and
+corpus hashes—not only local pack bytes—to the pack-owned compatibility contract, checks the declared
+limits, reads inputs with hard bounds, and retains bounded copies of both inputs on failure. The
+real-runtime sandbox and capture suites pass all 31 probes after these changes.
+
+The first completed independent post-loop audit returned `GATE: FAIL` on five concrete gaps. A
+production evidence row could carry the placeholder path `.` and bypass a current-source hash check;
+promotion now requires a repository stack frame whose captured path and source hash match the live
+file. The proxy test allowlisted a public name but never proved a reachable private TLS exception;
+the integration fixture now runs a separate self-signed HTTPS service on the isolated egress network,
+binds its actual container, network, address, hostname, and port into the execution manifest, and
+permits only that exact tuple. The standalone hook recognized repository frames only below literal
+`/workspace`; it now derives paths from an explicit confined repository root. Dynamic and sentinel
+observations now use `OBSERVED_NOT_STATIC` only when no static candidate maps. Finally, Git, engine,
+and proxy invocations join workload invocations in bounded JSONL transcripts with exact argv,
+duration, exit, outcome, and hashed/truncated stdout and stderr. The repaired tree passes 428 tests
+with one future-phase skip when the full suite has rootless runtime access, all 31 rootless probes, 76
+focused tests with one environment skip, 12 independent sentinel tests, both isolated-wheel command
+smokes, Ruff, formatting over 148 files, strict Pyright, and diff checks.
+
+The next fresh audit independently passed the full 428-test suite with one future-phase skip, all 31
+rootless probes, every literal plan command, package isolation, static checks, five repaired-blocker
+experiments, Law attacks, and the real-repo record, but correctly returned `GATE: FAIL` on one final
+transcript boundary. Preflight `git status` still ran directly and setup failures discarded the
+in-memory records with the temporary attempt. Capture now journals that preflight through the same
+bounded process runner and includes it in successful `git-commands.jsonl`. Any later setup failure
+persists a content-addressed failure directory containing hash-bound Git, engine, and proxy JSONL
+transcripts plus the exact request and bounded error manifest; the raised error identifies that
+directory. Missing-engine and dirty-repository attacks prove both failure paths persist before they
+fail closed. The final fresh audit on these bytes returned literal `GATE: PASS`: 430 tests with one
+future-phase skip, 33 live runtime integrations, every literal plan command, isolated sentinel
+build/install/smokes, five Law attacks, static quality checks, and the repeated real-repo loop passed.
+
+The Phase 4 real-repo loop ran `scan`, `exposure` and `capture` read-only at the pinned commits.
+Static results are unchanged from Phase 3, so nothing Phase 4 added altered what a scan finds:
+`mcp-google-ads` again produced 422 candidates, 9 AFFECTED, 413 preserved UNKNOWNs and 434 evidence
+records; `google-ads-api` again produced 2,471 candidates, 3 AFFECTED, 2,066 evidence-backed
+exclusions, 402 preserved UNKNOWNs and 2,488 evidence records. Both remain at zero unexplained.
+
+`capture` is new and behaved as the plan requires. Neither repository has its dependencies
+installed and none were installed, so both runs ended `CAPTURE_EXECUTION_FAILED` with the missing
+imports preserved in the stderr artifact — never a reason to enable network. `google-ads-api`
+additionally proved the egress policy against a real package manager: `npm test` reached for
+`registry.npmjs.org`, the deny-all proxy observed and denied it (`DESTINATION_NOT_ALLOWLISTED`),
+and because it is not provider traffic it became a named `UNKNOWN_WIRE_SIGNATURE` rather than a
+dropped record. Zero unexplained candidates in both captures. No prospect repository was modified,
+verified after every run.
+
+The loop found one defect, FA-014: Git refuses to delete its own worktree metadata when that
+directory carries the read-only attribute, so the first capture left state inside a repository we
+promise not to touch, and the second failed closed rather than leaving it. `shutil.rmtree` with
+`ignore_errors=True` was hiding the read-only case that `rm -rf` handles. Removal now retries,
+clears the attribute, prunes, and still fails closed if the metadata does not return to its prior
+state; the attestation records `recovered`. It fired on both pinned repositories, so it is
+load-bearing. FA-015 records the package-manager egress pattern as a deliberate PRESERVED UNKNOWN:
+dismissing non-provider hosts automatically was rejected, because an incomplete pack host list
+would then hide real usage.
 
 Phase 3 progress (2026-09-06): the provider-neutral structural observer, deterministic import/symbol
 graph, five-hop wrapper walk, inheritance/decorator/factory/registry propagation, query skeletons,
@@ -177,9 +342,16 @@ unscannable `rg` hit is preserved as evidence.
 
 ## Blocking
 
+- Nothing blocks Phase 4; it is merged and tagged `v0.4`. Its fresh audit returned literal
+  `GATE: PASS` on `e408545`, and the hardening that followed is covered by the green full suite.
 - Nothing blocks the completed Phase 3 gate. `ast-grep` 0.45.0 is installed and its identity is
   proof-bound.
-- `docker`/`podman` not installed — Phase 4 needs them.
+- Podman 4.9.3 runs rootless in Ubuntu WSL and is the only eligible capture engine; the host's
+  Docker Desktop engine is rootful and is refused. The engine reports cgroups v1 and ignores
+  `--memory`/`--pids-limit`, so POSIX rlimits and the parent wall/output bounds are the enforcement
+  that is actually proved.
+- Capture state must live in a **short** host directory. A deep path makes a bind-mounted file
+  unreadable inside the container (`EIO`), which costs proxy mode its certificate (FA-013).
 - P-009 remains OPEN. AI triage is default-off and disconnected; it must not receive an operational
   application, CLI, scan, or store route until the owner decides the producer-attestation boundary.
 - `rg` was not on this machine at the start of Phase 1; the official 14.1.1 binary is now at
@@ -190,6 +362,39 @@ unscannable `rg` hit is preserved as evidence.
 ## Decisions that carry forward
 
 *(record here anything a later phase must not re-litigate — with the phase it was decided in)*
+
+**Phase-4 decisions (2026-09-07).**
+- A memory bound is `RLIMIT_DATA`, never `RLIMIT_AS`. `RLIMIT_AS` is a separate, larger
+  address-space bound because managed runtimes reserve address space they never touch. Do not
+  collapse the two back into one field to "simplify" the limits.
+- A sensor must attest that it installed. Hook mode carries a per-run nonce and proxy mode counts
+  failed interceptions, so "the sensor did not observe" and "the workload made no provider call"
+  are different, separately named outcomes with different closing instructions. Any future capture
+  channel owes the same distinction; without it, zero events silently reads as zero usage.
+- Production inputs reconcile against the run's static **plus** dynamic evidence, and never against
+  each other, so the accounting is order-independent across multiple production inputs while still
+  crediting what this run observed.
+- The workload's trust anchor lives in a directory the proxy container cannot write, and the
+  proxy is ready only when its listener is up, not when its certificate exists.
+- The sentinel's own suite is a separate product run:
+  `uv run --package hubbleops-sentinel pytest -c pyproject.toml
+  --override-ini="testpaths=packages/hubbleops-sentinel/tests"
+  --override-ini="pythonpath=packages/hubbleops-sentinel/src" packages/hubbleops-sentinel/tests`.
+  The main suite's `testpaths` deliberately excludes it; that is the independence boundary, not an
+  oversight. The main suite still proves the package imports no `hubbleops.*` and emits no verdict.
+- `dev/plan.md` named the sentinel hook smoke input `sentinel_hook_input.jsonl`. Hook mode takes a
+  Python entrypoint to run, not a JSONL file, so the fixture is
+  `tests/fixtures/phase4/inputs/sentinel_hook_app.py`. Phase 4 fixtures are split into `repo/`
+  (the capture target, which must stay clean for `_require_clean`) and `inputs/` (command inputs).
+- Dynamic and sentinel promotion provenance is source-bound at observation time. A repository frame
+  without a captured source hash is not promotion evidence, and source drift invalidates promotion.
+- Private destinations stay denied except for the test-only fixture object supplied directly to the
+  capture API. The public CLI cannot declare an exception, and the actual fixture identity is bound
+  into the execution manifest.
+- Every Git, engine, proxy, and workload subprocess has a bounded, hash-preserving transcript in the
+  run artifacts. Preflight Git uses the bounded runner too. A truncated rendering retains the hash
+  and byte size of the captured stream, and setup failures persist their available transcripts and
+  bounded error manifest before they fail closed.
 
 **Phase-3 completion decisions (2026-09-06).** Structural language differences live in pack-owned
 ast-grep rules; the generic graph consumes neutral captured facts and contains no provider knowledge.
@@ -346,9 +551,8 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
 
 ## Open threads
 
-- Phase 4 needs rootless docker/podman before implementation and must preserve the structural
-  coverage and UNKNOWN-conservation guarantees established in Phase 3.
-- P-009 must be decided before AI triage is operationally connected; no Phase 3 runtime path reaches
-  it.
-- The Exposure Map target and per-version detected-site counts are implemented. The
-  production-services line remains "not in this ProofScope" until Phase 4 supplies telemetry.
+- Phase 4 is merged to `main` and tagged `v0.4`; nothing was pushed.
+- P-009 must be decided before AI triage is operationally connected; no Phase 3 or Phase 4 runtime
+  path reaches it.
+- The Exposure Map production-services line is live: it prints `N/M` once a telemetry or sentinel
+  observer is in the ProofScope, and the "not in this ProofScope" wording only when neither is.

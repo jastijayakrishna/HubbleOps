@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib
 import re
 from collections.abc import Sequence
@@ -72,10 +73,17 @@ class LoadedPack:
     def contract_hash(self) -> str:
         from hubbleops.core.canonical import content_id
 
+        capture = self.root / "capture"
+        capture_hashes = {
+            path.relative_to(capture).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(capture.rglob("*"))
+            if path.is_file()
+        }
         return content_id(
             {
                 "surface_hash": self.surface.surface_hash(),
                 "lattice_hash": self.changes.lattice_hash,
+                "capture_hashes": capture_hashes,
             }
         )
 

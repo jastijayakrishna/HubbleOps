@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hubbleops.dev/schemas/dynamic-event-v1.json",
+  "title": "DynamicEventV1",
+  "description": "Versioned observational event shared by test capture and the standalone sentinel.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "service", "method", "request_text", "request_type", "stack", "ts"],
+  "properties": {
+    "version": {"type": "string", "pattern": "^v[0-9]+$", "maxLength": 32},
+    "service": {"type": "string", "minLength": 1, "maxLength": 256},
+    "method": {"type": "string", "minLength": 1, "maxLength": 256},
+    "request_text": {"type": ["string", "null"], "maxLength": 65536},
+    "request_type": {"type": "string", "minLength": 1, "maxLength": 64},
+    "stack": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path", "line", "function"],
+        "properties": {
+          "kind": {"enum": ["repository", "dependency", "runtime", "truncation"]},
+          "path": {"type": "string", "minLength": 1, "maxLength": 1024},
+          "line": {"type": ["integer", "null"], "minimum": 1},
+          "function": {"type": ["string", "null"], "maxLength": 512},
+          "omitted": {"type": "integer", "minimum": 1}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"kind": {"const": "truncation"}}, "required": ["kind"]},
+            "then": {"required": ["omitted"]},
+            "else": {"not": {"required": ["omitted"]}}
+          }
+        ]
+      }
+    },
+    "ts": {"type": "string", "format": "date-time", "maxLength": 32},
+    "mode": {"enum": ["hook", "proxy"]}
+  }
+}

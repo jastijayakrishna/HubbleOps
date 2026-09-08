@@ -30,6 +30,9 @@ packages = ["hubbleops"]
 [tool.uv]
 link-mode = "copy"
 
+[tool.uv.workspace]
+members = ["packages/hubbleops-sentinel"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
@@ -43,10 +46,11 @@ pythonpath = ["."]
 addopts = "--strict-markers"
 
 [tool.pyright]
-include = ["hubbleops", "tests", ".claude"]
-exclude = ["**/__pycache__", "**/.venv", "tests/fixtures"]
+include = ["hubbleops", "tests", ".claude", "packages/hubbleops-sentinel/src", "packages/hubbleops-sentinel/tests"]
+exclude = ["**/__pycache__", "**/.venv", "tests/fixtures", "hubbleops/sandbox/proxy_addon.py"]
 venvPath = "."
 venv = ".venv"
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
+extraPaths = ["packages/hubbleops-sentinel/src"]
