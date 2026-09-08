@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol, runtime_checkable
 
 from hubbleops.core.canonical import content_id
+from hubbleops.core.records import as_mapping, as_sequence, as_text
 
 OracleCode = Literal["VALID", "INVALID", "UNKNOWN_PROVIDER_CONTRACT", "ORACLE_UNAVAILABLE"]
 FalsifierResult = Literal["PASS", "FAIL", "UNKNOWN"]
@@ -196,7 +197,7 @@ class HunkMapping:
 
 
 @dataclass(frozen=True, slots=True)
-class TestOutcome:
+class SuiteCase:
     name: str
     outcome: str
     files: tuple[str, ...]
@@ -206,7 +207,7 @@ class TestOutcome:
 
 
 @dataclass(frozen=True, slots=True)
-class TestRun:
+class SuiteRun:
     source: Literal["FROZEN_BASELINE", "CANDIDATE"]
     executed: bool
     passed: int
@@ -214,7 +215,7 @@ class TestRun:
     skipped: int
     outcome: str
     reason: str
-    tests: tuple[TestOutcome, ...] = ()
+    tests: tuple[SuiteCase, ...] = ()
 
     def all_passed(self) -> bool:
         return self.executed and self.failed == 0 and self.outcome == "COMPLETED"
@@ -287,6 +288,19 @@ def request_identity(request: Mapping[str, Any]) -> str:
     return content_id(dict(request))
 
 
+def request_text_of(record: Mapping[str, Any]) -> str:
+    value = as_mapping(record.get("value"))
+    skeleton = as_mapping(value.get("skeleton"))
+    parts = [
+        as_text(value.get("text")) or "",
+        as_text(value.get("query")) or "",
+        as_text(value.get("line")) or "",
+        *(str(item) for item in as_sequence(skeleton.get("fragments"))),
+        *(str(item) for item in as_sequence(value.get("matches"))),
+    ]
+    return "\n".join(part for part in parts if part)
+
+
 def sorted_unique(values: Sequence[str]) -> tuple[str, ...]:
     return tuple(sorted(set(values)))
 
@@ -308,10 +322,11 @@ __all__ = [
     "OracleView",
     "SubjectChange",
     "SubjectChangeKind",
-    "TestOutcome",
-    "TestRun",
+    "SuiteCase",
+    "SuiteRun",
     "Verdict",
     "VerificationResult",
     "request_identity",
+    "request_text_of",
     "sorted_unique",
 ]

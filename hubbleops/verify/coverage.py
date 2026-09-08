@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from hubbleops.core.records import as_mapping, as_sequence, parse_json
-from hubbleops.core.verification import TestOutcome
+from hubbleops.core.verification import SuiteCase
 
 PLUGIN_FILENAME = "hops_coverage_plugin.py"
 REPORT_FILENAME = "coverage.jsonl"
@@ -101,11 +101,11 @@ def environment(root: Path, report: Path) -> dict[str, str]:
     }
 
 
-def read_report(path: Path) -> tuple[TestOutcome, ...]:
+def read_report(path: Path) -> tuple[SuiteCase, ...]:
     if not path.is_file():
         return ()
     payload = path.read_bytes()[:MAX_REPORT_BYTES]
-    outcomes: list[TestOutcome] = []
+    outcomes: list[SuiteCase] = []
     for line in payload.decode("utf-8", errors="replace").splitlines():
         if not line.strip():
             continue
@@ -118,8 +118,8 @@ def read_report(path: Path) -> tuple[TestOutcome, ...]:
     return tuple(sorted(outcomes, key=lambda item: item.name))
 
 
-def _outcome(record: Mapping[str, Any]) -> TestOutcome:
-    return TestOutcome(
+def _outcome(record: Mapping[str, Any]) -> SuiteCase:
+    return SuiteCase(
         name=str(record.get("test", "")),
         outcome=str(record.get("outcome", "")),
         files=tuple(sorted(str(item) for item in as_sequence(record.get("files")))),
@@ -136,7 +136,7 @@ def unsupported_modules(modules: Iterable[str], languages: Mapping[str, str]) ->
     )
 
 
-def summarize(outcomes: Sequence[TestOutcome]) -> dict[str, int]:
+def summarize(outcomes: Sequence[SuiteCase]) -> dict[str, int]:
     counts = {"passed": 0, "failed": 0, "skipped": 0}
     for outcome in outcomes:
         if outcome.outcome in counts:
@@ -146,7 +146,7 @@ def summarize(outcomes: Sequence[TestOutcome]) -> dict[str, int]:
     return counts
 
 
-def encode(outcomes: Sequence[TestOutcome]) -> bytes:
+def encode(outcomes: Sequence[SuiteCase]) -> bytes:
     return b"".join(
         json.dumps(outcome.to_mapping(), sort_keys=True, separators=(",", ":")).encode("utf-8")
         + b"\n"

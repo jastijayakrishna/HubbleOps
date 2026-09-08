@@ -21,6 +21,7 @@ def bounded_process(
     output_bytes: int,
     tool: str,
     environment: Mapping[str, str] | None = None,
+    cwd: str | None = None,
 ) -> tuple[str, int | None, bytes, bytes]:
     try:
         process = subprocess.Popen(
@@ -29,6 +30,7 @@ def bounded_process(
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env={**host_process_environment(), **dict(environment or {})},
+            cwd=cwd,
         )
     except FileNotFoundError as error:
         raise ToolingMissing(tool, f"{argv[0]!r} is not executable") from error

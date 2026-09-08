@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text, is_mapping
@@ -83,7 +84,10 @@ def shapes_of(ledger: Ledger, captured: Sequence[Mapping[str, Any]]) -> tuple[Sh
         if record is None or record["claim_type"] != REQUEST_CLAIM_TYPE:
             continue
         value = as_mapping(record.get("value"))
-        fields = as_sequence(value.get("fragments")) or as_sequence(value.get("fields"))
+        skeleton = as_mapping(value.get("skeleton"))
+        fields = as_sequence(skeleton.get("fragments")) or as_sequence(value.get("matches"))
+        if not fields:
+            continue
         found.add(
             Shape(
                 service=as_text(value.get("service")) or "",
@@ -158,29 +162,57 @@ def differential(
     )
 
 
-def consumers(graph: ImportGraph, changes: ChangeSet) -> ConsumerCheck:
-    watched: dict[str, str] = {}
+def consumers(graph: ImportGraph, changes: ChangeSet, root: Path) -> ConsumerCheck:
+    watched: set[str] = set()
     for change in (*changes.removed(), *changes.renamed()):
+        watched.add(change.subject)
         leaf = change.subject.rsplit(".", 1)[-1]
         if leaf:
-            watched[leaf] = change.subject
+            watched.add(leaf)
     if not watched:
         return ConsumerCheck(hits=(), unresolved=())
     hits: set[str] = set()
     unresolved: set[str] = set()
+    sources: dict[str, bytes | None] = {}
     for atom in graph.atoms:
-        subject = watched.get(_leaf(atom.text))
-        if subject is None:
+        name = _unquote(atom.text)
+        if name not in watched:
             continue
-        hits.add(f"{subject} at {atom.path}:{atom.range.start_line}")
+        source = sources.setdefault(atom.path, _read(root / atom.path))
+        if source is None:
+            unresolved.add(f"response_consumer_check: {atom.path} could not be read")
+            continue
+        if _is_read_position(source, atom.range.start_byte):
+            hits.add(f"{name} at {atom.path}:{atom.range.start_line}")
     for error in graph.parse_errors:
         unresolved.add(f"response_consumer_check: {error.path} did not parse")
     return ConsumerCheck(hits=tuple(sorted(hits)), unresolved=tuple(sorted(unresolved)))
 
 
-def _leaf(text: str) -> str:
-    stripped = text.strip().strip("'\"[]")
-    return stripped.rsplit(".", 1)[-1]
+def _read(path: Path) -> bytes | None:
+    try:
+        return path.read_bytes()
+    except OSError:
+        return None
+
+
+def _is_read_position(source: bytes, start_byte: int) -> bool:
+    index = start_byte - 1
+    while index >= 0 and source[index : index + 1].isspace():
+        index -= 1
+    return index >= 0 and source[index : index + 1] in (b"[", b".")
+
+
+def _unquote(text: str) -> str:
+    stripped = text.strip()
+    for quote in ("'''", '"""', "'", '"'):
+        if (
+            stripped.startswith(quote)
+            and stripped.endswith(quote)
+            and len(stripped) >= 2 * len(quote)
+        ):
+            return stripped[len(quote) : -len(quote)]
+    return stripped
 
 
 __all__ = [

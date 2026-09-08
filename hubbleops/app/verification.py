@@ -30,7 +30,7 @@ from hubbleops.observe import structure
 from hubbleops.packs._protocol import ContractOracle
 from hubbleops.sandbox import DetachedWorktree
 from hubbleops.sandbox.verifier_image import VERIFIER_IMAGE, VerifierIsolationViolated
-from hubbleops.verify import authority, gitdiff, tests
+from hubbleops.verify import authority, gitdiff, suites
 from hubbleops.verify.coverage import unsupported_modules
 
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -105,19 +105,23 @@ def execute(request: VerificationRequest) -> VerificationRun:
                 repository=repository, destination=root / "candidate", sha=candidate_sha
             ) as candidate,
         ):
-            _refuse_repair_inputs(request)
-            base_scan = scan_repository(base, request.pack, force=request.force)
-            candidate_scan = scan_repository(candidate, request.pack, force=request.force)
+            refuse_repair_inputs(request)
+            base_scan = scan_repository(
+                base, request.pack, force=request.force, run_target=f"commit:{base_sha}"
+            )
+            candidate_scan = scan_repository(
+                candidate, request.pack, force=request.force, run_target=f"commit:{candidate_sha}"
+            )
             from_version, to_version = _versions(request, base_scan)
             changes = change_set(request.pack, from_version, to_version)
 
-            plan = tests.stage_frozen(base, candidate, root / "frozen")
-            frozen = tests.run_frozen(plan, _python())
-            candidate_tests = tests.run_candidate(candidate, root / "candidate-tests", _python())
+            plan = suites.stage_frozen(base, candidate, root / "frozen")
+            frozen = suites.run_frozen(plan, _python())
+            candidate_tests = suites.run_candidate(candidate, root / "candidate-tests", _python())
 
             graph = _graph(candidate_scan, request.pack, request.force)
             reachable = {entry.path for entry in candidate_scan.closure.entries}
-            uncoverable = unsupported_modules(reachable, tests.languages_of(sorted(reachable)))
+            uncoverable = unsupported_modules(reachable, suites.languages_of(sorted(reachable)))
 
             oracle = InjectedOracle(request.pack.contract)
             base_capture = read_capture(request.base_capture_path)
@@ -162,7 +166,7 @@ def execute(request: VerificationRequest) -> VerificationRun:
             )
 
 
-def _refuse_repair_inputs(request: VerificationRequest) -> None:
+def refuse_repair_inputs(request: VerificationRequest) -> None:
     for label, path in (
         ("obligations", request.obligations_path),
         ("decisions", request.decisions_path),
@@ -331,6 +335,7 @@ __all__ = [
     "read_capture",
     "read_decisions",
     "read_obligations",
+    "refuse_repair_inputs",
     "structural_rules",
     "verifier_version",
 ]

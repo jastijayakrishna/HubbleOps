@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -199,13 +200,27 @@ def _subject_sites(
 ) -> tuple[tuple[str, str], ...]:
     sites: set[tuple[str, str]] = set()
     attached = {eid for candidate in ledger.candidates for eid in candidate["evidence_ids"]}
+    pattern = re.compile(rf"(?<![\w.]){re.escape(subject)}(?![\w.])")
     for eid in sorted(attached):
         record = evidence.get(eid)
         if record is None:
             continue
-        if as_text(record.get("provider_subject")) == subject or subject in _version_values(record):
+        if (
+            as_text(record.get("provider_subject")) == subject
+            or subject in _version_values(record)
+            or pattern.search(_searchable_text(record))
+        ):
             sites.add((eid, f"{record['path']}:{record['line_start'] or 0}"))
     return tuple(sorted(sites))
+
+
+def _searchable_text(record: Mapping[str, Any]) -> str:
+    value = as_mapping(record.get("value"))
+    parts = [as_text(value.get("line")) or ""]
+    parts.extend(str(item) for item in as_sequence(value.get("matches")))
+    skeleton = as_mapping(value.get("skeleton"))
+    parts.extend(str(item) for item in as_sequence(skeleton.get("fragments")))
+    return "\n".join(parts)
 
 
 __all__ = ["Audit", "Reconciliation", "run"]

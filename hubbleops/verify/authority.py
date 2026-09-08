@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from hubbleops.core.verification import (
@@ -11,7 +12,7 @@ from hubbleops.core.verification import (
     FalsifierView,
     ObligationView,
     OracleView,
-    TestRun,
+    SuiteRun,
     VerificationResult,
 )
 from hubbleops.graph.imports import ImportGraph
@@ -27,8 +28,8 @@ class Evaluation:
     oracle: oracle.OracleReview
     containment: radius.Containment
     blast: radius.BlastRadius
-    frozen_tests: TestRun
-    candidate_tests: TestRun
+    frozen_tests: SuiteRun
+    candidate_tests: SuiteRun
     differential: behavior.ShapeDifferential
     consumers: behavior.ConsumerCheck
     falsifiers: falsify.FalsifierReview
@@ -59,8 +60,8 @@ class Inputs:
     obligations: tuple[ObligationView, ...]
     oracle: OracleView
     falsifiers: tuple[FalsifierView, ...]
-    frozen_tests: TestRun
-    candidate_tests: TestRun
+    frozen_tests: SuiteRun
+    candidate_tests: SuiteRun
     candidate_root: str
     base_captured: tuple[Mapping[str, Any], ...] = ()
     candidate_captured: tuple[Mapping[str, Any], ...] = ()
@@ -84,7 +85,9 @@ def evaluate(inputs: Inputs) -> Evaluation:
         inputs.delta, inputs.candidate_graph, inputs.frozen_tests, inputs.uncoverable
     )
     differential = _differential(inputs)
-    consumers = behavior.consumers(inputs.candidate_graph, inputs.changes)
+    consumers = behavior.consumers(
+        inputs.candidate_graph, inputs.changes, Path(inputs.candidate_root)
+    )
     falsifiers = falsify.run(
         inputs.falsifiers,
         inputs.candidate_ledger,

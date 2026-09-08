@@ -229,8 +229,10 @@ def scan_repository(
     *,
     force: bool = False,
     ast_grep_executable: str = "ast-grep",
+    run_target: str | None = None,
 ) -> ScanResult:
     resolved = target.resolve()
+    identity = run_target or str(resolved)
     boot = runlog.logger("scan")
     with boot.stage("source_closure", target=str(resolved)) as counts:
         closure = source_closure.build(resolved)
@@ -263,9 +265,7 @@ def scan_repository(
             scanner_version=scanner_version,
         )
         scope_hash = proof_scope_hash(scope)
-        run_id = run_id_for(
-            scope_hash=scope_hash, provider=pack.name, verb="scan", target=str(resolved)
-        )
+        run_id = run_id_for(scope_hash=scope_hash, provider=pack.name, verb="scan", target=identity)
         ctx = ObserverContext(
             provider=pack.name,
             run_id=run_id,

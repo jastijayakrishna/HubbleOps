@@ -52,7 +52,7 @@ def read(
         ("diff", "--numstat", "--no-color", "--no-ext-diff", "--find-renames", base, candidate),
         git_executable,
     )
-    hunks = _parse(unified)
+    hunks = parse_hunks(unified)
     declared = _numstat_paths(numstat)
     observed = {hunk.path for hunk in hunks}
     missing = sorted(declared - observed)
@@ -99,7 +99,7 @@ def _numstat_paths(numstat: str) -> set[str]:
     return paths
 
 
-def _parse(unified: str) -> tuple[Hunk, ...]:
+def parse_hunks(unified: str) -> tuple[Hunk, ...]:
     hunks: list[Hunk] = []
     path: str | None = None
     header: re.Match[str] | None = None
@@ -169,4 +169,4 @@ def available(git_executable: str = "git") -> str:
     return stdout.decode("utf-8", errors="replace").strip()
 
 
-__all__ = ["Delta", "available", "read", "resolve"]
+__all__ = ["Delta", "available", "parse_hunks", "read", "resolve"]

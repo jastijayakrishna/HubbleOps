@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -10,7 +11,7 @@ from hubbleops.core.verification import (
     Hunk,
     HunkMapping,
     ObligationView,
-    TestRun,
+    SuiteRun,
 )
 from hubbleops.graph.imports import Definition, ImportGraph
 from hubbleops.verify.gitdiff import Delta
@@ -32,6 +33,7 @@ LOCKFILE_NAMES = frozenset(
     }
 )
 IMPORT_PREFIXES = ("import ", "from ", "use ", "require(", "const ", "#include")
+SITE = re.compile(r"(?P<path>[\w./\\-]+\.[A-Za-z0-9]+):(?P<line>\d+)")
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,6 +101,7 @@ def contain(
             for eid in obligation.evidence_ids
             if eid in by_id
         ]
+        located.extend(_declared_sites(obligation))
         located.sort(key=lambda item: (item[1] is None, item[0], item[1] or 0))
         sites[obligation.id] = located
 
@@ -108,13 +111,20 @@ def contain(
     )
 
 
+def _declared_sites(obligation: ObligationView) -> list[tuple[str, int | None]]:
+    found: list[tuple[str, int | None]] = []
+    for match in SITE.finditer(obligation.current_state):
+        found.append((match["path"], int(match["line"])))
+    return found
+
+
 def _map_hunk(
     hunk: Hunk,
     sites: dict[str, list[tuple[str, int | None]]],
     mapped_paths: set[str],
     graph: ImportGraph,
 ) -> HunkMapping:
-    if _is_authority(hunk.path):
+    if is_authority_path(hunk.path):
         return HunkMapping(
             hunk=hunk,
             disposition="UNEXPLAINED",
@@ -182,7 +192,7 @@ def _normalize(lines: Sequence[str]) -> tuple[str, ...]:
     return tuple(item for item in ("".join(line.split()) for line in lines) if item)
 
 
-def _is_authority(path: str) -> bool:
+def is_authority_path(path: str) -> bool:
     return path.startswith(AUTHORITY_PREFIXES) or path.startswith(STATE_PREFIX)
 
 
@@ -232,7 +242,7 @@ def _incoming_edges(graph: ImportGraph) -> dict[str, frozenset[str]]:
 def blast(
     delta: Delta,
     graph: ImportGraph,
-    frozen: TestRun,
+    frozen: SuiteRun,
     uncoverable: Sequence[str] = (),
 ) -> BlastRadius:
     seeds = changed_definitions(delta, graph)
@@ -250,7 +260,7 @@ def blast(
     )
 
 
-def frozen_report(frozen: TestRun) -> CheckReport:
+def frozen_report(frozen: SuiteRun) -> CheckReport:
     if not frozen.executed:
         return CheckReport(
             name="frozen_baseline_tests",
@@ -285,5 +295,6 @@ __all__ = [
     "changed_definitions",
     "contain",
     "frozen_report",
+    "is_authority_path",
     "reach",
 ]

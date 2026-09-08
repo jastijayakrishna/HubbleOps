@@ -12,9 +12,8 @@ import yaml
 
 from hubbleops.core.canonical import blob_hash, canonical_text, content_id
 from hubbleops.core.errors import PackDataError
-from hubbleops.core.records import as_mapping
 from hubbleops.core.surface import SurfaceSpec
-from hubbleops.core.verification import FalsifierInput, FalsifierOutcome
+from hubbleops.core.verification import FalsifierInput, FalsifierOutcome, request_text_of
 from hubbleops.packs._protocol import (
     BuildReport,
     CaptureHooks,
@@ -54,8 +53,7 @@ class MockRemovedField:
             return FalsifierOutcome(result="PASS", reason="this Change Pack removes no subject")
         sites: list[str] = []
         for record in subject.evidence_of(self.failure_class):
-            value = as_mapping(record.get("value"))
-            text = str(value.get("text") or value.get("query") or "")
+            text = request_text_of(record)
             sites.extend(
                 f"{record.get('path')}:{record.get('line_start')} names {name}"
                 for name in sorted(removed)

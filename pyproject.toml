@@ -44,10 +44,11 @@ select = ["E", "F", "I", "B", "UP", "RUF"]
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "--strict-markers"
+norecursedirs = ["*.egg", ".*", "_darcs", "build", "CVS", "dist", "node_modules", "venv", "{arch}", "tests/fixtures", "tests/adversarial/*/files"]
 
 [tool.pyright]
 include = ["hubbleops", "tests", ".claude", "packages/hubbleops-sentinel/src", "packages/hubbleops-sentinel/tests"]
-exclude = ["**/__pycache__", "**/.venv", "tests/fixtures", "hubbleops/sandbox/proxy_addon.py"]
+exclude = ["**/__pycache__", "**/.venv", "tests/fixtures", "tests/adversarial/*/files", "hubbleops/sandbox/proxy_addon.py"]
 venvPath = "."
 venv = ".venv"
 pythonVersion = "3.12"

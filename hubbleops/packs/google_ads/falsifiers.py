@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text
-from hubbleops.core.verification import FalsifierInput, FalsifierOutcome
+from hubbleops.core.verification import FalsifierInput, FalsifierOutcome, request_text_of
 from hubbleops.packs._protocol import Falsifier
 
 VERSION = re.compile(r"\bv(\d+)\b")
@@ -152,16 +152,7 @@ class SubjectResidue:
             )
         offending: list[str] = []
         for record in subject.evidence_of(self.failure_class):
-            value = as_mapping(record.get("value"))
-            text = " ".join(
-                item
-                for item in (
-                    as_text(value.get("text")),
-                    as_text(value.get("query")),
-                    as_text(record.get("provider_subject")),
-                )
-                if item
-            )
+            text = f"{request_text_of(record)}\n{record.get('provider_subject') or ''}"
             for name, replacement in sorted(watched.items()):
                 if re.search(rf"\b{re.escape(name)}\b", text):
                     suffix = f" (use {replacement})" if replacement else ""

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from hubbleops.core.records import as_mapping, as_text
+from hubbleops.core.records import as_mapping, as_sequence, as_text
 from hubbleops.core.verification import (
     CheckReport,
     OracleCheck,
@@ -80,16 +80,17 @@ def requests_from(
 
 def _static_request(record: Mapping[str, Any]) -> Mapping[str, Any] | None:
     value = as_mapping(record.get("value"))
-    service = as_text(value.get("service"))
-    method = as_text(value.get("method"))
-    text = as_text(value.get("text")) or as_text(value.get("query"))
-    if not text:
+    skeleton = as_mapping(value.get("skeleton"))
+    if as_sequence(skeleton.get("holes")):
         return None
-    body: dict[str, Any] = {"query": text}
+    fragments = [str(item) for item in as_sequence(skeleton.get("fragments"))]
+    text = as_text(value.get("text")) or as_text(value.get("query")) or " ".join(fragments)
+    if not text.strip():
+        return None
     return {
-        "service": service or "",
-        "method": method or "",
-        "request": body,
+        "service": as_text(value.get("service")) or "",
+        "method": as_text(value.get("method")) or "",
+        "request": {"query": text},
         "origin": f"static:{record['path']}:{record['line_start'] or 0}",
     }
 
