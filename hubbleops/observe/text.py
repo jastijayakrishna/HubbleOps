@@ -158,7 +158,12 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
     undecodable: dict[str, str] = {}
 
     enumerated = frozenset(entries)
-    for hit in _search(closure.root, [pattern for pattern, _ in patterns], enumerated):
+    for hit in _search(
+        closure.root,
+        [pattern for pattern, _ in patterns],
+        enumerated,
+        closure.search_exclusions(),
+    ):
         entry = entries.get(hit.path)
         if entry is None:
             raise ToolingFailed(
@@ -356,7 +361,10 @@ def unreadable_paths(stderr: str) -> tuple[str, ...]:
 
 
 def _search(
-    root: Path, patterns: Sequence[TextPattern], accounted: frozenset[str]
+    root: Path,
+    patterns: Sequence[TextPattern],
+    accounted: frozenset[str],
+    exclusions: Sequence[str],
 ) -> Iterator[TextHit]:
     if not patterns:
         return
@@ -367,9 +375,9 @@ def _search(
         "--hidden",
         "--no-ignore",
         "--color=never",
-        "-g",
-        "!.git/",
     ]
+    for excluded in exclusions:
+        args.extend(["-g", f"!{excluded}/"])
     for pattern in patterns:
         args.extend(["-e", _ripgrep_pattern(pattern)])
     args.extend(["--", "."])

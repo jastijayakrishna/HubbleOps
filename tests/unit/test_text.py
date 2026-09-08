@@ -155,6 +155,36 @@ def test_a_match_the_closure_never_enumerated_stops_the_scan(
     assert "never enumerated" in str(raised.value)
 
 
+def test_the_searcher_never_reaches_a_directory_the_closure_did_not_enumerate(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    closure = build(
+        tmp_path,
+        {
+            "app.js": 'const c = "mockprov";\n',
+            ".venv/lib/site-packages/dep/client.py": 'CLIENT = "mockprov"\n',
+            ".hubbleops/artifacts/run/ledger.json": '{"surface": "mockprov"}\n',
+        },
+    )
+    ctx = ObserverContext(
+        provider="_mock",
+        run_id=content_id({"run": 1}),
+        proof_scope_hash=content_id({"scope": 1}),
+        repo_sha=None,
+        dependency_context_hash=None,
+        surface=mock_pack.surface,
+    )
+
+    records = text.scan(closure, ctx)
+
+    assert ".venv" in closure.search_exclusions()
+    assert ".hubbleops/artifacts" in closure.search_exclusions()
+    reached = sorted({str(record["path"]) for record in records})
+    assert not any(path.startswith((".venv/", ".hubbleops/artifacts/")) for path in reached), (
+        f"the searcher walked a directory the closure pruned: {reached}"
+    )
+
+
 def test_a_match_in_a_closure_marked_unscannable_file_is_not_discarded(
     tmp_path: Path, mock_pack: registry.LoadedPack, monkeypatch: pytest.MonkeyPatch
 ) -> None:
