@@ -1,0 +1,13 @@
+{
+  "summary": "the migration reaches a module no frozen test executes, so its behaviour is unproven",
+  "expected_verdict": "HUMAN_REQUIRED",
+  "reason_contains": "UNKNOWN_BLAST module pricing.py",
+  "caught_by": "blast radius (reachable but not covered by a passing frozen test)",
+  "delete": [],
+  "obligation_sites": [
+    ["pricing.py", 1, "present:campaigns.name"],
+    ["reporting.py", 4, "present:campaigns.name"],
+    ["reporting.py", 13, "present:campaigns.name"],
+    ["reporting.py", 18, "present:campaigns.name"]
+  ]
+}

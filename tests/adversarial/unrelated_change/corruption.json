@@ -1,0 +1,8 @@
+{
+  "summary": "a correct migration carrying one unrelated query the migration never asked for",
+  "expected_verdict": "FAILED",
+  "reason_contains": "unexplained hunk",
+  "caught_by": "diff containment (no obligation and no collateral rule covers it)",
+  "delete": [],
+  "obligation_sites": []
+}

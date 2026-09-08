@@ -1,0 +1,8 @@
+{
+  "summary": "the query selects the new field name while response handling still reads the old one",
+  "expected_verdict": "FAILED",
+  "reason_contains": "response handling still reads",
+  "caught_by": "response-consumer check",
+  "delete": [],
+  "obligation_sites": []
+}

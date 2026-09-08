@@ -1,0 +1,8 @@
+{
+  "summary": "the SDK path is migrated while a second REST caller is left on the old endpoint version",
+  "expected_verdict": "FAILED",
+  "reason_contains": "audit_pass is FAIL",
+  "caught_by": "migration audit (old-version residue) and diff containment",
+  "delete": [],
+  "obligation_sites": []
+}
