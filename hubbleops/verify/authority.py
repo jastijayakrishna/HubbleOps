@@ -1,0 +1,174 @@
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
+
+from hubbleops.core.verification import (
+    ChangeSet,
+    CheckReport,
+    FalsifierView,
+    ObligationView,
+    OracleView,
+    TestRun,
+    VerificationResult,
+)
+from hubbleops.graph.imports import ImportGraph
+from hubbleops.observe.ledger import Ledger
+from hubbleops.verify import audit, behavior, conserve, falsify, oracle, radius
+from hubbleops.verify.gitdiff import Delta
+from hubbleops.verify.verdict import Judgement, decide
+
+
+@dataclass(frozen=True, slots=True)
+class Evaluation:
+    audit: audit.Audit
+    oracle: oracle.OracleReview
+    containment: radius.Containment
+    blast: radius.BlastRadius
+    frozen_tests: TestRun
+    candidate_tests: TestRun
+    differential: behavior.ShapeDifferential
+    consumers: behavior.ConsumerCheck
+    falsifiers: falsify.FalsifierReview
+    conservation: conserve.Conservation
+    result: VerificationResult
+    judgement: Judgement
+
+    def reports(self) -> tuple[CheckReport, ...]:
+        return (
+            self.audit.report(),
+            self.oracle.report(),
+            self.containment.report(),
+            radius.frozen_report(self.frozen_tests),
+            self.differential.report(),
+            self.consumers.report(),
+            self.falsifiers.report(),
+            self.conservation.report(),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Inputs:
+    base_ledger: Ledger
+    candidate_ledger: Ledger
+    candidate_graph: ImportGraph
+    delta: Delta
+    changes: ChangeSet
+    obligations: tuple[ObligationView, ...]
+    oracle: OracleView
+    falsifiers: tuple[FalsifierView, ...]
+    frozen_tests: TestRun
+    candidate_tests: TestRun
+    candidate_root: str
+    base_captured: tuple[Mapping[str, Any], ...] = ()
+    candidate_captured: tuple[Mapping[str, Any], ...] = ()
+    decisions: tuple[Mapping[str, Any], ...] = ()
+    uncoverable: tuple[str, ...] = ()
+    captures_supplied: bool = False
+    now: datetime | None = None
+
+
+def evaluate(inputs: Inputs) -> Evaluation:
+    audit_result = audit.run(inputs.candidate_ledger, inputs.changes, inputs.obligations)
+    requests = oracle.requests_from(inputs.candidate_ledger, inputs.candidate_captured)
+    oracle_result = oracle.review(inputs.oracle, requests, inputs.changes.to_version, inputs.now)
+    containment = radius.contain(
+        inputs.delta,
+        inputs.obligations,
+        inputs.candidate_ledger.evidence,
+        inputs.candidate_graph,
+    )
+    blast = radius.blast(
+        inputs.delta, inputs.candidate_graph, inputs.frozen_tests, inputs.uncoverable
+    )
+    differential = _differential(inputs)
+    consumers = behavior.consumers(inputs.candidate_graph, inputs.changes)
+    falsifiers = falsify.run(
+        inputs.falsifiers,
+        inputs.candidate_ledger,
+        inputs.changes,
+        inputs.candidate_root,
+        inputs.candidate_captured,
+    )
+    conservation = conserve.compare(inputs.base_ledger, inputs.candidate_ledger, inputs.decisions)
+
+    frozen = radius.frozen_report(inputs.frozen_tests)
+    reports = (
+        audit_result.report(),
+        oracle_result.report(),
+        containment.report(),
+        frozen,
+        differential.report(),
+        consumers.report(),
+        falsifiers.report(),
+        conservation.report(),
+    )
+    result = VerificationResult(
+        audit_pass=reports[0].passed,
+        oracle_all_accepted=reports[1].passed,
+        zero_unexplained_hunks=reports[2].passed,
+        frozen_baseline_tests_pass=reports[3].passed,
+        request_shape_differential_pass=reports[4].passed,
+        response_consumer_check_pass=reports[5].passed,
+        falsifiers_pass=reports[6].passed,
+        unknown_conservation_pass=reports[7].passed,
+        unknown_blast=blast.unknown_blast,
+        oracle_available=oracle_result.available,
+        unresolved=tuple(sorted({item for report in reports for item in report.unresolved})),
+        reasons=tuple(sorted({item for report in reports for item in report.reasons})),
+    )
+    return Evaluation(
+        audit=audit_result,
+        oracle=oracle_result,
+        containment=containment,
+        blast=blast,
+        frozen_tests=inputs.frozen_tests,
+        candidate_tests=inputs.candidate_tests,
+        differential=differential,
+        consumers=consumers,
+        falsifiers=falsifiers,
+        conservation=conservation,
+        result=result,
+        judgement=decide(result),
+    )
+
+
+def _differential(inputs: Inputs) -> behavior.ShapeDifferential:
+    if inputs.captures_supplied:
+        return behavior.differential(
+            behavior.shapes_of(inputs.base_ledger, inputs.base_captured),
+            behavior.shapes_of(inputs.candidate_ledger, inputs.candidate_captured),
+            inputs.obligations,
+            behavior.CAPTURED_SOURCE,
+        )
+    base_shapes = behavior.shapes_of(inputs.base_ledger, ())
+    candidate_shapes = behavior.shapes_of(inputs.candidate_ledger, ())
+    if not base_shapes and not candidate_shapes:
+        return behavior.differential(
+            (),
+            (),
+            inputs.obligations,
+            behavior.STATIC_SOURCE,
+            resolved=False,
+            reason=(
+                "no capture was supplied and neither tree yields a request skeleton, "
+                "so the request-shape differential has no input to compare"
+            ),
+        )
+    return behavior.differential(
+        base_shapes, candidate_shapes, inputs.obligations, behavior.STATIC_SOURCE
+    )
+
+
+def obligations_from(records: Sequence[Mapping[str, Any]]) -> tuple[ObligationView, ...]:
+    return tuple(
+        sorted(
+            (ObligationView.from_record(record) for record in records),
+            key=lambda item: item.id,
+        )
+    )
+
+
+__all__ = ["Evaluation", "Inputs", "evaluate", "obligations_from"]
