@@ -34,9 +34,13 @@ Updated before every session ends. Phase-level status lives in
 - [ ] Add defence in depth for the response-consumer class. Eight of the eleven corruptions are
       caught by exactly one stage, and the P0 showed what a single stage is worth: the consumer check
       is the only thing standing between a renamed field and a green verdict
-- [ ] Run a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md), then the Phase 5
-      [real-repo loop](../prompts/cross-cutting/real-repo-loop.md). Only a literal `GATE: PASS`
-      permits the merge to `main` and the `v0.5` tag
+- [ ] **Run a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md).** It was launched
+      on 2026-09-08 and died on an account session limit before it ran a single command, so Phase 5
+      has NO gate result — not a pass, not a fail. The builder ran the audit's Law-violation
+      experiments itself and every one failed closed, but the builder never grades itself: that is
+      evidence the auditor can start from, not a substitute for the audit
+- [ ] Run the Phase 5 [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) after the gate.
+      Only a literal `GATE: PASS` permits the merge to `main` and the `v0.5` tag
 - [ ] Phase 5 ships no live Google Ads oracle run: no test-account credentials exist on this machine,
       so `google_ads` verification reports `ORACLE_UNAVAILABLE` and caps at UNKNOWN by design. The
       oracle path itself is exercised end to end against the `_mock` pack with real request hashes.

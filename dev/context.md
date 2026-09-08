@@ -10,7 +10,7 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Current phase** | 5 — Independent Verification Authority. Phase 4 is merged to `main` and tagged `v0.4` |
 | **Branch** | `phase-05-verification-authority`, cut from `main` at `v0.4` |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
-| **Next action** | Phase 5 is implemented and its own suites are green. Remaining: red-team, a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md), then the real-repo loop. P-009 must still be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+| **Next action** | Phase 5 is implemented, its suites are green, and the red-team has run against it. **Start by running a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md)** — the one launched on 2026-09-08 died on an account session limit before running a command, so Phase 5 has no gate result at all. Then the real-repo loop. P-009 must still be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
 
 Phase 5 (2026-09-08): `hops verify <base> <candidate> --pack <name>` ships. `verify/` holds the six
 checks and the pure verdict; `proof/receipt.py` writes `receipt.json` and `receipt.md` in the §16
