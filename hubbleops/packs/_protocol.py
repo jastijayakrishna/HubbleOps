@@ -11,6 +11,7 @@ from hubbleops.core.surface import (
     SurfaceSpec,
     VersionCarrier,
 )
+from hubbleops.core.verification import FalsifierInput, FalsifierOutcome
 
 Confidence = Literal["PROVEN", "DOCUMENTED"]
 ContractCode = Literal[
@@ -232,9 +233,12 @@ class ToolSpec(Protocol):
 
 @runtime_checkable
 class Falsifier(Protocol):
-    """Provider adversarial check implemented in the verification phase."""
+    """Provider adversarial check selected by failure class and executed by the verifier."""
 
     name: str
+    failure_class: str
+
+    def check(self, subject: FalsifierInput) -> FalsifierOutcome: ...
 
 
 @runtime_checkable
@@ -279,6 +283,8 @@ __all__ = [
     "ContractOracle",
     "DiffFact",
     "Falsifier",
+    "FalsifierInput",
+    "FalsifierOutcome",
     "ProviderPack",
     "RequestLanguage",
     "RuleSet",

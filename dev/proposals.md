@@ -481,3 +481,55 @@ which lands this change on `main`. The code change is covered by
 `test_excluded_directory_identity_does_not_depend_on_its_contents`.
 
 ---
+
+## P-011 — The Falsifier sub-protocol gets the shape Phase 5 deferred to it
+
+| | |
+|---|---|
+| **Raised** | 2026-09-08, Phase 5 |
+| **Touches** | frozen `ProviderPack` sub-protocol `Falsifier` (`packs/_protocol.py`) |
+| **Status** | ACCEPTED 2026-09-08 |
+
+**What forced this.** `Falsifier` is `name: str` and a docstring reading "Provider adversarial check
+implemented in the verification phase". Phase 5 is that phase. `verify/falsify.py` must select the
+falsifiers whose failure class the rescan actually detected and then run them, and neither selection
+nor execution is expressible against a bare name. A falsifier that cannot be run is not a falsifier;
+it is a label, and `falsifiers_pass` computed over labels is the exact shape of trap (5) — a check
+that exists but decides nothing.
+
+**Proposed change.** `Falsifier` gains two members:
+
+```python
+failure_class: str
+def check(self, subject: FalsifierInput) -> FalsifierOutcome: ...
+```
+
+`FalsifierInput` and `FalsifierOutcome` are defined in `hubbleops/core/verification.py`, not in
+`packs/_protocol.py`, so that `verify/` can name them without importing `packs/`. `_protocol.py`
+imports them from `core/`, exactly as it already imports `SurfaceSpec` from `core/surface.py`.
+`FalsifierOutcome.result` is `PASS | FAIL | UNKNOWN`: a falsifier that cannot decide says so and
+drives the verdict to UNKNOWN, and is never allowed to read as PASS.
+
+**Why this is a completion rather than a redesign.** The protocol reserved the member and deferred
+its shape by name. Nothing that exists is being reinterpreted: no pack ships a falsifier today, so
+there is no implementation to migrate and no stored record whose meaning changes. `ProviderPack`
+itself is untouched — `falsifiers() -> list[Falsifier]` is unchanged.
+
+**Blast radius.** `packs/_protocol.py`, both packs' `falsifiers()` implementations, and
+`core/verification.py`. `Transform` and `ToolSpec` carry the identical deferral for Phase 6 and are
+deliberately **not** changed here; Phase 6 raises its own proposal with the repair loop's evidence in
+hand. No schema, no stored record, no ProofScope input changes, so no Receipt is invalidated.
+
+**Alternatives rejected, and why.** Keep `Falsifier` a name and hold the executable check in a
+parallel registry inside `verify/` — the registry would be keyed by provider name, which is precisely
+the provider knowledge the generic layer may not hold. Have `app/` run the falsifiers and pass
+booleans into `verify/` — moves an authority check outside the authority, so a caller could decide
+`falsifiers_pass` and the verifier would believe it. Skip falsifiers in Phase 5 — the verdict rule is
+frozen and names `falsifiers_pass`; a conjunct wired to a constant is a weakened verdict rule, which
+is a declared approval boundary.
+
+**Decision.** ACCEPTED by the repository owner on 2026-09-08, as the shape the frozen protocol
+deferred to this phase. Enforced by `tests/unit/test_phase5_verdict.py::
+test_every_flag_reaches_the_verdict`, which fails if `falsifiers_pass` stops changing the verdict.
+
+---
