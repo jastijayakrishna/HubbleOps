@@ -4,20 +4,23 @@ import hashlib
 import json
 import os
 import subprocess
-import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO, cast
+from typing import Any, cast
 
 from hubbleops.core.canonical import canonical_bytes, content_id
 from hubbleops.core.errors import HubbleOpsError, ToolingFailed, ToolingMissing
+from hubbleops.core.process import (
+    bounded_process,
+    command_record,
+    command_transcript,
+)
 from hubbleops.sandbox.image import ImageSpec
 from hubbleops.sandbox.limits import ResourceLimits
 from hubbleops.sandbox.mounts import Mount, validate_mounts
 
 SAFE_ENV = {"HOME": "/tmp/home", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "TZ": "UTC"}
-MAX_COMMAND_LOG_BYTES = 65_536
 
 
 class SandboxInvalid(HubbleOpsError):
@@ -227,74 +230,6 @@ class RootlessPodman:
         )
 
 
-def bounded_process(
-    argv: tuple[str, ...], wall_seconds: float, output_bytes: int, tool: str
-) -> tuple[str, int | None, bytes, bytes]:
-    try:
-        process = subprocess.Popen(
-            argv,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=_host_process_environment(),
-        )
-    except FileNotFoundError as error:
-        raise ToolingMissing(tool, f"{argv[0]!r} is not executable") from error
-    streams = {"stdout": bytearray(), "stderr": bytearray()}
-    overflow = threading.Event()
-    threads = [
-        threading.Thread(
-            target=_read_bounded,
-            args=(cast(BinaryIO, stream), streams[name], output_bytes, overflow),
-            daemon=True,
-        )
-        for name, stream in (("stdout", process.stdout), ("stderr", process.stderr))
-    ]
-    for thread in threads:
-        thread.start()
-    deadline = time.monotonic() + wall_seconds
-    outcome = "COMPLETED"
-    while process.poll() is None:
-        if overflow.is_set():
-            outcome = "OUTPUT_LIMIT"
-            process.terminate()
-            break
-        if time.monotonic() >= deadline:
-            outcome = "WALL_TIMEOUT"
-            process.terminate()
-            break
-        time.sleep(0.01)
-    try:
-        process.wait(timeout=2)
-    except subprocess.TimeoutExpired:
-        process.kill()
-        process.wait(timeout=2)
-    for thread in threads:
-        thread.join(timeout=2)
-    if outcome == "COMPLETED" and process.returncode != 0:
-        outcome = "NONZERO_EXIT"
-    return outcome, process.returncode, bytes(streams["stdout"]), bytes(streams["stderr"])
-
-
-def _read_bounded(
-    stream: BinaryIO, target: bytearray, maximum: int, overflow: threading.Event
-) -> None:
-    while True:
-        chunk = stream.read(65_536)
-        if not chunk:
-            return
-        available = maximum - len(target)
-        if available > 0:
-            target.extend(chunk[:available])
-        if len(chunk) > available:
-            overflow.set()
-
-
-def _host_process_environment() -> dict[str, str]:
-    allowed = ("PATH", "PATHEXT", "SYSTEMROOT", "WINDIR", "TEMP", "TMP")
-    return {key: os.environ[key] for key in allowed if key in os.environ}
-
-
 def _exclusive_write(path: Path, data: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -304,36 +239,6 @@ def _exclusive_write(path: Path, data: bytes) -> None:
             os.fsync(handle.fileno())
     except FileExistsError as error:
         raise SandboxInvalid(f"capture artifact already exists: {path}") from error
-
-
-def command_record(
-    argv: tuple[str, ...],
-    duration_seconds: float,
-    exit_code: int | None,
-    stdout: str | bytes,
-    stderr: str | bytes,
-    outcome: str,
-) -> dict[str, Any]:
-    stdout_bytes = stdout.encode("utf-8", errors="replace") if isinstance(stdout, str) else stdout
-    stderr_bytes = stderr.encode("utf-8", errors="replace") if isinstance(stderr, str) else stderr
-    return {
-        "argv": list(argv),
-        "duration_seconds": round(duration_seconds, 6),
-        "exit_code": exit_code,
-        "outcome": outcome,
-        "stderr": stderr_bytes[:MAX_COMMAND_LOG_BYTES].decode("utf-8", errors="replace"),
-        "stderr_sha256": hashlib.sha256(stderr_bytes).hexdigest(),
-        "stderr_size": len(stderr_bytes),
-        "stderr_truncated": len(stderr_bytes) > MAX_COMMAND_LOG_BYTES,
-        "stdout": stdout_bytes[:MAX_COMMAND_LOG_BYTES].decode("utf-8", errors="replace"),
-        "stdout_sha256": hashlib.sha256(stdout_bytes).hexdigest(),
-        "stdout_size": len(stdout_bytes),
-        "stdout_truncated": len(stdout_bytes) > MAX_COMMAND_LOG_BYTES,
-    }
-
-
-def command_transcript(records: list[dict[str, Any]]) -> bytes:
-    return b"".join(canonical_bytes(record) + b"\n" for record in records)
 
 
 __all__ = [
