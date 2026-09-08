@@ -7,10 +7,18 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 4 implemented, real-repo loop repeated, fresh gate passed on `e408545`; post-gate hardening has since landed on the branch |
-| **Branch** | `phase-04-dynamic-capture-and-sentinel`, 61 commits ahead of `main`. **Not merged. `v0.4` does not exist** — an earlier session recorded that merge and tag as done, and neither happened; `main` is still at `7ff86d1` "Merge Phase 3 wrapper engine" and the newest tag is `v0.3` |
-| **Last gate passed** | Phase 4, on `e408545`. That is no longer the head: the hardening below changed closure semantics, so the gate does not cover the current bytes |
-| **Next action** | Decide P-010, then run a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) on the current tree. Only a literal `GATE: PASS` permits the merge to `main` and the `v0.4` tag that were previously recorded but never performed. P-009 must be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+| **Current phase** | 5 — Independent Verification Authority. Phase 4 is merged to `main` and tagged `v0.4` |
+| **Branch** | `phase-05-verification-authority`, cut from `main` at `v0.4` |
+| **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
+| **Next action** | Implement Phase 5 per `dev/plan.md`, then the fresh gate audit, red-team, and real-repo loop. P-009 must still be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+
+Phase 4 merge (2026-09-08): merged to `main` as a `--no-ff` commit and tagged `v0.4`, on the
+repository owner's instruction. Two things a later session must not misread. First, the merged bytes
+did not carry their own fresh `GATE: PASS` — `e408545` did, and eight hardening commits landed after
+it; the full suite was green at the merge and that is the evidence the merge rests on. Second,
+**P-010 is ACCEPTED** as of that merge: environment and run-output directories are accounted as one
+`UNSCANNED` closure entry each rather than enumerated, so `tree_hash` no longer moves when a
+virtualenv is rebuilt or a second scan writes artifacts. Do not re-litigate it.
 
 Scale and reliability hardening (2026-09-08): profiling the scan a second time found three defects
 the first pass missed, and the run log added the day before caught a fourth on its first real run.
@@ -334,7 +342,8 @@ unscannable `rg` hit is preserved as evidence.
 
 ## Blocking
 
-- Nothing blocks completed Phase 4; its final fresh audit returned literal `GATE: PASS`.
+- Nothing blocks Phase 4; it is merged and tagged `v0.4`. Its fresh audit returned literal
+  `GATE: PASS` on `e408545`, and the hardening that followed is covered by the green full suite.
 - Nothing blocks the completed Phase 3 gate. `ast-grep` 0.45.0 is installed and its identity is
   proof-bound.
 - Podman 4.9.3 runs rootless in Ubuntu WSL and is the only eligible capture engine; the host's
@@ -542,7 +551,7 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
 
 ## Open threads
 
-- Phase 4 is complete and tagged locally as `v0.4`; nothing was pushed.
+- Phase 4 is merged to `main` and tagged `v0.4`; nothing was pushed.
 - P-009 must be decided before AI triage is operationally connected; no Phase 3 or Phase 4 runtime
   path reaches it.
 - The Exposure Map production-services line is live: it prints `N/M` once a telemetry or sentinel

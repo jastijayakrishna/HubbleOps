@@ -426,7 +426,7 @@ triage remains default-off, has no CLI or scan-pipeline path, and cannot write t
 |---|---|
 | **Raised** | 2026-09-07, Phase 4 |
 | **Touches** | `ProofScope.tree_hash` semantics (frozen schema unchanged; its input changes) |
-| **Status** | OPEN |
+| **Status** | ACCEPTED 2026-09-08 |
 
 **What forced this.** `source_closure.build` descended into every directory except `.git`, fully read
 and SHA-256'd every file it found, and only then classified the file as `VENDORED` and excluded it
@@ -474,7 +474,8 @@ proof-affecting shortcut; refused under L7, memory may reduce work, never proof.
 from `git ls-files` — free exclusion of everything untracked, but untracked-yet-present files would
 vanish from the closure entirely, which is precisely the silent absence the closure exists to prevent.
 
-**Decision.** Pending repository-owner decision. The code change is implemented and covered by
+**Decision.** ACCEPTED by the repository owner on 2026-09-08, by the instruction to merge Phase 4,
+which lands this change on `main`. The code change is covered by
 `test_environment_directories_are_accounted_but_never_enumerated`,
 `test_run_output_under_the_state_directory_is_accounted_but_not_enumerated`, and
 `test_excluded_directory_identity_does_not_depend_on_its_contents`.

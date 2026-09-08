@@ -162,8 +162,9 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 1 — scan + exposure + ledger *(fresh final audit: `GATE: PASS`)*
 - [x] Phase 2 — Google Ads pack + Change Pack version lattice *(fresh `GATE: PASS`; first real-repo loop complete)*
 - [x] Phase 3 — wrapper engine *(post-loop fresh `GATE: PASS`; FA-010 closed)*
-- [ ] Phase 4 — dynamic capture + sentinel *(fresh `GATE: PASS` on `e408545`; post-gate hardening
-      has since changed closure semantics, so a new gate is required before merge and `v0.4`)*
+- [x] Phase 4 — dynamic capture + sentinel *(fresh `GATE: PASS` on `e408545`; merged to `main` and
+      tagged `v0.4` on 2026-09-08 by the owner's instruction, on a green full suite rather than a
+      second audit of the hardening commits)*
 - [ ] Phase 5 — verification authority *(+ red-team, nightly from here)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard
