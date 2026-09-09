@@ -6,10 +6,13 @@ import posixpath
 import re
 import shutil
 import subprocess
+import tempfile
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
+
+import yaml
 
 from hubbleops.core.canonical import canonical_text, content_id
 from hubbleops.core.errors import ToolingFailed, ToolingMissing, ToolingTimeout
@@ -444,6 +447,34 @@ LANGUAGE_QUERIES = {
 }
 
 
+NON_COMBINABLE_QUERIES = frozenset(
+    {
+        ("javascript", "import", "import $NAME from $MODULE"),
+        ("javascript", "import", "import { $$$NAMES } from $MODULE"),
+        ("php", "assignment", "$TARGET = $VALUE"),
+        ("php", "registration", "$REGISTRY = $VALUE"),
+        ("typescript", "import", "import $NAME from $MODULE"),
+        ("typescript", "import", "import { $$$NAMES } from $MODULE"),
+    }
+)
+
+
+def queries_for(language: str) -> tuple[Query, ...]:
+    return (*COMMON_QUERIES, *LANGUAGE_QUERIES.get(language, ()))
+
+
+def combinable_queries(language: str) -> tuple[Query, ...]:
+    return tuple(query for query in queries_for(language) if _combinable(language, query))
+
+
+def separate_queries(language: str) -> tuple[Query, ...]:
+    return tuple(query for query in queries_for(language) if not _combinable(language, query))
+
+
+def _combinable(language: str, query: Query) -> bool:
+    return (language, query.kind, query.pattern or "") not in NON_COMBINABLE_QUERIES
+
+
 class AstGrep:
     def __init__(
         self,
@@ -490,6 +521,33 @@ class AstGrep:
             completed = self._run([*args, *batch], root)
             matches.extend(self.decode(completed.stdout, root, query.kind))
         return tuple(matches)
+
+    def query_all(
+        self,
+        root: Path,
+        paths: Sequence[str],
+        language: str,
+        queries: Sequence[Query],
+    ) -> tuple[SyntaxMatch, ...]:
+        if not paths or not queries:
+            return ()
+        kinds = {f"q{index}": query.kind for index, query in enumerate(queries)}
+        documents = [
+            _rule_document(identifier, language, query)
+            for identifier, query in zip(kinds, queries, strict=True)
+        ]
+        matches: list[SyntaxMatch] = []
+        with tempfile.TemporaryDirectory(prefix="hops-graph-queries-") as temporary:
+            rule_path = Path(temporary) / "queries.yml"
+            rule_path.write_text(
+                yaml.safe_dump_all(documents, sort_keys=True, allow_unicode=True),
+                encoding="utf-8",
+            )
+            args = ["scan", "-r", str(rule_path), "--json=compact"]
+            for batch in argument_batches(paths):
+                completed = self._run([*args, *batch], root)
+                matches.extend(self.decode_tagged(completed.stdout, root, kinds))
+        return tuple(sorted(set(matches)))
 
     def rule(
         self,
@@ -562,6 +620,62 @@ class AstGrep:
         matches = tuple(_decode_match(item, root, kind) for item in entries)
         return tuple(sorted(set(matches)))
 
+    def decode_tagged(
+        self, payload: str, root: Path, kinds: Mapping[str, str]
+    ) -> tuple[SyntaxMatch, ...]:
+        scale = max(len(kinds), 1)
+        if len(payload) > MAX_OUTPUT_CHARS * scale:
+            raise ToolingFailed(
+                "ast-grep",
+                f"a combined {scale} rule invocation returned {len(payload)} characters, over "
+                f"the {MAX_OUTPUT_CHARS * scale} character bound; split the closure",
+            )
+        try:
+            decoded: object = json.loads(payload or "[]")
+        except json.JSONDecodeError as error:
+            raise ToolingFailed("ast-grep", "output was malformed JSON") from error
+        except RecursionError as error:
+            raise ToolingFailed("ast-grep", "output nesting exceeded the parser bound") from error
+        if not isinstance(decoded, list):
+            raise ToolingFailed("ast-grep", "output JSON root was not an array")
+        entries = cast(list[object], decoded)
+        if len(entries) > MAX_MATCHES_PER_INVOCATION * scale:
+            raise ToolingFailed(
+                "ast-grep",
+                f"a combined {scale} rule invocation matched {len(entries)} nodes, over the "
+                f"{MAX_MATCHES_PER_INVOCATION * scale} match bound; split the closure",
+            )
+        matches: list[SyntaxMatch] = []
+        for item in entries:
+            record = as_mapping(cast(Mapping[str, object], item))
+            identifier = record.get("ruleId")
+            if identifier is None:
+                raise ToolingFailed(
+                    "ast-grep",
+                    "a combined rule invocation returned a match with no ruleId, so the "
+                    "query that produced it cannot be identified",
+                )
+            kind = kinds.get(str(identifier))
+            if kind is None:
+                raise ToolingFailed(
+                    "ast-grep",
+                    f"a combined rule invocation returned unknown ruleId {identifier!r}",
+                )
+            matches.append(_decode_match(item, root, kind))
+        return tuple(sorted(set(matches)))
+
+
+def _rule_document(identifier: str, language: str, query: Query) -> dict[str, Any]:
+    if query.node_kind is not None:
+        rule: dict[str, Any] = {"kind": query.node_kind}
+    elif query.pattern is not None and query.selector is not None:
+        rule = {"pattern": {"context": query.pattern, "selector": query.selector}}
+    elif query.pattern is not None:
+        rule = {"pattern": query.pattern}
+    else:
+        raise ValueError("ast-grep query requires a pattern or node kind")
+    return {"id": identifier, "language": AST_GREP_LANGUAGES[language], "rule": rule}
+
 
 def argument_batches(
     paths: Sequence[str], budget: int = ARGUMENT_BUDGET_CHARS
@@ -594,7 +708,8 @@ def build(
         paths = tuple(sorted(paths_by_language[language]))
         if not paths:
             continue
-        for query in (*COMMON_QUERIES, *LANGUAGE_QUERIES.get(language, ())):
+        matches.extend(runner.query_all(root, paths, language, combinable_queries(language)))
+        for query in separate_queries(language):
             matches.extend(runner.query(root, paths, language, query))
     unique = tuple(sorted(set(matches)))
     definitions = _definitions(unique)
