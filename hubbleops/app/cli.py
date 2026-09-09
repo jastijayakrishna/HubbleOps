@@ -14,7 +14,7 @@ from typing import Any, cast
 import yaml
 
 from hubbleops import __version__
-from hubbleops.app import capture, exposure, promotion, registry, verification
+from hubbleops.app import capture, exposure, migration, promotion, registry, verification
 from hubbleops.closure import source_closure
 from hubbleops.core import runlog
 from hubbleops.core.canonical import canonical_bytes, content_id, export_bytes
@@ -150,6 +150,29 @@ def _parser() -> argparse.ArgumentParser:
     verify_command.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
     verify_command.add_argument("--receipt", default=None, help="also write receipt.json here")
     verify_command.set_defaults(handler=_verify)
+
+    migrate_command = subparsers.add_parser(
+        "migrate", help="apply deterministic repairs and write the obligations they discharge"
+    )
+    migrate_command.add_argument("repo", help="path to the repository to migrate")
+    migrate_command.add_argument(
+        "--pack", required=True, help=f"one of: {', '.join(registry.available_packs())}"
+    )
+    migrate_command.add_argument(
+        "--target", default=None, help="target version; defaults to the pack's latest"
+    )
+    migrate_command.add_argument(
+        "--obligations",
+        default=None,
+        help="write the obligation list here; defaults to <state-dir>/obligations.json",
+    )
+    migrate_command.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="report what would change without writing any file",
+    )
+    migrate_command.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
+    migrate_command.set_defaults(handler=_migrate)
 
     pack = subparsers.add_parser("pack", help="inspect and verify provider packs")
     pack_commands = pack.add_subparsers(dest="pack_verb", required=True)
@@ -796,6 +819,41 @@ def _verdict_exit(verdict: str) -> int:
 
 def _optional_path(value: str | None) -> Path | None:
     return Path(value).resolve() if value else None
+
+
+def _migrate(args: argparse.Namespace) -> int:
+    pack = registry.load_pack(args.pack)
+    root = Path(args.repo).resolve()
+    scan = scan_repository(root, pack)
+    target = args.target or pack.versions()[-1].id
+    result = migration.migrate(
+        pack=pack, ledger=scan.ledger, root=root, target=target, write=not args.dry_run
+    )
+    destination = (
+        Path(args.obligations).resolve()
+        if args.obligations
+        else Path(args.state_dir).resolve() / "obligations.json"
+    )
+    write_atomic(destination, export_bytes({"obligations": list(result.obligations)}))
+    counts = {
+        "total": len(result.obligations),
+        "discharged": len(result.report.discharged()),
+        "human": len(result.open_for_human()),
+        "preserved": len(result.preserved()),
+    }
+    print(f"HubbleOps MIGRATE  {pack.name}  ->  {target}")
+    print(f"  obligations           {counts['total']}")
+    print(f"  discharged            {counts['discharged']}")
+    print(f"  open for a human      {counts['human']}")
+    print(f"  preserved UNKNOWN     {counts['preserved']}")
+    print(f"  files {'that would change' if args.dry_run else 'changed'}   {len(result.written)}")
+    for path in result.written:
+        print(f"    {path}")
+    for outcome in result.report.undischarged():
+        print(f"  {outcome.result}  {outcome.path}  {outcome.reason}")
+    print(f"  obligations written   {destination}")
+    print("  this command produces a candidate, never a verdict; run `hops verify` to judge it")
+    return 0
 
 
 def _pack_verify(args: argparse.Namespace) -> int:
