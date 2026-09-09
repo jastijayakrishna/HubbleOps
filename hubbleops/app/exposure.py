@@ -41,6 +41,88 @@ class ClosingGroup:
     candidates: tuple[Mapping[str, Any], ...]
 
 
+def completeness(
+    ledger: Ledger,
+    closure: Mapping[str, Any] | None,
+    structural_coverage: Mapping[str, Any] | None,
+) -> tuple[str, tuple[str, ...], dict[str, int]]:
+    counts = ledger.counts()
+    entries = int(as_mapping(closure or {}).get("entries") or 0)
+    classifications = as_mapping(as_mapping(closure or {}).get("counts"))
+    accounted = sum(int(value) for value in classifications.values())
+    parser_failures = sum(
+        1
+        for record in ledger.evidence
+        if record["observer"] == "structure" and record["claim_type"] == "file_unscanned"
+    )
+    exhausted = sum(
+        1
+        for record in ledger.evidence
+        if record["claim_type"] == "request_text"
+        and str(as_mapping(record["value"]).get("resolution", "")).startswith("RESOLUTION_BUDGET")
+    )
+    boundaries = sum(1 for record in ledger.evidence if record["claim_type"] == "external_boundary")
+    indexed = 0
+    unsupported = 0
+    for raw_counts in (structural_coverage or {}).values():
+        language_counts = as_mapping(raw_counts)
+        indexed += int(language_counts.get("supported") or 0)
+        unsupported += int(language_counts.get("unsupported") or 0)
+
+    measures = {
+        "entries": entries,
+        "accounted": accounted,
+        "indexed": indexed,
+        "unsupported": unsupported,
+        "parser_failures": parser_failures,
+        "budget_exhausted": exhausted,
+        "dynamic_boundaries": boundaries,
+        "unknown": counts["unknown"],
+        "unexplained": counts["unexplained"],
+    }
+
+    reasons: list[str] = []
+    if entries != accounted:
+        reasons.append(f"{entries - accounted} enumerated entries carry no classification")
+    if counts["unexplained"]:
+        reasons.append(f"{counts['unexplained']} unexplained candidates")
+    if parser_failures:
+        reasons.append(f"{parser_failures} source files could not be parsed")
+    if exhausted:
+        reasons.append(f"{exhausted} resolutions exhausted their budget before reaching a value")
+    if counts["unknown"]:
+        reasons.append(f"{counts['unknown']} provider-relevant UNKNOWN candidates remain")
+    verdict = "DISCOVERY_COMPLETE" if not reasons else "DISCOVERY_INCOMPLETE"
+    return verdict, tuple(reasons), measures
+
+
+def _completeness_block(
+    ledger: Ledger,
+    closure: Mapping[str, Any] | None,
+    structural_coverage: Mapping[str, Any] | None,
+) -> list[str]:
+    verdict, reasons, measures = completeness(ledger, closure, structural_coverage)
+    roles = as_mapping(as_mapping(closure or {}).get("roles"))
+    lines = [
+        f"  {'Entries enumerated':<24}{measures['entries']}",
+        f"  {'Entries accounted':<24}{measures['accounted']}",
+        f"  {'Source indexed':<24}{measures['indexed']}",
+        f"  {'Source unsupported':<24}{measures['unsupported']}",
+        f"  {'Parser failures':<24}{measures['parser_failures']}",
+        f"  {'Budget exhaustions':<24}{measures['budget_exhausted']}",
+        f"  {'Dynamic boundaries':<24}{measures['dynamic_boundaries']}",
+        f"  {'Unexplained':<24}{measures['unexplained']}",
+    ]
+    populated = {name: int(count) for name, count in roles.items() if int(count)}
+    if populated:
+        rendered = "  ".join(f"{name}={count}" for name, count in sorted(populated.items()))
+        lines.append(f"  {'Roles':<24}{rendered}")
+    lines.append(f"  {'Verdict':<24}{verdict}")
+    for reason in reasons:
+        lines.append(f"  {'':<24}because {reason}")
+    return lines
+
+
 def render(
     *,
     ledger: Ledger,
@@ -50,6 +132,7 @@ def render(
     repository: str,
     repo_sha: str | None,
     structural_coverage: Mapping[str, Any] | None = None,
+    closure: Mapping[str, Any] | None = None,
     expand_not_affected: bool = False,
 ) -> str:
     counts = ledger.counts()
@@ -93,6 +176,11 @@ def render(
                 f"unsupported={language_counts.get('unsupported', 0)} "
                 f"unscanned={language_counts.get('unscanned', 0)}"
             )
+
+    lines.append("")
+    lines.append(RULE)
+    lines.append("DISCOVERY COMPLETENESS")
+    lines.extend(_completeness_block(ledger, closure, structural_coverage))
 
     lines.append("")
     lines.append(RULE)

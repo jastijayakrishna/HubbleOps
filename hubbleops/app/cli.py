@@ -201,6 +201,7 @@ class ScanResult:
             "root": str(self.target),
             "entries": len(self.closure.entries),
             "counts": self.closure.counts(),
+            "roles": self.closure.role_counts(),
             "control_directories": list(self.closure.control_directories),
             "pack": {
                 "changes_hash": self.pack.changes.lattice_hash,
@@ -730,6 +731,7 @@ def _exposure(args: argparse.Namespace) -> int:
             repository=row.target,
             repo_sha=row.repo_sha,
             structural_coverage=as_mapping(row.closure.get("structural_coverage")),
+            closure=row.closure,
             expand_not_affected=args.expand,
         ),
         end="",
