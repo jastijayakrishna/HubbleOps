@@ -13,8 +13,9 @@ from hubbleops.closure.source_closure import Classification
 from hubbleops.closure.source_closure import build as build_closure
 from hubbleops.core.errors import ToolingFailed, ToolingMissing, ToolingTimeout
 from hubbleops.core.observer import StructuralRule
-from hubbleops.graph.imports import AstGrep
-from hubbleops.observe.structure import rules_hash
+from hubbleops.graph.imports import AstGrep, SourceRange
+from hubbleops.observe import structure
+from hubbleops.observe.structure import ValuePath, rules_hash
 
 FIXTURES = Path("tests/fixtures/phase3")
 
@@ -127,6 +128,135 @@ def test_typescript_imported_version_reaches_computed_carrier(typescript: Any) -
     )
 
 
+def test_compositional_summaries_change_cost_but_never_a_single_record(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def evidence_of(scan: Any) -> list[dict[str, Any]]:
+        return [record for record in scan.ledger.evidence if record["observer"] == "structure"]
+
+    with_cache = evidence_of(
+        scan_repository(FIXTURES / "wrapper_patterns" / "repo", load_pack("google_ads"))
+    )
+
+    def store_nothing(
+        self: structure.ResolutionCache,
+        key: tuple[str, int, str, str],
+        hops: tuple[str, ...],
+        values: tuple[ValuePath, ...],
+    ) -> None:
+        return None
+
+    monkeypatch.setattr(structure.ResolutionCache, "store", store_nothing)
+    without_cache = evidence_of(
+        scan_repository(FIXTURES / "wrapper_patterns" / "repo", load_pack("google_ads"))
+    )
+
+    assert with_cache
+    assert with_cache == without_cache
+
+
+def test_a_summary_is_never_reused_for_a_cycle_or_an_exhausted_walk() -> None:
+    cache = structure.ResolutionCache()
+    source_range = SourceRange(0, 1, 1, 1)
+    key = ("a.py", 0, "value", "owner")
+
+    for terminal in ("AMBIGUOUS_CYCLE", "RESOLUTION_BUDGET_EXHAUSTED(20000)"):
+        cache.store(key, (), (ValuePath("a.py", source_range, (), (), None, terminal, ()),))
+        assert cache.lookup(key, ()) is None
+
+    cache.store(key, (), (ValuePath("a.py", source_range, ("v22",), (), "v22", "LITERAL", ()),))
+    assert cache.lookup(key, ()) is not None
+
+
+def test_a_summary_whose_chain_repeats_its_own_entry_is_never_stored() -> None:
+    cache = structure.ResolutionCache()
+    source_range = SourceRange(0, 1, 1, 1)
+    key = ("a.py", 0, "value", "owner")
+    entry = ("carrier a.py:1",)
+    doubled = ValuePath(
+        "a.py",
+        source_range,
+        ("v22",),
+        (),
+        "v22",
+        "LITERAL",
+        (*entry, "left leg", *entry, "right leg"),
+    )
+
+    cache.store(key, entry, (doubled,))
+
+    assert cache.lookup(key, ("a different entry",)) is None
+
+
+def test_a_summary_whose_chain_does_not_extend_its_entry_is_never_stored() -> None:
+    cache = structure.ResolutionCache()
+    source_range = SourceRange(0, 1, 1, 1)
+    key = ("a.py", 0, "value", "owner")
+    unrelated = ValuePath(
+        "a.py", source_range, ("v22",), (), "v22", "LITERAL", ("some other chain",)
+    )
+
+    cache.store(key, ("carrier a.py:1",), (unrelated,))
+
+    assert cache.lookup(key, ("carrier a.py:1",)) is None
+
+
+def test_a_reused_summary_carries_the_calling_wrapper_chain_not_the_cached_one() -> None:
+    cache = structure.ResolutionCache()
+    source_range = SourceRange(0, 1, 1, 1)
+    key = ("a.py", 0, "value", "owner")
+    stored = ValuePath(
+        "a.py", source_range, ("v22",), (), "v22", "LITERAL", ("entry hop", "inner hop")
+    )
+
+    cache.store(key, ("entry hop",), (stored,))
+    reused = cache.lookup(key, ("a different entry hop",))
+
+    assert reused is not None
+    assert reused[0].hops == ("a different entry hop", "inner hop")
+
+
+def test_an_exhausted_resolution_budget_yields_unknown_and_never_a_resolved_value(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(structure, "RESOLUTION_BUDGET_STEPS", 1)
+    result = scan_repository(FIXTURES / "wrapper_patterns" / "repo", load_pack("google_ads"))
+
+    requests = [
+        record
+        for record in result.ledger.evidence
+        if record["claim_type"] == "request_text" and record["observer"] == "structure"
+    ]
+    statuses = {
+        candidate["status"]
+        for candidate in result.ledger.candidates
+        if any(record["id"] in candidate["evidence_ids"] for record in requests)
+    }
+
+    assert requests
+    assert all(
+        record["value"]["resolution"].startswith("RESOLUTION_BUDGET_EXHAUSTED")
+        for record in requests
+    )
+    assert not any(
+        record["value"]["resolution"] == "CONTRACT_VALIDATION_DEFERRED" for record in requests
+    )
+    assert "NOT_AFFECTED_WITH_EVIDENCE" not in statuses
+    assert result.ledger.counts()["unexplained"] == 0
+
+
+def test_a_wrapper_chain_deeper_than_five_hops_resolves_instead_of_capping(
+    wrappers: Any,
+) -> None:
+    requests = structural(wrappers, "request_text")
+
+    assert requests
+    assert not any(item["value"]["resolution"].startswith("MAX_DEPTH") for item in requests)
+    assert not any(item["value"]["resolution"].startswith("RESOLUTION_BUDGET") for item in requests)
+    chains = [" ".join(item["value"]["wrapper_chain"]) for item in requests]
+    assert any("depth_6" in chain for chain in chains)
+
+
 def test_wrapper_corpus_preserves_depth_configuration_and_boundary_unknowns(
     wrappers: Any,
 ) -> None:
@@ -134,7 +264,6 @@ def test_wrapper_corpus_preserves_depth_configuration_and_boundary_unknowns(
     versions = structural(wrappers, "call_version")
     configuration = structural(wrappers, "config_reference")
     boundaries = structural(wrappers, "external_boundary")
-    assert any(item["value"]["resolution"] == "MAX_DEPTH_5" for item in requests)
     assert {item["provider_subject"] for item in versions} == {None, "v24"}
     version_candidate = next(
         candidate

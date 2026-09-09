@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +26,16 @@ from hubbleops.graph.imports import (
 )
 
 name = "structure"
-MAX_CALL_DEPTH = 5
+RESOLUTION_BUDGET_STEPS = 20_000
+
+UNRESOLVED_TERMINAL_PREFIXES = (
+    "AMBIGUOUS",
+    "MISSING_ARGUMENT",
+    "RESOLUTION_BUDGET",
+    "UNRESOLVED",
+)
+
+PATH_DEPENDENT_TERMINALS = ("AMBIGUOUS_CYCLE", "RESOLUTION_BUDGET")
 SUPPORTED_LANGUAGES = ("javascript", "php", "python", "typescript")
 BOUNDARY_NAMES = frozenset(
     {
@@ -127,7 +136,9 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
 
 def _scan(closure: SourceClosure, ctx: ObserverContext, runner: AstGrep) -> list[dict[str, Any]]:
     inside = tuple(
-        entry for entry in closure.entries if entry.classification is Classification.INSIDE
+        entry
+        for entry in closure.entries
+        if entry.classification is Classification.INSIDE and not entry.carries_bulk_data()
     )
     active = {rule.language for rule in ctx.rules}
     records = [
@@ -157,9 +168,10 @@ def _scan(closure: SourceClosure, ctx: ObserverContext, runner: AstGrep) -> list
     }
     rule_paths = _rule_paths(ctx.rules)
     hits = scan_rules(closure.root, clean_paths, rule_paths, runner)
-    records.extend(_carrier_evidence(hits, graph, entries, ctx))
-    records.extend(_sink_evidence(hits, graph, entries, ctx))
-    records.extend(_boundary_evidence(graph, entries, ctx))
+    cache = ResolutionCache()
+    records.extend(_carrier_evidence(hits, graph, entries, ctx, cache))
+    records.extend(_sink_evidence(hits, graph, entries, ctx, cache))
+    records.extend(_boundary_evidence(graph, entries, ctx, cache))
     return sorted(_deduplicate(records), key=_evidence_sort)
 
 
@@ -168,6 +180,7 @@ def _carrier_evidence(
     graph: ImportGraph,
     entries: Mapping[str, ClosureEntry],
     ctx: ObserverContext,
+    cache: ResolutionCache,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for hit in hits:
@@ -182,31 +195,29 @@ def _carrier_evidence(
             continue
         owner = _owner_id(graph, hit.path, hit.range)
         values = list(
-            _resolve_capture(
+            _resolve_root(
                 graph,
                 hit.path,
                 capture,
                 owner,
-                0,
                 (f"carrier {hit.path}:{hit.range.start_line}",),
-                frozenset(),
+                cache,
             )
         )
         for atom in _contained_atoms(graph, hit.path, capture.range):
             if atom.kind != "identifier":
                 continue
             values.extend(
-                _resolve_capture(
+                _resolve_root(
                     graph,
                     hit.path,
                     Capture("CARRIER_HOLE", atom.text, atom.range),
                     owner,
-                    0,
                     (
                         f"carrier {hit.path}:{hit.range.start_line}",
                         f"carrier hole {atom.text}",
                     ),
-                    frozenset(),
+                    cache,
                 )
             )
         values = list(sorted(set(values)))
@@ -277,6 +288,7 @@ def _sink_evidence(
     graph: ImportGraph,
     entries: Mapping[str, ClosureEntry],
     ctx: ObserverContext,
+    cache: ResolutionCache,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for hit in hits:
@@ -289,14 +301,13 @@ def _sink_evidence(
         values: list[ValuePath] = []
         for index, argument in enumerate(call.arguments):
             values.extend(
-                _resolve_capture(
+                _resolve_root(
                     graph,
                     call.path,
                     argument,
                     call.definition_id,
-                    0,
                     (f"sink {sink.text} argument {index} at {call.path}:{call.range.start_line}",),
-                    frozenset(),
+                    cache,
                 )
             )
         records.extend(_request_records(values, entries, ctx))
@@ -309,20 +320,20 @@ def _boundary_evidence(
     graph: ImportGraph,
     entries: Mapping[str, ClosureEntry],
     ctx: ObserverContext,
+    cache: ResolutionCache,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for call in graph.calls:
         if call.callee.rsplit(".", 1)[-1] not in BOUNDARY_NAMES:
             continue
         for index, argument in enumerate(call.arguments):
-            values = _resolve_capture(
+            values = _resolve_root(
                 graph,
                 call.path,
                 argument,
                 call.definition_id,
-                0,
                 (f"boundary {call.callee} argument {index}",),
-                frozenset(),
+                cache,
             )
             carried = [
                 value
@@ -351,6 +362,99 @@ def _boundary_evidence(
     return records
 
 
+@dataclass(slots=True)
+class ResolutionBudget:
+    remaining: int
+
+    def spend(self) -> bool:
+        if self.remaining <= 0:
+            return False
+        self.remaining -= 1
+        return True
+
+
+@dataclass(slots=True)
+class ResolutionCache:
+    summaries: dict[tuple[str, int, str, str], tuple[ValuePath, ...]] = field(
+        default_factory=dict[tuple[str, int, str, str], tuple[ValuePath, ...]]
+    )
+    hits: int = 0
+
+    def lookup(
+        self, key: tuple[str, int, str, str], hops: tuple[str, ...]
+    ) -> tuple[ValuePath, ...] | None:
+        summary = self.summaries.get(key)
+        if summary is None:
+            return None
+        self.hits += 1
+        return _rebase(summary, hops)
+
+    def store(
+        self, key: tuple[str, int, str, str], hops: tuple[str, ...], values: tuple[ValuePath, ...]
+    ) -> None:
+        if any(value.terminal.startswith(PATH_DEPENDENT_TERMINALS) for value in values):
+            return
+        if any(value.hops[: len(hops)] != hops for value in values):
+            return
+        if hops and any(_contains(value.hops[len(hops) :], hops) for value in values):
+            return
+        self.summaries[key] = tuple(
+            ValuePath(
+                value.path,
+                value.range,
+                value.fragments,
+                value.holes,
+                value.literal,
+                value.terminal,
+                value.hops[len(hops) :],
+            )
+            for value in values
+        )
+
+
+def _contains(haystack: tuple[str, ...], needle: tuple[str, ...]) -> bool:
+    return any(
+        haystack[index : index + len(needle)] == needle
+        for index in range(len(haystack) - len(needle) + 1)
+    )
+
+
+def _rebase(summary: tuple[ValuePath, ...], hops: tuple[str, ...]) -> tuple[ValuePath, ...]:
+    return tuple(
+        ValuePath(
+            value.path,
+            value.range,
+            value.fragments,
+            value.holes,
+            value.literal,
+            value.terminal,
+            (*hops, *value.hops),
+        )
+        for value in summary
+    )
+
+
+def _resolve_root(
+    graph: ImportGraph,
+    path: str,
+    capture: Capture,
+    owner_id: str | None,
+    hops: tuple[str, ...],
+    cache: ResolutionCache,
+) -> tuple[ValuePath, ...]:
+    return _resolve_capture(
+        graph,
+        path,
+        capture,
+        owner_id,
+        0,
+        hops,
+        frozenset(),
+        ResolutionBudget(RESOLUTION_BUDGET_STEPS),
+        cache,
+    )
+
+
 def _resolve_capture(
     graph: ImportGraph,
     path: str,
@@ -359,24 +463,58 @@ def _resolve_capture(
     depth: int,
     hops: tuple[str, ...],
     seen: frozenset[tuple[str, int, str]],
+    budget: ResolutionBudget,
+    cache: ResolutionCache,
+) -> tuple[ValuePath, ...]:
+    key = (path, capture.range.start_byte, capture.text, owner_id or "")
+    if (path, capture.range.start_byte, capture.text) not in seen:
+        summarized = cache.lookup(key, hops)
+        if summarized is not None:
+            return summarized
+    values = _resolve_uncached(graph, path, capture, owner_id, depth, hops, seen, budget, cache)
+    cache.store(key, hops, values)
+    return values
+
+
+def _resolve_uncached(
+    graph: ImportGraph,
+    path: str,
+    capture: Capture,
+    owner_id: str | None,
+    depth: int,
+    hops: tuple[str, ...],
+    seen: frozenset[tuple[str, int, str]],
+    budget: ResolutionBudget,
+    cache: ResolutionCache,
 ) -> tuple[ValuePath, ...]:
     key = (path, capture.range.start_byte, capture.text)
     if key in seen:
         return (_unknown(path, capture.range, "AMBIGUOUS_CYCLE", hops),)
     current_seen = seen | {key}
-    if depth > MAX_CALL_DEPTH:
-        return (_unknown(path, capture.range, "MAX_DEPTH_5", hops),)
+    if not budget.spend():
+        return (
+            _unknown(
+                path,
+                capture.range,
+                f"RESOLUTION_BUDGET_EXHAUSTED({RESOLUTION_BUDGET_STEPS})",
+                hops,
+            ),
+        )
     concatenation = _exact_match(graph.concatenations, path, capture.range)
     if concatenation is not None:
         left = concatenation.capture("LEFT")
         right = concatenation.capture("RIGHT")
         if left is not None and right is not None:
-            left_values = _resolve_capture(graph, path, left, owner_id, depth, hops, current_seen)
-            right_values = _resolve_capture(graph, path, right, owner_id, depth, hops, current_seen)
+            left_values = _resolve_capture(
+                graph, path, left, owner_id, depth, hops, current_seen, budget, cache
+            )
+            right_values = _resolve_capture(
+                graph, path, right, owner_id, depth, hops, current_seen, budget, cache
+            )
             return tuple(
                 sorted(
                     {
-                        _combine(left_value, right_value, capture.range)
+                        _combine(left_value, right_value, capture.range, hops)
                         for left_value in left_values
                         for right_value in right_values
                     }
@@ -394,6 +532,8 @@ def _resolve_capture(
                 depth,
                 (*hops, f"format expression at {path}:{capture.range.start_line}"),
                 current_seen,
+                budget,
+                cache,
             )
     exact_string = _exact_atom(graph, path, capture.range, ("string", "template_string"))
     if exact_string is not None:
@@ -415,6 +555,8 @@ def _resolve_capture(
                     f"assignment {assignment.target.text} at {path}:{assignment.range.start_line}",
                 ),
                 current_seen,
+                budget,
+                cache,
             )
         imported = _import_assignment(graph, path, capture.text)
         if imported is not None:
@@ -426,6 +568,8 @@ def _resolve_capture(
                 depth,
                 (*hops, f"import {capture.text} from {imported.path}"),
                 current_seen,
+                budget,
+                cache,
             )
         owner = graph.definition(owner_id)
         if owner is not None and capture.text in owner.parameters:
@@ -441,8 +585,6 @@ def _resolve_capture(
                         contextual_hops,
                     ),
                 )
-            if depth == MAX_CALL_DEPTH:
-                return (_unknown(path, capture.range, "MAX_DEPTH_5", contextual_hops),)
             values: list[ValuePath] = []
             for caller in callers:
                 argument_position = position
@@ -471,6 +613,8 @@ def _resolve_capture(
                             f"{caller.path}:{caller.range.start_line}",
                         ),
                         current_seen,
+                        budget,
+                        cache,
                     )
                 )
             return tuple(sorted(set(values)))
@@ -503,6 +647,8 @@ def _resolve_capture(
                     depth,
                     hops,
                     current_seen,
+                    budget,
+                    cache,
                 )
             )
     return tuple(sorted(set(values))) or (
@@ -518,14 +664,13 @@ def _request_records(
     records: list[dict[str, Any]] = []
     for value in values:
         language = _request_language(value, ctx.surface)
-        unresolved_query = value.terminal.startswith(
-            ("AMBIGUOUS", "MAX_DEPTH", "MISSING_ARGUMENT", "UNRESOLVED")
-        ) and any(
+        unresolved_query = value.terminal.startswith(UNRESOLVED_TERMINAL_PREFIXES) and any(
             f" {name} " in f" {hop.lower()} "
             for hop in value.hops
             for name in ("query", "request", "payload")
         )
-        if language is None and not unresolved_query:
+        exhausted = value.terminal.startswith("RESOLUTION_BUDGET")
+        if language is None and not unresolved_query and not exhausted:
             continue
         subject = (
             language
@@ -535,7 +680,9 @@ def _request_records(
             else "request"
         )
         resolution = (
-            "UNKNOWN_QUERY_HOLE"
+            value.terminal
+            if exhausted
+            else "UNKNOWN_QUERY_HOLE"
             if value.holes
             else value.terminal
             if unresolved_query
@@ -869,7 +1016,9 @@ def _unknown(
     return ValuePath(path, source_range, (), (), None, terminal, hops)
 
 
-def _combine(left: ValuePath, right: ValuePath, source_range: SourceRange) -> ValuePath:
+def _combine(
+    left: ValuePath, right: ValuePath, source_range: SourceRange, shared: tuple[str, ...]
+) -> ValuePath:
     literal = (
         f"{left.literal}{right.literal}"
         if left.literal is not None and right.literal is not None
@@ -890,7 +1039,7 @@ def _combine(left: ValuePath, right: ValuePath, source_range: SourceRange) -> Va
         holes,
         literal,
         terminal,
-        (*left.hops, *right.hops),
+        (*left.hops, *right.hops[len(shared) :]),
     )
 
 
@@ -908,7 +1057,7 @@ def _evidence_sort(record: Mapping[str, Any]) -> tuple[str, int, str, str]:
 
 
 __all__ = [
-    "MAX_CALL_DEPTH",
+    "RESOLUTION_BUDGET_STEPS",
     "SUPPORTED_LANGUAGES",
     "StructuralCoverage",
     "coverage",
