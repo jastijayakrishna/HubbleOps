@@ -501,6 +501,8 @@ that exists but decides nothing.
 
 ```python
 failure_class: str
+
+
 def check(self, subject: FalsifierInput) -> FalsifierOutcome: ...
 ```
 
@@ -531,5 +533,147 @@ is a declared approval boundary.
 **Decision.** ACCEPTED by the repository owner on 2026-09-08, as the shape the frozen protocol
 deferred to this phase. Enforced by `tests/unit/test_phase5_verdict.py::
 test_every_flag_reaches_the_verdict`, which fails if `falsifiers_pass` stops changing the verdict.
+
+---
+
+## P-012 — Bind every verification input and oracle context into ProofScope
+
+| | |
+|---|---|
+| **Raised** | 2026-09-09, Phase 5 gate audit |
+| **Touches** | `hubbleops/core/schemas/proof_scope.json` and the frozen `ContractOracle` sub-protocol |
+| **Status** | ACCEPTED |
+
+**What forced this.** `app/verification.py` derives the verification ProofScope from the candidate
+scan only. The selected base SHA, source and target versions, normalized obligations, human
+decisions, base and candidate captures, and live oracle authority context do not enter the proof
+key. Changing any one of those inputs can change the verdict while leaving `proof_scope_hash`
+unchanged. In particular, a stale or substituted capture can change the dynamic differential,
+migration audit, falsifiers and oracle results under the same scope, and choosing a different base
+can change the diff, frozen tests and blast radius. This contradicts Axiom 1: anything outside the
+hash is outside the proof.
+
+**Proposed change.** Add a versioned verification-input manifest whose canonical content id binds
+the resolved base and candidate SHAs, selected version pair, normalized obligations and decisions,
+base and candidate capture bytes after schema validation, and the identity of the frozen baseline
+suite. Add a non-secret `context_hash` to `ContractOracle` that binds the validation implementation,
+transport mode and authority context needed to make validation results reproducible without hashing
+credentials. Bind both hashes into ProofScope. Either add explicit
+`verification_inputs_hash` and `oracle_context_hash` fields to the frozen schema, or formally
+approve a documented composition into the existing `build_config_hash`; do not overload that field
+without recording the semantic decision.
+
+The verifier must reject an obligation, decision, capture or oracle result whose declared scope does
+not match the recomputed verification-input manifest. Capture import needs a manifest binding the
+event artifact to its originating repository SHA and execution identity; a bare JSONL path cannot
+be promoted to source-bound ledger evidence. Receipt reuse must compare the complete recomputed
+scope before presenting stored results.
+
+**Blast radius.** ProofScope hashes, verification run ids and all Phase 5 Receipts change. The
+ProofScope schema and fixtures change if explicit fields are selected. `ContractOracle`, both packs,
+the Phase 4 capture manifest, verification CLI input loading, receipt reuse, and adversarial tests
+must move together. Existing Receipts remain historical artifacts but cannot be reused under the new
+scope semantics.
+
+**Alternatives rejected, and why.** Bind only file paths — contents can change in place. Bind only
+capture bytes — base selection, obligations, decisions and oracle context still move verdicts. Hash
+credentials — leaks stable secret-derived identifiers and still fails to describe the provider
+account or transport implementation cleanly. Silently place these values in `build_config_hash` —
+mechanically safer, but it redefines a frozen proof field without an approved contract. Treat the
+Receipt body hash as the proof key — reverses the architecture: the result would define its own
+input identity.
+
+**Decision.** ACCEPTED by the repository owner (Jaya Krishna J) on 2026-09-09, taking the explicit
+form: `verification_inputs_hash` and `oracle_context_hash` become named fields on the frozen
+ProofScope schema rather than being composed into `build_config_hash`. A proof key whose fields name
+what they cover can be audited by a reader; one field that silently means two things cannot. Both
+are null for a scan-only scope, which the schema already defines as "not yet bound", never "bound to
+nothing".
+
+---
+
+## P-013 — Group and rank UNKNOWNs in the frozen Exposure Map
+
+| | |
+|---|---|
+| **Raised** | 2026-09-09, pre-pilot readiness review |
+| **Touches** | frozen §4 Exposure Map output format |
+| **Status** | ACCEPTED |
+
+**What forced this.** The Phase 3 real-repo loop produced, on `mcp-google-ads`, 422 candidates,
+9 AFFECTED and 413 preserved UNKNOWN; on `google-ads-api`, 2,471 candidates, 3 AFFECTED and 402
+preserved UNKNOWN. Every one of those UNKNOWNs is correct under L2 and carries a precise closing
+instruction, and `UNEXPLAINED` is 0 in both runs. The engine is right; the rendering is not. An
+UNKNOWN section that lists 413 undifferentiated entries beside 9 AFFECTED ones reads as "this tool
+cannot decide anything" rather than "this tool refuses to guess". The Law that makes HubbleOps
+trustworthy currently presents as the thing that makes it useless.
+
+**Proposed change.** Within the frozen §4 UNKNOWN section, group entries by closing-instruction
+class and rank the groups by proximity to a request sink, printing the highest-signal group expanded
+and the remainder collapsed with a count and an `[expand]` marker — the idiom §4 already uses for
+`NOT AFFECTED (with evidence) 39 [expand]`. No candidate's status changes. No UNKNOWN is closed,
+merged or suppressed. `UNEXPLAINED` remains 0, and every entry retains its individual closing
+instruction in the machine-readable export whether or not the terminal rendering collapsed it. The
+grouping key is derived from the closing instruction the candidate already carries, so it is
+provider-neutral by construction and deterministic for a given ProofScope.
+
+**Blast radius.** `app/exposure.py` rendering and its golden-output tests; §4 of
+`docs/ARCHITECTURE.md`; every fixture asserting exact map bytes. The ledger, the schemas, the
+Candidate status vocabulary and the ProofScope are untouched. Determinism tests must still pass, and
+a new test asserts the grouped counts sum to the ungrouped UNKNOWN count, so the rendering can never
+lose a candidate.
+
+**Alternatives rejected, and why.** Close low-signal UNKNOWNs automatically — forbidden by L3, and
+precisely the failure the Laws exist to prevent. Suppress documentation and test-data candidates —
+an incomplete exclusion list then hides real usage, the same reasoning that rejected auto-dismissing
+non-provider hosts in FA-015. Leave the rendering alone and explain the number in conversation — a
+frozen customer-facing format that needs a verbal apology is a defective format. Add a separate
+summary command — two renderings of one truth is FA-017's defect shape with a delay. Group by
+observer — accurate and cheaper, but it tells the reader where a candidate came from rather than
+what to do about it, which is the question the section exists to answer.
+
+**Decision.** ACCEPTED by the repository owner (Jaya Krishna J) on 2026-09-09, grouped by closing
+instruction. The measurement of an ordinary application repository (plan Q6) still stands, because
+it decides how much of the collapsed tail is real.
+
+---
+
+## P-014 — `Transform` gains its shape
+
+| | |
+|---|---|
+| **Raised** | 2026-09-09, Tier 1 planning |
+| **Touches** | frozen §3.1 `ProviderPack` contract (`Transform` sub-protocol) |
+| **Status** | ACCEPTED |
+
+**What forced this.** `packs/_protocol.py` declares `Transform` as a name with no shape, and
+`dev/context.md` records the Phase 5 decision that "`Transform` and `ToolSpec` carry the identical
+deferral and are deliberately untouched; Phase 6 raises its own proposal with the repair loop's
+evidence in hand." This is that proposal. `repair/deterministic.py` is a generic runner, so it can
+only reach a transform through this protocol; without a shape, the Google Ads transforms would have
+to be imported by `repair/` directly, which is an L5 violation.
+
+**Proposed change.** `Transform` gains `name: str`, `failure_class: str`, and the three methods the
+Phase 6 prompt already names: `precondition(TransformInput) -> bool`, `apply(TransformInput) ->
+TransformOutput`, `postcondition(TransformOutput) -> bool`. `TransformInput` and `TransformOutput`
+live in `core/repair.py`, following `core/verification.py` under P-011, so `repair/` never imports
+`packs/` and `app/` remains the only importer of packs. A transform whose precondition fails does
+not apply and does not fail the run; the obligation stays open for a human. A transform whose
+postcondition fails after applying reverts and names its failure class. `ToolSpec` stays deferred:
+the `PROVIDER_TOOL` and `AGENT` repair classes are not implemented in this tier and route to
+`HUMAN`, which the frozen `obligation.json` enum already permits.
+
+**Blast radius.** `packs/_protocol.py`, both packs' `repair_transforms()`, the new `core/repair.py`,
+`repair/deterministic.py`, and the protocol conformance tests. No verdict conjunct changes. The
+repair worker remains untrusted and its change manifest remains a HINT.
+
+**Alternatives rejected, and why.** Leave `Transform` a bare name and let `repair/` import the pack's
+transforms directly — a direct L5 violation and exactly what `test_no_provider_leak` exists to catch.
+Give `Transform` only `apply()` — a transform with no precondition applies where it does not belong,
+and one with no postcondition cannot tell "repaired" from "corrupted". Defer until the repair agent
+exists — the agent is cut from this tier, so the deferral would never end.
+
+**Decision.** ACCEPTED by the repository owner (Jaya Krishna J) on 2026-09-09, as the shape the
+frozen protocol deferred to Phase 6, mirroring P-011's resolution for `Falsifier`.
 
 ---
