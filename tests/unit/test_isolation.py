@@ -97,6 +97,15 @@ def test_a_repair_side_mount_source_is_refused_not_filtered(tmp_path: Path, mark
     assert marker in str(error.value)
 
 
+@pytest.mark.parametrize("name", ["change-manifest.json", "repair-output", "agent_logs.jsonl"])
+def test_a_repair_marker_hidden_in_a_filename_is_still_refused(tmp_path: Path, name: str) -> None:
+    base, _, output = trees(tmp_path)
+    tainted = tmp_path / name / "candidate"
+    tainted.mkdir(parents=True)
+    with pytest.raises(VerifierIsolationViolated):
+        VERIFIER_IMAGE.mounts(base, tainted, output)
+
+
 def test_the_fingerprint_moves_when_the_policy_moves() -> None:
     baseline = VERIFIER_IMAGE.fingerprint()
     assert baseline != VerifierImage(network="hops-verify").fingerprint()

@@ -55,6 +55,7 @@ class Evaluation:
 class Inputs:
     base_ledger: Ledger
     candidate_ledger: Ledger
+    base_graph: ImportGraph
     candidate_graph: ImportGraph
     delta: Delta
     changes: ChangeSet
@@ -64,6 +65,7 @@ class Inputs:
     frozen_tests: SuiteRun
     candidate_tests: SuiteRun
     candidate_root: str
+    candidate_paths: tuple[str, ...] = ()
     base_captured: tuple[Mapping[str, Any], ...] = ()
     candidate_captured: tuple[Mapping[str, Any], ...] = ()
     decisions: tuple[Mapping[str, Any], ...] = ()
@@ -73,7 +75,14 @@ class Inputs:
 
 
 def evaluate(inputs: Inputs) -> Evaluation:
-    audit_result = audit.run(inputs.candidate_ledger, inputs.changes, inputs.obligations)
+    audit_result = audit.run(
+        inputs.candidate_ledger,
+        inputs.changes,
+        inputs.obligations,
+        Path(inputs.candidate_root),
+        inputs.candidate_paths,
+        inputs.candidate_captured,
+    )
     requests, unreachable = oracle.requests_from(inputs.candidate_ledger, inputs.candidate_captured)
     oracle_result = oracle.review(
         inputs.oracle,
@@ -90,7 +99,11 @@ def evaluate(inputs: Inputs) -> Evaluation:
         inputs.candidate_graph,
     )
     blast = radius.blast(
-        inputs.delta, inputs.candidate_graph, inputs.frozen_tests, inputs.uncoverable
+        inputs.delta,
+        inputs.candidate_graph,
+        inputs.frozen_tests,
+        inputs.uncoverable,
+        inputs.base_graph,
     )
     differential = _differential(inputs)
     consumers = behavior.consumers(
@@ -149,9 +162,29 @@ def evaluate(inputs: Inputs) -> Evaluation:
 
 def _differential(inputs: Inputs) -> behavior.ShapeDifferential:
     if inputs.captures_supplied:
+        if not inputs.base_captured or not inputs.candidate_captured:
+            return behavior.differential(
+                (),
+                (),
+                inputs.obligations,
+                behavior.CAPTURED_SOURCE,
+                resolved=False,
+                reason="both base and candidate captures are required for a dynamic differential",
+            )
+        base_shapes = behavior.captured_shapes(inputs.base_captured)
+        candidate_shapes = behavior.captured_shapes(inputs.candidate_captured)
+        if not base_shapes or not candidate_shapes:
+            return behavior.differential(
+                (),
+                (),
+                inputs.obligations,
+                behavior.CAPTURED_SOURCE,
+                resolved=False,
+                reason="a supplied capture carries no reconstructable request body",
+            )
         return behavior.differential(
-            behavior.shapes_of(inputs.base_ledger, inputs.base_captured),
-            behavior.shapes_of(inputs.candidate_ledger, inputs.candidate_captured),
+            base_shapes,
+            candidate_shapes,
             inputs.obligations,
             behavior.CAPTURED_SOURCE,
         )

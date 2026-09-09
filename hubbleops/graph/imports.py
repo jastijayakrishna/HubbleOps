@@ -29,12 +29,14 @@ MAX_OUTPUT_CHARS = 512 * 1024 * 1024
 MAX_MATCHES_PER_INVOCATION = 2_000_000
 LANGUAGE_EXTENSIONS = {
     ".cs": "csharp",
+    ".cjs": "javascript",
     ".go": "go",
     ".java": "java",
     ".js": "javascript",
     ".jsx": "javascript",
     ".json": "json",
     ".md": "markdown",
+    ".mjs": "javascript",
     ".php": "php",
     ".py": "python",
     ".pyi": "python",

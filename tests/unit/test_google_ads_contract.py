@@ -1,9 +1,18 @@
+from __future__ import annotations
+
+import json
+import urllib.error
+import urllib.request
 from collections.abc import Mapping
+from email.message import Message
+from io import BytesIO
 from typing import Any, cast
 
 import pytest
 
+from hubbleops.core.errors import PackDataError
 from hubbleops.packs.google_ads.contract import GoogleAdsContract
+from hubbleops.packs.google_ads.transport import GoogleAdsCredentials, GoogleAdsRestTransport
 
 
 class RecordingTransport:
@@ -73,6 +82,15 @@ def test_response_must_explicitly_accept(response: Mapping[str, Any], code: str)
     )
 
 
+def test_provider_rejection_text_is_preserved_verbatim() -> None:
+    reason = '{"error":{"message":"field is not selectable"}}'
+    result = GoogleAdsContract(
+        transport=RecordingTransport({"valid": False, "provider_error": reason})
+    ).validate({"service": "GoogleAdsService", "method": "Mutate", "request": {}}, "v25")
+    assert result.code == "INVALID"
+    assert result.reason == reason
+
+
 @pytest.mark.parametrize("method", ["MutateAnything", "Get", "Delete", "Searchstream"])
 def test_unapproved_operation_cannot_reach_transport(method: str) -> None:
     transport = RecordingTransport()
@@ -123,3 +141,154 @@ def test_catalog_and_diff_caches_are_isolated_from_callers() -> None:
     fresh = {fact.subject: fact for fact in contract.diff("v19", "v20").facts}[mutable.subject]
     assert fresh.before is not None
     assert "caller_mutation" not in fresh.before
+
+
+class HttpResponse:
+    def __init__(self, payload: bytes, request_id: str = "request-1") -> None:
+        self.payload = payload
+        self.headers = Message()
+        self.headers["request-id"] = request_id
+
+    def read(self, maximum: int) -> bytes:
+        return self.payload[:maximum]
+
+    def __enter__(self) -> HttpResponse:
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        return None
+
+
+def credentials() -> GoogleAdsCredentials:
+    return GoogleAdsCredentials(
+        client_id="client",
+        client_secret="secret",
+        refresh_token="refresh",
+        developer_token="developer",
+        customer_id="1234567890",
+        login_customer_id="0987654321",
+    )
+
+
+def test_live_transport_is_available_only_with_a_complete_environment() -> None:
+    assert GoogleAdsRestTransport.from_environment({}).available is False
+    configured = GoogleAdsRestTransport.from_environment(
+        {
+            "GOOGLE_ADS_CLIENT_ID": "client",
+            "GOOGLE_ADS_CLIENT_SECRET": "secret",
+            "GOOGLE_ADS_REFRESH_TOKEN": "refresh",
+            "GOOGLE_ADS_DEVELOPER_TOKEN": "developer",
+            "GOOGLE_ADS_CUSTOMER_ID": "123-456-7890",
+        }
+    )
+    assert configured.available is True
+    assert configured.credentials is not None
+    assert configured.credentials.customer_id == "1234567890"
+
+
+def test_live_transport_issues_only_validate_only_requests(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[urllib.request.Request] = []
+
+    def open_request(request: urllib.request.Request, timeout: int) -> HttpResponse:
+        calls.append(request)
+        if request.full_url.endswith("/oauth2/v3/token"):
+            return HttpResponse(b'{"access_token":"access"}')
+        return HttpResponse(b"{}")
+
+    monkeypatch.setattr(urllib.request, "urlopen", open_request)
+    transport = GoogleAdsRestTransport(credentials())
+    result = transport.validate(
+        service="GoogleAdsService",
+        method="Search",
+        version="v25",
+        request={"query": "SELECT campaign.id FROM campaign", "validate_only": False},
+    )
+    assert result["valid"] is True
+    assert len(calls) == 2
+    api_request = calls[1]
+    assert api_request.full_url.endswith("/v25/customers/1234567890/googleAds:search")
+    assert isinstance(api_request.data, bytes)
+    assert json.loads(api_request.data) == {
+        "query": "SELECT campaign.id FROM campaign",
+        "validateOnly": True,
+    }
+    assert api_request.get_header("Developer-token") == "developer"
+    assert api_request.get_header("Login-customer-id") == "0987654321"
+
+
+def test_live_transport_returns_the_provider_error_body_verbatim(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    provider_error = b'{"error":{"message":"invalid query"}}'
+    calls = 0
+
+    def open_request(request: urllib.request.Request, timeout: int) -> HttpResponse:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return HttpResponse(b'{"access_token":"access"}')
+        headers = Message()
+        headers["request-id"] = "rejected-1"
+        raise urllib.error.HTTPError(
+            request.full_url,
+            400,
+            "bad request",
+            headers,
+            BytesIO(provider_error),
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", open_request)
+    result = GoogleAdsRestTransport(credentials()).validate(
+        service="GoogleAdsService",
+        method="Mutate",
+        version="v25",
+        request={"operations": []},
+    )
+    assert result["valid"] is False
+    assert result["provider_error"] == provider_error.decode()
+
+
+def test_live_transport_treats_non_validation_http_errors_as_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+
+    def open_request(request: urllib.request.Request, timeout: int) -> HttpResponse:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return HttpResponse(b'{"access_token":"access"}')
+        raise urllib.error.HTTPError(
+            request.full_url,
+            503,
+            "unavailable",
+            Message(),
+            BytesIO(b'{"error":{"message":"retry"}}'),
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", open_request)
+    result = GoogleAdsContract(transport=GoogleAdsRestTransport(credentials())).validate(
+        {
+            "service": "GoogleAdsService",
+            "method": "Mutate",
+            "request": {"operations": []},
+        },
+        "v25",
+    )
+    assert result.code == "ORACLE_UNAVAILABLE"
+    assert result.reason == "Google Ads validation unavailable with HTTP 503"
+
+
+def test_invalid_customer_ids_are_refused_before_any_request() -> None:
+    with pytest.raises(PackDataError, match="only digits and hyphens"):
+        GoogleAdsCredentials.from_environment(
+            {
+                "GOOGLE_ADS_CLIENT_ID": "client",
+                "GOOGLE_ADS_CLIENT_SECRET": "secret",
+                "GOOGLE_ADS_REFRESH_TOKEN": "refresh",
+                "GOOGLE_ADS_DEVELOPER_TOKEN": "developer",
+                "GOOGLE_ADS_CUSTOMER_ID": "../../other-customer",
+            }
+        )

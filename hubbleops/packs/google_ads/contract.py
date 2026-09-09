@@ -198,8 +198,11 @@ class GoogleAdsContract:
                 code="VALID", reason="provider validation accepted", response=response
             )
         if valid is False:
+            provider_error = as_text(response.get("provider_error"))
             return ValidationResult(
-                code="INVALID", reason="provider validation rejected", response=response
+                code="INVALID",
+                reason=provider_error or "provider validation rejected",
+                response=response,
             )
         return ValidationResult(
             code="ORACLE_UNAVAILABLE",

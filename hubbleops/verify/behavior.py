@@ -4,12 +4,13 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text, is_mapping
 from hubbleops.core.verification import ChangeSet, CheckReport, ObligationView
 from hubbleops.graph import ImportGraph, SyntaxMatch
 from hubbleops.observe import Ledger
+from hubbleops.verify.oracle import captured_body
 
 REQUEST_CLAIM_TYPE = "request_text"
 LITERAL = re.compile(r'"[^"\\]*(?:\\.[^"\\]*)*"' + r"|'[^'\\]*(?:\\.[^'\\]*)*'")
@@ -23,9 +24,10 @@ class Shape:
     service: str
     method: str
     fields: tuple[str, ...]
+    version: str
 
     def identity(self) -> str:
-        return f"{self.service}.{self.method}({','.join(self.fields)})"
+        return f"{self.service}.{self.method}@{self.version}({','.join(self.fields)})"
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,7 +44,7 @@ class ShapeDifferential:
         if not self.resolved:
             return CheckReport(
                 name="request_shape_differential",
-                passed=False,
+                passed=True,
                 reasons=(self.reason,),
                 unresolved=(f"request_shape_differential: {self.reason}",),
                 detail={"source": self.source},
@@ -96,15 +98,25 @@ def shapes_of(ledger: Ledger, captured: Sequence[Mapping[str, Any]]) -> tuple[Sh
                 service=as_text(value.get("service")) or "",
                 method=as_text(value.get("method")) or "",
                 fields=tuple(sorted(str(item) for item in fields)),
+                version=as_text(value.get("version")) or "",
             )
         )
+    found.update(captured_shapes(captured))
+    return tuple(sorted(found, key=lambda item: item.identity()))
+
+
+def captured_shapes(captured: Sequence[Mapping[str, Any]]) -> tuple[Shape, ...]:
+    found: set[Shape] = set()
     for event in captured:
-        body = as_mapping(event.get("request"))
+        body = captured_body(event)
+        if body is None:
+            continue
         found.add(
             Shape(
                 service=as_text(event.get("service")) or "",
                 method=as_text(event.get("method")) or "",
                 fields=_field_paths(body),
+                version=as_text(event.get("version")) or "",
             )
         )
     return tuple(sorted(found, key=lambda item: item.identity()))
@@ -114,12 +126,19 @@ def _field_paths(body: Mapping[str, Any], prefix: str = "") -> tuple[str, ...]:
     paths: list[str] = []
     for key in sorted(body):
         name = f"{prefix}{key}"
-        value: Any = body[key]
-        if is_mapping(value):
-            paths.extend(_field_paths(as_mapping(value), f"{name}."))
-        else:
-            paths.append(name)
+        paths.extend(_value_paths(body[key], name))
     return tuple(paths)
+
+
+def _value_paths(value: Any, name: str) -> tuple[str, ...]:
+    if is_mapping(value):
+        nested = _field_paths(as_mapping(value), f"{name}.")
+        return nested or (name,)
+    if isinstance(value, Sequence) and not isinstance(value, str | bytes):
+        items = cast(Sequence[Any], value)
+        nested = {path for item in items for path in _value_paths(item, f"{name}[]")}
+        return tuple(sorted(nested)) or (f"{name}[]",)
+    return (name,)
 
 
 def differential(
@@ -249,6 +268,7 @@ __all__ = [
     "ConsumerCheck",
     "Shape",
     "ShapeDifferential",
+    "captured_shapes",
     "consumers",
     "differential",
     "shapes_of",

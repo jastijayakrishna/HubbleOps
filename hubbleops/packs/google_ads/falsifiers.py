@@ -157,6 +157,12 @@ class SubjectResidue:
                 if re.search(rf"\b{re.escape(name)}\b", text):
                     suffix = f" (use {replacement})" if replacement else ""
                     offending.append(f"{_site(record)} names {name}{suffix}")
+        for index, event in enumerate(subject.captured_requests, start=1):
+            text = str(event.get("request_text") or "")
+            for name, replacement in sorted(watched.items()):
+                if re.search(rf"\b{re.escape(name)}\b", text):
+                    suffix = f" (use {replacement})" if replacement else ""
+                    offending.append(f"captured event {index} names {name}{suffix}")
         if offending:
             return FalsifierOutcome(
                 result="FAIL",
@@ -181,6 +187,12 @@ class ProductionResidue:
             if version and version != target:
                 offending.append(
                     f"{value.get('service')}.{value.get('method')} observed on {version}"
+                )
+        for event in subject.captured_requests:
+            version = as_text(event.get("version"))
+            if version and version != target:
+                offending.append(
+                    f"{event.get('service')}.{event.get('method')} observed on {version}"
                 )
         if offending:
             return FalsifierOutcome(

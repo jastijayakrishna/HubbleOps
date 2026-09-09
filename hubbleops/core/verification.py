@@ -218,7 +218,9 @@ class SuiteRun:
     tests: tuple[SuiteCase, ...] = ()
 
     def all_passed(self) -> bool:
-        return self.executed and self.failed == 0 and self.outcome == "COMPLETED"
+        return (
+            self.executed and self.passed > 0 and self.failed == 0 and self.outcome == "COMPLETED"
+        )
 
     def covered_files(self) -> frozenset[str]:
         return frozenset(
@@ -294,6 +296,7 @@ def request_text_of(record: Mapping[str, Any]) -> str:
     parts = [
         as_text(value.get("text")) or "",
         as_text(value.get("query")) or "",
+        as_text(value.get("request_text")) or "",
         as_text(value.get("line")) or "",
         *(str(item) for item in as_sequence(skeleton.get("fragments"))),
         *(str(item) for item in as_sequence(value.get("matches"))),

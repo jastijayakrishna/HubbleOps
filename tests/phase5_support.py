@@ -128,6 +128,8 @@ def verify(
     *,
     obligations_path: Path | None = None,
     decisions_path: Path | None = None,
+    base_capture_path: Path | None = None,
+    candidate_capture_path: Path | None = None,
     from_version: str = "v1",
     to_version: str = "v2",
 ) -> verification.VerificationRun:
@@ -141,6 +143,8 @@ def verify(
             to_version=to_version,
             obligations_path=obligations_path,
             decisions_path=decisions_path,
+            base_capture_path=base_capture_path,
+            candidate_capture_path=candidate_capture_path,
         )
     )
 

@@ -21,9 +21,27 @@ class Delta:
     candidate_sha: str
     hunks: tuple[Hunk, ...]
     paths: tuple[str, ...]
+    binary_paths: tuple[str, ...] = ()
 
     def hunks_in(self, path: str) -> tuple[Hunk, ...]:
         return tuple(hunk for hunk in self.hunks if hunk.path == path)
+
+    def all_hunks(self) -> tuple[Hunk, ...]:
+        observed = {hunk.path for hunk in self.hunks}
+        binary = tuple(
+            Hunk(
+                path=path,
+                old_start=0,
+                old_lines=0,
+                new_start=0,
+                new_lines=0,
+                added=("<binary content>",),
+                removed=("<binary content>",),
+            )
+            for path in self.binary_paths
+            if path not in observed
+        )
+        return (*self.hunks, *binary)
 
 
 def resolve(repository: Path, revision: str, git_executable: str = "git") -> str:
@@ -59,7 +77,8 @@ def read(
     extra = sorted(observed - declared)
     if extra:
         raise ToolingFailed("git", f"unified diff names paths --numstat did not: {extra}")
-    textual = [path for path in missing if path not in _binary_paths(numstat)]
+    binary = _binary_paths(numstat)
+    textual = [path for path in missing if path not in binary]
     if textual:
         raise ToolingFailed(
             "git",
@@ -71,6 +90,7 @@ def read(
         candidate_sha=candidate,
         hunks=hunks,
         paths=tuple(sorted(declared | observed)),
+        binary_paths=tuple(sorted(binary)),
     )
 
 

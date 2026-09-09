@@ -21,15 +21,15 @@ class Judgement:
 
 
 def decide(result: VerificationResult) -> Judgement:
-    failed = tuple(sorted(name for name, value in result.flags().items() if not value))
+    false_flags = tuple(sorted(name for name, value in result.flags().items() if not value))
     blast = tuple(sorted(set(result.unknown_blast)))
     unresolved = tuple(sorted(set(result.unresolved)))
     reasons = tuple(result.reasons)
 
-    if failed:
+    if false_flags:
         return Judgement(
             verdict="FAILED",
-            reasons=tuple(sorted({*reasons, *(f"{name} is FAIL" for name in failed)})),
+            reasons=tuple(sorted({*reasons, *(f"{name} is FAIL" for name in false_flags)})),
             unknown_blast=blast,
         )
     if not result.oracle_available:

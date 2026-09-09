@@ -134,7 +134,8 @@ def unsupported_modules(modules: Iterable[str], languages: Mapping[str, str]) ->
         sorted(
             module
             for module in modules
-            if languages.get(module, "unknown") not in SUPPORTED_LANGUAGES
+            if languages.get(module, "unknown") != "unknown"
+            and languages.get(module, "unknown") not in SUPPORTED_LANGUAGES
         )
     )
 

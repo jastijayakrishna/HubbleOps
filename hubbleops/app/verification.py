@@ -15,7 +15,14 @@ from hubbleops.core.canonical import content_id
 from hubbleops.core.errors import HubbleOpsError, PackDataError
 from hubbleops.core.observer import StructuralRule
 from hubbleops.core.proof_scope import make_proof_scope, proof_scope_hash, run_id_for
-from hubbleops.core.records import as_mapping, as_sequence, parse_json
+from hubbleops.core.records import (
+    MAX_JSON_BYTES,
+    as_mapping,
+    as_sequence,
+    is_list,
+    is_mapping,
+    parse_json,
+)
 from hubbleops.core.schema import validate
 from hubbleops.core.verification import (
     ChangeSet,
@@ -27,9 +34,14 @@ from hubbleops.core.verification import (
 from hubbleops.graph.imports import AstGrep, ImportGraph, language_for
 from hubbleops.graph.imports import build as build_graph
 from hubbleops.observe import structure
+from hubbleops.observe.dynamic import events_from_jsonl
 from hubbleops.packs._protocol import ContractOracle
 from hubbleops.sandbox import DetachedWorktree
-from hubbleops.sandbox.verifier_image import VERIFIER_IMAGE, VerifierIsolationViolated
+from hubbleops.sandbox.verifier_image import (
+    VERIFIER_IMAGE,
+    VerifierIsolationViolated,
+    forbidden_source_marker,
+)
 from hubbleops.verify import authority, gitdiff, suites, unsupported_modules
 
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -115,17 +127,33 @@ def execute(request: VerificationRequest) -> VerificationRun:
             frozen = suites.run_frozen(plan, _python())
             candidate_tests = suites.run_candidate(candidate, root / "candidate-tests", _python())
 
+            base_graph = _graph(base_scan, request.pack)
             graph = _graph(candidate_scan, request.pack)
             reachable = {entry.path for entry in candidate_scan.closure.entries}
-            uncoverable = unsupported_modules(reachable, suites.languages_of(sorted(reachable)))
+            languages = suites.languages_of(sorted(reachable))
+            test_roots = suites.suite_paths(candidate)
+            candidate_paths = tuple(
+                sorted(
+                    entry.path
+                    for entry in candidate_scan.closure.entries
+                    if entry.classification is Classification.INSIDE
+                    and languages[entry.path] != "unknown"
+                    and not any(
+                        entry.path == root or entry.path.startswith(f"{root}/")
+                        for root in test_roots
+                    )
+                )
+            )
+            uncoverable = unsupported_modules(reachable, languages)
 
-            oracle = InjectedOracle(request.pack.contract)
+            oracle = InjectedOracle(request.pack.verification_contract())
             base_capture = read_capture(request.base_capture_path)
             candidate_capture = read_capture(request.candidate_capture_path)
             evaluation = authority.evaluate(
                 authority.Inputs(
                     base_ledger=base_scan.ledger,
                     candidate_ledger=candidate_scan.ledger,
+                    base_graph=base_graph,
                     candidate_graph=graph,
                     delta=delta,
                     changes=changes,
@@ -135,11 +163,15 @@ def execute(request: VerificationRequest) -> VerificationRun:
                     frozen_tests=frozen,
                     candidate_tests=candidate_tests,
                     candidate_root=str(candidate),
+                    candidate_paths=candidate_paths,
                     base_captured=base_capture,
                     candidate_captured=candidate_capture,
                     decisions=read_decisions(request.decisions_path),
                     uncoverable=uncoverable,
-                    captures_supplied=bool(base_capture or candidate_capture),
+                    captures_supplied=(
+                        request.base_capture_path is not None
+                        or request.candidate_capture_path is not None
+                    ),
                 )
             )
             scope, scope_hash = _scope(candidate_scan, request.pack)
@@ -171,8 +203,8 @@ def refuse_repair_inputs(request: VerificationRequest) -> None:
     ):
         if path is None:
             continue
-        parts = {part.lower() for part in path.resolve().parts}
-        if "agent" in parts or "repair" in parts:
+        marker = forbidden_source_marker(path)
+        if marker is not None:
             raise VerifierIsolationViolated(f"the {label} input {path} comes from the repair side")
 
 
@@ -197,16 +229,29 @@ def change_set(pack: registry.LoadedPack, from_version: str, to_version: str) ->
 
 
 def falsifier_views(pack: registry.LoadedPack) -> tuple[FalsifierView, ...]:
-    return tuple(item for item in pack.falsifiers() if isinstance(item, FalsifierView))
+    falsifiers = tuple(pack.falsifiers())
+    invalid = [type(item).__name__ for item in falsifiers if not isinstance(item, FalsifierView)]
+    if invalid:
+        raise VerificationInvalid(
+            f"pack {pack.name!r} returned invalid falsifier entries: {', '.join(invalid)}"
+        )
+    return falsifiers
 
 
 def read_obligations(path: Path | None) -> tuple[ObligationView, ...]:
     if path is None:
         return ()
-    parsed = parse_json(path.read_bytes())
+    parsed = parse_json(_read_input(path))
     if not parsed.ok():
         raise VerificationInvalid(f"{path} is not readable as obligations: {parsed.reason}")
-    records = as_sequence(parsed.value) or as_sequence(as_mapping(parsed.value).get("obligations"))
+    if is_list(parsed.value):
+        records = as_sequence(parsed.value)
+    elif is_mapping(parsed.value) and is_list(as_mapping(parsed.value).get("obligations")):
+        records = as_sequence(as_mapping(parsed.value).get("obligations"))
+    else:
+        raise VerificationInvalid(f"{path} must contain an obligation list")
+    if any(not is_mapping(record) for record in records):
+        raise VerificationInvalid(f"{path} contains a non-object obligation")
     return authority.obligations_from(
         [validate("obligation", dict(as_mapping(record))) for record in records]
     )
@@ -215,23 +260,36 @@ def read_obligations(path: Path | None) -> tuple[ObligationView, ...]:
 def read_decisions(path: Path | None) -> tuple[Mapping[str, Any], ...]:
     if path is None:
         return ()
-    parsed = parse_json(path.read_bytes())
+    parsed = parse_json(_read_input(path))
     if not parsed.ok():
         raise VerificationInvalid(f"{path} is not readable as decisions: {parsed.reason}")
+    if not is_list(parsed.value):
+        raise VerificationInvalid(f"{path} must contain a decision list")
+    if any(not is_mapping(record) for record in as_sequence(parsed.value)):
+        raise VerificationInvalid(f"{path} contains a non-object decision")
     return tuple(dict(as_mapping(record)) for record in as_sequence(parsed.value))
 
 
 def read_capture(path: Path | None) -> tuple[Mapping[str, Any], ...]:
     if path is None:
         return ()
-    events: list[Mapping[str, Any]] = []
-    for line in path.read_bytes().splitlines():
-        if not line.strip():
-            continue
-        parsed = parse_json(line)
-        if parsed.ok():
-            events.append(dict(as_mapping(parsed.value)))
-    return tuple(events)
+    batch = events_from_jsonl(_read_input(path))
+    if batch.issues:
+        detail = "; ".join(
+            f"{path}:{issue.row} {issue.code}: {issue.reason}" for issue in batch.issues
+        )
+        raise VerificationInvalid(f"capture input is invalid: {detail}")
+    return tuple(batch.events)
+
+
+def _read_input(path: Path) -> bytes:
+    with path.open("rb") as handle:
+        payload = handle.read(MAX_JSON_BYTES + 1)
+    if len(payload) > MAX_JSON_BYTES:
+        raise VerificationInvalid(
+            f"{path} exceeds the {MAX_JSON_BYTES} byte verification-input bound"
+        )
+    return payload
 
 
 def _versions(request: VerificationRequest, base_scan: Any) -> tuple[str, str]:

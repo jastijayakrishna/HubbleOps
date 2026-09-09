@@ -74,12 +74,26 @@ class VerifierImage:
 
 
 def _refuse_repair_source(label: str, source: Path) -> None:
-    parts = {part.lower() for part in source.resolve().parts}
-    offending = sorted(parts & set(FORBIDDEN_SOURCE_MARKERS))
-    if offending:
+    offending = forbidden_source_marker(source)
+    if offending is not None:
         raise VerifierIsolationViolated(
-            f"the {label} mount source {source} lies under {offending[0]!r}"
+            f"the {label} mount source {source} lies under {offending!r}"
         )
+
+
+def forbidden_source_marker(source: Path) -> str | None:
+    for part in source.resolve().parts:
+        lowered = part.lower()
+        stem = Path(lowered).stem
+        for marker in FORBIDDEN_SOURCE_MARKERS:
+            if (
+                lowered == marker
+                or stem == marker
+                or stem.startswith(f"{marker}-")
+                or stem.startswith(f"{marker}_")
+            ):
+                return marker
+    return None
 
 
 def verify_read_only(mounts: tuple[Mount, ...]) -> None:
@@ -107,5 +121,6 @@ __all__ = [
     "VERIFIER_LIMITS",
     "VerifierImage",
     "VerifierIsolationViolated",
+    "forbidden_source_marker",
     "verify_read_only",
 ]

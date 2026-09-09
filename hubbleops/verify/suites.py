@@ -10,6 +10,7 @@ from typing import Literal
 from hubbleops.core.errors import ToolingMissing
 from hubbleops.core.process import bounded_process
 from hubbleops.core.verification import SuiteRun
+from hubbleops.graph import language_for
 from hubbleops.verify import coverage
 
 SUITE_DIRECTORY_NAMES = ("tests", "test", "spec", "__tests__")
@@ -17,6 +18,9 @@ SUITE_FILE = re.compile(r"^(test_.*|.*_test|.*\.test|.*\.spec)\.py$")
 SUMMARY = re.compile(r"(\d+) (passed|failed|error|errors|skipped|xfailed|xpassed)")
 DEFAULT_WALL_SECONDS = 900.0
 DEFAULT_OUTPUT_BYTES = 8_388_608
+SOURCE_LANGUAGES = frozenset(
+    {"csharp", "go", "java", "javascript", "php", "python", "ruby", "rust", "typescript"}
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -156,16 +160,27 @@ def _execute(
             tests=tests,
         )
     detail = stderr.decode("utf-8", errors="replace").strip()
-    if exit_code not in (0, 1) and not tests:
+    if exit_code not in (0, 1):
         return SuiteRun(
             source=source,
-            executed=False,
-            passed=0,
+            executed=bool(tests),
+            passed=counts["passed"],
+            failed=counts["failed"],
+            skipped=counts["skipped"],
+            outcome="EXECUTION_FAILED",
+            reason=detail or f"pytest exited {exit_code}",
+            tests=tests,
+        )
+    if exit_code == 1 and counts["failed"] == 0:
+        return SuiteRun(
+            source=source,
+            executed=bool(tests),
+            passed=counts["passed"],
             failed=0,
-            skipped=0,
-            outcome="COLLECTION_FAILED",
-            reason=detail or f"pytest exited {exit_code} before running a test",
-            tests=(),
+            skipped=counts["skipped"],
+            outcome="EXECUTION_FAILED",
+            reason=detail or "pytest exited 1 without reporting a failed test",
+            tests=tests,
         )
     return SuiteRun(
         source=source,
@@ -224,20 +239,11 @@ def _counts(output: str) -> dict[str, int]:
 
 
 def languages_of(paths: Sequence[str]) -> dict[str, str]:
-    suffixes = {
-        ".py": "python",
-        ".js": "javascript",
-        ".mjs": "javascript",
-        ".cjs": "javascript",
-        ".ts": "typescript",
-        ".tsx": "typescript",
-        ".php": "php",
-        ".rb": "ruby",
-        ".go": "go",
-        ".java": "java",
-        ".cs": "csharp",
+    detected = {path: language_for(path) for path in paths}
+    return {
+        path: language if language in SOURCE_LANGUAGES else "unknown"
+        for path, language in detected.items()
     }
-    return {path: suffixes.get(f".{path.rsplit('.', 1)[-1]}", "unknown") for path in paths}
 
 
 __all__ = [

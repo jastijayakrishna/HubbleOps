@@ -50,6 +50,15 @@ class LoadedPack:
     def contract(self) -> ContractOracle:
         return self.implementation.contract
 
+    def verification_contract(self) -> ContractOracle:
+        factory = getattr(self.implementation, "verification_contract", None)
+        if factory is None:
+            return self.contract
+        contract = factory()
+        if not isinstance(contract, ContractOracle):
+            raise PackNotFound(f"pack {self.name!r} returned an invalid verification contract")
+        return contract
+
     @property
     def changes(self) -> ChangeCompiler:
         return self.implementation.changes

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from hubbleops.core.records import as_mapping, as_sequence, as_text
+from hubbleops.core.records import as_mapping, as_sequence, as_text, is_mapping, parse_json
 from hubbleops.core.verification import (
     CheckReport,
     OracleCheck,
@@ -108,6 +108,18 @@ def requests_from(
 
 def _static_request(record: Mapping[str, Any]) -> Mapping[str, Any] | None:
     value = as_mapping(record.get("value"))
+    dynamic = _request_from_text(value)
+    if dynamic is not None:
+        return {
+            "service": as_text(value.get("service")) or "",
+            "method": as_text(value.get("method")) or "",
+            "request": dynamic,
+            "origin": (
+                "captured"
+                if record.get("observer") in ("dynamic", "sentinel")
+                else f"static:{record['path']}:{record['line_start'] or 0}"
+            ),
+        }
     skeleton = as_mapping(value.get("skeleton"))
     if as_sequence(skeleton.get("holes")):
         return None
@@ -126,7 +138,7 @@ def _static_request(record: Mapping[str, Any]) -> Mapping[str, Any] | None:
 def _captured_request(event: Mapping[str, Any]) -> Mapping[str, Any] | None:
     service = as_text(event.get("service"))
     method = as_text(event.get("method"))
-    body = as_mapping(event.get("request"))
+    body = captured_body(event)
     if not service or not method or not body:
         return None
     return {
@@ -135,6 +147,26 @@ def _captured_request(event: Mapping[str, Any]) -> Mapping[str, Any] | None:
         "request": dict(body),
         "origin": "captured",
     }
+
+
+def captured_body(event: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    body = event.get("request")
+    if is_mapping(body) and body:
+        return dict(as_mapping(body))
+    return _request_from_text(event)
+
+
+def _request_from_text(value: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    text = as_text(value.get("request_text"))
+    if text is None or not text.strip():
+        return None
+    parsed = parse_json(text)
+    if parsed.ok() and is_mapping(parsed.value) and parsed.value:
+        return dict(as_mapping(parsed.value))
+    method = as_text(value.get("method")) or ""
+    if method in ("Search", "SearchStream"):
+        return {"query": text}
+    return None
 
 
 def review(
@@ -174,9 +206,20 @@ def review(
 
 def _validate(oracle: OracleView, request: Mapping[str, Any], target_version: str) -> OracleOutcome:
     try:
-        return oracle.validate(request, target_version)
-    except (OSError, ValueError) as error:
+        outcome: Any = oracle.validate(request, target_version)
+    except Exception as error:
         return OracleOutcome(code="ORACLE_UNAVAILABLE", reason=str(error))
+    if not isinstance(outcome, OracleOutcome) or outcome.code not in (
+        "VALID",
+        "INVALID",
+        "UNKNOWN_PROVIDER_CONTRACT",
+        "ORACLE_UNAVAILABLE",
+    ):
+        return OracleOutcome(
+            code="UNKNOWN_PROVIDER_CONTRACT",
+            reason="the injected oracle returned no valid outcome code",
+        )
+    return outcome
 
 
-__all__ = ["OracleReview", "requests_from", "review"]
+__all__ = ["OracleReview", "captured_body", "requests_from", "review"]

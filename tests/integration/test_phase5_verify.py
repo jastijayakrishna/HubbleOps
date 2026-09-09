@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -61,6 +62,18 @@ def test_every_hunk_is_accounted_for(good_run: VerificationRun) -> None:
     assert {item.disposition for item in containment.mappings} <= {"OBLIGATION", "COLLATERAL"}
 
 
+@pytest.mark.parametrize("name", ["renamed_field_still_read", "split_literal_response_read"])
+def test_removed_response_reads_have_independent_defences(name: str, tmp_path: Path) -> None:
+    from tests.adversarial.test_adversarial_candidates import CORRUPTIONS
+
+    corruption = next(item for item in CORRUPTIONS if item.name == name)
+    repository = build_repository(tmp_path / name, corruption.edits)
+    obligations = write_obligations(tmp_path / f"{name}.json", (*corruption.obligation_sites,))
+    run = verify(repository, obligations_path=obligations)
+    assert run.evaluation.audit.reintroduced
+    assert run.evaluation.consumers.hits
+
+
 def test_the_oracle_carries_a_request_hash_and_a_timestamp(good_run: VerificationRun) -> None:
     checks = good_run.evaluation.oracle.checks
     assert checks, "a tree with a literal query must reach the oracle"
@@ -68,6 +81,34 @@ def test_the_oracle_carries_a_request_hash_and_a_timestamp(good_run: Verificatio
         assert len(check.request_hash) == 64
         assert check.checked_at.endswith("+00:00") or "T" in check.checked_at
         assert check.code == "VALID"
+
+
+def test_an_old_version_dynamic_capture_fails_the_migration_audit(
+    repository: Repository, obligations: Path, tmp_path: Path
+) -> None:
+    event: dict[str, Any] = {
+        "version": "v1",
+        "service": "MockService",
+        "method": "Search",
+        "request_text": "SELECT campaigns.id FROM campaigns",
+        "request_type": "rest",
+        "stack": [],
+        "ts": "2026-09-09T00:00:00Z",
+        "mode": "hook",
+    }
+    base_capture = tmp_path / "base.jsonl"
+    candidate_capture = tmp_path / "candidate.jsonl"
+    payload = json.dumps(event, sort_keys=True) + "\n"
+    base_capture.write_text(payload, encoding="utf-8")
+    candidate_capture.write_text(payload, encoding="utf-8")
+    run = verify(
+        repository,
+        obligations_path=obligations,
+        base_capture_path=base_capture,
+        candidate_capture_path=candidate_capture,
+    )
+    assert run.evaluation.judgement.verdict == "FAILED"
+    assert run.evaluation.audit.residue == ("captured event 1 (MockService.Search)",)
 
 
 def test_the_scope_binds_the_verifier_image(good_run: VerificationRun) -> None:
@@ -179,6 +220,7 @@ def test_the_cli_exit_code_separates_failure_from_absence(
     tmp_path: Path, obligations: Path
 ) -> None:
     broken = build_repository(tmp_path / "broken", {"analytics.py": "STRAY = 1\n"})
+    state = tmp_path / "state"
     code = cli.main(
         [
             "verify",
@@ -195,10 +237,15 @@ def test_the_cli_exit_code_separates_failure_from_absence(
             "--obligations",
             str(obligations),
             "--state-dir",
-            str(tmp_path / "state"),
+            str(state),
         ]
     )
     assert code == cli.EXIT_FAILED
+    failed_json = json.loads(next(state.rglob("receipt.json")).read_text(encoding="utf-8"))
+    failed_markdown = next(state.rglob("receipt.md")).read_text(encoding="utf-8")
+    assert failed_json["verdict"] == "FAILED"
+    assert "VERDICT   FAILED" in failed_markdown
+    assert "zero_unexplained_hunks is FAIL" in failed_markdown
 
 
 def _receipt(run: VerificationRun) -> Receipt:

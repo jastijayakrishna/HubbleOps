@@ -79,7 +79,7 @@ class FalsifierReview:
         )
 
 
-def detected_classes(ledger: Ledger) -> frozenset[str]:
+def detected_classes(ledger: Ledger, captured: Sequence[Mapping[str, Any]] = ()) -> frozenset[str]:
     classes: set[str] = set()
     evidence = ledger.evidence_by_id()
     attached = {eid for candidate in ledger.candidates for eid in candidate["evidence_ids"]}
@@ -89,6 +89,10 @@ def detected_classes(ledger: Ledger) -> frozenset[str]:
             classes.add(str(record["claim_type"]))
     for candidate in ledger.candidates:
         classes.add(str(candidate["status"]))
+    if captured:
+        classes.add("production_version")
+    if any(item.get("request_text") is not None for item in captured):
+        classes.add("request_text")
     return frozenset(classes)
 
 
@@ -99,7 +103,7 @@ def run(
     candidate_root: str,
     captured: Sequence[Mapping[str, Any]] = (),
 ) -> FalsifierReview:
-    classes = detected_classes(ledger)
+    classes = detected_classes(ledger, captured)
     subject = FalsifierInput(
         changes=changes,
         candidate_root=candidate_root,
@@ -133,17 +137,28 @@ def run(
     executed = [item for item in runs if item.result != SKIPPED]
     return FalsifierReview(
         runs=tuple(runs),
-        disarmed=bool(runs) and not executed and bool(changes.changes),
+        disarmed=not executed and bool(changes.changes),
     )
 
 
 def _check(falsifier: FalsifierView, subject: FalsifierInput) -> FalsifierOutcome:
     try:
-        return falsifier.check(subject)
-    except (OSError, ValueError, KeyError) as error:
+        outcome: Any = falsifier.check(subject)
+    except Exception as error:
         return FalsifierOutcome(
             result="UNKNOWN", reason=f"{type(error).__name__}: {error}", sites=()
         )
+    if not isinstance(outcome, FalsifierOutcome) or outcome.result not in (
+        "PASS",
+        "FAIL",
+        "UNKNOWN",
+    ):
+        return FalsifierOutcome(
+            result="UNKNOWN",
+            reason=f"{falsifier.name} returned no valid falsifier outcome",
+            sites=(),
+        )
+    return outcome
 
 
 __all__ = ["FalsifierReview", "FalsifierRun", "detected_classes", "run"]

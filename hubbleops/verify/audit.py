@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text
@@ -15,6 +16,15 @@ OPEN_STATUS = "OPEN"
 DISCHARGED_STATUS = "DISCHARGED"
 UNRECONCILABLE_STATUS = "UNRECONCILABLE"
 METHOD_PREFIXES = ("absent:", "present:", "version:")
+SOURCE_JOINER_CHARACTERS = frozenset(" \t\r\n'\"+()\\")
+
+
+class _TrieNode:
+    __slots__ = ("children", "terminal")
+
+    def __init__(self) -> None:
+        self.children: dict[str, _TrieNode] = {}
+        self.terminal: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,10 +79,28 @@ def run(
     ledger: Ledger,
     changes: ChangeSet,
     obligations: Sequence[ObligationView],
+    candidate_root: Path | None = None,
+    candidate_paths: Sequence[str] = (),
+    captured: Sequence[Mapping[str, Any]] = (),
 ) -> Audit:
     evidence = ledger.evidence_by_id()
-    residue = _residue(ledger, evidence, changes.from_version)
-    reintroduced = _reintroduced(ledger, evidence, changes)
+    residue = tuple(
+        sorted(
+            {
+                *_residue(ledger, evidence, changes.from_version),
+                *_captured_residue(captured, changes.from_version),
+            }
+        )
+    )
+    reintroduced = tuple(
+        sorted(
+            {
+                *_reintroduced(ledger, evidence, changes),
+                *_source_reintroduced(candidate_root, candidate_paths, changes),
+                *_captured_reintroduced(captured, changes),
+            }
+        )
+    )
     reconciliations = tuple(
         _reconcile(item, ledger, evidence, changes) for item in sorted(obligations, key=_key)
     )
@@ -90,6 +118,96 @@ def run(
         reconciliations=reconciliations,
         unresolved=unresolved,
     )
+
+
+def _captured_residue(
+    captured: Sequence[Mapping[str, Any]], source_version: str
+) -> tuple[str, ...]:
+    return tuple(
+        f"captured event {index} ({event.get('service')}.{event.get('method')})"
+        for index, event in enumerate(captured, start=1)
+        if as_text(event.get("version")) == source_version
+    )
+
+
+def _captured_reintroduced(
+    captured: Sequence[Mapping[str, Any]], changes: ChangeSet
+) -> tuple[str, ...]:
+    watched = tuple(sorted({item.subject for item in (*changes.removed(), *changes.renamed())}))
+    if not watched:
+        return ()
+    trie = _subject_trie(watched)
+    found: set[str] = set()
+    for index, event in enumerate(captured, start=1):
+        text = as_text(event.get("request_text")) or ""
+        for subject, _ in _subject_occurrences(text, trie):
+            found.add(f"{subject} at captured event {index}")
+    return tuple(sorted(found))
+
+
+def _source_reintroduced(
+    root: Path | None, paths: Sequence[str], changes: ChangeSet
+) -> tuple[str, ...]:
+    if root is None:
+        return ()
+    watched = tuple(sorted({item.subject for item in (*changes.removed(), *changes.renamed())}))
+    if not watched:
+        return ()
+    trie = _subject_trie(watched)
+    found: set[str] = set()
+    for relative in sorted(set(paths)):
+        try:
+            text = (root / relative).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for subject, offset in _subject_occurrences(text, trie):
+            line = text.count("\n", 0, offset) + 1
+            found.add(f"{subject} at {relative}:{line} (independent source extinction)")
+    return tuple(sorted(found))
+
+
+def _subject_trie(subjects: Sequence[str]) -> _TrieNode:
+    root = _TrieNode()
+    for subject in subjects:
+        node = root
+        for character in subject:
+            node = node.children.setdefault(character, _TrieNode())
+        node.terminal = subject
+    return root
+
+
+def _subject_occurrences(text: str, trie: _TrieNode) -> tuple[tuple[str, int], ...]:
+    normalized = tuple(
+        (character, offset)
+        for offset, character in enumerate(text)
+        if character not in SOURCE_JOINER_CHARACTERS
+    )
+    found: set[tuple[str, int]] = set()
+    for start, (character, offset) in enumerate(normalized):
+        if offset and _word_character(text[offset - 1]):
+            continue
+        child = trie.children.get(character)
+        if child is None:
+            continue
+        node = child
+        cursor = start + 1
+        while True:
+            terminal = node.terminal
+            end = normalized[cursor - 1][1] + 1
+            if isinstance(terminal, str) and (end == len(text) or not _word_character(text[end])):
+                found.add((terminal, offset))
+            if cursor >= len(normalized):
+                break
+            child = node.children.get(normalized[cursor][0])
+            if child is None:
+                break
+            node = child
+            cursor += 1
+    return tuple(sorted(found))
+
+
+def _word_character(character: str) -> bool:
+    return character == "_" or character.isalnum()
 
 
 def _key(obligation: ObligationView) -> str:
