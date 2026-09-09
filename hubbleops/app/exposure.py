@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import textwrap
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Any
 
 from hubbleops.core.proof_scope import short_scope
@@ -13,6 +14,31 @@ RULE = "─" * 56
 LOCATION_WIDTH = 26
 BODY_WIDTH = 100
 DETAIL_INDENT = "    "
+UNKNOWN_SITE_BUDGET = 10
+
+SINK_PROXIMITY = {
+    "request_text": 0,
+    "call_version": 1,
+    "endpoint_reference": 2,
+    "production_version": 3,
+    "telemetry_state": 4,
+    "sdk_installed": 5,
+    "dependency_state": 6,
+    "package_reference": 7,
+    "config_reference": 8,
+    "surface_reference": 9,
+    "external_boundary": 10,
+    "structure_unsupported": 11,
+    "file_unscanned": 12,
+    "ai_triage_residue": 13,
+}
+
+
+@dataclass(frozen=True, slots=True)
+class ClosingGroup:
+    instruction: str
+    rank: int
+    candidates: tuple[Mapping[str, Any], ...]
 
 
 def render(
@@ -75,15 +101,17 @@ def render(
 
     lines.append("")
     lines.append(RULE)
-    lines.append("UNKNOWN")
-    lines.extend(_unknown_block(ledger))
+    lines.append(f"UNKNOWN   {counts['unknown']}")
+    lines.extend(_unknown_block(ledger, expand_all=expand_not_affected))
 
     human_required = ledger.by_status("HUMAN_REQUIRED")
     if human_required:
         lines.append("")
         lines.append(RULE)
-        lines.append("HUMAN REQUIRED")
-        lines.extend(_unknown_block(ledger, status="HUMAN_REQUIRED"))
+        lines.append(f"HUMAN REQUIRED   {len(human_required)}")
+        lines.extend(
+            _unknown_block(ledger, status="HUMAN_REQUIRED", expand_all=expand_not_affected)
+        )
 
     lines.append("")
     lines.append(RULE)
@@ -112,22 +140,60 @@ def _affected_block(ledger: Ledger) -> list[str]:
     return lines
 
 
-def _unknown_block(ledger: Ledger, status: str = "UNKNOWN") -> list[str]:
+def _unknown_block(ledger: Ledger, status: str = "UNKNOWN", expand_all: bool = False) -> list[str]:
     candidates = ledger.by_status(status)
     if not candidates:
         return ["  none"]
+    groups = _closing_groups(ledger, candidates)
     lines: list[str] = []
-    for candidate in candidates:
-        location = ledger.location_of(candidate)
-        lines.extend(_headline(location.display(), str(candidate["reason"])))
-        for wrapped in textwrap.wrap(
-            f"close with: {candidate['close_with']}",
-            width=BODY_WIDTH,
-            initial_indent=DETAIL_INDENT,
-            subsequent_indent=DETAIL_INDENT + "  ",
-        ):
-            lines.append(wrapped)
+    shown = 0
+    for group in groups:
+        if lines:
+            lines.append("")
+        expanded = expand_all or shown + len(group.candidates) <= UNKNOWN_SITE_BUDGET
+        lines.extend(_group_header(group, expanded))
+        if not expanded:
+            continue
+        shown += len(group.candidates)
+        for candidate in group.candidates:
+            location = ledger.location_of(candidate)
+            lines.extend(_headline(location.display(), str(candidate["reason"])))
     return lines
+
+
+def _group_header(group: ClosingGroup, expanded: bool) -> list[str]:
+    sites = len(group.candidates)
+    label = f"{sites} site" if sites == 1 else f"{sites} sites"
+    suffix = "" if expanded else "   [expand]"
+    lines = textwrap.wrap(
+        f"close with: {group.instruction}",
+        width=BODY_WIDTH,
+        initial_indent="  ",
+        subsequent_indent="    ",
+    ) or ["  close with: (none recorded)"]
+    lines[0] = f"{lines[0]}"
+    lines.append(f"    {label}{suffix}")
+    return lines
+
+
+def _closing_groups(ledger: Ledger, candidates: Sequence[Mapping[str, Any]]) -> list[ClosingGroup]:
+    grouped: dict[str, list[Mapping[str, Any]]] = {}
+    for candidate in candidates:
+        instruction = as_text(candidate.get("close_with")) or "(no closing instruction recorded)"
+        grouped.setdefault(instruction, []).append(candidate)
+    groups = [
+        ClosingGroup(
+            instruction=instruction,
+            rank=min(_sink_rank(ledger.location_of(item).claim_type) for item in members),
+            candidates=tuple(members),
+        )
+        for instruction, members in grouped.items()
+    ]
+    return sorted(groups, key=lambda group: (group.rank, len(group.candidates), group.instruction))
+
+
+def _sink_rank(claim_type: str) -> int:
+    return SINK_PROXIMITY.get(claim_type, len(SINK_PROXIMITY))
 
 
 def _plain_block(ledger: Ledger, candidates: Sequence[Mapping[str, Any]]) -> list[str]:

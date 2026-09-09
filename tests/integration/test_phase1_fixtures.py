@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -59,6 +60,22 @@ def test_no_fixture_leaves_an_unexplained_candidate(
     assert book.unexplained() == 0
 
 
+def _site_total(rendered: str) -> int:
+    total = 0
+    inside = False
+    for line in rendered.splitlines():
+        if line.startswith("UNKNOWN   "):
+            inside = True
+            continue
+        if inside and line.startswith("─"):
+            break
+        if inside:
+            match = re.match(r"\s+(\d+) sites?(\s|$)", line)
+            if match:
+                total += int(match.group(1))
+    return total
+
+
 @pytest.mark.parametrize("fixture", fixture_repos(), ids=lambda path: path.name)
 def test_every_open_candidate_prints_a_closing_instruction(
     fixture: Path, google_pack: registry.LoadedPack
@@ -75,7 +92,19 @@ def test_every_open_candidate_prints_a_closing_instruction(
     for candidate in book.candidates:
         if candidate["status"] in OPEN_STATUSES:
             assert candidate["close_with"]
-    assert rendered.count("close with:") >= len(book.by_status("UNKNOWN"))
+    for candidate in book.by_status("UNKNOWN"):
+        instruction = str(candidate["close_with"])
+        assert instruction.split("\n")[0][:60] in " ".join(rendered.split())
+    expanded = exposure.render(
+        ledger=book,
+        pack_name=google_pack.name,
+        changes_hash=google_pack.changes.lattice_hash,
+        target="UNKNOWN (SDK compatibility unresolved)",
+        repository=str(fixture),
+        repo_sha=None,
+        expand_not_affected=True,
+    )
+    assert _site_total(expanded) == len(book.by_status("UNKNOWN"))
     assert "Unexplained             0" in rendered
 
 
