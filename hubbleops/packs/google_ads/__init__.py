@@ -8,9 +8,11 @@ import yaml
 from hubbleops.core.surface import SurfaceSpec
 from hubbleops.packs._protocol import CaptureHooks, Falsifier, RuleSet, ToolSpec, Transform, Version
 from hubbleops.packs.google_ads.changes import CHANGES
-from hubbleops.packs.google_ads.contract import CONTRACT
+from hubbleops.packs.google_ads.contract import CONTRACT, GoogleAdsContract
 from hubbleops.packs.google_ads.falsifiers import FALSIFIERS
+from hubbleops.packs.google_ads.repairs import client_minimums, transforms
 from hubbleops.packs.google_ads.telemetry import TELEMETRY
+from hubbleops.packs.google_ads.transport import GoogleAdsRestTransport
 from hubbleops.packs.google_ads.wire import WIRE_SIGNATURE
 
 ROOT = Path(__file__).resolve().parent
@@ -65,13 +67,20 @@ class GoogleAdsPack:
         return EmptyBundle(normalized, () if path is None else (path,))
 
     def repair_transforms(self) -> list[Transform]:
-        return []
+        minimums = {
+            entry.id: client_minimums(self.contract.catalog(entry.id).facts, entry.id)
+            for entry in self.versions()
+        }
+        return list(transforms(minimums))
 
     def repair_tools(self) -> list[ToolSpec]:
         return []
 
     def falsifiers(self) -> list[Falsifier]:
         return list(FALSIFIERS)
+
+    def verification_contract(self) -> GoogleAdsContract:
+        return GoogleAdsContract(transport=GoogleAdsRestTransport.from_environment())
 
 
 PACK = GoogleAdsPack()

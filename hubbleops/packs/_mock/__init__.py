@@ -12,6 +12,7 @@ import yaml
 
 from hubbleops.core.canonical import blob_hash, canonical_text, content_id
 from hubbleops.core.errors import PackDataError
+from hubbleops.core.repair import TransformInput, TransformOutput
 from hubbleops.core.surface import SurfaceSpec
 from hubbleops.core.verification import FalsifierInput, FalsifierOutcome, request_text_of
 from hubbleops.packs._protocol import (
@@ -59,6 +60,13 @@ class MockRemovedField:
                 for name in sorted(removed)
                 if re.search(rf"\b{re.escape(name)}\b", text)
             )
+        for index, event in enumerate(subject.captured_requests, start=1):
+            text = str(event.get("request_text") or "")
+            sites.extend(
+                f"captured event {index} names {name}"
+                for name in sorted(removed)
+                if re.search(rf"\b{re.escape(name)}\b", text)
+            )
         if sites:
             return FalsifierOutcome(
                 result="FAIL",
@@ -69,6 +77,40 @@ class MockRemovedField:
 
 
 MOCK_FALSIFIER: Falsifier = MockRemovedField()
+
+
+@dataclass(slots=True)
+class MockVersionLiteral:
+    name: str = "mock-version-literal"
+    failure_class: str = "call_version"
+
+    def _pattern(self, version: str) -> re.Pattern[str]:
+        return re.compile(rf"\b{re.escape(version)}\b")
+
+    def precondition(self, subject: TransformInput) -> bool:
+        if subject.claim_type != self.failure_class:
+            return False
+        if subject.from_version == subject.to_version:
+            return False
+        return self._pattern(subject.from_version).search(subject.text) is not None
+
+    def apply(self, subject: TransformInput) -> TransformOutput:
+        return TransformOutput(
+            source=subject,
+            result="APPLIED",
+            text=self._pattern(subject.from_version).sub(subject.to_version, subject.text),
+            reason=f"rewrote {subject.from_version} to {subject.to_version} at {subject.path}",
+            sites=(subject.path,),
+        )
+
+    def postcondition(self, subject: TransformOutput) -> bool:
+        source = subject.source
+        if self._pattern(source.from_version).search(subject.text) is not None:
+            return False
+        return self._pattern(source.to_version).search(subject.text) is not None
+
+
+MOCK_TRANSFORM: Transform = MockVersionLiteral()
 
 
 def _fact(subject: str, kind: str, attributes: Mapping[str, Any]) -> CatalogFact:
@@ -232,7 +274,7 @@ class MockPack:
         return EmptyBundle(normalized, (path,) if normalized == "python" else ())
 
     def repair_transforms(self) -> list[Transform]:
-        return []
+        return [MOCK_TRANSFORM]
 
     def repair_tools(self) -> list[ToolSpec]:
         return []
