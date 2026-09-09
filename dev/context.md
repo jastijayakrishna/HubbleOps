@@ -7,10 +7,65 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 5 — Independent Verification Authority. Phase 4 is merged to `main` and tagged `v0.4` |
-| **Branch** | `phase-05-verification-authority`, cut from `main` at `v0.4` |
+| **Current phase** | 6 — Repository Intelligence Engine, on top of an unmerged Phase 5. Phase 4 is merged to `main` and tagged `v0.4` |
+| **Branch** | `phase-06-repository-intelligence`, cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
 | **Next action** | Two owner actions block everything else: add `_accepted_proposal_names()` to `.claude/hooks/guard.py` so the ACCEPTED P-012 schema edit is permitted, and obtain a Google Ads test-account MCC plus developer token so a `VERIFIED_FOR_SCOPE` receipt is reachable at all. Then wire P-012, finish Tier 1's deterministic transforms and `hops migrate`, and rerun the fresh independent gate. Rootless Podman is unavailable to this Windows test process, so its eight runtime-isolation checks remain skips rather than evidence. Full suite baseline on 2026-09-09 before this session's work: **626 passed**, exit 0, 15m51s. Nothing has been pushed. |
+
+**Repository Intelligence Engine (2026-09-09).** The owner directed a re-architecture: one
+provider-neutral repository model, with provider packs mapping external API contracts onto it, so
+provider logic never reimplements discovery, traversal, indexing, propagation, caching or
+completeness accounting. The full plan and the measurements behind it are PART THREE of
+`dev/plan.md`. Two new invariants govern it: **no optimization may silently reduce candidate
+coverage**, and **no hop limit determines safety**.
+
+What forced it, measured rather than assumed: a scan of *this repository's own tree* did not finish
+in 25 minutes, because 196 MB of provider catalogs carrying 287,240 surface matches were classified
+`INSIDE` and fed to source-code AST analysis. Five things landed, each with its own evidence.
+
+**Roles.** `FileRole` on every closure entry. Bulk roles (`DATA`, `SNAPSHOT`) are enumerated and
+counted but never AST-analysed; the text observer emits one `bulk_data_reference` per bulk file and
+the resolver returns `EXCLUDED_WITH_EVIDENCE` naming the role. Self-scan **>25 min → 52 s**,
+candidates 9,437 → 1,858, unexplained 0 throughout. Size alone was not enough — the sub-256 KB
+`proto_v*.json` blobs needed a density collapse past 100 records per file, which turned 7,926 JSON
+UNKNOWNs into 38 accounted candidates. **The role is a disposition input, never a filter**: the file
+is always enumerated, its matches always counted, and the closing instruction says how a data file
+that first-party code actually loads becomes a call site instead.
+
+**One parse per language.** `AstGrep.query_all` runs a single multi-rule `scan`, demultiplexing by
+`ruleId`, in place of 18–20 `run -p` invocations. Proven identical before switching: python
+60,210 = 60,210, php 263 = 263. Six patterns the rule engine rejects in `scan` mode are held back by
+an explicit partition, and a test asserts that partition is exactly right so an ast-grep upgrade
+fails loudly instead of silently degrading. Honest result: 3.22× at 200 files, 1.35× at 800, ~0.76×
+on few-large-file trees, neutral end to end. **§2 is not the big lever; roles were.**
+
+**The hop limit is gone as a proof boundary.** `MAX_CALL_DEPTH = 5` is replaced by
+`ResolutionBudget`; exhausting it yields `RESOLUTION_BUDGET_EXHAUSTED`, never `NOT_AFFECTED`. The
+`seen` frozenset already guaranteed termination, so the depth cap was only ever cost control. The
+6-hop `depth_6` fixture now resolves. Testing this found a real FA-020-class defect: an exhausted
+value was dropped from the record set entirely, and when kept was labelled
+`CONTRACT_VALIDATION_DEFERRED` — an exhausted walk reading as a *validated request*. Both fixed.
+
+**Compositional summaries.** `ResolutionCache` keyed by `(path, offset, text, owner)`. It stores hop
+*suffixes*, so a reused summary carries the calling wrapper chain rather than the cached one — that
+is what keeps the audit trail honest under reuse. It never stores a path-dependent terminal
+(`AMBIGUOUS_CYCLE`, `RESOLUTION_BUDGET`), which is what keeps it sound. **175 s → 55 s and 28 → 0
+budget exhaustions, with results identical to the uncapped run.** Budget sensitivity disappeared
+entirely: 0 exhaustions at 20k, 200k and 2M. This is the change that made the fixed point affordable.
+
+**Discovery completeness (P-017).** The Exposure Map gained a section stating what the *search*
+proved: corpus accounting, analysis reach, resolution frontier, role census, and an explicit
+`DISCOVERY_COMPLETE` / `DISCOVERY_INCOMPLETE` verdict naming each unmet reason. It earned its place
+on the first run by surfacing 28 budget exhaustions that were otherwise invisible. The verdict is
+about the search, never the repository's safety: `DISCOVERY_COMPLETE` alongside 400 preserved
+UNKNOWNs is a legitimate result, because L2 makes a preserved UNKNOWN a correct outcome.
+
+Two proposals are raised and **not** implemented. **P-015** (candidate states
+`PROVIDER_REFERENCE_DATA`, `UNSUPPORTED`, `UNSCANNED`, `HUMAN_ACCEPTED_RISK`; `FIXED` and `VERIFIED`
+deliberately excluded so a scan cannot assert a verification-time fact) is blocked by the same
+`.claude/hooks/guard.py` gap that blocks P-012. **P-016** (one scan, many providers — one corpus and
+index, N ledgers and N ProofScopes, no composite scope) is unblocked but sequenced after the corpus
+work settles.
 
 **Compression of Phases 6-10 (2026-09-09).** The repository owner directed a compression to a
 pilot-ready product; the tier plan is PART TWO of `dev/plan.md`. What justified it, measured rather

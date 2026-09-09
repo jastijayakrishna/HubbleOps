@@ -5,6 +5,30 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] Build the Repository Intelligence Engine's first five pieces on branch
+      `phase-06-repository-intelligence`, each with the measurement that justified it (PART THREE of
+      [dev/plan.md](plan.md)): `FileRole` classification, one-parse-per-language `query_all`, the
+      resolution budget that replaced `MAX_CALL_DEPTH` as a proof boundary, `ResolutionCache`
+      compositional summaries, and the Exposure Map's `DISCOVERY COMPLETENESS` section
+- [x] Raise **P-015** (candidate states) and **P-016** (one scan, many providers) rather than editing
+      frozen surfaces in place, and **P-017** (Exposure Map completeness section) which is accepted
+      and implemented
+- [ ] **Owner action — confirm P-017's verdict wording** before a `DISCOVERY_INCOMPLETE` line reaches
+      a customer. The section is additive and no existing line changed, but the wording is
+      customer-facing and the owner has not seen it
+- [ ] **Owner action — blocks P-015 exactly as it blocks P-012.** The same
+      `_accepted_proposal_names()` edit to `.claude/hooks/guard.py` unblocks both
+- [ ] Answer **Q14** (does the 20,000-step resolution budget hold?) on a repository large enough to
+      exhaust it. It is no longer load-bearing on this tree and has never been measured on a monorepo
+- [ ] Answer **Q16**: run the real-repo loop next, before §11 cross-language edges, so the edges are
+      aimed at real patterns rather than guessed ones. Four admissible company-owned repos are
+      already verified to exist: `airbytehq/airbyte`, `woocommerce/google-listings-and-ads`,
+      `singer-io/tap-google-ads`, plus one more to source
+- [ ] Not started, in order: §8 SCC collapse (measure first — the cache absorbs much of it), §11
+      cross-language edges (`BOUNDARY_NAMES` is eight hard-coded method names), §10 type-based
+      framework models, §3 optional compiler/type frontends, §17/§18 incremental behind an
+      `incremental == clean` gate
+
 - [x] Plan the compression of Phases 6-10 into three tiers on the owner's instruction, and record it
       as PART TWO of [dev/plan.md](plan.md). Measured what justified it: composed v22->v25 is ~1,577
       ADDED, 6 CHANGED and 174 REMOVED, so the migration is dominated by deterministic work; and

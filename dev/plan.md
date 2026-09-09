@@ -514,3 +514,81 @@ hunks. Record the trigger or the cut silently becomes a scope decision nobody ma
 three COLLATERAL rules presuppose an already-mapped hunk. A real diff with zero obligations
 therefore cannot reach `VERIFIED_FOR_SCOPE`, which is the strict and correct reading. The obligation
 engine is the keystone for both products; no degraded mode is added.
+
+# PART THREE — Repository Intelligence Engine (2026-09-09)
+
+Branch `phase-06-repository-intelligence`, cut from `phase-05-verification-authority` because the
+obligation engine and deterministic repair it carries are prerequisites, and Phase 5 has not merged.
+
+## 14. What forced this
+
+A scan of **this repository's own tree did not finish in 25 minutes**. Measured cause: 196 MB of
+provider catalogs under `packs/google_ads/data/`, carrying **287,240 surface matches**, were
+classified `INSIDE` and fed to source-code AST analysis. Synthetic trees put source closure at
+~12.8 ms/file and the structural stage at ~4.5 ms/file, both linear in *total* files rather than in
+provider-relevant files; ripgrep alone was flat at ~150 ms regardless of tree size.
+
+## 15. The architecture this serves
+
+One provider-neutral repository model; provider packs map external API contracts onto it. Provider
+logic never reimplements discovery, traversal, indexing, propagation, caching or completeness
+accounting. Two invariants govern every optimization below, and both are new:
+
+- **No optimization may silently reduce candidate coverage.** Cost may be eliminated; evidence and
+  uncertainty may not.
+- **No hop limit determines safety.** A traversal bound may cap precision; it may never produce
+  `NOT_AFFECTED`.
+
+## 16. Landed, with the measurement that justified each
+
+| § | Change | Evidence |
+|---|---|---|
+| 1 | `FileRole` on every closure entry — `SOURCE`, `CONFIG`, `MANIFEST`, `DATA`, `SNAPSHOT`, `DOCUMENTATION`, `GENERATED_SOURCE`, `OPAQUE`, `UNKNOWN_ROLE`. Bulk roles are enumerated and counted but never fed to AST analysis; the text observer emits one `bulk_data_reference` per bulk file, and the resolver gives it `EXCLUDED_WITH_EVIDENCE` naming the role and its closing instruction | self-scan **>25 min → 52 s**; candidates 9,437 → 1,858; UNKNOWN 9,387 → 1,799; unexplained **0** throughout |
+| 1 | Density collapse for non-source roles past 100 records per file, because size alone missed the sub-256 KB `proto_v*.json` reference blobs | 7,926 `.json` UNKNOWNs → 38 accounted candidates |
+| 2 | `AstGrep.query_all` runs one multi-rule `scan` per language instead of 18–20 `run -p` invocations, demultiplexing by `ruleId`. Six patterns the rule engine rejects are held back by an explicit partition | python **60,210 = 60,210**, php **263 = 263**, zero difference either way; 3.22× at 200 files, 1.35× at 800, ~0.76× on few-large-file trees, neutral end to end |
+| 7 | `MAX_CALL_DEPTH` deleted as a proof boundary and replaced by `ResolutionBudget`. Exceeding it yields `RESOLUTION_BUDGET_EXHAUSTED`, never `NOT_AFFECTED`. `seen` already guaranteed termination, so the depth cap was only ever cost control | the 6-hop `depth_6` fixture chain now resolves; no request record is a depth artifact |
+| 7 | Budget exhaustion is emitted unconditionally and labelled with its own terminal | found while testing: an exhausted value was being dropped entirely, and when kept was labelled `CONTRACT_VALIDATION_DEFERRED` — an exhausted walk reading as a validated request. FA-020 class |
+| 6 | `ResolutionCache` — compositional summaries keyed by `(path, offset, text, owner)`, storing hop *suffixes* so a reused summary carries the calling wrapper chain rather than the cached one. Never stores a path-dependent terminal (`AMBIGUOUS_CYCLE`, `RESOLUTION_BUDGET`) | **175 s → 55 s** and **28 → 0** exhaustions; results identical to the uncapped run; budget sensitivity gone entirely (0 exhausted at 20k, 200k and 2M) |
+| 21 | `DISCOVERY COMPLETENESS` section on the Exposure Map (P-017): corpus accounting, analysis reach, resolution frontier, role census, and an explicit `DISCOVERY_COMPLETE` / `DISCOVERY_INCOMPLETE` verdict listing each unmet reason | earned its place immediately by surfacing 28 budget exhaustions that were otherwise invisible |
+
+Determinism holds: two scans of the pack tree produce one unique ledger hash.
+
+## 17. Raised, not implemented
+
+- **P-015** — candidate states `PROVIDER_REFERENCE_DATA`, `UNSUPPORTED`, `UNSCANNED`,
+  `HUMAN_ACCEPTED_RISK`. `FIXED` and `VERIFIED` deliberately excluded: a scan-time record must not
+  assert a verification-time fact. **Blocked** — `.claude/hooks/guard.py` refuses every write under
+  `core/schemas/` and has no notion of an accepted proposal, the same owner edit P-012 waits on.
+- **P-016** — one scan, many providers: one corpus and one index, N ledgers and N ProofScopes.
+  No composite scope, because a proof binds to exactly one provider contract.
+
+## 18. Not started, in the order I would take them
+
+**§8 SCC collapse** — cycle *detection* exists and terminates correctly; collapsing strongly
+connected components would remove re-derivation the cache now largely absorbs, so measure first.
+**§11 cross-language edges** — `BOUNDARY_NAMES` is eight hard-coded method names; real edges
+(a Python module loading a YAML query, a service calling another service) are unbuilt.
+**§10 type-based framework models** — `wrapper_context()` resolves inheritance families,
+registrations, factories and decorators by *name*; DI binding resolution is unbuilt.
+**§3 compiler/type frontends** — nothing exists. Must stay optional evidence enrichment forever:
+most pilot repositories will not build on the scanner's machine, and build membership may improve
+evidence but must never make unbuilt code disappear.
+**§17/§18 incremental** — no fact cache, no reverse index, no invalidation. `store/sqlite.py` has
+runs, evidence, candidates, obligations, checks and artifacts, and no facts table. `incremental ==
+clean` on randomized edit sequences gates it, and nothing about it should land before the correctness
+work above is settled.
+
+## OPEN QUESTIONS — Part Three
+
+**Q14. Does the default resolution budget stay at 20,000?** With summaries the measurement shows no
+exhaustions at any budget tried on this tree, so the default is no longer load-bearing here. It has
+not been measured on a repository large enough to exhaust it. **Answer with a real monorepo.**
+
+**Q15. Should `OPAQUE` files with no readable content stay `UNKNOWN`?** 1,246 `.gz` files produce
+one `file_unscanned` UNKNOWN each — 69% of this tree's remaining UNKNOWNs. Fail-closed says UNKNOWN
+is honest; P-013's grouping renders them as one line. **Leaning: leave it, and let the Exposure Map's
+grouping carry the weight.** Revisit only if a real repository's binary tail swamps its map.
+
+**Q16. Does the real-repo loop run before or after §11 and §17?** The loop's whole purpose is to find
+patterns we would not invent. Running it now, on the four repos already verified to exist, would
+aim §11 at real cross-language edges rather than guessed ones. **Leaning: run the loop next.**

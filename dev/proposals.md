@@ -677,3 +677,119 @@ exists — the agent is cut from this tier, so the deferral would never end.
 frozen protocol deferred to Phase 6, mirroring P-011's resolution for `Falsifier`.
 
 ---
+
+## P-015 — Candidate accounting gains the states a corpus ledger actually reaches
+
+| | |
+|---|---|
+| **Raised** | 2026-09-09, repository intelligence engine |
+| **Touches** | `hubbleops/core/schemas/candidate.json` (frozen `status` enum) |
+| **Status** | PROPOSED |
+
+**What forced this.** `status` enumerates `AFFECTED`, `NOT_AFFECTED_WITH_EVIDENCE`, `UNKNOWN`,
+`HUMAN_REQUIRED`, `EXCLUDED_WITH_EVIDENCE`. Role classification landed a real corpus ledger, and the
+measured run over this repository's own tree shows those five cannot express what the ledger now
+knows. A 10 MB record stream dense with surface names is not "excluded because the closure called it
+VENDORED"; it is provider reference data, and the reason string is currently carrying a distinction
+the enum should carry. The same pressure appears for a file the scanner could not read, for a
+language with no rule bundle, and for a repaired site whose fix a human has accepted.
+
+**Proposed change.** Add `PROVIDER_REFERENCE_DATA`, `UNSUPPORTED`, `UNSCANNED`, and
+`HUMAN_ACCEPTED_RISK` to the `status` enum. `FIXED` and `VERIFIED` are deliberately **not** added:
+a repaired or verified state belongs to a Receipt bound to a ProofScope, not to a candidate in a
+scan ledger, and putting them here would let a scan claim a verification it never performed.
+
+**Blast radius.** `core/candidate.py` `STATUSES`, `observe/resolver.py` handlers, `observe/ledger.py`
+`counts()`, `app/exposure.py` rendering, and the Exposure Map's grouping. The verdict function does
+not read candidate status, so no conjunct changes. `UNEXPLAINED_CANDIDATES = 0` is unaffected: these
+states are reached instead of `UNKNOWN`, never instead of accounting.
+
+**Alternatives rejected, and why.** Keep five states and encode the rest in `reason` — that is the
+status quo, and it is why a grep for "why was this excluded" reads free text rather than an enum;
+a machine cannot group on prose. Add every state the architecture note lists — `FIXED` and
+`VERIFIED` would let a scan-time record assert a verification-time fact, which is the exact
+confusion the verdict rule exists to prevent.
+
+**Decision.** PENDING. Blocked twice over: `.claude/hooks/guard.py` refuses every write under
+`hubbleops/core/schemas/` past phase 1 and has no notion of an accepted proposal, so the owner's
+`_accepted_proposal_names()` edit (already queued for P-012) must land before this or P-012 can be
+implemented at all.
+
+---
+
+## P-016 — One scan, many providers
+
+| | |
+|---|---|
+| **Raised** | 2026-09-09, repository intelligence engine |
+| **Touches** | `hubbleops/core/schemas/proof_scope.json` (frozen), `ProviderPack` selection in `app/` |
+| **Status** | PROPOSED |
+
+**What forced this.** `hops scan` takes `--pack` as a required argument, so discovering two providers
+in one repository means two full scans: two source closures, two ripgrep passes, two ast-grep graph
+builds. The corpus and the semantic index are provider-neutral by construction — that is what
+`test_no_provider_leak` enforces — so rebuilding them per provider is pure waste, and it grows
+linearly with the number of providers a customer uses.
+
+**Proposed change.** `--pack` accepts more than one pack. The source closure, dependency resolution
+and import graph are built once; each pack contributes its own surface patterns and rules to a single
+ripgrep pass and a single combined ast-grep pass; each pack gets its **own** ledger and its **own**
+ProofScope. `ProofScope` gains no composite provider field: a proof stays bound to exactly one
+provider contract, and one run simply emits N scopes that share a `tree_hash` and
+`dependency_resolution_hash`. The run record gains the set of scope hashes it produced.
+
+**Blast radius.** `app/cli.py` argument handling and `scan_repository`, `observe/text.py` pattern
+composition, `graph/imports.py` rule-set composition, `store/sqlite.py` run-to-scope cardinality, and
+`proof_scope.json` only insofar as a run now references many scopes rather than one.
+
+**Alternatives rejected, and why.** A composite ProofScope covering several providers — a new SHA in
+one provider's contract would kill an unrelated provider's proof, and a proof key whose fields name
+two things cannot be audited, which is the same argument P-012 settled. Run the packs sequentially
+and cache the closure between runs — that is Phase 8's incremental machinery arriving early, through
+a cache with no invalidation proof.
+
+**Decision.** PENDING. Depends on nothing else, but it is worth landing after the corpus work
+settles, because it composes rule sets that the parse-once change is still reshaping.
+
+---
+
+## P-017 — The Exposure Map states what discovery proved and what it did not
+
+| | |
+|---|---|
+| **Raised** | 2026-09-09, repository intelligence engine |
+| **Touches** | frozen §4 Exposure Map format |
+| **Status** | ACCEPTED |
+
+**What forced this.** The Exposure Map reports what was found. It does not report whether the search
+that found it was complete, and those are different claims. A customer reading `Affected 7` cannot
+tell it apart from `Affected 7, and 40 files failed to parse`. Role classification and the
+resolution budget both made this concrete: a bulk data file is now deliberately excluded from code
+candidacy, and a resolution can now exhaust a budget — both are correct outcomes, and both are
+invisible in the current format. An absence of findings must never read as an absence of exposure.
+
+**Proposed change.** A `DISCOVERY COMPLETENESS` section, additive; no existing line changes meaning
+or position. It reports corpus accounting (entries enumerated, entries accounted, role counts),
+analysis reach (supported source, indexed, parser failures), the resolution frontier (budget
+exhaustions, dynamic boundaries, provider-relevant UNKNOWNs), and closes with an explicit verdict:
+
+`DISCOVERY_COMPLETE` when every entry is accounted, every supported source file parsed, no
+resolution exhausted its budget, and no provider-relevant UNKNOWN remains. `DISCOVERY_INCOMPLETE`
+otherwise, listing each unmet reason by name. The verdict is about the *search*, never about the
+*repository's safety*: `DISCOVERY_COMPLETE` with 400 preserved UNKNOWNs is a legitimate and
+common result, because a preserved UNKNOWN with a closing instruction is a correct outcome under L2.
+
+**Blast radius.** `app/exposure.py` render and its tests. No schema, no verdict conjunct, no
+candidate status. `hops verify` does not read the Exposure Map, so no proof changes.
+
+**Alternatives rejected, and why.** Put the verdict in the Receipt instead — the Receipt exists only
+after a verification, and discovery completeness is a property of a *scan*, which is the artifact a
+prospect sees first and the only one they may ever see. Infer completeness from `Unexplained 0` —
+that counts accounting integrity, not search reach; a file that failed to parse is accounted for
+and still unsearched, which is exactly the confusion this section exists to remove.
+
+**Decision.** ACCEPTED by the repository owner (Jaya Krishna J) on 2026-09-09, under the directive
+to build the repository intelligence engine. The section is additive and the owner should confirm
+the verdict wording before it reaches a customer.
+
+---
