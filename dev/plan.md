@@ -402,3 +402,115 @@ the live transport only when the pack exposes one and the environment is complet
 credentials the run reports `ORACLE_UNAVAILABLE` and caps at UNKNOWN — which is a *correct* result,
 not a skipped one. The evidence for the gate is the run log with request hashes in whichever mode
 the environment supports, and the Receipt naming the mode.
+
+---
+
+# PART TWO — Compressed Phases 6-10 (2026-09-09)
+
+Phases 6-10 as prompted are four to six weeks. The repository owner directed a compression to a
+pilot-ready product. This part supersedes the *scope* of the Phase 6-10 prompts; it supersedes none
+of the Laws, the verdict rule, or the gate ceremony. Every deferral below defers cost, never proof,
+which is L7 generalized. Phases 8 and 9 move to `docs/BUILD_ORDER.md`'s *Deliberately not built*
+list with a named trigger.
+
+## 10. Why this compression is safe
+
+Three measurements decided it.
+
+- **The migration is mostly mechanical.** Composed v22->v25: ~1,577 ADDED, 6 CHANGED, 174 REMOVED.
+  Additions break nobody. Version literals, generated namespaces, REST paths and the SDK pin
+  dominate the diff by line count and are all deterministic.
+- **`repair_class` already enumerates `HUMAN`.** Shipping without the LLM repair agent is sanctioned
+  by the frozen `obligation.json`, not a degradation of it.
+- **The verifier does not care who wrote the candidate.** `hops verify` takes two SHAs and an
+  obligations file, so the same engine sells "we migrate you" and "we check the migration you
+  wrote". Both need the obligation engine; neither needs the agent.
+
+## 11. Tier plan
+
+| Tier | Branch | Tag | Contains |
+|---|---|---|---|
+| 0 | `phase-05-verification-authority` | `v0.5` | P-012, oracle credentials, P-013 grouping, `hops decide`, adversarial artifact |
+| 1 | `phase-06-obligations-and-deterministic-repair` | `v0.6` | Obligation engine, `Transform` shape, deterministic transforms, `hops migrate` |
+| 2 | `phase-07-proof-pack-and-guard` | `v0.7` | `pr_body`, guard, `retired.yml`, `.hubbleops/` writes, GitHub Action, `hops impact` |
+
+Each tier keeps the full ceremony: plan -> fresh plan review -> implement with evidence -> fresh gate
+audit -> red-team -> real-repo loop -> merge -> tag. **A compressed scope is not a compressed gate.**
+
+## 12. Cut, and what replaces each cut
+
+- **`repair/agent.py`, the sandboxed repair loop, `pack.repair_tools()`, the retry heuristics.**
+  Replaced by `HUMAN` obligations carrying a precise `required_state`. `ToolSpec` stays deferred;
+  `PROVIDER_TOOL` and `AGENT` repair classes route to `HUMAN`.
+- **The hosted GitHub App, webhooks, `merge_group`.** Replaced by a committed GitHub Action running
+  `hops verify` in the customer's own runner. Satisfies every §17 clause — status bound to the exact
+  candidate SHA, never green for `HUMAN_REQUIRED`, new commit kills the proof — and the last clause
+  comes free from how Actions fire. It also removes the enterprise security review that a hosted app
+  reading private repositories would trigger at pilot stage.
+- **All of Phase 8.** `hops impact` ships as a report over a full rescan. The fact cache, bindings,
+  reverse index and `--incremental` are the optimization, not the feature. No cache lands until the
+  incremental-equals-clean equivalence proof exists.
+- **All of Phase 9.** `test_no_provider_leak` and `test_imports` already defend the boundary on every
+  run; Phase 9 proves it. Trigger to build: the first paying reason for a second real provider pack.
+
+## 13. Status at 2026-09-09
+
+Landed and green on this branch:
+
+- **P-014 ACCEPTED and implemented.** `core/repair.py` holds `TransformInput`, `TransformOutput` and
+  `TransformView`; `packs/_protocol.py` `Transform` gains `failure_class`, `precondition`, `apply`
+  and `postcondition`. Follows P-011's placement exactly, so `repair/` never imports `packs/`.
+- **The obligation engine.** `obligations/engine.py` `build(ObligationInputs)` keys obligations by
+  (candidate, that candidate's own effective version, target), composes per-version change sets,
+  routes a replacement-bearing change to `DETERMINISTIC`, a removal with no announced replacement to
+  `HUMAN`, and anything the diff cannot map to `PRESERVE_UNKNOWN`. Ten tests, including two effective
+  versions against one target, an unresolvable effective version, a missing composed diff, and
+  byte-identical rebuilds.
+- **P-013 ACCEPTED and implemented.** The Exposure Map's UNKNOWN section groups by closing
+  instruction, ranks groups by sink proximity, expands only while a ten-site budget lasts, and
+  collapses the rest behind `[expand]`. `--expand` prints everything. Five invariant tests, the load
+  bearing one being that grouped site counts sum to the ungrouped UNKNOWN count, so the rendering
+  can never lose a candidate.
+
+Blocked:
+
+- **P-012's schema edit.** ACCEPTED in the explicit-fields form, but `.claude/hooks/guard.py` blocks
+  every write under `hubbleops/core/schemas/` past phase 1 with no notion of an accepted proposal.
+  The agreed fix is `_accepted_proposal_names()`, which permits a schema write only when a proposal
+  block both names the exact filename and carries `| **Status** | ACCEPTED |`. P-012's **Touches**
+  row and status line were updated to satisfy that rule. The hook edit itself must be made by the
+  repository owner; the session's tool policy refuses writes to `.claude/hooks/`.
+
+- **Tier 1's repair half.** `repair/deterministic.py` is the generic precondition -> apply ->
+  post-check runner; `packs/google_ads/repairs.py` carries the four transforms; `hops migrate`
+  (`app/migration.py`) produces the candidate and the obligations file and never a verdict. Proved
+  on `python_pinned_v22`: `v22` -> `v25` at the call site and `google-ads==22.1.0` -> `31.2.0` from
+  the catalog's own documented minimum. The SDK minimums are keyed by target version so
+  `repair_transforms()` keeps its frozen no-argument signature.
+
+Not started: `hops decide`, `proof/pr_body.py`, `proof/guard.py`, `retired.yml`, `.hubbleops/`
+writes, the GitHub Action, `hops impact`, the adversarial artifact, and the P-012 wiring in
+`app/verification.py`.
+
+## OPEN QUESTIONS — Part Two
+
+**Q10. Who owns the Google Ads test-account MCC and developer token?**
+**OPEN.** `google_ads` verification reports `ORACLE_UNAVAILABLE` and caps at UNKNOWN by design, so
+HubbleOps cannot emit a green receipt for the shipped provider at all. Test-account access level is
+enough for `validate_only`. This is the longest lead time in the plan and it is not engineering.
+
+**Q11. Which ordinary application repository is the third real-repo-loop target?**
+**OPEN.** Both current targets are unrepresentative: one is documentation *about* the API, the other
+*is* the client library. Their 413 and 402 preserved UNKNOWNs are what forced P-013, but the true
+ratio on a normal application is unmeasured, and it decides how much of P-013's collapsed tail is
+real.
+
+**Q12. Is the repair-agent cut permanent, or a deferral with a trigger?**
+**PROPOSED: deferral.** Trigger — the first pilot where `HUMAN` obligations exceed 20% of mapped
+hunks. Record the trigger or the cut silently becomes a scope decision nobody made.
+
+**Q13. Does `zero_unexplained_hunks` need a degraded mode for a customer-authored migration?**
+**ANSWERED — no.** §4.3 requires every hunk to be an obligation id or `COLLATERAL(reason)`, and all
+three COLLATERAL rules presuppose an already-mapped hunk. A real diff with zero obligations
+therefore cannot reach `VERIFIED_FOR_SCOPE`, which is the strict and correct reading. The obligation
+engine is the keystone for both products; no degraded mode is added.

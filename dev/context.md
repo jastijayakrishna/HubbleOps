@@ -10,7 +10,81 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Current phase** | 5 — Independent Verification Authority. Phase 4 is merged to `main` and tagged `v0.4` |
 | **Branch** | `phase-05-verification-authority`, cut from `main` at `v0.4` |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
-| **Next action** | Phase 5 is implemented, its suites are green, and the red-team has run against it. **Start by running a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md)** — the one launched on 2026-09-08 died on an account session limit before running a command, so Phase 5 has no gate result at all. Then the real-repo loop. P-009 must still be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+| **Next action** | Two owner actions block everything else: add `_accepted_proposal_names()` to `.claude/hooks/guard.py` so the ACCEPTED P-012 schema edit is permitted, and obtain a Google Ads test-account MCC plus developer token so a `VERIFIED_FOR_SCOPE` receipt is reachable at all. Then wire P-012, finish Tier 1's deterministic transforms and `hops migrate`, and rerun the fresh independent gate. Rootless Podman is unavailable to this Windows test process, so its eight runtime-isolation checks remain skips rather than evidence. Full suite baseline on 2026-09-09 before this session's work: **626 passed**, exit 0, 15m51s. Nothing has been pushed. |
+
+**Compression of Phases 6-10 (2026-09-09).** The repository owner directed a compression to a
+pilot-ready product; the tier plan is PART TWO of `dev/plan.md`. What justified it, measured rather
+than assumed: the composed v22->v25 contract diff is ~1,577 ADDED, 6 CHANGED and 174 REMOVED, so the
+migration is dominated by version literals, generated namespaces, REST paths and the SDK pin, all
+deterministic; `repair_class` in the frozen `obligation.json` already enumerates `HUMAN`, so shipping
+without the LLM repair agent is sanctioned by the schema rather than a degradation of it; and
+`hops verify` takes two SHAs and an obligations file, so it never cared who wrote the candidate.
+Cut: `repair/agent.py` and the sandboxed repair loop, the hosted GitHub App (a committed Action in
+the customer's own runner satisfies every §17 clause and removes an enterprise security review), all
+of Phase 8's machinery (`hops impact` ships over a full rescan), and all of Phase 9. Every cut defers
+cost, never proof. **A compressed scope is not a compressed gate** — each tier still needs a fresh
+audit, the red-team and a real-repo loop.
+
+Landed on this branch under that plan: **P-014** (`Transform` gains `failure_class`, `precondition`,
+`apply`, `postcondition`, with `TransformInput`/`TransformOutput` in `core/repair.py` following
+P-011's placement so `repair/` never imports `packs/`); the **obligation engine**
+(`obligations/engine.py`, keyed by candidate and that candidate's *own* effective version against one
+target, `DETERMINISTIC` only where the diff names a replacement, `HUMAN` for a removal with none,
+`PRESERVE_UNKNOWN` for anything that does not compose); and **P-013** (the Exposure Map's UNKNOWN
+section groups by closing instruction, ranks by sink proximity, and collapses past a ten-site
+budget). Two things a later session must not undo: the grouping test asserts grouped site counts sum
+to the ungrouped UNKNOWN count, because a rendering that can lose a candidate is an L1 violation with
+a delay; and the group-expansion budget is checked *including* the candidate group, not before it —
+the first implementation checked before, so a 40-site group slipped through fully expanded.
+
+Tier 1's repair half also landed. `repair/deterministic.py` is a generic runner — precondition,
+apply, post-check — that threads text through several obligations touching one file, reverts on a
+failed post-check without writing, and converts a throwing transform into `TRANSFORM_FAILED` instead
+of a crash. `packs/google_ads/repairs.py` holds four transforms: version literal, REST path, subject
+rename and SDK pin. `hops migrate` (`app/migration.py`) scans, builds obligations, runs the
+transforms, writes the changed files and emits the obligations JSON that `hops verify --obligations`
+already consumes. It prints, and returns, no verdict.
+
+Proved end to end on `tests/fixtures/phase1/python_pinned_v22`, copied out of the repository:
+`version="v22"` became `version="v25"`, and `google-ads==22.1.0` became `google-ads==31.2.0` — the
+latter read from the catalog's own `client_compatibility.minimum_versions` for v25, never guessed.
+Three things a later session must not undo. The SDK pin's minimums are keyed by *target version*
+rather than captured at construction, so `repair_transforms()` keeps the frozen no-argument
+`ProviderPack` signature and a non-default `--target` still gets the right floor. A transform whose
+`precondition` returns false is not a failure: the obligation stays open and the runner reports
+`NO_TRANSFORM`, which is how a language with no documented minimum (JavaScript has none) correctly
+declines instead of inventing a pin. And `hops migrate` writes the working tree but does not commit,
+because committing on a user's behalf is hard to reverse and `hops verify` works on any two SHAs.
+
+`packs/_mock` gained a transform of its own at the same time, because the pack conformance test
+asserted `repair_transforms() == []` with the message "repair transforms and tools ship in Phase 6" —
+a placeholder asserting the feature's *absence*. Replacing it with the falsifier block's shape
+(non-empty, protocol-conforming, unique names, every `failure_class` set) meant `_mock` had to reach
+parity, which is the better outcome anyway: `repair/deterministic.py` is now exercised by two
+independent pack implementations rather than one, so the abstraction has evidence rather than a
+claim. `repair_tools()` stays `[]` on both, and the assertion now says why — `ToolSpec` is deferred
+until a `PROVIDER_TOOL` class ships. Note the frozen-dataclass trap: `Transform` declares writable
+attributes, so a member annotated `Transform` cannot be a `frozen=True` dataclass; `MockRemovedField`
+had already solved this with plain `@dataclass(slots=True)`.
+
+The first end-to-end run exposed a defect worth remembering: a dependency pin is AFFECTED but carries
+`sdk_installed` evidence, not `call_version`, so requiring a resolvable effective version turned
+every SDK-pin obligation into `EFFECTIVE_VERSION_UNRESOLVED` and the pin was silently never bumped.
+A dependency candidate now earns its obligation directly against the target. **The general shape:
+"what version is this site on" is not one question — a call site answers it from a literal, a
+dependency answers it from a compatibility table, and code that assumes the first silently drops the
+second.**
+
+**P-012 is ACCEPTED but not implemented, and the blocker is the guard hook.** The accepted form is
+explicit `verification_inputs_hash` and `oracle_context_hash` fields on the frozen ProofScope schema,
+not composition into `build_config_hash`, because a proof key whose fields name what they cover can
+be audited and one field meaning two things cannot. `.claude/hooks/guard.py` refuses every write
+under `hubbleops/core/schemas/` past phase 1 and has no notion of an accepted proposal, so it blocks
+the one path CLAUDE.md permits. The agreed repair is `_accepted_proposal_names()`, allowing a schema
+write only when a proposal block names the exact filename *and* carries
+`| **Status** | ACCEPTED |`; P-012's **Touches** row now names
+`hubbleops/core/schemas/proof_scope.json` literally so the rule has teeth. That hook edit is the
+owner's to make.
 
 Phase 5 (2026-09-08): `hops verify <base> <candidate> --pack <name>` ships. `verify/` holds the six
 checks and the pure verdict; `proof/receipt.py` writes `receipt.json` and `receipt.md` in the §16
@@ -60,9 +134,29 @@ has `dash` as `/bin/sh`, whose `ulimit` has no `-u`, so the mandatory process bo
 applied and every verifier run refused to start. The capture images are Alpine; the verifier is now a
 distinct Alpine digest, measured applying all six rlimits. Do not move it to a Debian base.
 
-Eight of the eleven corruptions are still caught by exactly one stage. That is recorded rather than
-fixed: defence in depth for the response-consumer class is the obvious next hardening, and the
-red-team's own note names it.
+The response-consumer class now has two independent defences. The graph consumer analysis catches
+literal, getter, concatenated and formatted reads; the candidate audit independently scans every
+non-test source for removed and renamed subjects with a trie matcher that tolerates split literals
+without matching identifier superstrings. Both defences are asserted against the exact and split
+corruptions.
+
+Phase 5 gate hardening (2026-09-09) closed eleven additional false-proof paths. Binary diffs now
+materialize containment hunks; top-level edits and deleted base definitions enter the blast radius;
+lockfiles are collateral only to dependency obligations; a frozen suite with no passing test and an
+abnormal pytest exit are unresolved; empty, skipped, throwing or malformed falsifiers and oracles
+cannot pass silently; every verification input is bounded and shape-validated; capture input is
+validated against Phase 4's frozen event schema and its `request_text` is reconstructed for the
+oracle; dynamic versions and removed subjects reach audit and pack falsifiers; request shapes include
+the API version and recursively traverse objects inside arrays; and source-language coverage uses
+the graph's complete suffix map. Focused Phase 5 result: **179 passed, 8 skipped**. Full result:
+**586 passed, 40 skipped**. Ruff, format, and strict Pyright are clean.
+
+The same audit found one frozen-boundary defect and therefore ended **GATE: FAIL**. The candidate
+tree alone determines the current verification ProofScope; changing the base, selected versions,
+obligations, decisions, captures, or live oracle authority can change the verdict without changing
+the scope hash. P-012 is OPEN with the required input-manifest and oracle-context design. A bare
+capture is used as explicit verification input but is not promoted into source-bound ledger evidence.
+No Google Ads credentials are present, so the prompt's mandatory live oracle run is also outstanding.
 
 Phase 4 merge (2026-09-08): merged to `main` as a `--no-ff` commit and tagged `v0.4`, on the
 repository owner's instruction. Two things a later session must not misread. First, the merged bytes

@@ -5,6 +5,66 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] Plan the compression of Phases 6-10 into three tiers on the owner's instruction, and record it
+      as PART TWO of [dev/plan.md](plan.md). Measured what justified it: composed v22->v25 is ~1,577
+      ADDED, 6 CHANGED and 174 REMOVED, so the migration is dominated by deterministic work; and
+      `repair_class` already enumerates `HUMAN`, so shipping without the repair agent is sanctioned
+      by the frozen schema rather than a degradation of it
+- [x] Raise and accept **P-014**: `Transform` gains `failure_class`, `precondition`, `apply` and
+      `postcondition`, with `TransformInput`/`TransformOutput` in `core/repair.py` following P-011's
+      placement. `ToolSpec` stays deferred and the `PROVIDER_TOOL`/`AGENT` classes route to `HUMAN`
+- [x] Implement `obligations/engine.py`: obligations keyed by (candidate, that candidate's own
+      effective version, target), per-version composed change sets, `DETERMINISTIC` for a
+      replacement-bearing change, `HUMAN` for a removal with no announced replacement, and
+      `PRESERVE_UNKNOWN` for anything the diff cannot map. Ten tests pass
+- [x] Raise and accept **P-013**, and implement it: the Exposure Map's UNKNOWN section groups by
+      closing instruction, ranks by sink proximity, expands while a ten-site budget lasts and
+      collapses the rest behind `[expand]`. The load-bearing test asserts grouped site counts sum to
+      the ungrouped UNKNOWN count, so grouping can never lose a candidate. Found and fixed a real
+      defect on the first run: the budget was checked before adding a group, so a 40-site group
+      slipped through expanded
+- [ ] **Owner action — blocks P-012.** `.claude/hooks/guard.py` refuses every write under
+      `hubbleops/core/schemas/` past phase 1 and has no notion of an accepted proposal, so it also
+      blocks the one path CLAUDE.md permits. Add `_accepted_proposal_names()` so a schema write is
+      legal only when a proposal block names the exact filename and carries
+      `| **Status** | ACCEPTED |`. P-012's **Touches** row and status already satisfy that rule. The
+      session tool policy refuses writes to `.claude/hooks/`, so this edit is the owner's
+- [ ] **Owner action — blocks the only green-receipt demo.** Obtain a Google Ads test-account MCC and
+      a developer token at test-account access level. Until then `google_ads` verification reports
+      `ORACLE_UNAVAILABLE` and caps at UNKNOWN by design, so no `VERIFIED_FOR_SCOPE` is reachable for
+      the shipped provider. Longest lead time in the plan and not engineering (plan Q10)
+- [ ] Wire P-012 once the hook allows the schema edit: `verification_inputs_hash` and
+      `oracle_context_hash` as explicit ProofScope fields, `ContractOracle.context_hash()`, and the
+      verifier refusing an obligation, decision, capture or oracle result whose declared scope does
+      not match the recomputed manifest
+- [x] Implement Tier 1's repair half: `repair/deterministic.py` (a generic precondition -> apply ->
+      post-check runner that threads text through several obligations on one file, reverts on a
+      failed post-check, and turns a throwing transform into `TRANSFORM_FAILED` rather than a crash);
+      `packs/google_ads/repairs.py` with four transforms — version literal, REST path, subject
+      rename, SDK pin; and `hops migrate` in `app/migration.py`. Proved end to end on the
+      `python_pinned_v22` fixture: `version="v22"` -> `version="v25"` and `google-ads==22.1.0` ->
+      `google-ads==31.2.0`, the latter read from the catalog's own `client_compatibility` minimum
+      rather than guessed. 26 tests
+- [x] Fix the defect that first end-to-end run exposed: a dependency pin is AFFECTED but carries no
+      `call_version` evidence, so requiring a resolvable effective version turned every SDK-pin
+      obligation into `EFFECTIVE_VERSION_UNRESOLVED` and the pin was never bumped. A dependency
+      candidate now earns its obligation directly against the target. Regression test added
+- [x] Bring `packs/_mock` to transform parity and replace the pack-conformance placeholder that
+      asserted `repair_transforms() == []` ("ship in Phase 6") with the falsifier block's real shape:
+      non-empty, protocol-conforming, unique names, every `failure_class` set. `repair/` is now
+      exercised by two independent pack implementations, so the abstraction has evidence rather than
+      a claim. `repair_tools()` stays `[]` on both and the assertion now names why
+- [ ] `hops migrate` writes to the working tree and does not commit. Deciding whether it should
+      commit to produce the candidate SHA itself is deferred: committing on a user's behalf is
+      hard to reverse, and `hops verify <base> <candidate>` works on any two SHAs the user makes
+- [ ] Tier 0 remainder: `hops decide` (the Exposure Map advertises a verb that does not exist) and
+      the adversarial-suite artifact rendering FA-019 and its permanent regression
+- [ ] Tier 2: `proof/pr_body.py`, `proof/guard.py` with `.hubbleops/retired.yml`, the `.hubbleops/`
+      writes, the GitHub Action replacing the hosted App, and `hops impact` over a full rescan
+- [ ] Pick the third real-repo-loop target: an ordinary application repository, not one that is
+      documentation about the API or the client library itself (plan Q11). It decides how much of
+      P-013's collapsed tail is real
+
 - [x] Merge Phase 4 to `main` and tag `v0.4` on the owner's instruction, recording that the merged
       bytes rest on a green full suite rather than a second gate audit, and that the merge is the
       decision on P-010
@@ -31,14 +91,20 @@ Updated before every session ends. Phase-level status lives in
       Debian-based image's `dash` has no `ulimit -u`, so the mandatory process bound could not be
       applied and the verifier could not start at all. Moved to a distinct Alpine digest, measured
       applying all six rlimits
-- [ ] Add defence in depth for the response-consumer class. Eight of the eleven corruptions are
-      caught by exactly one stage, and the P0 showed what a single stage is worth: the consumer check
-      is the only thing standing between a renamed field and a green verdict
-- [ ] **Run a fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md).** It was launched
-      on 2026-09-08 and died on an account session limit before it ran a single command, so Phase 5
-      has NO gate result — not a pass, not a fail. The builder ran the audit's Law-violation
-      experiments itself and every one failed closed, but the builder never grades itself: that is
-      evidence the auditor can start from, not a substitute for the audit
+- [x] Add defence in depth for the response-consumer class: independent candidate-source extinction
+      now catches exact, split and multiline removed or renamed subjects in addition to the graph
+      consumer analysis, with both defences asserted on the adversarial fixtures
+- [x] Run the 2026-09-09 audit-and-repair pass. It closed binary containment, deleted/top-level blast
+      radius, lockfile collateral, all-skipped/abnormal frozen-suite, disarmed/malformed check,
+      bounded-input, Phase-4 capture-schema, dynamic extinction, nested-shape, language-coverage and
+      verifier-marker gaps. Focused Phase 5: 179 passed, 8 Podman skips; full suite: 586 passed,
+      40 skips; Ruff, format and strict Pyright clean; all four Law attacks failed closed
+- [ ] Decide and implement **P-012**. Base/version selection, obligations, decisions, captures and
+      live oracle context can change the verdict without moving the frozen ProofScope. Until all are
+      bound, Phase 5 cannot make a reusable proof claim and the 2026-09-09 gate result is `GATE: FAIL`
+- [ ] Rerun a fresh independent [gate audit](../prompts/cross-cutting/gate-audit.md) after P-012 and
+      live oracle evidence are closed. The audit must also execute the eight rootless-Podman runtime
+      isolation tests rather than count their environment skips
 - [ ] Run the Phase 5 [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) after the gate.
       Only a literal `GATE: PASS` permits the merge to `main` and the `v0.5` tag
 - [ ] Phase 5 ships no live Google Ads oracle run: no test-account credentials exist on this machine,
@@ -206,8 +272,8 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 4 — dynamic capture + sentinel *(fresh `GATE: PASS` on `e408545`; merged to `main` and
       tagged `v0.4` on 2026-09-08 by the owner's instruction, on a green full suite rather than a
       second audit of the hardening commits)*
-- [ ] Phase 5 — verification authority *(implemented; red-team, fresh gate audit and real-repo loop
-      still owed before merge and `v0.5`)*
+- [ ] Phase 5 — verification authority *(implemented and audit-hardened; blocked on P-012, mandatory
+      live oracle evidence, a fresh passing gate, and the real-repo loop before merge and `v0.5`)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard
 - [ ] Phase 8 — incremental system
@@ -225,5 +291,6 @@ loop (from Phase 2).
 
 ## Blocked / parked
 
-- Nothing is parked. Production-services accounting now prints `N/M` whenever a telemetry or
-  sentinel observer is in the ProofScope, and "not in this ProofScope" only when neither is.
+- P-012 blocks the Phase 5 gate: verdict-affecting verification inputs are outside ProofScope.
+- The mandatory live Google Ads oracle run needs test-account credentials that are absent here.
+- P-009 remains parked while AI triage is default-off and disconnected.
