@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from hubbleops.closure import source_closure
-from hubbleops.closure.source_closure import Classification
+from hubbleops.closure.source_closure import Classification, FileRole
 
 
 def build_tree(root: Path) -> None:
@@ -50,6 +50,68 @@ def test_classifications_follow_the_documented_precedence(tmp_path: Path) -> Non
     assert by_path["src/marked.py"].classification is Classification.GENERATED
     assert by_path["assets/logo.png"].classification is Classification.UNSCANNED
     assert by_path["assets/blob.dat"].classification is Classification.UNSCANNED
+
+
+def build_role_tree(root: Path) -> None:
+    (root / "src").mkdir(parents=True)
+    (root / "src" / "app.py").write_text("value = 1\n", encoding="utf-8")
+    (root / "package.json").write_text('{"name": "app"}\n', encoding="utf-8")
+    (root / "pyproject.toml").write_text("[project]\nname = 'app'\n", encoding="utf-8")
+    (root / "data").mkdir()
+    (root / "data" / "records.jsonl").write_text('{"a": 1}\n', encoding="utf-8")
+    (root / "data" / "table.csv").write_text("a,b\n1,2\n", encoding="utf-8")
+    (root / "data" / "small.json").write_text('{"a": 1}\n', encoding="utf-8")
+    (root / "data" / "big.json").write_text(
+        "[" + ",".join('{"a": 1}' for _ in range(40000)) + "]\n", encoding="utf-8"
+    )
+    (root / "tests" / "__snapshots__").mkdir(parents=True)
+    (root / "tests" / "__snapshots__" / "view.json").write_text("{}\n", encoding="utf-8")
+    (root / "cassettes").mkdir()
+    (root / "cassettes" / "call.yaml").write_text("body: x\n", encoding="utf-8")
+    (root / "README.md").write_text("docs\n", encoding="utf-8")
+    (root / "settings.ini").write_text("[a]\nb = 1\n", encoding="utf-8")
+
+
+def test_every_entry_carries_exactly_one_role(tmp_path: Path) -> None:
+    build_role_tree(tmp_path)
+    closure = source_closure.build(tmp_path)
+    assert all(isinstance(entry.role, FileRole) for entry in closure.entries)
+    assert sum(closure.role_counts().values()) == len(closure.entries)
+
+
+def test_roles_separate_data_from_code_and_manifests(tmp_path: Path) -> None:
+    build_role_tree(tmp_path)
+    by_path = source_closure.build(tmp_path).by_path()
+    assert by_path["src/app.py"].role is FileRole.SOURCE
+    assert by_path["package.json"].role is FileRole.MANIFEST
+    assert by_path["pyproject.toml"].role is FileRole.MANIFEST
+    assert by_path["data/records.jsonl"].role is FileRole.DATA
+    assert by_path["data/table.csv"].role is FileRole.DATA
+    assert by_path["data/big.json"].role is FileRole.DATA
+    assert by_path["data/small.json"].role is FileRole.CONFIG
+    assert by_path["tests/__snapshots__/view.json"].role is FileRole.SNAPSHOT
+    assert by_path["cassettes/call.yaml"].role is FileRole.SNAPSHOT
+    assert by_path["README.md"].role is FileRole.DOCUMENTATION
+    assert by_path["settings.ini"].role is FileRole.CONFIG
+
+
+def test_source_and_manifest_roles_are_never_collapsed_or_treated_as_bulk(tmp_path: Path) -> None:
+    build_role_tree(tmp_path)
+    by_path = source_closure.build(tmp_path).by_path()
+    for path in ("src/app.py", "package.json", "pyproject.toml"):
+        assert not by_path[path].carries_bulk_data()
+        assert not by_path[path].may_collapse_references()
+    assert by_path["src/app.py"].carries_analyzable_code()
+
+
+def test_a_bulk_data_file_is_enumerated_but_not_analyzable_code(tmp_path: Path) -> None:
+    build_role_tree(tmp_path)
+    closure = source_closure.build(tmp_path)
+    by_path = closure.by_path()
+    assert by_path["data/records.jsonl"].carries_bulk_data()
+    assert not by_path["data/records.jsonl"].carries_analyzable_code()
+    assert "data/records.jsonl" in {entry.path for entry in closure.entries}
+    assert "data/records.jsonl" in {entry.path for entry in closure.bulk_data()}
 
 
 def test_binary_media_and_opaque_binaries_are_told_apart(tmp_path: Path) -> None:

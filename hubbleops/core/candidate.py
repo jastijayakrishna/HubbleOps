@@ -54,7 +54,7 @@ def claim_key(record: Mapping[str, Any]) -> str:
             f"{value.get('code')}:{value.get('row')}:{value.get('service')}:"
             f"{value.get('method')}:{value.get('version')}:{path}"
         )
-    if claim_type in ("file_unscanned", "structure_unsupported"):
+    if claim_type in ("file_unscanned", "structure_unsupported", "bulk_data_reference"):
         return path
     if claim_type == "external_boundary":
         payload = value.get("payload")

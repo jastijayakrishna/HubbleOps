@@ -259,6 +259,58 @@ def test_a_file_ripgrep_cannot_read_does_not_throw_the_whole_scan_away(
     assert book.counts()["unexplained"] == 0
 
 
+def test_a_record_stream_dense_with_surface_names_becomes_one_accounted_candidate(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    rows = "".join(f'{{"client": "MockProvClient", "row": {index}}}\n' for index in range(500))
+    build(tmp_path, {"data/catalog.jsonl": rows})
+
+    book = scan_repository(tmp_path, mock_pack).ledger
+    bulk = [
+        candidate
+        for candidate in book.candidates
+        if book.location_of(candidate).claim_type == "bulk_data_reference"
+    ]
+
+    assert len(bulk) == 1
+    assert bulk[0]["status"] == "EXCLUDED_WITH_EVIDENCE"
+    assert book.location_of(bulk[0]).path == "data/catalog.jsonl"
+    assert book.counts()["unexplained"] == 0
+
+
+def test_collapsing_a_bulk_file_never_loses_a_match(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    rows = "".join(f'{{"client": "MockProvClient", "row": {index}}}\n' for index in range(500))
+    build(tmp_path, {"data/catalog.jsonl": rows})
+
+    book = scan_repository(tmp_path, mock_pack).ledger
+    record = next(item for item in book.evidence if item["claim_type"] == "bulk_data_reference")
+
+    assert record["value"]["match_count"] >= 500
+    assert record["value"]["line_count"] == 500
+    assert "MockProvClient" in record["value"]["subjects"]
+
+
+def test_a_source_file_with_many_surface_names_is_never_collapsed(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    lines = "".join(f'client_{index} = MockProvClient(version="v22")\n' for index in range(300))
+    build(tmp_path, {"src/wide.py": lines})
+
+    book = scan_repository(tmp_path, mock_pack).ledger
+    claim_types = {book.location_of(candidate).claim_type for candidate in book.candidates}
+    located = [
+        candidate
+        for candidate in book.candidates
+        if book.location_of(candidate).path == "src/wide.py"
+    ]
+
+    assert "bulk_data_reference" not in claim_types
+    assert len(located) > 100
+    assert book.counts()["unexplained"] == 0
+
+
 def test_a_call_site_ripgrep_quarantines_as_binary_still_raises_a_candidate(
     tmp_path: Path, mock_pack: registry.LoadedPack
 ) -> None:

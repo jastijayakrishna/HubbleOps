@@ -6,7 +6,7 @@ import re
 import shutil
 import subprocess
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +15,7 @@ from hubbleops.core.canonical import EMPTY_SHA256
 from hubbleops.core.errors import ToolingFailed, ToolingMissing, ToolingTimeout
 from hubbleops.core.evidence import make_evidence
 from hubbleops.core.observer import ObserverContext
-from hubbleops.core.records import as_mapping, as_text
+from hubbleops.core.records import as_mapping, as_sequence, as_text
 from hubbleops.core.surface import SurfaceSpec
 from hubbleops.graph.imports import language_for
 
@@ -25,6 +25,9 @@ RIPGREP_TIMEOUT_SECONDS = 600.0
 VERSION_TIMEOUT_SECONDS = 30.0
 MAX_LINE_CHARS = 512
 MAX_MATCH_CHARS = 200
+MAX_BULK_SUBJECTS = 25
+MAX_BULK_SAMPLES = 3
+BULK_COLLAPSE_RECORDS = 100
 
 REGEX_METACHARACTERS = "\\^$.|?*+()[]{}"
 NAMED_GROUP = re.compile(r"\(\?P<[A-Za-z_][A-Za-z0-9_]*>")
@@ -32,6 +35,35 @@ NAMED_GROUP = re.compile(r"\(\?P<[A-Za-z_][A-Za-z0-9_]*>")
 LITERAL = "literal"
 VERSION = "version"
 LANGUAGE = "language"
+
+
+@dataclass(slots=True)
+class BulkReference:
+    role: str
+    match_count: int = 0
+    line_count: int = 0
+    subjects: set[str] = field(default_factory=set[str])
+    patterns: set[str] = field(default_factory=set[str])
+    samples: list[str] = field(default_factory=list[str])
+    first_line: int | None = None
+
+    def observe(self, line_number: int | None, line_text: str) -> None:
+        self.line_count += 1
+        if self.first_line is None:
+            self.first_line = line_number
+        if len(self.samples) < MAX_BULK_SAMPLES:
+            self.samples.append(line_text[:MAX_LINE_CHARS])
+
+    def to_value(self) -> dict[str, Any]:
+        return {
+            "role": self.role,
+            "match_count": self.match_count,
+            "line_count": self.line_count,
+            "patterns": sorted(self.patterns),
+            "subjects": sorted(self.subjects)[:MAX_BULK_SUBJECTS],
+            "subjects_truncated": len(self.subjects) > MAX_BULK_SUBJECTS,
+            "samples": list(self.samples),
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -156,6 +188,8 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
     entries = closure.by_path()
     records: dict[str, dict[str, Any]] = {}
     undecodable: dict[str, str] = {}
+    bulk: dict[str, BulkReference] = {}
+    dense: dict[str, list[str]] = {}
 
     enumerated = frozenset(entries)
     for hit in _search(
@@ -176,6 +210,24 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
             undecodable[hit.path] = (
                 hit.reason or "non_utf8: matched content is not decodable as UTF-8"
             )
+            continue
+        if entry.carries_bulk_data():
+            reference = bulk.setdefault(hit.path, BulkReference(role=entry.role.value))
+            reference.observe(hit.line_number, hit.line_text)
+            for pattern, regex in patterns:
+                if (
+                    "any" not in pattern.languages
+                    and language_for(hit.path) not in pattern.languages
+                ):
+                    continue
+                matches = _pattern_matches(pattern, regex, hit.line_text)
+                if not matches:
+                    continue
+                reference.match_count += len(matches)
+                reference.patterns.add(pattern.name)
+                reference.subjects.update(
+                    subject for subject in _subjects(pattern, regex, hit.line_text) if subject
+                )
             continue
         attributed = 0
         for pattern, regex in patterns:
@@ -213,8 +265,43 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
                     confidence="RAW",
                 )
                 records[record["id"]] = record
+                if entry.may_collapse_references():
+                    dense.setdefault(hit.path, []).append(record["id"])
         if attributed == 0:
             continue
+
+    for path in sorted(dense):
+        ids = dense[path]
+        if len(ids) < BULK_COLLAPSE_RECORDS:
+            continue
+        entry = entries[path]
+        reference = BulkReference(role=entry.role.value)
+        for identifier in ids:
+            collapsed = records.pop(identifier)
+            value = dict(as_mapping(collapsed["value"]))
+            reference.observe(collapsed["line_start"], as_text(value.get("line")) or "")
+            reference.match_count += len(as_sequence(value.get("matches")))
+            reference.patterns.add(as_text(value.get("pattern")) or "")
+            if collapsed["provider_subject"] is not None:
+                reference.subjects.add(str(collapsed["provider_subject"]))
+        reference.line_count = len(ids)
+        record = make_evidence(
+            run_id=ctx.run_id,
+            proof_scope_hash=ctx.proof_scope_hash,
+            claim_type="bulk_data_reference",
+            observer=NAME,
+            repo_sha=ctx.repo_sha,
+            path=path,
+            line_start=reference.first_line,
+            line_end=reference.first_line,
+            source_hash=entry.blob_sha or EMPTY_SHA256,
+            value=reference.to_value(),
+            provider_subject=None,
+            dependency_context_hash=ctx.dependency_context_hash,
+            derivation="OBSERVED",
+            confidence="RAW",
+        )
+        records[record["id"]] = record
 
     for path in sorted(undecodable):
         entry = entries[path]
@@ -229,6 +316,29 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
             line_end=None,
             source_hash=entry.blob_sha or EMPTY_SHA256,
             value={"reason": undecodable[path]},
+            provider_subject=None,
+            dependency_context_hash=ctx.dependency_context_hash,
+            derivation="OBSERVED",
+            confidence="RAW",
+        )
+        records[record["id"]] = record
+
+    for path in sorted(bulk):
+        reference = bulk[path]
+        if reference.match_count == 0:
+            continue
+        entry = entries[path]
+        record = make_evidence(
+            run_id=ctx.run_id,
+            proof_scope_hash=ctx.proof_scope_hash,
+            claim_type="bulk_data_reference",
+            observer=NAME,
+            repo_sha=ctx.repo_sha,
+            path=path,
+            line_start=reference.first_line,
+            line_end=reference.first_line,
+            source_hash=entry.blob_sha or EMPTY_SHA256,
+            value=reference.to_value(),
             provider_subject=None,
             dependency_context_hash=ctx.dependency_context_hash,
             derivation="OBSERVED",

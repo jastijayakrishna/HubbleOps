@@ -15,6 +15,7 @@ def claim_key(record: Mapping[str, Any]) -> str:
 
 
 CLAIM_PRECEDENCE: dict[str, tuple[str, ...]] = {
+    "bulk_data_reference": ("text",),
     "sdk_installed": ("lock", "manifest"),
     "call_version": ("per_call", "client_init", "sdk_default", "UNKNOWN"),
     "production_version": ("telemetry", "sentinel", "dynamic", "static"),
@@ -521,7 +522,34 @@ def _observer_state(chosen: Mapping[str, Any], records: Sequence[Mapping[str, An
     )
 
 
+def _bulk_data_reference(
+    chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]
+) -> Resolution:
+    value = as_mapping(chosen["value"])
+    role = value.get("role")
+    matches = value.get("match_count")
+    lines = value.get("line_count")
+    subjects = as_sequence(value.get("subjects"))
+    shown = ", ".join(str(item) for item in subjects[:5])
+    return Resolution(
+        status="EXCLUDED_WITH_EVIDENCE",
+        reason=(
+            f"{chosen['path']} carries the {role} role: {matches} surface matches on {lines} "
+            f"lines ({shown}). A record-stream or snapshot file is provider reference data, not "
+            "first-party code, so it is excluded from code candidacy and no call version is "
+            "claimed from it. Every match is counted here rather than dropped"
+        ),
+        close_with=(
+            "if first-party code loads this file as configuration that selects a provider "
+            "version or field, record that read as a resource-loading edge so the data becomes "
+            "a call site rather than reference data"
+        ),
+        winner_id=str(chosen["id"]),
+    )
+
+
 HANDLERS = {
+    "bulk_data_reference": _bulk_data_reference,
     "call_version": _call_version,
     "config_reference": _config_reference,
     "dependency_state": _dependency_state,
