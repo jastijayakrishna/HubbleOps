@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Protocol, runtime_checkable
 
+from hubbleops.core.repair import TransformInput, TransformOutput
 from hubbleops.core.surface import (
     RequestLanguage,
     SinkArgument,
@@ -219,9 +220,21 @@ class CaptureHooks(Protocol):
 
 @runtime_checkable
 class Transform(Protocol):
-    """Deterministic provider repair transform implemented in a later phase."""
+    """Deterministic provider repair transform: precondition, apply, then post-check.
+
+    A transform whose precondition is false does not apply and does not fail the run; its
+    obligation stays open for a human. A transform whose postcondition is false after applying
+    reverts and names its failure class.
+    """
 
     name: str
+    failure_class: str
+
+    def precondition(self, subject: TransformInput) -> bool: ...
+
+    def apply(self, subject: TransformInput) -> TransformOutput: ...
+
+    def postcondition(self, subject: TransformOutput) -> bool: ...
 
 
 @runtime_checkable
@@ -295,6 +308,8 @@ __all__ = [
     "TelemetryResult",
     "ToolSpec",
     "Transform",
+    "TransformInput",
+    "TransformOutput",
     "Transport",
     "ValidationResult",
     "Version",
