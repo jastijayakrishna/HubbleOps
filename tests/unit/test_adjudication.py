@@ -9,6 +9,7 @@ from hubbleops.app.cli import scan_repository
 from hubbleops.app.registry import load_pack
 
 FIXTURE = Path("tests/fixtures/phase6/adjudication/repo")
+LATTICE_REASON = "no migration inside this pack's lattice changes it"
 
 
 @pytest.fixture(scope="module")
@@ -96,16 +97,24 @@ def test_a_line_holding_the_name_in_code_and_in_a_comment_is_not_adjudicated(
     scanned: Any,
 ) -> None:
     item = candidate_at(scanned, "src/MixedLine.php", 6, "GoogleAdsService")
-    assert item["status"] == "UNKNOWN"
     assert adjudication(scanned, "src/MixedLine.php", 6, "GoogleAdsService") is None
+    assert item["status"] == "NOT_AFFECTED_WITH_EVIDENCE"
+    assert LATTICE_REASON in item["reason"]
 
 
-def test_a_file_the_structural_layer_cannot_parse_keeps_its_recall_unknown(
+def test_a_file_the_structural_layer_cannot_parse_is_never_explained_by_a_parse(
     scanned: Any,
 ) -> None:
+    unscanned = [
+        item
+        for item in scanned.ledger.by_status("UNSCANNED")
+        if "src/Broken.php" in str(item["reason"])
+    ]
+    assert unscanned, "a file whose parse fails has to be a candidate of its own"
     item = candidate_at(scanned, "src/Broken.php", 2, "google-ads")
-    assert item["status"] == "UNKNOWN"
     assert adjudication(scanned, "src/Broken.php", 2, "google-ads") is None
+    assert item["status"] == "NOT_AFFECTED_WITH_EVIDENCE"
+    assert LATTICE_REASON in item["reason"]
 
 
 def test_a_stylesheet_selector_is_explained_by_its_role_not_by_a_parse(scanned: Any) -> None:
@@ -146,4 +155,5 @@ def test_every_adjudicated_candidate_carries_the_structural_record_that_moved_it
             continue
         moved_by_parse = any(record["observer"] == "structure" for record in surface)
         moved_by_role = "source-closure role" in str(item["reason"])
-        assert moved_by_parse or moved_by_role
+        moved_by_lattice = LATTICE_REASON in str(item["reason"])
+        assert moved_by_parse or moved_by_role or moved_by_lattice

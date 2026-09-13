@@ -79,6 +79,18 @@ TEXT_CLAIMS_A_STRUCTURAL_LINE_EXPLAINS = frozenset(
 )
 CONTEXT_GATED_TEXT_CLAIMS = frozenset({"contract_surface", "request_text"})
 GENERIC_SINK_CLAIMS = frozenset({"request_text"})
+LATTICE_DECIDABLE_CLAIMS = frozenset(
+    {
+        "config_reference",
+        "contract_surface",
+        "package_reference",
+        "request_text",
+        "surface_reference",
+    }
+)
+REQUEST_RESOURCE_KIND = "request_resource"
+STABLE_DISPOSITION = "STABLE"
+CHANGES_AT_PREFIX = "CHANGES_AT:"
 
 CLOSE_WITH_CALL_SITE = (
     "resolve the version at this call site: the structure observer's wrapper walk, "
@@ -114,6 +126,8 @@ class ResolutionContext:
     structural_lines: Mapping[tuple[str, int], str] = field(
         default_factory=dict[tuple[str, int], str]
     )
+    stability: Mapping[str, str] = field(default_factory=dict[str, str])
+    lattice: tuple[str, ...] = ()
 
     def version_keys(self) -> frozenset[str]:
         return frozenset(self.surface.config_env_keys) if self.surface else frozenset()
@@ -140,6 +154,8 @@ def resolution_context(
     evidence: Sequence[Mapping[str, Any]],
     surface: SurfaceSpec | None,
     validations: Mapping[str, Mapping[str, Any]] | None,
+    stability: Mapping[str, str] | None = None,
+    lattice: Sequence[str] = (),
 ) -> ResolutionContext:
     contexts: dict[str, str] = {}
     lines: dict[tuple[str, int], str] = {}
@@ -168,6 +184,8 @@ def resolution_context(
         validations=dict(validations or {}),
         file_contexts=contexts,
         structural_lines=lines,
+        stability=dict(stability or {}),
+        lattice=tuple(lattice),
     )
 
 
@@ -251,8 +269,64 @@ def _with_context(
     if explained is not None:
         return explained
     if claim_type in CONTEXT_GATED_TEXT_CLAIMS:
-        return _without_direct_context(chosen, resolution, ctx)
-    return resolution
+        resolution = _without_direct_context(chosen, resolution, ctx)
+    return _lattice_disposition(chosen, claim_type, resolution, ctx)
+
+
+def _lattice_disposition(
+    chosen: Mapping[str, Any], claim_type: str, resolution: Resolution, ctx: ResolutionContext
+) -> Resolution:
+    if resolution.status != "UNKNOWN" or claim_type not in LATTICE_DECIDABLE_CLAIMS:
+        return resolution
+    if not ctx.stability or not ctx.lattice:
+        return resolution
+    subjects = _named_subjects(chosen, claim_type)
+    if not subjects or any(subject in ctx.version_keys() for subject in subjects):
+        return resolution
+    dispositions = {subject: ctx.stability.get(subject) for subject in subjects}
+    changing = {
+        subject: disposition[len(CHANGES_AT_PREFIX) :]
+        for subject, disposition in dispositions.items()
+        if disposition is not None and disposition.startswith(CHANGES_AT_PREFIX)
+    }
+    if changing:
+        boundaries = "; ".join(
+            f"{subject!r} changes at {versions}" for subject, versions in changing.items()
+        )
+        existing = f": {resolution.close_with}" if resolution.close_with else ""
+        return replace(
+            resolution,
+            close_with=(
+                f"{boundaries}; resolve the version at this site to decide which side it "
+                f"runs on{existing}"
+            ),
+        )
+    if any(disposition != STABLE_DISPOSITION for disposition in dispositions.values()):
+        return resolution
+    named = ", ".join(repr(subject) for subject in subjects)
+    verbs = "carries no version and is" if len(subjects) == 1 else "carry no version and are"
+    return Resolution(
+        status="NOT_AFFECTED_WITH_EVIDENCE",
+        reason=(
+            f"{named} at {_location(chosen)} {verbs} stable across {ctx.lattice[0]}…"
+            f"{ctx.lattice[-1]}; no migration inside this pack's lattice changes it"
+        ),
+        close_with=None,
+        winner_id=str(chosen["id"]),
+    )
+
+
+def _named_subjects(chosen: Mapping[str, Any], claim_type: str) -> tuple[str, ...]:
+    if claim_type != "request_text":
+        subject = chosen["provider_subject"]
+        return () if subject is None else (str(subject),)
+    value = as_mapping(chosen["value"])
+    named = {str(item) for item in as_sequence(value.get("matches"))}
+    if value.get("kind") == REQUEST_RESOURCE_KIND:
+        resource = as_text(value.get("resource")) or as_text(chosen["provider_subject"])
+        if resource:
+            named.add(resource)
+    return tuple(sorted(named))
 
 
 def _structural_line(

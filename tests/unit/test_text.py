@@ -87,8 +87,7 @@ def test_a_surface_name_written_only_in_a_manifest_still_raises_a_candidate(
         )
         for candidate in book.candidates
     }
-    assert ("package_reference", "package.json:5", "UNKNOWN") in located
-    assert book.counts()["unknown"] >= 1
+    assert ("package_reference", "package.json:5", "NOT_AFFECTED_WITH_EVIDENCE") in located
     assert book.counts()["unexplained"] == 0
 
 
@@ -98,12 +97,20 @@ def test_a_lock_proving_absence_never_stands_alone_over_a_named_surface(
     build(tmp_path, SCRIPT_ONLY_MANIFEST)
     book = scan_repository(tmp_path, mock_pack).ledger
 
-    assert book.by_status("NOT_AFFECTED_WITH_EVIDENCE")
-    assert [candidate["status"] for candidate in book.candidates] != ["NOT_AFFECTED_WITH_EVIDENCE"]
-    named = {
-        book.location_of(candidate).provider_subject for candidate in book.by_status("UNKNOWN")
-    }
-    assert "mockprov-client" in named
+    named = next(
+        candidate
+        for candidate in book.candidates
+        if book.location_of(candidate).provider_subject == "mockprov-client"
+    )
+    absence = next(
+        candidate
+        for candidate in book.candidates
+        if book.location_of(candidate).claim_type == "sdk_installed"
+    )
+    assert named["id"] != absence["id"]
+    assert "absence is proven by a parsed lock" in absence["reason"]
+    assert "lock" not in named["reason"]
+    assert "no migration inside this pack's lattice changes it" in named["reason"]
 
 
 def test_a_manifest_hit_and_a_source_hit_produce_the_same_recall(

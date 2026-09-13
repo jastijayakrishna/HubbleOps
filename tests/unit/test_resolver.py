@@ -7,6 +7,7 @@ import pytest
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.errors import PathNotInClosure, UnknownClaimType
 from hubbleops.core.evidence import make_evidence
+from hubbleops.core.surface import SurfaceSpec
 from hubbleops.observe import resolver
 from hubbleops.observe.text import patterns_for
 
@@ -237,3 +238,164 @@ def test_the_winner_is_stable_when_ranks_tie() -> None:
 def test_a_location_bound_claim_off_the_closure_stops_rather_than_assuming_first_party() -> None:
     with pytest.raises(PathNotInClosure):
         resolver.resolve_claim("call_version", [record(path="ghost.py")], CLOSURE_TREE)
+
+
+LATTICE = ("v19", "v25")
+BARE_SURFACE = {
+    "name": "bare",
+    "identifiers": ["sdk"],
+    "hosts": ["api.example.test"],
+    "package_names": ["sdk"],
+    "version_carriers": [],
+    "request_languages": [],
+    "sink_argument_positions": [],
+    "config_env_keys": ["KEY"],
+}
+
+
+def stability_context(
+    stability: dict[str, str], surface: SurfaceSpec | None = None
+) -> resolver.ResolutionContext:
+    return resolver.ResolutionContext(surface=surface, stability=stability, lattice=LATTICE)
+
+
+def text_reference(**overrides: Any) -> dict[str, Any]:
+    base: dict[str, Any] = {
+        "claim_type": "surface_reference",
+        "observer": "text",
+        "provider_subject": "sdk",
+        "value": {"pattern": "identifier", "kind": "identifier", "matches": ["sdk"]},
+    }
+    base.update(overrides)
+    return record(**base)
+
+
+def request_anchor(matches: list[str]) -> dict[str, Any]:
+    return record(
+        claim_type="request_text",
+        observer="text",
+        provider_subject="lang",
+        value={"pattern": "lang#0", "kind": "request_language", "matches": matches},
+    )
+
+
+def test_a_stable_surface_reference_is_not_affected_with_the_lattice_as_evidence() -> None:
+    resolution = resolver.resolve_claim(
+        "surface_reference",
+        [text_reference()],
+        CLOSURE_TREE,
+        context=stability_context({"sdk": "STABLE"}),
+    )
+    assert resolution.status == "NOT_AFFECTED_WITH_EVIDENCE"
+    assert "v19…v25" in resolution.reason
+    assert resolution.close_with is None
+
+
+def test_a_reference_that_changes_inside_the_lattice_stays_unknown_naming_the_boundary() -> None:
+    resolution = resolver.resolve_claim(
+        "surface_reference",
+        [text_reference()],
+        CLOSURE_TREE,
+        context=stability_context({"sdk": "CHANGES_AT:v23"}),
+    )
+    assert resolution.status == "UNKNOWN"
+    assert resolution.close_with is not None
+    assert "v23" in resolution.close_with
+    assert resolver.CLOSE_WITH_CALL_SITE in resolution.close_with
+
+
+def test_without_a_stability_table_the_surface_reference_resolves_as_before() -> None:
+    plain = resolver.resolve_claim("surface_reference", [text_reference()], CLOSURE_TREE)
+    empty = resolver.resolve_claim(
+        "surface_reference", [text_reference()], CLOSURE_TREE, context=stability_context({})
+    )
+    assert plain == empty
+    assert plain.status == "UNKNOWN"
+    assert plain.close_with == resolver.CLOSE_WITH_CALL_SITE
+
+
+def test_an_undecided_or_absent_subject_leaves_the_surface_reference_unknown() -> None:
+    for table in ({"sdk": "UNDECIDED"}, {"other": "STABLE"}):
+        resolution = resolver.resolve_claim(
+            "surface_reference", [text_reference()], CLOSURE_TREE, context=stability_context(table)
+        )
+        assert resolution.status == "UNKNOWN"
+        assert resolution.close_with == resolver.CLOSE_WITH_CALL_SITE
+
+
+def test_a_request_anchor_whose_fields_are_all_stable_is_not_affected() -> None:
+    resolution = resolver.resolve_claim(
+        "request_text",
+        [request_anchor(["m.clicks", "m.cost"])],
+        CLOSURE_TREE,
+        context=stability_context({"m.clicks": "STABLE", "m.cost": "STABLE"}),
+    )
+    assert resolution.status == "NOT_AFFECTED_WITH_EVIDENCE"
+    assert "m.clicks" in resolution.reason and "m.cost" in resolution.reason
+
+
+def test_a_request_anchor_with_one_changing_field_stays_unknown_naming_the_boundary() -> None:
+    resolution = resolver.resolve_claim(
+        "request_text",
+        [request_anchor(["m.clicks", "m.cost"])],
+        CLOSURE_TREE,
+        context=stability_context({"m.clicks": "STABLE", "m.cost": "CHANGES_AT:v22,v24"}),
+    )
+    assert resolution.status == "UNKNOWN"
+    assert resolution.close_with is not None
+    assert "'m.cost' changes at v22,v24" in resolution.close_with
+
+
+def test_a_request_anchor_without_matches_is_never_closed_by_the_lattice() -> None:
+    resolution = resolver.resolve_claim(
+        "request_text",
+        [request_anchor([])],
+        CLOSURE_TREE,
+        context=stability_context({"lang": "STABLE"}),
+    )
+    assert resolution.status == "UNKNOWN"
+
+
+def test_a_version_selecting_config_key_is_untouched_by_the_stability_table() -> None:
+    surface = SurfaceSpec.from_mapping(BARE_SURFACE)
+    key = record(
+        claim_type="config_reference",
+        observer="text",
+        provider_subject="KEY",
+        value={"pattern": "KEY", "kind": "config_key", "matches": ["KEY"]},
+    )
+    resolution = resolver.resolve_claim(
+        "config_reference",
+        [key],
+        CLOSURE_TREE,
+        context=stability_context({"KEY": "STABLE"}, surface),
+    )
+    assert resolution.status == "UNKNOWN"
+    assert resolution.close_with == resolver.CLOSE_WITH_RUNTIME_CONFIG
+
+
+def test_a_structure_adjudicated_reference_is_untouched_by_the_stability_table() -> None:
+    adjudicated = record(
+        claim_type="surface_reference",
+        observer="structure",
+        provider_subject="sdk",
+        value={"node_kind": "identifier", "binding": "sdk.Client"},
+    )
+    resolution = resolver.resolve_claim(
+        "surface_reference",
+        [adjudicated, text_reference()],
+        CLOSURE_TREE,
+        context=stability_context({"sdk": "STABLE"}),
+    )
+    assert resolution.status == "UNKNOWN"
+    assert resolution.winner_id == adjudicated["id"]
+    assert resolution.close_with == resolver.CLOSE_WITH_CALL_SITE
+
+
+def test_the_resolution_context_carries_the_stability_table_and_lattice() -> None:
+    context = resolver.resolution_context(
+        [], None, None, stability={"sdk": "STABLE"}, lattice=LATTICE
+    )
+    assert context.stability == {"sdk": "STABLE"}
+    assert context.lattice == LATTICE
+    assert resolver.resolution_context([], None, None).stability == {}

@@ -23,6 +23,7 @@ from hubbleops.app import (
     promotion,
     registry,
     replay,
+    stability,
     verification,
 )
 from hubbleops.closure import source_closure
@@ -540,6 +541,8 @@ def scan_repository(
             closure=closure,
             surface=pack.surface,
             validations=judge_skeletons(pack, records),
+            stability=stability.compute(pack),
+            lattice=[version.id for version in pack.versions()],
         )
         return ScanResult(
             target=resolved,

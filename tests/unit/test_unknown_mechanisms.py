@@ -279,8 +279,9 @@ def test_a_site_the_structural_layer_never_adjudicated_never_borrows_the_file_ve
     version = located(book)[("bin/sync.sh", 2, "call_version", "v22")]
     recall = located(book)[("bin/sync.sh", 3, "surface_reference", "googleads")]
     assert version["status"] == "AFFECTED"
-    assert recall["status"] == "UNKNOWN"
-    assert recall["close_with"]
+    assert recall["status"] == "NOT_AFFECTED_WITH_EVIDENCE"
+    assert "no migration inside this pack's lattice changes it" in recall["reason"]
+    assert "v22" not in recall["reason"]
 
 
 def test_a_first_party_binding_never_borrows_the_file_version(tmp_path: Path) -> None:

@@ -114,11 +114,13 @@ def build(
     closure: SourceClosure,
     surface: SurfaceSpec | None = None,
     validations: Mapping[str, Mapping[str, Any]] | None = None,
+    stability: Mapping[str, str] | None = None,
+    lattice: Sequence[str] = (),
 ) -> Ledger:
     classifications = {entry.path: entry.classification.value for entry in closure.entries}
     roles = {entry.path: entry.role.value for entry in closure.entries}
     path_versions = resolver.file_version_index(evidence)
-    context = resolver.resolution_context(evidence, surface, validations)
+    context = resolver.resolution_context(evidence, surface, validations, stability, lattice)
     groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for record in evidence:
         key = (str(record["claim_type"]), claim_key(record))
