@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -11,17 +11,21 @@ from hubbleops.core.canonical import blob_hash, content_id
 from hubbleops.core.errors import ToolingFailed, ToolingMissing, ToolingTimeout
 from hubbleops.core.evidence import make_evidence
 from hubbleops.core.observer import ObserverContext, StructuralRule
+from hubbleops.core.precise import SymbolIndex, descriptor_name
 from hubbleops.core.surface import SurfaceSpec, VersionCarrier
 from hubbleops.graph.imports import (
     Assignment,
     AstGrep,
     Call,
     Capture,
+    Definition,
+    ImportBinding,
     ImportGraph,
     SourceRange,
     SyntaxMatch,
     build,
     language_for,
+    narrow_to_property,
     scan_rules,
 )
 
@@ -36,7 +40,7 @@ UNRESOLVED_TERMINAL_PREFIXES = (
 )
 
 PATH_DEPENDENT_TERMINALS = ("AMBIGUOUS_CYCLE", "RESOLUTION_BUDGET")
-SUPPORTED_LANGUAGES = ("javascript", "php", "python", "typescript")
+SUPPORTED_LANGUAGES = ("javascript", "php", "python", "tsx", "typescript")
 BOUNDARY_NAMES = frozenset(
     {
         "dispatch",
@@ -80,12 +84,16 @@ class ValuePath:
 @dataclass(frozen=True, slots=True)
 class StructuralCoverage:
     languages: Mapping[str, Mapping[str, int]]
+    indexes: Mapping[str, str] = field(default_factory=dict[str, str])
 
     def to_mapping(self) -> dict[str, dict[str, int]]:
         return {
             language: dict(sorted(counts.items()))
             for language, counts in sorted(self.languages.items())
         }
+
+    def indexes_mapping(self) -> dict[str, str]:
+        return dict(sorted(self.indexes.items()))
 
 
 def rules_hash(rules: Sequence[StructuralRule]) -> str:
@@ -105,6 +113,8 @@ def coverage(
     closure: SourceClosure,
     rules: Sequence[StructuralRule],
     evidence: Sequence[Mapping[str, Any]] = (),
+    indexes: Sequence[SymbolIndex] = (),
+    index_status: Mapping[str, str] | None = None,
 ) -> StructuralCoverage:
     active = {rule.language for rule in rules}
     structurally_unscanned = {
@@ -115,12 +125,16 @@ def coverage(
     counts: dict[str, dict[str, int]] = {}
     for entry in closure.entries:
         language = language_for(entry.path)
-        bucket = counts.setdefault(language, {"supported": 0, "unsupported": 0, "unscanned": 0})
+        bucket = counts.setdefault(
+            language, {"precise": 0, "supported": 0, "unsupported": 0, "unscanned": 0}
+        )
         if entry.classification is Classification.UNSCANNED or entry.path in structurally_unscanned:
             bucket["unscanned"] += 1
         elif entry.classification is Classification.INSIDE:
             bucket["supported" if language in active else "unsupported"] += 1
-    return StructuralCoverage(counts)
+            if any(index.covers(entry.path) for index in indexes):
+                bucket["precise"] += 1
+    return StructuralCoverage(counts, dict(index_status or {}))
 
 
 def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
@@ -157,7 +171,7 @@ def _scan(closure: SourceClosure, ctx: ObserverContext, runner: AstGrep) -> list
     paths_by_language = {language: paths for language, paths in paths_by_language.items() if paths}
     if not paths_by_language:
         return sorted(records, key=_evidence_sort)
-    graph = build(closure.root, paths_by_language, runner)
+    graph = build(closure.root, paths_by_language, runner, ctx.precise_indexes)
     parse_paths = {match.path for match in graph.parse_errors}
     entries = closure.by_path()
     for path in sorted(parse_paths):
@@ -172,7 +186,299 @@ def _scan(closure: SourceClosure, ctx: ObserverContext, runner: AstGrep) -> list
     records.extend(_carrier_evidence(hits, graph, entries, ctx, cache))
     records.extend(_sink_evidence(hits, graph, entries, ctx, cache))
     records.extend(_boundary_evidence(graph, entries, ctx, cache))
+    records.extend(_adjudication_evidence(closure, graph, clean_paths, entries, ctx))
     return sorted(_deduplicate(records), key=_evidence_sort)
+
+
+ADJUDICATION_READ_LIMIT = 4_194_304
+COMMENT_NODE = "comment"
+IMPORT_NODE = "import"
+BOUND_IDENTIFIER_NODE = "bound_identifier"
+ENVIRONMENT_READ_NODE = "environment_read"
+ENVIRONMENT_ACCESSOR = re.compile(
+    rb"(process\.env|Deno\.env\.get|os\.environ\.get|os\.environ|os\.getenv|getenv|\$_ENV|\$_SERVER)"
+    rb"\s*(?:\.|\[|\()\s*[\"']?$"
+)
+ADJUDICATION_SEVERITY = {
+    ENVIRONMENT_READ_NODE: 0,
+    BOUND_IDENTIFIER_NODE: 0,
+    IMPORT_NODE: 1,
+    COMMENT_NODE: 2,
+}
+
+
+@dataclass(frozen=True, slots=True)
+class _Adjudication:
+    node_kind: str
+    binding: str | None
+    versions: tuple[str, ...]
+    first_party_definition: str | None
+    binding_target: str | None = None
+    environment_read_shape: str | None = None
+    binding_site: str | None = None
+
+    def to_mapping(self) -> dict[str, Any]:
+        mapping: dict[str, Any] = {
+            "node_kind": self.node_kind,
+            "binding": self.binding,
+            "binding_versions": list(self.versions),
+            "first_party_definition": self.first_party_definition,
+            "binding_target": self.binding_target,
+        }
+        if self.environment_read_shape is not None:
+            mapping["environment_read_shape"] = self.environment_read_shape
+        if self.binding_site is not None:
+            mapping["binding_site"] = self.binding_site
+        return mapping
+
+
+def _adjudication_evidence(
+    closure: SourceClosure,
+    graph: ImportGraph,
+    clean_paths: Mapping[str, Sequence[str]],
+    entries: Mapping[str, ClosureEntry],
+    ctx: ObserverContext,
+) -> list[dict[str, Any]]:
+    identifiers = tuple(sorted(set(ctx.surface.identifiers)))
+    if not identifiers:
+        return []
+    defined = _defined_names(graph)
+    records: list[dict[str, Any]] = []
+    for language in sorted(clean_paths):
+        for path in sorted(clean_paths[language]):
+            entry = entries.get(path)
+            if entry is None:
+                continue
+            payload = _read_bounded(closure.root / path)
+            if payload is None:
+                continue
+            aliases = _alias_table(graph.imports_in(path))
+            comments = tuple(graph.comments_in(path))
+            imports = tuple(graph.imports_in(path))
+            index = graph.index_for(path)
+            for line_number, line_start, line in _lines(payload):
+                for identifier in identifiers:
+                    verdict = adjudicate_line(
+                        identifier=identifier,
+                        line=line,
+                        line_start=line_start,
+                        comments=comments,
+                        imports=imports,
+                        aliases=aliases,
+                        defined=defined,
+                        language=language,
+                        surface=ctx.surface,
+                        site=PreciseSite(index, path, line_number - 1) if index else None,
+                    )
+                    if verdict is None:
+                        continue
+                    records.append(
+                        _evidence(
+                            ctx,
+                            entry,
+                            "surface_reference",
+                            SourceRange(
+                                line_start,
+                                line_start + len(line),
+                                line_number,
+                                line_number,
+                            ),
+                            verdict.to_mapping(),
+                            identifier,
+                        )
+                    )
+    return records
+
+
+def adjudicate_line(
+    *,
+    identifier: str,
+    line: bytes,
+    line_start: int,
+    comments: Sequence[SyntaxMatch],
+    imports: Sequence[ImportBinding],
+    aliases: Mapping[str, str],
+    defined: frozenset[str],
+    language: str,
+    surface: SurfaceSpec,
+    site: PreciseSite | None = None,
+) -> _Adjudication | None:
+    offsets = _occurrences(line, identifier.encode("utf-8"), line_start)
+    if not offsets:
+        return None
+    verdicts = [
+        _environment_read(line, offset - line_start, identifier)
+        or _adjudicate_occurrence(
+            offset=offset,
+            identifier=identifier,
+            comments=comments,
+            imports=imports,
+            aliases=aliases,
+            defined=defined,
+            language=language,
+            surface=surface,
+            precise=site.binding(
+                len(line[: offset - line_start].decode("utf-8", errors="replace")), identifier
+            )
+            if site is not None
+            else None,
+        )
+        for offset in offsets
+    ]
+    if any(verdict is None for verdict in verdicts):
+        return None
+    decided = [verdict for verdict in verdicts if verdict is not None]
+    return min(decided, key=lambda verdict: ADJUDICATION_SEVERITY[verdict.node_kind])
+
+
+def _environment_read(line: bytes, column: int, identifier: str) -> _Adjudication | None:
+    following = line[column + len(identifier) : column + len(identifier) + 1]
+    if following and (following.isalnum() or following == b"_"):
+        return None
+    accessor = ENVIRONMENT_ACCESSOR.search(line[:column])
+    if accessor is None:
+        return None
+    return _Adjudication(
+        ENVIRONMENT_READ_NODE,
+        identifier,
+        (),
+        None,
+        None,
+        accessor.group(1).decode("ascii"),
+    )
+
+
+def _adjudicate_occurrence(
+    *,
+    offset: int,
+    identifier: str,
+    comments: Sequence[SyntaxMatch],
+    imports: Sequence[ImportBinding],
+    aliases: Mapping[str, str],
+    defined: frozenset[str],
+    language: str,
+    surface: SurfaceSpec,
+    precise: _Adjudication | None = None,
+) -> _Adjudication | None:
+    if any(_covers(comment.range, offset) for comment in comments):
+        return _Adjudication(COMMENT_NODE, None, (), None)
+    containing = next((item for item in imports if _covers(item.range, offset)), None)
+    if containing is not None:
+        return _bound(
+            IMPORT_NODE,
+            containing.module,
+            defined,
+            language,
+            surface,
+            containing.target_path,
+            f"{containing.path}:{containing.range.start_line}",
+        )
+    module = aliases.get(identifier)
+    aliased = None
+    if module is not None:
+        declaring = next((item for item in imports if item.module == module), None)
+        target = next(
+            (item.target_path for item in imports if item.module == module and item.target_path),
+            None,
+        )
+        site = f"{declaring.path}:{declaring.range.start_line}" if declaring is not None else None
+        aliased = _bound(BOUND_IDENTIFIER_NODE, module, defined, language, surface, target, site)
+    if aliased is not None and aliased.versions:
+        return aliased
+    return precise if precise is not None else aliased
+
+
+@dataclass(frozen=True, slots=True)
+class PreciseSite:
+    index: SymbolIndex
+    path: str
+    line: int
+
+    def binding(self, column: int, identifier: str) -> _Adjudication | None:
+        symbol = self.index.symbol_at(self.path, self.line, column)
+        if symbol is None or descriptor_name(symbol) != identifier:
+            return None
+        definition = self.index.definition_of(symbol)
+        if definition is None:
+            return None
+        first_party = identifier if symbol.endswith(("().", "#")) else None
+        return _Adjudication(
+            BOUND_IDENTIFIER_NODE,
+            identifier,
+            (),
+            first_party,
+            definition.path,
+            binding_site=f"{self.path}:{self.line + 1}",
+        )
+
+
+def _bound(
+    node_kind: str,
+    module: str,
+    defined: frozenset[str],
+    language: str,
+    surface: SurfaceSpec,
+    binding_target: str | None = None,
+    binding_site: str | None = None,
+) -> _Adjudication:
+    versions = tuple(sorted(_versions(module, language, surface)))
+    leaf = _leaf(module)
+    first_party = leaf if not versions and leaf in defined else None
+    return _Adjudication(
+        node_kind, module, versions, first_party, binding_target, binding_site=binding_site
+    )
+
+
+def _covers(source_range: SourceRange, offset: int) -> bool:
+    return source_range.start_byte <= offset < source_range.end_byte
+
+
+def _occurrences(line: bytes, needle: bytes, line_start: int) -> tuple[int, ...]:
+    found: list[int] = []
+    index = line.find(needle)
+    while index != -1:
+        found.append(line_start + index)
+        index = line.find(needle, index + 1)
+    return tuple(found)
+
+
+def _lines(payload: bytes) -> Iterator[tuple[int, int, bytes]]:
+    offset = 0
+    for number, line in enumerate(payload.split(b"\n"), start=1):
+        yield number, offset, line
+        offset += len(line) + 1
+
+
+def _read_bounded(path: Path) -> bytes | None:
+    try:
+        if path.stat().st_size > ADJUDICATION_READ_LIMIT:
+            return None
+        return path.read_bytes()
+    except OSError:
+        return None
+
+
+def _alias_table(imports: Sequence[ImportBinding]) -> dict[str, str]:
+    table: dict[str, str] = {}
+    for binding in sorted(imports, key=lambda item: item.range.start_byte):
+        names = binding.symbols or (_leaf(binding.module),)
+        for symbol in names:
+            alias = _leaf(symbol)
+            if alias:
+                table.setdefault(alias, binding.module)
+    return table
+
+
+def _defined_names(graph: ImportGraph) -> frozenset[str]:
+    return frozenset(
+        {item.name for item in graph.classes} | {item.name for item in graph.definitions}
+    )
+
+
+def _leaf(value: str) -> str:
+    for separator in ("\\", "/", "."):
+        value = value.rsplit(separator, 1)[-1]
+    return value.strip()
 
 
 def _carrier_evidence(
@@ -310,7 +616,14 @@ def _sink_evidence(
                     cache,
                 )
             )
-        records.extend(_request_records(values, entries, ctx))
+        records.extend(
+            _request_records(
+                values,
+                entries,
+                ctx,
+                {"name": sink.text, "site": f"{call.path}:{call.range.start_line}"},
+            )
+        )
         records.extend(_version_records(values, hit, entries, ctx))
         records.extend(_config_records(values, entries, ctx))
     return records
@@ -572,8 +885,15 @@ def _resolve_uncached(
                 cache,
             )
         owner = graph.definition(owner_id)
-        if owner is not None and capture.text in owner.parameters:
-            position = owner.parameters.index(capture.text)
+        position = None
+        destructured = False
+        if owner is not None:
+            if capture.text in owner.parameters:
+                position = owner.parameters.index(capture.text)
+            else:
+                position = owner.slot_of(capture.text)
+                destructured = position is not None
+        if owner is not None and position is not None:
             callers = graph.callers(owner)
             contextual_hops = (*hops, *graph.wrapper_context(owner))
             if not callers:
@@ -600,17 +920,32 @@ def _resolve_uncached(
                         )
                     )
                     continue
+                argument = caller.arguments[argument_position]
+                if destructured:
+                    narrowed = narrow_to_property(argument, capture.text)
+                    if narrowed is None:
+                        values.append(
+                            _unknown(
+                                caller.path,
+                                caller.range,
+                                f"MISSING_ARGUMENT({capture.text})",
+                                contextual_hops,
+                            )
+                        )
+                        continue
+                    argument = narrowed
                 values.extend(
                     _resolve_capture(
                         graph,
                         caller.path,
-                        caller.arguments[argument_position],
+                        argument,
                         caller.definition_id,
                         depth + 1,
                         (
                             *contextual_hops,
                             f"call {caller.callee} carries {capture.text} at "
-                            f"{caller.path}:{caller.range.start_line}",
+                            f"{caller.path}:{caller.range.start_line}"
+                            f"{_binding_suffix(graph, owner, caller)}",
                         ),
                         current_seen,
                         budget,
@@ -660,6 +995,7 @@ def _request_records(
     values: Sequence[ValuePath],
     entries: Mapping[str, ClosureEntry],
     ctx: ObserverContext,
+    sink: Mapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for value in values:
@@ -701,6 +1037,7 @@ def _request_records(
                     },
                     "resolution": resolution,
                     "wrapper_chain": list(value.hops),
+                    **({"sink": dict(sink)} if sink else {}),
                 },
                 subject,
             )
@@ -856,6 +1193,10 @@ def _matching_call(graph: ImportGraph, hit: SyntaxMatch) -> Call | None:
     )
 
 
+def _binding_suffix(graph: ImportGraph, owner: Definition, caller: Call) -> str:
+    return " by symbol" if graph.caller_binding(owner, caller) == "symbol" else ""
+
+
 def _owner_id(graph: ImportGraph, path: str, source_range: SourceRange) -> str | None:
     definitions = [item for item in graph.definitions_in(path) if item.range.contains(source_range)]
     if not definitions:
@@ -881,6 +1222,23 @@ def _assignment(
 
 
 def _import_assignment(graph: ImportGraph, path: str, symbol: str) -> Assignment | None:
+    definition = graph.precise_definition(path, symbol)
+    if definition is not None:
+        bound = [
+            item
+            for item in graph.assignments_in(definition.path)
+            if item.target.text == symbol
+            and item.definition_id is None
+            and item.range.start_line == definition.start_line + 1
+        ]
+        if bound:
+            return min(
+                bound,
+                key=lambda item: (
+                    item.range.end_byte - item.range.start_byte,
+                    item.range.start_byte,
+                ),
+            )
     targets = {
         item.target_path
         for item in graph.imports_in(path)
@@ -973,6 +1331,8 @@ def _request_language(value: ValuePath, surface: SurfaceSpec) -> str | None:
     for language in surface.request_languages:
         if any(re.search(anchor, text, re.IGNORECASE | re.DOTALL) for anchor in language.anchors):
             return language.name
+        if any(re.search(shape, text, re.IGNORECASE | re.DOTALL) for shape in language.shapes):
+            return language.name
     return None
 
 
@@ -1000,7 +1360,7 @@ def _carrier_for(text: str, language: str, surface: SurfaceSpec) -> VersionCarri
 
 
 def _language_applies(carrier: VersionCarrier, language: str) -> bool:
-    return "any" in carrier.languages or language.lower() in carrier.languages
+    return carrier.applies_to(language)
 
 
 def _rule_paths(rules: Sequence[StructuralRule]) -> dict[str, tuple[Path, ...]]:

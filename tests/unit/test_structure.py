@@ -430,6 +430,7 @@ def test_force_accounts_for_every_inside_file(tmp_path: Path) -> None:
     forced = structural(result, "file_unscanned")
     assert {item["path"] for item in forced} == {entry.path for entry in inside}
     assert result.structural_coverage.to_mapping()["python"] == {
+        "precise": 0,
         "supported": 0,
         "unscanned": 1,
         "unsupported": 0,
@@ -446,6 +447,7 @@ def test_parse_failure_unscans_only_the_broken_file(tmp_path: Path) -> None:
     unscanned = structural(result, "file_unscanned")
     assert {item["path"] for item in unscanned} == {"broken.py"}
     assert result.structural_coverage.to_mapping()["python"] == {
+        "precise": 0,
         "supported": 1,
         "unscanned": 1,
         "unsupported": 0,

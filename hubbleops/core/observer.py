@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
+from hubbleops.core.precise import SymbolIndex
 from hubbleops.core.surface import SurfaceSpec
 
 
@@ -26,6 +27,7 @@ class ObserverContext:
     rules: tuple[StructuralRule, ...] = ()
     ast_grep_executable: str = "ast-grep"
     force_structure: bool = False
+    precise_indexes: tuple[SymbolIndex, ...] = ()
 
 
 @runtime_checkable

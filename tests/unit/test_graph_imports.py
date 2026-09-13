@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 
 import pytest
@@ -144,3 +146,33 @@ def test_every_query_the_partition_holds_back_is_still_rejected_by_the_rule_engi
     for query in held_back:
         with pytest.raises(ToolingFailed):
             runner.query_all(root, ("wrappers.py",), language, (query,))
+
+
+def test_ast_grep_prefers_the_vendored_binary_over_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    vendored = tmp_path / "_toolchain" / "win_amd64"
+    vendored.mkdir(parents=True)
+    binary = vendored / "ast-grep.exe"
+    binary.write_bytes(b"vendored ast-grep bytes")
+    (vendored / "manifest.json").write_text(
+        json.dumps(
+            {
+                "platform": "win_amd64",
+                "tools": {
+                    "ast-grep": {
+                        "file": "ast-grep.exe",
+                        "version": "0.45.0",
+                        "sha256": hashlib.sha256(b"vendored ast-grep bytes").hexdigest(),
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    binary.chmod(0o755)
+    monkeypatch.setattr("hubbleops.core.toolchain.vendored_root", lambda: tmp_path / "_toolchain")
+    monkeypatch.setattr("hubbleops.core.toolchain.platform_tag", lambda: "win_amd64")
+    located = AstGrep().binary
+    assert located.origin == "vendored"
+    assert located.path == str(binary)
