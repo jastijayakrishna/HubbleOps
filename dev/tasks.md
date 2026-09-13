@@ -5,6 +5,19 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] **The checks workflow ran for the first time and is green.** It had never executed
+      before 2026-09-13 because nothing had been pushed; all five of its first runs died at
+      `Install ast-grep`, since `unzip -d` creates only the final path component and
+      `/home/runner/.local` does not exist on the runner, so Lint, Format, Types, Tests and
+      the sentinel step had never once run. Three fixes: `mkdir -p` before the unzip and the
+      archive into `RUNNER_TEMP` rather than the checkout, where a scan would see it;
+      `uv sync --frozen --all-packages`, because the plain form syncs only the workspace root
+      and the sentinel step then cannot import its own package; and the executable bit on the
+      binary `_vendor` fakes in [tests/unit/test_toolchain.py](../tests/unit/test_toolchain.py),
+      which Windows never needed because `os.access` calls every existing file executable
+      there. On ubuntu-latest: ruff clean, 227 files formatted, pyright `0 errors`,
+      **1141 passed / 43 skipped**, sentinel 12 passed, cost job green. Note the platform gap
+      — 43 tests skip on Linux against 3 on Windows, so a green CI is not the local suite.
 - [x] **Fixture staging defeated git's stat cache**: `_write_tree` in
       [tests/phase5_support.py](../tests/phase5_support.py) staged the base and candidate
       trees with `shutil.copy2`, which preserves the source mtime. Both `client.py` fixtures
