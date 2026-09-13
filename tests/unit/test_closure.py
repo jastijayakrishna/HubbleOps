@@ -5,8 +5,74 @@ from pathlib import Path
 
 import pytest
 
+from hubbleops.app import registry
+from hubbleops.app.cli import scan_repository
 from hubbleops.closure import source_closure
 from hubbleops.closure.source_closure import Classification, FileRole
+from hubbleops.core.canonical import content_id
+from hubbleops.core.observer import ObserverContext
+from hubbleops.observe import text
+
+DIGEST_WITHOUT_GENERATED_DIRECTORY = (
+    "d861a0b6a1c567dcc9c0d5b8422b60fed95c336c11c3cc1ce9b686d724ae4613"
+)
+
+
+def commit_repository(repository: Path, files: dict[str, str]) -> str:
+    repository.mkdir(parents=True)
+    for relative, content in files.items():
+        (repository / relative).write_text(content, encoding="utf-8")
+    for arguments in (
+        ("init", "--quiet", "--initial-branch=main"),
+        ("config", "user.email", "fixture@hubbleops.test"),
+        ("config", "user.name", "HubbleOps Fixture"),
+        ("config", "commit.gpgsign", "false"),
+        ("add", "--all"),
+        ("commit", "--quiet", "-m", "one"),
+    ):
+        subprocess.run(["git", "-C", str(repository), *arguments], check=True, capture_output=True)
+    return subprocess.run(
+        ["git", "-C", str(repository), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+def add_worktree(repository: Path, worktree: Path, sha: str) -> None:
+    subprocess.run(
+        ["git", "-C", str(repository), "worktree", "add", "--detach", str(worktree), sha],
+        check=True,
+        capture_output=True,
+    )
+    assert (worktree / ".git").is_file()
+
+
+def observer_context(
+    closure: source_closure.SourceClosure, pack: registry.LoadedPack
+) -> ObserverContext:
+    return ObserverContext(
+        provider="_mock",
+        run_id=content_id({"run": 1}),
+        proof_scope_hash=content_id({"scope": 1}),
+        repo_sha=closure.repo_sha,
+        dependency_context_hash=None,
+        surface=pack.surface,
+    )
+
+
+def ripgrep_search_set(closure: source_closure.SourceClosure) -> set[str]:
+    args = [text.ripgrep_binary().path, "--no-config", "--hidden", "--no-ignore", "--files"]
+    for glob in closure.search_exclusion_globs():
+        args.extend(["-g", glob])
+    args.extend(["--", "."])
+    listed = subprocess.run(args, cwd=closure.root, capture_output=True, text=True, check=False)
+    assert listed.returncode in (0, 1), listed.stderr
+    return {
+        line.replace("\\", "/").removeprefix("./")
+        for line in listed.stdout.splitlines()
+        if line.strip()
+    }
 
 
 def build_tree(root: Path) -> None:
@@ -172,31 +238,10 @@ def test_a_detached_worktree_and_a_working_tree_of_one_commit_share_a_closure(
     tmp_path: Path,
 ) -> None:
     repository = tmp_path / "repo"
-    repository.mkdir()
-    (repository / "app.py").write_text("value = 1\n", encoding="utf-8")
-    for arguments in (
-        ("init", "--quiet", "--initial-branch=main"),
-        ("config", "user.email", "fixture@hubbleops.test"),
-        ("config", "user.name", "HubbleOps Fixture"),
-        ("config", "commit.gpgsign", "false"),
-        ("add", "--all"),
-        ("commit", "--quiet", "-m", "one"),
-    ):
-        subprocess.run(["git", "-C", str(repository), *arguments], check=True, capture_output=True)
-    sha = subprocess.run(
-        ["git", "-C", str(repository), "rev-parse", "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
+    sha = commit_repository(repository, {"app.py": "value = 1\n"})
     worktree = tmp_path / "worktree"
-    subprocess.run(
-        ["git", "-C", str(repository), "worktree", "add", "--detach", str(worktree), sha],
-        check=True,
-        capture_output=True,
-    )
+    add_worktree(repository, worktree, sha)
 
-    assert (worktree / ".git").is_file()
     working = source_closure.build(repository)
     detached = source_closure.build(worktree)
     assert [entry.path for entry in detached.entries] == [entry.path for entry in working.entries]
@@ -298,3 +343,122 @@ def test_excluded_directory_identity_does_not_depend_on_its_contents(tmp_path: P
     after = source_closure.build(tmp_path).tree_hash()
 
     assert before == after, "rebuilding a local environment must not invalidate the proof scope"
+
+
+def test_generated_directories_are_enumerated_and_every_file_under_them_is_generated(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "build" / "lib" / "pkg").mkdir(parents=True)
+    (tmp_path / "build" / "lib" / "pkg" / "client.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "build" / "lib" / "pkg" / "data.json").write_text("{}\n", encoding="utf-8")
+    (tmp_path / "dist").mkdir()
+    (tmp_path / "dist" / "bundle.js").write_text("var x = 1;\n", encoding="utf-8")
+    (tmp_path / "pkg").mkdir()
+    (tmp_path / "pkg" / "client.py").write_text("value = 1\n", encoding="utf-8")
+
+    closure = source_closure.build(tmp_path)
+    by_path = closure.by_path()
+
+    generated = {path for path in by_path if path.startswith(("build/", "dist/"))}
+    assert generated == {"build/lib/pkg/client.py", "build/lib/pkg/data.json", "dist/bundle.js"}
+    assert all(by_path[path].classification is Classification.GENERATED for path in generated)
+    assert all(by_path[path].role is FileRole.GENERATED_SOURCE for path in generated)
+    assert by_path["pkg/client.py"].classification is Classification.INSIDE
+    assert closure.search_exclusions() == ()
+    assert ripgrep_search_set(closure) == set(by_path)
+
+
+def test_a_surface_match_under_a_generated_directory_is_accounted_not_a_tooling_stop(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    (tmp_path / "build" / "lib" / "pkg").mkdir(parents=True)
+    (tmp_path / "build" / "lib" / "pkg" / "client.py").write_text(
+        'CLIENT = "mockprov"\n', encoding="utf-8"
+    )
+    (tmp_path / "pkg").mkdir()
+    (tmp_path / "pkg" / "client.py").write_text('CLIENT = "mockprov"\n', encoding="utf-8")
+
+    book = scan_repository(tmp_path, mock_pack).ledger
+
+    statuses: dict[str, set[str]] = {}
+    for candidate in book.candidates:
+        statuses.setdefault(book.location_of(candidate).path, set()).add(candidate["status"])
+    assert statuses["build/lib/pkg/client.py"] == {"EXCLUDED_WITH_EVIDENCE"}
+    assert "pkg/client.py" in statuses
+    assert book.unexplained() == 0
+
+
+def test_the_closure_of_a_tree_without_a_generated_directory_keeps_its_digest(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "app.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "src" / "schema_pb2.py").write_text("SERIALIZED = b''\n", encoding="utf-8")
+    (tmp_path / "node_modules" / "pkg").mkdir(parents=True)
+    (tmp_path / "node_modules" / "pkg" / "index.js").write_text(
+        "module.exports = {};\n", encoding="utf-8"
+    )
+    (tmp_path / "assets").mkdir()
+    (tmp_path / "assets" / "logo.png").write_bytes(b"\x89PNG\x00\x00binary")
+    (tmp_path / ".venv").mkdir()
+    (tmp_path / ".venv" / "first.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "README.md").write_text("docs\n", encoding="utf-8")
+
+    closure = source_closure.build(tmp_path)
+
+    assert [entry.path for entry in closure.entries] == [
+        ".venv",
+        "README.md",
+        "assets/logo.png",
+        "node_modules/pkg/index.js",
+        "src/app.py",
+        "src/schema_pb2.py",
+    ]
+    assert closure.tree_hash() == DIGEST_WITHOUT_GENERATED_DIRECTORY
+
+
+def test_a_worktree_git_pointer_file_is_excluded_from_the_search_like_the_directory(
+    tmp_path: Path,
+) -> None:
+    repository = tmp_path / "mockprov-checkout"
+    sha = commit_repository(repository, {"app.py": 'value = "mockprov"\n'})
+    worktree = tmp_path / "worktree"
+    add_worktree(repository, worktree, sha)
+    assert "mockprov" in (worktree / ".git").read_text(encoding="utf-8")
+
+    closure = source_closure.build(worktree)
+
+    assert ".git" not in closure.by_path()
+    assert closure.control_entries == (".git",)
+    assert closure.search_exclusion_globs() == ("!.git",)
+    assert ripgrep_search_set(closure) == {"app.py"}
+    assert ripgrep_search_set(source_closure.build(repository)) == {"app.py"}
+
+
+def test_pruned_directories_keep_directory_only_globs(tmp_path: Path) -> None:
+    (tmp_path / ".venv").mkdir()
+    (tmp_path / ".venv" / "dep.py").write_text("value = 2\n", encoding="utf-8")
+    (tmp_path / "venv").write_text("a file that merely shares a pruned name\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+
+    closure = source_closure.build(tmp_path)
+
+    assert closure.search_exclusion_globs() == ("!.venv/",)
+    assert ripgrep_search_set(closure) == {"app.py", "venv"}
+    assert closure.by_path()["venv"].classification is Classification.INSIDE
+
+
+def test_the_text_observer_does_not_stop_on_a_worktree_git_pointer_naming_the_surface(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    repository = tmp_path / "mockprov-checkout"
+    sha = commit_repository(repository, {"app.py": 'value = "mockprov"\n'})
+    worktree = tmp_path / "worktree"
+    add_worktree(repository, worktree, sha)
+    closure = source_closure.build(worktree)
+
+    records = text.scan(closure, observer_context(closure, mock_pack))
+
+    paths = {str(record["path"]) for record in records}
+    assert ".git" not in paths
+    assert "app.py" in paths

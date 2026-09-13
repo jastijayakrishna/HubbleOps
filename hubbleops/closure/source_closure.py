@@ -302,6 +302,16 @@ class SourceClosure:
     def search_exclusions(self) -> tuple[str, ...]:
         return tuple(sorted({*self.control_entries, *self.unenumerated_directories()}))
 
+    def search_exclusion_globs(self) -> tuple[str, ...]:
+        return tuple(
+            sorted(
+                {
+                    *(f"!{name}" for name in self.control_entries),
+                    *(f"!{directory}/" for directory in self.unenumerated_directories()),
+                }
+            )
+        )
+
     def scannable(self) -> tuple[ClosureEntry, ...]:
         return tuple(entry for entry in self.entries if entry.carries_source())
 

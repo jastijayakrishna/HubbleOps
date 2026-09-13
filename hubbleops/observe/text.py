@@ -365,7 +365,7 @@ def scan(closure: SourceClosure, ctx: ObserverContext) -> list[dict[str, Any]]:
         closure.root,
         [pattern for pattern, _ in patterns],
         enumerated,
-        closure.search_exclusions(),
+        closure.search_exclusion_globs(),
     ):
         entry = entries.get(hit.path)
         if entry is None:
@@ -808,7 +808,7 @@ def _search(
     root: Path,
     patterns: Sequence[TextPattern],
     accounted: frozenset[str],
-    exclusions: Sequence[str],
+    exclusion_globs: Sequence[str],
 ) -> Iterator[TextHit]:
     if not patterns:
         return
@@ -820,8 +820,8 @@ def _search(
         "--no-ignore",
         "--color=never",
     ]
-    for excluded in exclusions:
-        args.extend(["-g", f"!{excluded}/"])
+    for glob in exclusion_globs:
+        args.extend(["-g", glob])
     for pattern in patterns:
         args.extend(["-e", _ripgrep_pattern(pattern)])
     args.extend(["--", "."])
