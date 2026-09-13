@@ -8,6 +8,7 @@ from hubbleops.core.repair import TransformInput, TransformOutput, TransformView
 
 APPLIED = "APPLIED"
 SATISFIED = "SATISFIED"
+SATISFIED_BY = "SATISFIED_BY"
 NO_TRANSFORM = "NO_TRANSFORM"
 PRECONDITION_FAILED = "PRECONDITION_FAILED"
 POSTCONDITION_REVERTED = "POSTCONDITION_REVERTED"
@@ -32,7 +33,7 @@ class RepairOutcome:
     reason: str
 
     def discharged(self) -> bool:
-        return self.result in (APPLIED, SATISFIED)
+        return self.result in (APPLIED, SATISFIED, SATISFIED_BY)
 
     def to_mapping(self) -> dict[str, Any]:
         return {
@@ -65,15 +66,41 @@ class RepairReport:
 def run(*, transforms: Sequence[TransformView], requests: Sequence[TransformInput]) -> RepairReport:
     ordered = sorted(transforms, key=lambda item: item.name)
     texts: dict[str, str] = {}
+    applied_sites: dict[str, str] = {}
+    queue = sorted(requests, key=lambda item: (item.path, item.obligation_id))
     outcomes: list[RepairOutcome] = []
-    for request in sorted(requests, key=lambda item: (item.path, item.obligation_id)):
+    for request in queue:
         current = request.with_text(texts.get(request.path, request.text))
-        outcomes.append(_apply_one(ordered, current, texts))
-    return RepairReport(outcomes=tuple(outcomes), texts=dict(sorted(texts.items())))
+        outcomes.append(_apply_one(ordered, current, texts, applied_sites))
+    settled = tuple(
+        _settled_by_later_edit(ordered, request, outcome, texts, applied_sites)
+        for request, outcome in zip(queue, outcomes, strict=True)
+    )
+    return RepairReport(outcomes=settled, texts=dict(sorted(texts.items())))
+
+
+def _settled_by_later_edit(
+    transforms: Sequence[TransformView],
+    request: TransformInput,
+    outcome: RepairOutcome,
+    texts: Mapping[str, str],
+    applied_sites: Mapping[str, str],
+) -> RepairOutcome:
+    if outcome.discharged() or _site(request) not in applied_sites:
+        return outcome
+    final = request.with_text(texts.get(request.path, request.text))
+    return _already_holds(transforms, final, applied_sites) or outcome
+
+
+def _site(request: TransformInput) -> str:
+    return f"{request.path}:{request.line}" if request.line else request.path
 
 
 def _apply_one(
-    transforms: Sequence[TransformView], request: TransformInput, texts: dict[str, str]
+    transforms: Sequence[TransformView],
+    request: TransformInput,
+    texts: dict[str, str],
+    applied_sites: dict[str, str],
 ) -> RepairOutcome:
     for transform in transforms:
         try:
@@ -105,27 +132,46 @@ def _apply_one(
                 produced.reason or "the post-check refused the result, so nothing was written",
             )
         texts[request.path] = produced.text
+        for site in produced.sites or (_site(request),):
+            applied_sites[site] = transform.name
         return _outcome(request, transform.name, APPLIED, produced.reason)
+    return _already_holds(transforms, request, applied_sites) or _outcome(
+        request,
+        "",
+        NO_TRANSFORM,
+        "no deterministic transform claims this obligation; it stays open for a human",
+    )
+
+
+def _already_holds(
+    transforms: Sequence[TransformView], request: TransformInput, applied_sites: Mapping[str, str]
+) -> RepairOutcome | None:
+    site = _site(request)
     for transform in transforms:
         unchanged = TransformOutput(source=request, result="APPLIED", text=request.text, reason="")
         try:
             holds = transform.postcondition(unchanged)
         except Exception as error:
             return _outcome(request, transform.name, TRANSFORM_FAILED, f"postcondition: {error}")
-        if holds:
+        if not holds:
+            continue
+        edited_by = applied_sites.get(site)
+        if edited_by is not None:
             return _outcome(
                 request,
                 transform.name,
-                SATISFIED,
-                "the required state already holds at this site, written by an earlier edit "
-                "in this run or by the tree itself; nothing was changed",
+                SATISFIED_BY,
+                f"{site} was rewritten in this run by {edited_by}, which wrote the required "
+                "state this obligation needs; nothing was changed",
             )
-    return _outcome(
-        request,
-        "",
-        NO_TRANSFORM,
-        "no deterministic transform claims this obligation; it stays open for a human",
-    )
+        return _outcome(
+            request,
+            transform.name,
+            SATISFIED,
+            "the required state already holds at this site and no edit in this run wrote it "
+            "there; nothing was changed",
+        )
+    return None
 
 
 def _outcome(request: TransformInput, transform: str, result: str, reason: str) -> RepairOutcome:
@@ -144,6 +190,7 @@ __all__ = [
     "POSTCONDITION_REVERTED",
     "PRECONDITION_FAILED",
     "SATISFIED",
+    "SATISFIED_BY",
     "TERMINAL_RESULTS",
     "TRANSFORM_FAILED",
     "UNCHANGED",

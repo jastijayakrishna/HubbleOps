@@ -231,9 +231,36 @@ def test_a_second_obligation_on_a_line_an_earlier_edit_rewrote_is_satisfied_not_
             ),
         ],
     )
-    assert [item.result for item in report.outcomes] == ["APPLIED", "SATISFIED"]
+    assert [item.result for item in report.outcomes] == ["APPLIED", "SATISFIED_BY"]
+    assert report.outcomes[1].reason.startswith("src/Ads.php:1 was rewritten in this run by ")
     assert len(report.discharged()) == 2
     assert report.undischarged() == ()
+
+
+def test_a_reader_judged_before_the_edit_that_satisfies_it_is_settled_after_the_run() -> None:
+    text = 'API_VERSION = "v22"\n'
+    report = deterministic.run(
+        transforms=transforms(MINIMUMS),
+        requests=[
+            request(text, line=1, claim_type="config_reference", obligation_id="a" * 64),
+            request(text, line=1, obligation_id="b" * 64),
+        ],
+    )
+    assert [item.result for item in report.outcomes] == ["SATISFIED_BY", "APPLIED"]
+    assert report.outcomes[0].reason.startswith(
+        "src/client.py:1 was rewritten in this run by version-literal"
+    )
+    assert report.discharged() == ("a" * 64, "b" * 64)
+    assert report.texts["src/client.py"] == 'API_VERSION = "v25"\n'
+
+
+def test_a_site_the_tree_already_holds_without_an_edit_is_satisfied_not_satisfied_by() -> None:
+    report = deterministic.run(
+        transforms=transforms(MINIMUMS), requests=[request('a = "v25"\n', line=1)]
+    )
+    assert [item.result for item in report.outcomes] == ["SATISFIED"]
+    assert "no edit in this run" in report.outcomes[0].reason
+    assert report.texts == {}
 
 
 def test_a_bound_reference_is_rewritten_at_the_import_line_it_names() -> None:
