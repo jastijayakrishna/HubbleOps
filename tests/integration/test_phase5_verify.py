@@ -353,7 +353,7 @@ def test_a_recorded_human_decision_closes_an_unknown_through_verify(
     repository: Repository, obligations: Path, tmp_path: Path
 ) -> None:
     decisions, candidate_id = write_decision(
-        tmp_path / "decisions.json", repository, "surface_reference", "billing.py"
+        tmp_path / "decisions.json", repository, "dependency_state", "."
     )
     run = verify(repository, obligations_path=obligations, decisions_path=decisions)
     closed = {item.candidate_id: item for item in run.evaluation.conservation.closures}
@@ -366,22 +366,24 @@ def test_a_recorded_human_decision_closes_an_unknown_through_verify(
     assert run.evaluation.judgement.verdict == "VERIFIED_FOR_SCOPE"
 
 
-def test_a_decision_dies_when_the_source_it_was_made_about_changes(
-    repository: Repository, obligations: Path, tmp_path: Path
-) -> None:
-    decisions, _ = write_decision(
-        tmp_path / "decisions.json", repository, "surface_reference", "client.py"
+def test_a_decision_dies_when_the_source_it_was_made_about_changes(tmp_path: Path) -> None:
+    moving = build_repository(
+        tmp_path / "moving-manifest",
+        edits={"requirements.txt": "unrelated-package==2.0.0\n"},
+        base_edits={"requirements.txt": "unrelated-package==1.0.0\n"},
     )
+    decisions, _ = write_decision(
+        tmp_path / "decisions.json", moving, "dependency_state", "requirements.txt"
+    )
+    obligations = write_obligations(tmp_path / "obligations.json", moving)
     with pytest.raises(DecisionInvalid, match="not keyed to evidence"):
-        verify(repository, obligations_path=obligations, decisions_path=decisions)
+        verify(moving, obligations_path=obligations, decisions_path=decisions)
 
 
 def test_a_decision_recorded_against_another_run_never_reaches_the_candidate(
     repository: Repository, obligations: Path, tmp_path: Path
 ) -> None:
-    decisions, _ = write_decision(
-        tmp_path / "decisions.json", repository, "surface_reference", "billing.py"
-    )
+    decisions, _ = write_decision(tmp_path / "decisions.json", repository, "dependency_state", ".")
     records: list[dict[str, Any]] = json.loads(decisions.read_text(encoding="utf-8"))
     forged = dict(records[0])
     forged["run_id"] = "0" * 64

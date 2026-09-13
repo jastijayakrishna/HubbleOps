@@ -63,14 +63,18 @@ def _write_tree(destination: Path, source: Path, edits: Mapping[str, str | None]
         target.write_text(content, encoding="utf-8")
 
 
-def build_repository(root: Path, edits: Mapping[str, str | None] | None = None) -> Repository:
+def build_repository(
+    root: Path,
+    edits: Mapping[str, str | None] | None = None,
+    base_edits: Mapping[str, str | None] | None = None,
+) -> Repository:
     root.mkdir(parents=True, exist_ok=True)
     git(root, "init", "--quiet", "--initial-branch=main")
     git(root, "config", "user.email", "fixture@hubbleops.test")
     git(root, "config", "user.name", "HubbleOps Fixture")
     git(root, "config", "commit.gpgsign", "false")
 
-    _write_tree(root, BASE_TREE, {})
+    _write_tree(root, BASE_TREE, base_edits or {})
     git(root, "add", "--all")
     git(root, "commit", "--quiet", "-m", "Base tree before the migration")
     base_sha = git(root, "rev-parse", "HEAD").strip()
