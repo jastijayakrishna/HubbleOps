@@ -29,6 +29,16 @@ Updated before every session ends. Phase-level status lives in
       like carry `pytest tests/unittests` where no pytest configuration file exists. Until
       then a repository of that shape can reach UNKNOWN but never VERIFIED_FOR_SCOPE. Needs a
       generic reader with no repository-specific parsing and a fixture per CI format.
+- [ ] **Freeze a conservation baseline for `singer-io/tap-google-ads` `5b6a201`.** Dub and
+      GLNA have one in `tests/fixtures/real_repo/`, so `test_real_repo_conservation` proved
+      mechanically that engine-v0 changed no candidate identity on them. tap-google-ads has
+      none, so its four identity changes were checked by hand: `setup.py` became a MANIFEST,
+      which moves `google-ads` at lines 5, 16 and 32 from `surface_reference` to
+      `package_reference` — same site, same subject, new claim — and the `dependency_state`
+      `NO_MANIFEST` UNKNOWN was answered by the `sdk_installed` AFFECTED it asked for. Every
+      site is still covered and unexplained is 0, but a hand check is not a guard. Record the
+      baseline with the P-024 `identity_migration` shape (`retired_identities`,
+      `rekeyed_identities`) so the next engine cannot move one silently.
 - [ ] **Tier 3c (PART TEN of [dev/plan.md](plan.md)) — stopped at Q32.** DoD 1 is designed
       (attestation inside Evidence `value`, no schema change, enforcements E1–E6); no AI call
       path exists and none is written until the owner answers Q32. Unblocked by any answer and
