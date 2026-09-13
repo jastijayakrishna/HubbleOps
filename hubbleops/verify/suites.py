@@ -280,11 +280,14 @@ def _execute(
             languages=layout.languages,
             runner=layout.runner,
         )
-    text = stdout.decode("utf-8", errors="replace") + stderr.decode("utf-8", errors="replace")
+    printed = stdout.decode("utf-8", errors="replace")
+    failed_output = stderr.decode("utf-8", errors="replace")
+    text = printed + failed_output
     reported = runners.run_counts(runner_plan, text)
     counts = reported or {"passed": 0, "failed": 0, "skipped": 0}
     tests = runners.read_cases(runner_plan, source, counts)
-    detail = stderr.decode("utf-8", errors="replace").strip()
+    detail = failed_output.strip()
+    failure = runners.execution_failure(layout, exit_code, printed, failed_output)
     if outcome in ("WALL_TIMEOUT", "OUTPUT_LIMIT"):
         return SuiteRun(
             source=source,
@@ -308,7 +311,7 @@ def _execute(
             outcome="EXECUTION_FAILED",
             reason=(
                 f"{layout.runner} left no readable report at {runner_plan.report.name}, "
-                f"so the run counts nothing{f': {detail}' if detail else ''}"
+                f"so the run counts nothing: {failure}"
             )[:512],
             languages=layout.languages,
             runner=layout.runner,
@@ -321,7 +324,7 @@ def _execute(
             failed=counts["failed"],
             skipped=counts["skipped"],
             outcome="EXECUTION_FAILED",
-            reason=detail or f"{layout.runner} exited {exit_code}",
+            reason=failure,
             tests=tests,
             languages=layout.languages,
             runner=layout.runner,
@@ -334,7 +337,7 @@ def _execute(
             failed=0,
             skipped=counts["skipped"],
             outcome="EXECUTION_FAILED",
-            reason=detail or f"{layout.runner} exited 1 without reporting a failed test",
+            reason=f"{failure}; no failed test was reported"[:512],
             tests=tests,
             languages=layout.languages,
             runner=layout.runner,

@@ -178,3 +178,149 @@ def test_vitest_output_is_counted(tmp_path: Path) -> None:
     assert counts == {"passed": 2, "failed": 0, "skipped": 0}
     failing = runners.counts_of(layout, "      Tests  1 failed | 3 passed (4)\n")
     assert failing == {"passed": 3, "failed": 1, "skipped": 0}
+
+
+def _python_tree(tmp_path: Path, *suite_dirs: str) -> Path:
+    tree = tmp_path / "pyrepo"
+    for relative in suite_dirs:
+        directory = tree / relative
+        directory.mkdir(parents=True)
+        (directory / "test_one.py").write_text("def test_ok():\n    assert True\n", "utf-8")
+    (tree / "pkg").mkdir(exist_ok=True)
+    (tree / "pkg" / "__init__.py").write_text("", "utf-8")
+    return tree
+
+
+def _pytest_layout() -> runners.SuiteLayout:
+    return runners.SuiteLayout(
+        runner="pytest", languages=("python",), paths=("tests",), project="."
+    )
+
+
+def test_pyproject_testpaths_are_honoured_before_directory_names(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests", "tests/integration")
+    (tree / "pyproject.toml").write_text(
+        '[tool.pytest.ini_options]\ntestpaths = ["tests/unittests"]\n', "utf-8"
+    )
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/unittests",)
+
+
+def test_pytest_ini_testpaths_are_honoured(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests", "tests/integration")
+    (tree / "pytest.ini").write_text("[pytest]\ntestpaths = tests/unittests\n", "utf-8")
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/unittests",)
+
+
+def test_setup_cfg_testpaths_are_honoured(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests", "tests/integration")
+    (tree / "setup.cfg").write_text(
+        "[metadata]\nname = demo\n\n[tool:pytest]\ntestpaths =\n    tests/unittests\n", "utf-8"
+    )
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/unittests",)
+
+
+def test_tox_ini_testpaths_are_honoured(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests", "tests/integration")
+    (tree / "tox.ini").write_text(
+        "[tox]\nenvlist = py312\n\n[pytest]\ntestpaths = tests/unittests tests/integration\n",
+        "utf-8",
+    )
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/integration", "tests/unittests")
+
+
+def test_pytest_ini_wins_over_pyproject_as_pytest_itself_decides(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests", "tests/integration")
+    (tree / "pyproject.toml").write_text(
+        '[tool.pytest.ini_options]\ntestpaths = ["tests/integration"]\n', "utf-8"
+    )
+    (tree / "pytest.ini").write_text("[pytest]\ntestpaths = tests/unittests\n", "utf-8")
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/unittests",)
+
+
+def test_a_config_without_testpaths_falls_back_and_shadows_the_others(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests", "tests/integration")
+    (tree / "pytest.ini").write_text("[pytest]\naddopts = -q\n", "utf-8")
+    (tree / "pyproject.toml").write_text(
+        '[tool.pytest.ini_options]\ntestpaths = ["tests/integration"]\n', "utf-8"
+    )
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",)
+
+
+def test_a_declared_path_that_is_missing_fails_closed(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests")
+    (tree / "pyproject.toml").write_text(
+        '[tool.pytest.ini_options]\ntestpaths = ["tests/unittests", "tests/gone"]\n', "utf-8"
+    )
+    assert runners.python_layout(tree) is None
+
+
+def test_a_declared_path_outside_the_tree_fails_closed(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests")
+    (tmp_path / "elsewhere").mkdir()
+    (tree / "pytest.ini").write_text("[pytest]\ntestpaths = ../elsewhere\n", "utf-8")
+    assert runners.python_layout(tree) is None
+
+
+def test_a_declared_glob_expands_inside_the_tree(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unit_a", "tests/unit_b", "tests/integration")
+    (tree / "pytest.ini").write_text("[pytest]\ntestpaths = tests/unit_*\n", "utf-8")
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/unit_a", "tests/unit_b")
+
+
+def test_without_a_declaration_directory_names_are_the_fallback(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests/unittests", "tests/integration")
+    (tree / "pyproject.toml").write_text('[project]\nname = "demo"\n', "utf-8")
+    (tree / "setup.cfg").write_text("[metadata]\nname = demo\n", "utf-8")
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",)
+
+
+def test_a_declaration_the_build_cannot_parse_falls_back_to_discovery(tmp_path: Path) -> None:
+    tree = _python_tree(tmp_path, "tests")
+    (tree / "pyproject.toml").write_text("[tool.pytest.ini_options\ntestpaths = [\n", "utf-8")
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",)
+
+
+def test_an_execution_failure_reason_carries_the_last_output_lines() -> None:
+    stdout = "\n".join(
+        [
+            "collecting ...",
+            "ImportError while importing test module 'tests/integration/test_x.py'.",
+            "Hint: make sure your test modules/packages have valid Python names.",
+            "Traceback:",
+            '  File "tests/integration/test_x.py", line 1, in <module>',
+            "    import tap_tester",
+            "ModuleNotFoundError: No module named 'tap_tester'",
+            "",
+        ]
+    )
+    reason = runners.execution_failure(_pytest_layout(), 2, stdout, "")
+    assert reason.startswith("pytest exited 2 (collection or usage error): ")
+    assert "ModuleNotFoundError: No module named 'tap_tester'" in reason
+    assert "import tap_tester" in reason
+    assert "collecting ..." not in reason
+
+
+def test_an_execution_failure_without_output_still_names_the_exit_code() -> None:
+    assert runners.execution_failure(_pytest_layout(), 3, "", "") == "pytest exited 3"
+    assert (
+        runners.execution_failure(_pytest_layout(), 2, "", "")
+        == "pytest exited 2 (collection or usage error)"
+    )

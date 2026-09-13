@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import configparser
 import json
 import os
 import re
 import shutil
 import subprocess
+import tomllib
 import xml.etree.ElementTree as ElementTree
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -16,6 +18,13 @@ from hubbleops.verify import coverage
 
 SUITE_DIRECTORY_NAMES = ("tests", "test", "spec", "__tests__")
 PYTHON_SUITE_FILE = re.compile(r"^(test_.*|.*_test|.*\.test|.*\.spec)\.py$")
+PYTEST_INI_SECTIONS = (("pytest.ini", "pytest"), (".pytest.ini", "pytest"))
+PYTEST_TOML = "pyproject.toml"
+PYTEST_FALLBACK_INI_SECTIONS = (("tox.ini", "pytest"), ("setup.cfg", "tool:pytest"))
+TESTPATHS = "testpaths"
+GLOB_CHARACTERS = "*?["
+FAILURE_TAIL_LINES = 5
+COLLECTION_EXIT_CODE = 2
 JAVASCRIPT_SUITE_FILE = re.compile(r"^.*\.(test|spec)\.[cm]?[jt]sx?$")
 MANIFEST = "package.json"
 MODULES = "node_modules"
@@ -76,6 +85,12 @@ class RunnerPlan:
 
 
 def python_layout(tree: Path) -> SuiteLayout | None:
+    declared = _declared_testpaths(tree)
+    if declared is not None:
+        found = _paths_inside(tree, declared)
+        if not found:
+            return None
+        return SuiteLayout(runner="pytest", languages=("python",), paths=found, project=".")
     found = [
         child.name
         for child in sorted(tree.iterdir())
@@ -92,6 +107,98 @@ def python_layout(tree: Path) -> SuiteLayout | None:
     if not found:
         return None
     return SuiteLayout(runner="pytest", languages=("python",), paths=tuple(found), project=".")
+
+
+def _declared_testpaths(tree: Path) -> tuple[str, ...] | None:
+    for name, section in PYTEST_INI_SECTIONS:
+        if (tree / name).is_file():
+            return _ini_testpaths(tree / name, section) or None
+    toml_paths = _toml_testpaths(tree / PYTEST_TOML)
+    if toml_paths is not None:
+        return toml_paths or None
+    for name, section in PYTEST_FALLBACK_INI_SECTIONS:
+        declared = _ini_testpaths(tree / name, section)
+        if declared is not None:
+            return declared or None
+    return None
+
+
+def _ini_testpaths(config: Path, section: str) -> tuple[str, ...] | None:
+    try:
+        text = config.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    parser = configparser.ConfigParser(interpolation=None, strict=False)
+    try:
+        parser.read_string(text, source=str(config))
+    except configparser.Error:
+        return None
+    if not parser.has_section(section):
+        return None
+    value = parser.get(section, TESTPATHS, fallback=None)
+    return tuple(value.split()) if value is not None else ()
+
+
+def _toml_testpaths(config: Path) -> tuple[str, ...] | None:
+    try:
+        text = config.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    try:
+        document = tomllib.loads(text)
+    except tomllib.TOMLDecodeError:
+        return None
+    tool = as_mapping(document.get("tool"))
+    pytest_tool = as_mapping(tool.get("pytest"))
+    if "ini_options" not in pytest_tool:
+        return None
+    options = as_mapping(pytest_tool.get("ini_options"))
+    raw = options.get(TESTPATHS)
+    if raw is None:
+        return ()
+    if isinstance(raw, str):
+        return tuple(raw.split())
+    return tuple(str(item) for item in as_sequence(raw))
+
+
+def _paths_inside(tree: Path, entries: Sequence[str]) -> tuple[str, ...]:
+    root = tree.resolve()
+    found: set[str] = set()
+    for entry in entries:
+        cleaned = entry.strip().replace("\\", "/")
+        if not cleaned or cleaned.startswith("/") or ":" in cleaned:
+            return ()
+        matches = _expand(tree, cleaned)
+        if not matches:
+            return ()
+        for match in matches:
+            try:
+                relative = match.resolve().relative_to(root).as_posix()
+            except (OSError, ValueError):
+                return ()
+            if ".git" in relative.split("/"):
+                return ()
+            found.add(relative)
+    return tuple(sorted(found))
+
+
+def _expand(tree: Path, entry: str) -> tuple[Path, ...]:
+    if not any(character in entry for character in GLOB_CHARACTERS):
+        target = tree / entry
+        return (target,) if target.exists() else ()
+    try:
+        return tuple(sorted(path for path in tree.glob(entry) if path.exists()))
+    except (OSError, ValueError, NotImplementedError):
+        return ()
+
+
+def execution_failure(layout: SuiteLayout, exit_code: int | None, stdout: str, stderr: str) -> str:
+    head = f"{layout.runner} exited {exit_code}"
+    if layout.runner == "pytest" and exit_code == COLLECTION_EXIT_CODE:
+        head = f"{head} (collection or usage error)"
+    lines = [line.rstrip() for line in f"{stdout}\n{stderr}".splitlines() if line.strip()]
+    tail = lines[-FAILURE_TAIL_LINES:]
+    return f"{head}: {' | '.join(tail)}"[:512] if tail else head
 
 
 def javascript_layout(tree: Path) -> SuiteLayout | None:
@@ -667,6 +774,7 @@ __all__ = [
     "coverage_provider",
     "encode",
     "environment",
+    "execution_failure",
     "javascript_layout",
     "junit_counts",
     "layout_of",
