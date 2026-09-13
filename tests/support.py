@@ -8,20 +8,25 @@ PACKAGE_ROOT = REPO_ROOT / "hubbleops"
 FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "phase1"
 COVERAGE_ROOT = REPO_ROOT / "tests" / "fixtures" / "coverage"
 
-GENERIC_LAYERS = (
-    "core",
-    "closure",
-    "observe",
-    "graph",
-    "obligations",
-    "repair",
-    "verify",
-    "proof",
-    "store",
-    "sandbox",
-)
+PACK_SELECTING_LAYERS = ("app", "packs")
 
 PHASE_ONE_LAYERS = ("core", "closure", "observe", "store")
+
+
+def generic_layers() -> tuple[str, ...]:
+    return tuple(
+        sorted(
+            path.name
+            for path in PACKAGE_ROOT.iterdir()
+            if path.is_dir()
+            and not path.name.startswith(("_", "."))
+            and path.name not in PACK_SELECTING_LAYERS
+            and (path / "__init__.py").is_file()
+        )
+    )
+
+
+GENERIC_LAYERS = generic_layers()
 
 
 def fixture_repos() -> list[Path]:
@@ -29,7 +34,7 @@ def fixture_repos() -> list[Path]:
 
 
 def generic_layer_dirs() -> list[Path]:
-    return [PACKAGE_ROOT / name for name in GENERIC_LAYERS if (PACKAGE_ROOT / name).is_dir()]
+    return [PACKAGE_ROOT / name for name in generic_layers()]
 
 
 def python_sources(directory: Path) -> list[Path]:

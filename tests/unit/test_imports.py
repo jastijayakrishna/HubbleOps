@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from tests.support import (
+    PACK_SELECTING_LAYERS,
     PACKAGE_ROOT,
     PHASE_ONE_LAYERS,
     generic_layer_dirs,
@@ -77,12 +78,18 @@ def test_generic_layers_never_import_packs_or_repair() -> None:
     assert offences == [], "law L5: generic layers must receive pack parts as parameters"
 
 
-def test_the_repair_layer_is_scanned_by_the_leak_tests() -> None:
+def test_every_layer_but_app_and_packs_is_scanned_by_the_layer_laws() -> None:
     scanned = {directory.name for directory in generic_layer_dirs()}
-    assert "repair" in scanned, (
-        "repair/ receives pack transforms as parameters like every other generic layer, "
-        "so the import and provider-name laws have to look there"
+    present = {
+        path.name
+        for path in PACKAGE_ROOT.iterdir()
+        if path.is_dir() and (path / "__init__.py").is_file() and not path.name.startswith("_")
+    }
+    assert scanned == present - set(PACK_SELECTING_LAYERS), (
+        "the scanned set is derived from the tree, not a hand-kept list: a layer added "
+        "tomorrow is inside law L5 the day it lands, not the day someone remembers it"
     )
+    assert "repair" in scanned
     assert "hubbleops.packs" in forbidden_for("repair")
     assert "hubbleops.repair" not in forbidden_for("repair")
 
