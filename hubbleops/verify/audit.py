@@ -25,6 +25,9 @@ from hubbleops.observe import Ledger
 
 RESIDUE_CLAIM_TYPES = ("call_version", "endpoint_reference", "config_reference")
 SURFACE_CLAIM_TYPES = ("surface_reference", "request_text")
+SCAN_EXPLAINED_STATUSES = frozenset(
+    {"NOT_AFFECTED_WITH_EVIDENCE", "EXCLUDED_WITH_EVIDENCE", "PROVIDER_REFERENCE_DATA"}
+)
 OPEN_STATUS = "OPEN"
 DISCHARGED_STATUS = "DISCHARGED"
 UNRECONCILABLE_STATUS = "UNRECONCILABLE"
@@ -266,7 +269,9 @@ def _reconcile(
         )
     matches = _subject_sites(ledger, evidence, subject)
     if parsed.kind == ABSENT:
-        return _decide(obligation, not matches, matches, f"{subject} is still present")
+        live = _live_sites(ledger, matches)
+        surviving = ", ".join(sorted({site for _, site in live}))
+        return _decide(obligation, not live, live, f"{subject} is still present at {surviving}")
     if parsed.kind == PRESENT:
         return _decide(obligation, bool(matches), matches, f"{subject} is absent")
     known = {item.subject for item in changes.changes} | {changes.to_version}
@@ -313,6 +318,16 @@ def _decide(
         reason=f"{obligation.verification_method} holds" if satisfied else failure,
         evidence_ids=tuple(sorted(eid for eid, _ in matches)),
     )
+
+
+def _live_sites(ledger: Ledger, sites: tuple[tuple[str, str], ...]) -> tuple[tuple[str, str], ...]:
+    live = {
+        str(eid)
+        for candidate in ledger.candidates
+        if str(candidate["status"]) not in SCAN_EXPLAINED_STATUSES
+        for eid in candidate["evidence_ids"]
+    }
+    return tuple(site for site in sites if site[0] in live)
 
 
 def _subject_sites(
