@@ -4,13 +4,13 @@
       "claim_type": "structure_unsupported",
       "location": "package.json",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "structure_unsupported",
       "location": "packages/ads/package.json",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "package_reference",
@@ -29,18 +29,6 @@
       "location": "packages/ads/package.json:5",
       "provider_subject": "google-ads-api",
       "status": "AFFECTED"
-    },
-    {
-      "claim_type": "surface_reference",
-      "location": "packages/ads/package.json:5",
-      "provider_subject": "google-ads",
-      "status": "UNKNOWN"
-    },
-    {
-      "claim_type": "package_reference",
-      "location": "packages/ads/src/index.js:1",
-      "provider_subject": "google-ads",
-      "status": "UNKNOWN"
     },
     {
       "claim_type": "package_reference",
@@ -64,7 +52,7 @@
       "claim_type": "structure_unsupported",
       "location": "packages/web/package.json",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "sdk_installed",
@@ -76,23 +64,27 @@
       "claim_type": "structure_unsupported",
       "location": "services/etl/poetry.lock",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "structure_unsupported",
       "location": "services/etl/pyproject.toml",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     }
   ],
   "counts": {
     "affected": 2,
     "excluded_with_evidence": 0,
+    "human_accepted_risk": 0,
     "human_required": 0,
     "not_affected_with_evidence": 1,
-    "total": 14,
+    "provider_reference_data": 0,
+    "total": 12,
     "unexplained": 0,
-    "unknown": 11
+    "unknown": 4,
+    "unscanned": 0,
+    "unsupported": 5
   },
   "fixture": "monorepo_workspace",
   "pack": "google_ads"

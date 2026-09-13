@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -164,7 +165,43 @@ def test_the_git_control_directory_is_reported_not_hidden(tmp_path: Path) -> Non
     (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
     closure = source_closure.build(tmp_path)
     assert [entry.path for entry in closure.entries] == ["app.py"]
-    assert closure.control_directories == (".git",)
+    assert closure.control_entries == (".git",)
+
+
+def test_a_detached_worktree_and_a_working_tree_of_one_commit_share_a_closure(
+    tmp_path: Path,
+) -> None:
+    repository = tmp_path / "repo"
+    repository.mkdir()
+    (repository / "app.py").write_text("value = 1\n", encoding="utf-8")
+    for arguments in (
+        ("init", "--quiet", "--initial-branch=main"),
+        ("config", "user.email", "fixture@hubbleops.test"),
+        ("config", "user.name", "HubbleOps Fixture"),
+        ("config", "commit.gpgsign", "false"),
+        ("add", "--all"),
+        ("commit", "--quiet", "-m", "one"),
+    ):
+        subprocess.run(["git", "-C", str(repository), *arguments], check=True, capture_output=True)
+    sha = subprocess.run(
+        ["git", "-C", str(repository), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    worktree = tmp_path / "worktree"
+    subprocess.run(
+        ["git", "-C", str(repository), "worktree", "add", "--detach", str(worktree), sha],
+        check=True,
+        capture_output=True,
+    )
+
+    assert (worktree / ".git").is_file()
+    working = source_closure.build(repository)
+    detached = source_closure.build(worktree)
+    assert [entry.path for entry in detached.entries] == [entry.path for entry in working.entries]
+    assert detached.tree_hash() == working.tree_hash()
+    assert detached.repo_sha == working.repo_sha == sha
 
 
 def test_tree_hash_binds_content_even_without_git(tmp_path: Path) -> None:

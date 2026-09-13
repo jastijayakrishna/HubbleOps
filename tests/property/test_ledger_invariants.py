@@ -29,7 +29,7 @@ SCANNED_CLOSURE = SourceClosure(
         )
         for path in PATHS
     ),
-    control_directories=(),
+    control_entries=(),
 )
 SUBJECTS = ("v22", "v23", "sdk-name", "API_VERSION")
 ECOSYSTEMS = ("python", "javascript", "php")

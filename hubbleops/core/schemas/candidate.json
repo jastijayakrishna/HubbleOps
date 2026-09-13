@@ -40,7 +40,11 @@
         "NOT_AFFECTED_WITH_EVIDENCE",
         "UNKNOWN",
         "HUMAN_REQUIRED",
-        "EXCLUDED_WITH_EVIDENCE"
+        "EXCLUDED_WITH_EVIDENCE",
+        "PROVIDER_REFERENCE_DATA",
+        "UNSUPPORTED",
+        "UNSCANNED",
+        "HUMAN_ACCEPTED_RISK"
       ],
       "description": "The explanation. There is no 'unexplained' member: a candidate without a status is unrepresentable."
     },
@@ -57,7 +61,9 @@
   "allOf": [
     {
       "if": {
-        "properties": { "status": { "enum": ["UNKNOWN", "HUMAN_REQUIRED"] } },
+        "properties": {
+          "status": { "enum": ["UNKNOWN", "HUMAN_REQUIRED", "UNSUPPORTED", "UNSCANNED"] }
+        },
         "required": ["status"]
       },
       "then": {

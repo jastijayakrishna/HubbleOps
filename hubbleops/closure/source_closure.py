@@ -16,7 +16,7 @@ SNIFF_BYTES = 8192
 READ_CHUNK = 1024 * 1024
 GIT_TIMEOUT_SECONDS = 30.0
 
-CONTROL_DIRECTORIES = frozenset({".git"})
+CONTROL_ENTRIES = frozenset({".git"})
 
 ENVIRONMENT_DIRECTORIES = frozenset(
     {
@@ -153,6 +153,7 @@ class FileRole(StrEnum):
     DATA = "DATA"
     SNAPSHOT = "SNAPSHOT"
     DOCUMENTATION = "DOCUMENTATION"
+    STYLESHEET = "STYLESHEET"
     GENERATED_SOURCE = "GENERATED_SOURCE"
     OPAQUE = "OPAQUE"
     UNKNOWN_ROLE = "UNKNOWN_ROLE"
@@ -210,7 +211,10 @@ MANIFEST_SUFFIXES = frozenset({".csproj", ".fsproj", ".vbproj"})
 
 DOCUMENTATION_SUFFIXES = frozenset({".adoc", ".markdown", ".md", ".rst", ".textile", ".txt"})
 
+STYLESHEET_SUFFIXES = frozenset({".css", ".less", ".sass", ".scss"})
+
 CONFIG_SUFFIXES = frozenset({".cfg", ".conf", ".env", ".ini", ".properties", ".toml"})
+ENVIRONMENT_FILE_PREFIX = ".env"
 
 SOURCE_SUFFIXES = frozenset(
     {
@@ -278,7 +282,7 @@ class SourceClosure:
     root: Path
     repo_sha: str | None
     entries: tuple[ClosureEntry, ...]
-    control_directories: tuple[str, ...]
+    control_entries: tuple[str, ...]
 
     def tree_hash(self) -> str:
         return content_id([[entry.path, entry.blob_sha] for entry in self.entries])
@@ -296,7 +300,7 @@ class SourceClosure:
         )
 
     def search_exclusions(self) -> tuple[str, ...]:
-        return tuple(sorted({*self.control_directories, *self.unenumerated_directories()}))
+        return tuple(sorted({*self.control_entries, *self.unenumerated_directories()}))
 
     def scannable(self) -> tuple[ClosureEntry, ...]:
         return tuple(entry for entry in self.entries if entry.carries_source())
@@ -347,20 +351,21 @@ def build(root: Path) -> SourceClosure:
         root=resolved,
         repo_sha=_repo_sha(resolved),
         entries=tuple(entries),
-        control_directories=tuple(
-            sorted(name for name in CONTROL_DIRECTORIES if (resolved / name).exists())
+        control_entries=tuple(
+            sorted(name for name in CONTROL_ENTRIES if (resolved / name).exists())
         ),
     )
 
 
 def _walk(root: Path, submodules: frozenset[str]) -> Iterator[ClosureEntry]:
-    for dirpath, dirnames, filenames in os.walk(root, topdown=True, followlinks=False):
-        here = Path(dirpath)
+    base = system_path(root)
+    for dirpath, dirnames, filenames in os.walk(base, topdown=True, followlinks=False):
+        here = _rebase(root, base, dirpath)
         kept: list[str] = []
         for name in sorted(dirnames):
             child = here / name
             relative = _relative(root, child)
-            if relative in CONTROL_DIRECTORIES or name in CONTROL_DIRECTORIES:
+            if _is_control_entry(relative, name):
                 continue
             if child.is_symlink():
                 yield _directory_symlink(root, child, relative)
@@ -381,7 +386,14 @@ def _walk(root: Path, submodules: frozenset[str]) -> Iterator[ClosureEntry]:
         dirnames[:] = kept
         for name in sorted(filenames):
             child = here / name
-            yield _classify(root, child, _relative(root, child), submodules)
+            relative = _relative(root, child)
+            if _is_control_entry(relative, name):
+                continue
+            yield _classify(root, child, relative, submodules)
+
+
+def _is_control_entry(relative: str, name: str) -> bool:
+    return relative in CONTROL_ENTRIES or name in CONTROL_ENTRIES
 
 
 def _classify(root: Path, path: Path, relative: str, submodules: frozenset[str]) -> ClosureEntry:
@@ -479,6 +491,8 @@ def _role_of(relative: str, classification: Classification, size: int | None) ->
     suffix = _suffix_of(name)
     if name in MANIFEST_NAMES or suffix in MANIFEST_SUFFIXES:
         return FileRole.MANIFEST
+    if name.startswith(ENVIRONMENT_FILE_PREFIX):
+        return FileRole.CONFIG
     if suffix in SNAPSHOT_SUFFIXES:
         return FileRole.SNAPSHOT
     directories = {part.lower() for part in parts[:-1]}
@@ -490,6 +504,8 @@ def _role_of(relative: str, classification: Classification, size: int | None) ->
         return FileRole.DATA
     if suffix in DOCUMENTATION_SUFFIXES:
         return FileRole.DOCUMENTATION
+    if suffix in STYLESHEET_SUFFIXES:
+        return FileRole.STYLESHEET
     if suffix in CONFIG_SUFFIXES or suffix in STRUCTURED_SUFFIXES:
         return FileRole.CONFIG
     if suffix in SOURCE_SUFFIXES:
@@ -595,7 +611,7 @@ def _probe(path: Path) -> FileProbe:
     head = b""
     first = True
     try:
-        with open(path, "rb") as handle:
+        with open(system_path(path), "rb") as handle:
             while True:
                 chunk = handle.read(READ_CHUNK)
                 if not chunk:
@@ -609,6 +625,24 @@ def _probe(path: Path) -> FileProbe:
     except OSError as error:
         return FileProbe(None, None, False, f"{type(error).__name__}: {error}", b"")
     return FileProbe(digest.hexdigest(), total, binary, None, head)
+
+
+def _rebase(root: Path, base: str, dirpath: str) -> Path:
+    if dirpath == base:
+        return root
+    trailing = dirpath[len(base) :].lstrip("\\/")
+    return root / trailing if trailing else root
+
+
+def system_path(path: Path) -> str:
+    if os.name != "nt":
+        return str(path)
+    resolved = os.path.abspath(str(path))
+    if resolved.startswith("\\\\?\\"):
+        return resolved
+    if resolved.startswith("\\\\"):
+        return "\\\\?\\UNC" + resolved[1:]
+    return "\\\\?\\" + resolved
 
 
 def _relative(root: Path, path: Path) -> str:
@@ -647,9 +681,10 @@ def _submodule_prefixes(root: Path) -> frozenset[str]:
                 candidate = value.strip().strip('"')
                 if candidate:
                     prefixes.add(candidate.replace("\\", "/").rstrip("/"))
-    for dirpath, dirnames, _ in os.walk(root, topdown=True, followlinks=False):
-        dirnames[:] = sorted(name for name in dirnames if name not in CONTROL_DIRECTORIES)
-        here = Path(dirpath)
+    base = system_path(root)
+    for dirpath, dirnames, _ in os.walk(base, topdown=True, followlinks=False):
+        dirnames[:] = sorted(name for name in dirnames if name not in CONTROL_ENTRIES)
+        here = _rebase(root, base, dirpath)
         if here != root and (here / ".git").is_file():
             prefixes.add(_relative(root, here))
             dirnames.clear()

@@ -10,7 +10,7 @@
       "claim_type": "structure_unsupported",
       "location": "composer.json",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "package_reference",
@@ -27,12 +27,6 @@
     {
       "claim_type": "surface_reference",
       "location": "composer.json:4",
-      "provider_subject": "google-ads",
-      "status": "UNKNOWN"
-    },
-    {
-      "claim_type": "surface_reference",
-      "location": "composer.json:4",
       "provider_subject": "googleads",
       "status": "UNKNOWN"
     },
@@ -40,7 +34,7 @@
       "claim_type": "file_unscanned",
       "location": "data/payload.bin",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSCANNED"
     },
     {
       "claim_type": "surface_reference",
@@ -52,11 +46,15 @@
   "counts": {
     "affected": 0,
     "excluded_with_evidence": 0,
+    "human_accepted_risk": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 8,
+    "provider_reference_data": 0,
+    "total": 7,
     "unexplained": 0,
-    "unknown": 8
+    "unknown": 5,
+    "unscanned": 1,
+    "unsupported": 1
   },
   "fixture": "unparsable_file",
   "pack": "google_ads"

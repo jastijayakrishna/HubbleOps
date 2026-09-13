@@ -1,0 +1,12 @@
+{
+  "summary": "the request text is moved out of code into a data file the module loads at runtime, so no request skeleton reaches the contract oracle while the same request still goes out",
+  "expected_verdict": "UNKNOWN",
+  "reason_contains": "never reached the oracle",
+  "caught_by": "contract oracle (a request the oracle could not read is unproven, never accepted)",
+  "delete": [],
+  "obligation_sites": [
+    ["reporting.py", 5, "present:campaigns.name"],
+    ["reporting.py", 16, "present:campaigns.name"],
+    ["queries.txt", 1, "present:campaigns.name"]
+  ]
+}

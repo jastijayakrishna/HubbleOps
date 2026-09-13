@@ -15,7 +15,9 @@
     "rules_hash",
     "scanner_version",
     "verifier_version",
-    "verifier_image_hash"
+    "verifier_image_hash",
+    "verification_inputs_hash",
+    "oracle_context_hash"
   ],
   "properties": {
     "repo_sha": {
@@ -48,7 +50,15 @@
       "description": "Version of hubbleops and of every external binary whose output entered the scan. A tool upgrade changes the scope, and therefore kills the proof."
     },
     "verifier_version": { "type": ["string", "null"] },
-    "verifier_image_hash": { "type": ["string", "null"] }
+    "verifier_image_hash": { "type": ["string", "null"] },
+    "verification_inputs_hash": {
+      "description": "Canonical hash of the versioned verification-input manifest. It binds resolved SHAs, the version pair, normalized obligations and decisions, validated capture artifacts, and the frozen baseline suite identity. Null for scan-only scopes.",
+      "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+    },
+    "oracle_context_hash": {
+      "description": "Non-secret identity of the oracle implementation, transport mode, and validation authority context. Null for scan-only scopes.",
+      "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+    }
   },
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },

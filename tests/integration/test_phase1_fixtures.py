@@ -102,7 +102,7 @@ def test_every_open_candidate_prints_a_closing_instruction(
         target="UNKNOWN (SDK compatibility unresolved)",
         repository=str(fixture),
         repo_sha=None,
-        expand_not_affected=True,
+        expand=True,
     )
     assert _site_total(expanded) == len(book.by_status("UNKNOWN"))
     assert "Unexplained             0" in rendered
@@ -151,8 +151,12 @@ def test_an_unparsable_manifest_and_a_binary_blob_are_both_accounted_for(
     google_pack: registry.LoadedPack,
 ) -> None:
     book = scan_repository(Path("tests/fixtures/phase1/unparsable_file/repo"), google_pack).ledger
-    claims = {book.location_of(candidate).claim_type for candidate in book.by_status("UNKNOWN")}
-    assert {"dependency_state", "file_unscanned"} <= claims
+    unknown = {book.location_of(candidate).claim_type for candidate in book.by_status("UNKNOWN")}
+    unscanned = {
+        book.location_of(candidate).claim_type for candidate in book.by_status("UNSCANNED")
+    }
+    assert "dependency_state" in unknown
+    assert "file_unscanned" in unscanned
 
 
 def test_a_parsed_lock_without_the_surface_package_proves_absence(

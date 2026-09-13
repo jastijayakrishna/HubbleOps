@@ -37,7 +37,7 @@ from hubbleops.core.proof_scope import run_id_for
 from hubbleops.core.schema import validate
 
 DATABASE_FILENAME = "hubbleops.sqlite"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 BUSY_TIMEOUT_MILLISECONDS = 30_000
 
 TABLE_NAMES = frozenset({"runs", "evidence", "candidates", "obligations", "checks", "artifacts"})
@@ -139,6 +139,16 @@ class RunRow:
     closure: dict[str, Any]
     started_at: str
     finished_at: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class ArtifactRow:
+    run_id: str
+    proof_scope_hash: str
+    kind: str
+    path: str
+    sha256: str
+    size: int
 
 
 class Store:
@@ -578,6 +588,24 @@ class Store:
             (run_id,),
         )
         return tuple(json.loads(row["record_json"]) for row in cursor.fetchall())
+
+    def artifacts_for(self, run_id: str) -> tuple[ArtifactRow, ...]:
+        cursor = self.connection.execute(
+            "SELECT run_id, proof_scope_hash, kind, path, sha256, size "
+            "FROM artifacts WHERE run_id = ? ORDER BY kind, path, sha256",
+            (run_id,),
+        )
+        return tuple(
+            ArtifactRow(
+                run_id=str(row["run_id"]),
+                proof_scope_hash=str(row["proof_scope_hash"]),
+                kind=str(row["kind"]),
+                path=str(row["path"]),
+                sha256=str(row["sha256"]),
+                size=int(row["size"]),
+            )
+            for row in cursor.fetchall()
+        )
 
 
 def _run_row(row: sqlite3.Row) -> RunRow:

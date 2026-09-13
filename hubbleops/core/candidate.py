@@ -14,9 +14,14 @@ STATUSES = (
     "UNKNOWN",
     "HUMAN_REQUIRED",
     "EXCLUDED_WITH_EVIDENCE",
+    "PROVIDER_REFERENCE_DATA",
+    "UNSUPPORTED",
+    "UNSCANNED",
+    "HUMAN_ACCEPTED_RISK",
 )
 
-OPEN_STATUSES = ("UNKNOWN", "HUMAN_REQUIRED")
+OPEN_STATUSES = ("UNKNOWN", "HUMAN_REQUIRED", "UNSUPPORTED", "UNSCANNED")
+DECISION_REASON_PREFIX = "recorded human decision "
 
 
 def candidate_identity(provider: str, claim_type: str, claim_key: str) -> str:
@@ -37,6 +42,8 @@ def claim_key(record: Mapping[str, Any]) -> str:
         "package_reference",
         "config_reference",
         "request_text",
+        "adjacent_contract",
+        "contract_surface",
     ):
         return f"{path}:{line}:{subject}"
     if claim_type == "sdk_installed":

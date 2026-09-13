@@ -204,8 +204,12 @@ def test_a_match_in_a_closure_marked_unscannable_file_is_not_discarded(
         yield text.TextHit(path="blob.bin", line_number=1, line_text="mockprov")
 
     monkeypatch.setattr(text, "_search", stray)
-    claims = {record["claim_type"] for record in text.scan(closure, ctx)}
-    assert claims == {"file_unscanned", "package_reference", "surface_reference"}
+    records = text.scan(closure, ctx)
+    claims = {record["claim_type"] for record in records}
+    assert claims == {"file_unscanned", "surface_reference"}
+    merged = next(item for item in records if item["claim_type"] == "surface_reference")
+    assert merged["value"]["claims"] == ["package_reference", "surface_reference"]
+    assert merged["value"]["kinds"] == ["identifier", "package"]
 
 
 def test_a_media_suffix_never_removes_a_file_from_the_ledger(
@@ -224,7 +228,7 @@ def test_a_media_suffix_never_removes_a_file_from_the_ledger(
         for candidate in book.candidates
         if book.location_of(candidate).claim_type == "file_unscanned"
     }
-    assert unscanned == {"logo.png": "UNKNOWN", "blob.dat": "UNKNOWN"}
+    assert unscanned == {"logo.png": "UNSCANNED", "blob.dat": "UNSCANNED"}
     assert book.counts()["unexplained"] == 0
     for candidate in book.candidates:
         if book.location_of(candidate).claim_type == "file_unscanned":
@@ -273,7 +277,7 @@ def test_a_record_stream_dense_with_surface_names_becomes_one_accounted_candidat
     ]
 
     assert len(bulk) == 1
-    assert bulk[0]["status"] == "EXCLUDED_WITH_EVIDENCE"
+    assert bulk[0]["status"] == "PROVIDER_REFERENCE_DATA"
     assert book.location_of(bulk[0]).path == "data/catalog.jsonl"
     assert book.counts()["unexplained"] == 0
 
@@ -325,5 +329,27 @@ def test_a_call_site_ripgrep_quarantines_as_binary_still_raises_a_candidate(
         for candidate in book.candidates
         if book.location_of(candidate).claim_type == "file_unscanned"
     }
-    assert unscanned["src/late.py"] == "UNKNOWN"
+    assert unscanned["src/late.py"] == "UNSCANNED"
     assert book.counts()["unexplained"] == 0
+
+
+@pytest.mark.parametrize("separator", (chr(0x85), chr(0x2028), chr(0x2029), "\x0b", "\x0c"))
+def test_a_matched_line_with_a_unicode_line_separator_keeps_the_json_stream_whole(
+    tmp_path: Path, mock_pack: registry.LoadedPack, separator: str
+) -> None:
+    closure = build(
+        tmp_path,
+        {"bundle.js": f'const a = "api.mockprov.test/v22/x{separator}y";\nconst b = 1;\n'},
+    )
+    ctx = ObserverContext(
+        provider="_mock",
+        run_id=content_id({"run": 1}),
+        proof_scope_hash=content_id({"scope": 1}),
+        repo_sha=None,
+        dependency_context_hash=None,
+        surface=mock_pack.surface,
+    )
+    records = text.scan(closure, ctx)
+    matched = [item for item in records if item["path"] == "bundle.js"]
+    assert matched, records
+    assert {item["line_start"] for item in matched} == {1}

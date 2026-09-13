@@ -89,7 +89,9 @@ def test_a_corrupted_candidate_is_rejected_for_the_right_reason(
 ) -> None:
     repository = build_repository(tmp_path / "repo", corruption.edits)
     obligations = write_obligations(
-        tmp_path / "obligations.json", (*DEFAULT_SITES, *corruption.obligation_sites)
+        tmp_path / "obligations.json",
+        repository,
+        (*DEFAULT_SITES, *corruption.obligation_sites),
     )
     run = verify(repository, obligations_path=obligations)
     judgement = run.evaluation.judgement
