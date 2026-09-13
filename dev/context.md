@@ -10,7 +10,15 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Current phase** | Compressed Tiers 0-2 are implemented through Phase 7 on top of an unmerged Phase 5. Phase 4 is merged to `main` and tagged `v0.4` |
 | **Branch** | `phase-06-repository-intelligence`, cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
-| **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) awaits the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No commit, merge, tag, push, publication, or deployment was requested or performed. |
+| **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) awaits the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
+
+**Working copy moved off OneDrive (2026-09-13).** The tree lives at `C:\dev\HubbleOps`; the
+OneDrive copy is left untouched as a fallback. Content is identical — same tree hash
+`592ba5b`, `git diff` empty; the only differences were CRLF-vs-LF working-tree bytes and two
+empty directories git cannot track. Use `uv sync --all-packages`, not `uv sync`: the plain
+form leaves `hubbleops-sentinel` uninstalled. OneDrive was worth leaving — every file was a
+Files-On-Demand placeholder, and SQLite WAL sidecars plus `.git` internals are exactly what a
+sync client corrupts.
 
 **Tier 3b built (2026-09-13) — precise indexers behind the graph, spike first (PART NINE of
 `dev/plan.md`).** Five indexers were run without installing any repository's dependencies and
