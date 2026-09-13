@@ -14,6 +14,8 @@ from hubbleops.verify.oracle import captured_body
 
 REQUEST_CLAIM_TYPE = "request_text"
 LITERAL = re.compile(r'"[^"\\]*(?:\\.[^"\\]*)*"' + r"|'[^'\\]*(?:\\.[^'\\]*)*'")
+LITERAL_KINDS = ("string", "template_string")
+WORD = re.compile(r"[A-Za-z_]\w*")
 ASSEMBLY_GLUE = ("", "%s", "{}", "+", ".")
 STATIC_SOURCE = "STATIC_SKELETON"
 CAPTURED_SOURCE = "DYNAMIC_CAPTURE"
@@ -205,16 +207,15 @@ def consumers(
     provider_paths: Collection[str] = (),
 ) -> ConsumerCheck:
     qualified = {change.subject for change in (*changes.removed(), *changes.renamed())}
-    leaves = {
-        leaf for subject in qualified if (leaf := subject.rsplit(".", 1)[-1]) and leaf != subject
-    }
-    watched = qualified | leaves
+    bound = _bound_leaves(changes, qualified)
+    watched = qualified | set(bound)
     if not watched:
         return ConsumerCheck(hits=(), unresolved=())
     reachable = frozenset(provider_paths)
     hits: set[str] = set()
     unresolved: set[str] = set()
     sources: dict[str, bytes | None] = {}
+    referenced: dict[str, frozenset[str]] = {}
     for atom in graph.atoms:
         name = _unquote(atom.text)
         if name not in watched:
@@ -227,9 +228,15 @@ def consumers(
             continue
         if not _is_read_position(source, atom.range.end_byte):
             continue
+        site = f"{atom.path}:{atom.range.start_line}"
+        if name in qualified:
+            hits.add(f"{name} at {site}")
+            continue
         quoted = name != atom.text.strip()
-        if name in qualified or quoted or _is_member_access(source, atom.range.start_byte):
-            hits.add(f"{name} at {atom.path}:{atom.range.start_line}")
+        if not (quoted or _is_member_access(source, atom.range.start_byte)):
+            continue
+        for parent in _bound_parents(bound[name], graph, atom.path, referenced):
+            hits.add(f"{parent}.{name} at {site}")
     for built in (*graph.concatenations, *graph.formats):
         assembled = _assembled(built)
         if assembled is None:
@@ -238,11 +245,49 @@ def consumers(
                 "name from parts this build cannot resolve"
             )
             continue
-        if assembled in watched:
-            hits.add(f"{assembled} at {built.path}:{built.range.start_line}")
+        site = f"{built.path}:{built.range.start_line}"
+        if assembled in qualified:
+            hits.add(f"{assembled} at {site}")
+        elif assembled in bound and built.path in reachable:
+            for parent in _bound_parents(bound[assembled], graph, built.path, referenced):
+                hits.add(f"{parent}.{assembled} at {site}")
     for error in graph.parse_errors:
         unresolved.add(f"response_consumer_check: {error.path} did not parse")
     return ConsumerCheck(hits=tuple(sorted(hits)), unresolved=tuple(sorted(unresolved)))
+
+
+def _bound_leaves(changes: ChangeSet, qualified: Collection[str]) -> dict[str, frozenset[str]]:
+    survivors = {change.subject for change in changes.changes if change.subject not in qualified}
+    survivors.update(change.replacement for change in changes.renamed() if change.replacement)
+    ambiguous = {subject.rsplit(".", 1)[-1] for subject in survivors}
+    parents: dict[str, set[str]] = {}
+    for subject in qualified:
+        segments = subject.split(".")
+        if len(segments) < 2 or segments[-1] in ambiguous:
+            continue
+        parents.setdefault(segments[-1], set()).add(segments[-2])
+    return {leaf: frozenset(found) for leaf, found in parents.items()}
+
+
+def _bound_parents(
+    parents: frozenset[str],
+    graph: ImportGraph,
+    path: str,
+    referenced: dict[str, frozenset[str]],
+) -> tuple[str, ...]:
+    if path not in referenced:
+        referenced[path] = _referenced_names(graph, path)
+    return tuple(sorted(parents & referenced[path]))
+
+
+def _referenced_names(graph: ImportGraph, path: str) -> frozenset[str]:
+    names: set[str] = set()
+    for atom in graph.atoms_in(path):
+        if atom.kind in LITERAL_KINDS:
+            names.update(WORD.findall(_unquote(atom.text)))
+        else:
+            names.add(atom.text.strip())
+    return frozenset(names)
 
 
 def _assembled(built: SyntaxMatch) -> str | None:
