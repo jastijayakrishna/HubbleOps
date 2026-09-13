@@ -16,19 +16,19 @@
       "claim_type": "package_reference",
       "location": "composer.json:4",
       "provider_subject": "google-ads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "package_reference",
       "location": "composer.json:4",
       "provider_subject": "googleads/google-ads-php",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "surface_reference",
       "location": "composer.json:4",
       "provider_subject": "googleads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "file_unscanned",
@@ -48,11 +48,11 @@
     "excluded_with_evidence": 0,
     "human_accepted_risk": 0,
     "human_required": 0,
-    "not_affected_with_evidence": 0,
+    "not_affected_with_evidence": 3,
     "provider_reference_data": 0,
     "total": 7,
     "unexplained": 0,
-    "unknown": 5,
+    "unknown": 2,
     "unscanned": 1,
     "unsupported": 1
   },

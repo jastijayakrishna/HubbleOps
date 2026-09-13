@@ -16,13 +16,13 @@
       "claim_type": "package_reference",
       "location": "packages/ads/package.json:5",
       "provider_subject": "google-ads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "package_reference",
       "location": "packages/ads/package.json:5",
       "provider_subject": "google-ads-api",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "sdk_installed",
@@ -34,13 +34,13 @@
       "claim_type": "package_reference",
       "location": "packages/ads/src/index.js:1",
       "provider_subject": "google-ads-api",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "surface_reference",
       "location": "packages/ads/src/index.js:1",
       "provider_subject": "google-ads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "call_version",
@@ -78,11 +78,11 @@
     "excluded_with_evidence": 0,
     "human_accepted_risk": 0,
     "human_required": 0,
-    "not_affected_with_evidence": 1,
+    "not_affected_with_evidence": 5,
     "provider_reference_data": 0,
     "total": 12,
     "unexplained": 0,
-    "unknown": 4,
+    "unknown": 0,
     "unscanned": 0,
     "unsupported": 5
   },

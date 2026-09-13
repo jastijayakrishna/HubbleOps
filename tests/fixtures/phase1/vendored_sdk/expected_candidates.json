@@ -10,13 +10,13 @@
       "claim_type": "package_reference",
       "location": "composer.json:4",
       "provider_subject": "google-ads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "package_reference",
       "location": "composer.json:4",
       "provider_subject": "googleads/google-ads-php",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "sdk_installed",
@@ -28,7 +28,7 @@
       "claim_type": "surface_reference",
       "location": "composer.json:4",
       "provider_subject": "googleads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "call_version",
@@ -46,7 +46,7 @@
       "claim_type": "surface_reference",
       "location": "src/App.php:9",
       "provider_subject": "GoogleAdsService",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "call_version",
@@ -84,11 +84,11 @@
     "excluded_with_evidence": 5,
     "human_accepted_risk": 0,
     "human_required": 0,
-    "not_affected_with_evidence": 0,
+    "not_affected_with_evidence": 4,
     "provider_reference_data": 0,
     "total": 13,
     "unexplained": 0,
-    "unknown": 5,
+    "unknown": 1,
     "unscanned": 0,
     "unsupported": 1
   },

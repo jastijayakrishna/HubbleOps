@@ -167,4 +167,13 @@ def test_a_parsed_lock_without_the_surface_package_proves_absence(
     ).ledger
     not_affected = book.by_status("NOT_AFFECTED_WITH_EVIDENCE")
     assert not_affected
-    assert all("lock" in candidate["reason"] for candidate in not_affected)
+    absence = [
+        candidate
+        for candidate in not_affected
+        if book.location_of(candidate).claim_type == "sdk_installed"
+    ]
+    assert absence
+    assert all("lock" in candidate["reason"] for candidate in absence)
+    assert all(
+        "lock" not in candidate["reason"] for candidate in not_affected if candidate not in absence
+    )
