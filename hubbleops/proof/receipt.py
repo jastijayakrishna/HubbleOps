@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -39,6 +39,7 @@ def build(
     from_version: str,
     to_version: str,
     production_coverage: tuple[int, int] | None = None,
+    retired_patterns: tuple[str, ...] = (),
 ) -> Receipt:
     record: dict[str, Any] = {
         "proof_scope": dict(proof_scope),
@@ -47,6 +48,7 @@ def build(
         "changed_files": _changed_files(evaluation),
         "migration_audit": evaluation.audit.report().to_mapping(),
         "oracle_results": [item.to_mapping() for item in evaluation.oracle.checks],
+        "oracle_authority": evaluation.oracle.authority(),
         "blast_radius": {
             **evaluation.blast.to_mapping(),
             "containment": evaluation.containment.report().to_mapping()["detail"],
@@ -70,6 +72,7 @@ def build(
             "from_version": from_version,
             "to_version": to_version,
             "production_coverage": list(production_coverage) if production_coverage else None,
+            "retired_patterns": sorted(set(retired_patterns)),
         }
     )
     return Receipt(record=validate("receipt", record))
@@ -86,6 +89,10 @@ def _counts(evaluation: Evaluation) -> dict[str, int]:
             "unknown",
             "human_required",
             "excluded_with_evidence",
+            "provider_reference_data",
+            "unsupported",
+            "unscanned",
+            "human_accepted_risk",
             "unexplained",
         )
     }
@@ -133,7 +140,10 @@ def render(receipt: Receipt) -> str:
         "DISCOVERY",
         f"  candidates {counts['total']} · affected {counts['affected']} · "
         f"not affected (evidence) {counts['not_affected_with_evidence']} · "
-        f"UNKNOWN {counts['unknown']} · unexplained {counts['unexplained']}",
+        f"UNKNOWN {counts['unknown']} · unsupported {counts['unsupported']} · "
+        f"unscanned {counts['unscanned']} · unexplained {counts['unexplained']}",
+        f"  provider reference data {counts['provider_reference_data']} · "
+        f"human accepted risk {counts['human_accepted_risk']}",
         f"  production services accounted for {_coverage(audit)}",
         "",
         "OBLIGATIONS",
@@ -149,6 +159,7 @@ def render(receipt: Receipt) -> str:
         "",
         f"CONTRACT ORACLE ({audit.get('to_version', 'target')}, validate_only)",
         f"  {accepted} / {len(oracle)} requests ACCEPTED   [request hashes attached]",
+        *authority_lines(record["oracle_authority"], oracle),
         "",
         "BLAST RADIUS",
         f"  changed symbols {len(blast['changed_definitions'])} · "
@@ -191,6 +202,31 @@ def render(receipt: Receipt) -> str:
     return "\n".join(lines) + "\n"
 
 
+def authority_lines(authority: str, oracle: Sequence[Mapping[str, Any]]) -> tuple[str, ...]:
+    if authority == "LIVE":
+        return ("  authority LIVE — the provider itself accepted these requests",)
+    if authority == "CATALOG":
+        scopes = _catalog_scopes(oracle)
+        return (
+            "  authority CATALOG — the provider pack's own version catalog, not the provider",
+            *(
+                tuple(f"  scope: {scope}" for scope in scopes)
+                if scopes
+                else ("  the accepting pack recorded no scope, so this acceptance proves nothing",)
+            ),
+        )
+    return ("  authority ORACLE_UNAVAILABLE — no request was decided by any authority",)
+
+
+def _catalog_scopes(oracle: Sequence[Mapping[str, Any]]) -> tuple[str, ...]:
+    stated = {
+        str(item.get("reason", "")).strip()
+        for item in oracle
+        if item.get("code") == "VALID" and item.get("authority") == "CATALOG"
+    }
+    return tuple(sorted(stated - {""}))
+
+
 def _mark(passed: bool) -> str:
     return "PASS" if passed else "FAIL"
 
@@ -210,4 +246,4 @@ def _coverage(audit: Mapping[str, Any]) -> str:
     return f"{coverage[0]} / {coverage[1]}"
 
 
-__all__ = ["Receipt", "build", "render"]
+__all__ = ["Receipt", "authority_lines", "build", "render"]

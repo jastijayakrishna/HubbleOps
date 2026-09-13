@@ -147,7 +147,11 @@ def _check_write(target: str, text: str) -> int:
     relative = _relative(target)
     phase = _phase()
 
-    if relative.startswith(SCHEMA_ROOT) and (phase is None or phase > 1):
+    if (
+        relative.startswith(SCHEMA_ROOT)
+        and (phase is None or phase > 1)
+        and relative not in _accepted_proposal_names()
+    ):
         return _block(
             f"{relative} is a frozen schema. Propose the change in dev/proposals.md instead of "
             "editing it in place."
@@ -297,6 +301,21 @@ def _markdown_allowed(relative: str) -> bool:
         relative in prompt.read_text(encoding="utf-8", errors="replace")
         for prompt in prompts.glob("*.md")
     )
+
+
+def _accepted_proposal_names() -> frozenset[str]:
+    proposals = REPO / "dev" / "proposals.md"
+    if not proposals.is_file():
+        return frozenset()
+    accepted: set[str] = set()
+    for block in re.split(r"(?=^## P-[0-9]+\b)", proposals.read_text("utf-8"), flags=re.MULTILINE):
+        if "| **Status** | ACCEPTED |" not in block:
+            continue
+        accepted.update(
+            match.group(0)
+            for match in re.finditer(rf"{re.escape(SCHEMA_ROOT)}[A-Za-z0-9_.-]+\.json\b", block)
+        )
+    return frozenset(accepted)
 
 
 def _first_comment(text: str) -> str | None:
