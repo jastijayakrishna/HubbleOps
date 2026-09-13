@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Collection, Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -107,17 +107,23 @@ def environment(root: Path, report: Path) -> dict[str, str]:
 def read_report(path: Path) -> tuple[SuiteCase, ...]:
     if not path.is_file():
         return ()
-    payload = path.read_bytes()[:MAX_REPORT_BYTES]
+    payload = path.read_bytes()
     outcomes: list[SuiteCase] = []
-    for line in payload.decode("utf-8", errors="replace").splitlines():
+    if len(payload) > MAX_REPORT_BYTES:
+        outcomes.append(SuiteCase(f"<report truncated at {MAX_REPORT_BYTES} bytes>", "error", ()))
+        payload = payload[:MAX_REPORT_BYTES]
+    for row, line in enumerate(payload.decode("utf-8", errors="replace").split("\n"), start=1):
         if not line.strip():
             continue
         parsed = parse_json(line.encode("utf-8"))
         if not parsed.ok():
+            outcomes.append(SuiteCase(f"<unparseable report line {row}>", "error", ()))
             continue
         record = as_mapping(parsed.value)
         if record:
             outcomes.append(_outcome(record))
+        else:
+            outcomes.append(SuiteCase(f"<non-record report line {row}>", "error", ()))
     return tuple(sorted(outcomes, key=lambda item: item.name))
 
 
@@ -129,13 +135,17 @@ def _outcome(record: Mapping[str, Any]) -> SuiteCase:
     )
 
 
-def unsupported_modules(modules: Iterable[str], languages: Mapping[str, str]) -> tuple[str, ...]:
+def unsupported_modules(
+    modules: Iterable[str],
+    languages: Mapping[str, str],
+    covered: Collection[str] = SUPPORTED_LANGUAGES,
+) -> tuple[str, ...]:
     return tuple(
         sorted(
             module
             for module in modules
             if languages.get(module, "unknown") != "unknown"
-            and languages.get(module, "unknown") not in SUPPORTED_LANGUAGES
+            and languages.get(module, "unknown") not in covered
         )
     )
 

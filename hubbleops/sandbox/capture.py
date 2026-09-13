@@ -132,7 +132,14 @@ class DetachedWorktree:
         return tuple(sorted(path.name for path in metadata.iterdir() if path.is_dir()))
 
     def _git(self, *arguments: str) -> str:
-        argv = (self.git_executable, "-C", str(self.repository.resolve()), *arguments)
+        argv = (
+            self.git_executable,
+            "-c",
+            "core.longpaths=true",
+            "-C",
+            str(self.repository.resolve()),
+            *arguments,
+        )
         started = time.monotonic()
         try:
             outcome, exit_code, stdout, stderr = bounded_process(argv, 30, 65_536, "git")

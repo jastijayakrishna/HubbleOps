@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from hubbleops.core.records import as_line
+from hubbleops.core.subjects import parse_sites
 from hubbleops.core.verification import (
     CheckReport,
     Hunk,
@@ -101,10 +102,7 @@ def contain(
 
 
 def _declared_sites(obligation: ObligationView) -> list[tuple[str, int | None]]:
-    found: list[tuple[str, int | None]] = []
-    for match in SITE.finditer(obligation.current_state):
-        found.append((match["path"], int(match["line"])))
-    return found
+    return [(path, line) for path, line in parse_sites(obligation.current_state)]
 
 
 def _map_hunk(
@@ -298,7 +296,7 @@ def _definition_key(definition: Definition) -> tuple[str, str, tuple[str, ...]]:
 
 
 def _empty_graph() -> ImportGraph:
-    return ImportGraph((), (), (), (), (), (), (), (), (), (), ())
+    return ImportGraph((), (), (), (), (), (), (), (), (), (), (), ())
 
 
 def frozen_report(frozen: SuiteRun) -> CheckReport:

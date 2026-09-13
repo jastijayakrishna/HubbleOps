@@ -68,7 +68,7 @@ def attestation_environment(nonce: str) -> tuple[tuple[str, str], ...]:
 def attested(data: bytes, nonce: str) -> bool:
     if NONCE.fullmatch(nonce) is None:
         raise LoaderInvalid("install attestation nonce must be a sha256 hex digest")
-    for line in data.splitlines():
+    for line in data.split(b"\n"):
         if not line.strip():
             continue
         parsed = parse_json(line)

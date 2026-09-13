@@ -7,8 +7,10 @@ from typing import Any, cast
 
 import pytest
 
-from hubbleops.core.candidate import candidate_identity, make_candidate
-from hubbleops.core.evidence import AI_DERIVATION, make_evidence
+from hubbleops.app import decision, verification
+from hubbleops.core.candidate import DECISION_REASON_PREFIX, candidate_identity, make_candidate
+from hubbleops.core.canonical import content_id
+from hubbleops.core.evidence import AI_DERIVATION, make_evidence, observation_identity
 from hubbleops.core.verification import (
     ChangeSet,
     FalsifierInput,
@@ -30,12 +32,15 @@ from hubbleops.verify import (
     gitdiff,
     oracle,
     radius,
+    runners,
     suites,
 )
 from hubbleops.verify.suites import suite_paths
 
 SCOPE = "0" * 64
 RUN = "1" * 64
+CANDIDATE_SCOPE = "2" * 64
+CANDIDATE_RUN = "3" * 64
 
 
 def capture_event(
@@ -54,18 +59,25 @@ def capture_event(
 
 
 def evidence(
-    path: str, claim_type: str, value: Any, derivation: str = "OBSERVED"
+    path: str,
+    claim_type: str,
+    value: Any,
+    derivation: str = "OBSERVED",
+    source_hash: str = "a" * 64,
+    run_id: str = RUN,
+    proof_scope_hash: str = SCOPE,
+    repo_sha: str | None = None,
 ) -> dict[str, Any]:
     return make_evidence(
-        run_id=RUN,
-        proof_scope_hash=SCOPE,
+        run_id=run_id,
+        proof_scope_hash=proof_scope_hash,
         claim_type=claim_type,
         observer="text",
-        repo_sha=None,
+        repo_sha=repo_sha,
         path=path,
         line_start=1,
         line_end=1,
-        source_hash="a" * 64,
+        source_hash=source_hash,
         value=value,
         provider_subject=None,
         dependency_context_hash=None,
@@ -75,7 +87,11 @@ def evidence(
 
 
 def ledger_of(
-    records: list[dict[str, Any]], statuses: dict[str, str], key_suffix: str = ""
+    records: list[dict[str, Any]],
+    statuses: dict[str, str],
+    key_suffix: str = "",
+    run_id: str = RUN,
+    proof_scope_hash: str = SCOPE,
 ) -> Ledger:
     candidates: list[dict[str, Any]] = []
     for key, status in sorted(statuses.items()):
@@ -83,8 +99,8 @@ def ledger_of(
         candidates.append(
             make_candidate(
                 candidate_id=candidate_identity("p", "surface_reference", f"{key}{key_suffix}"),
-                run_id=RUN,
-                proof_scope_hash=SCOPE,
+                run_id=run_id,
+                proof_scope_hash=proof_scope_hash,
                 provider="p",
                 evidence_ids=attached,
                 status=status,
@@ -94,8 +110,8 @@ def ledger_of(
         )
     return Ledger(
         provider="p",
-        run_id=RUN,
-        proof_scope_hash=SCOPE,
+        run_id=run_id,
+        proof_scope_hash=proof_scope_hash,
         evidence=tuple(records),
         candidates=tuple(candidates),
     )
@@ -109,6 +125,58 @@ def test_an_unknown_closed_without_evidence_is_a_conservation_failure() -> None:
     assert result.report().passed is False
     assert result.violations[0].candidate_id == candidate.candidates[0]["id"]
     assert "no new evidence" in result.violations[0].justification
+
+
+def test_an_unknown_closed_without_evidence_still_fails_across_two_scan_runs() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"}, repo_sha="b" * 40)
+    after = evidence(
+        "a.py",
+        "surface_reference",
+        {"pattern": "x"},
+        run_id=CANDIDATE_RUN,
+        proof_scope_hash=CANDIDATE_SCOPE,
+        repo_sha="c" * 40,
+    )
+    base = ledger_of([before], {"a.py": "UNKNOWN"})
+    candidate = ledger_of(
+        [after],
+        {"a.py": "NOT_AFFECTED_WITH_EVIDENCE"},
+        run_id=CANDIDATE_RUN,
+        proof_scope_hash=CANDIDATE_SCOPE,
+    )
+    result = conserve.compare(base, candidate)
+    assert result.report().passed is False, (
+        "law L3: base and candidate are always separate runs, so evidence that only repeats "
+        "a base observation under a new run id is not new evidence"
+    )
+    assert "no new evidence" in result.violations[0].justification
+
+
+def test_a_repeated_observation_under_a_new_run_is_not_new_evidence() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"}, repo_sha="b" * 40)
+    after = evidence(
+        "a.py",
+        "surface_reference",
+        {"pattern": "x"},
+        run_id=CANDIDATE_RUN,
+        proof_scope_hash=CANDIDATE_SCOPE,
+        repo_sha="c" * 40,
+    )
+    assert before["id"] != after["id"]
+    assert observation_identity(before) == observation_identity(after)
+
+
+def test_a_changed_observation_under_a_new_run_is_new_evidence() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"}, repo_sha="b" * 40)
+    after = evidence(
+        "a.py",
+        "surface_reference",
+        {"pattern": "y"},
+        run_id=CANDIDATE_RUN,
+        proof_scope_hash=CANDIDATE_SCOPE,
+        repo_sha="c" * 40,
+    )
+    assert observation_identity(before) != observation_identity(after)
 
 
 def test_an_unknown_closed_on_new_evidence_conserves() -> None:
@@ -138,6 +206,55 @@ def test_a_recorded_human_decision_closes_an_unknown() -> None:
     assert conserve.compare(base, candidate, (decision,)).report().passed is True
 
 
+def test_a_source_bound_decision_cannot_survive_candidate_blob_drift() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"})
+    after = evidence(
+        "a.py",
+        "surface_reference",
+        {"pattern": "x"},
+        source_hash="b" * 64,
+        run_id=CANDIDATE_RUN,
+        proof_scope_hash=CANDIDATE_SCOPE,
+    )
+    base = ledger_of([before], {"a.py": "UNKNOWN"})
+    candidate = ledger_of(
+        [after], {"a.py": "UNKNOWN"}, run_id=CANDIDATE_RUN, proof_scope_hash=CANDIDATE_SCOPE
+    )
+    body: dict[str, Any] = {
+        "run_id": RUN,
+        "proof_scope_hash": SCOPE,
+        "candidate_id": base.candidates[0]["id"],
+        "blob_hash": "a" * 64,
+        "path": "a.py",
+        "line_start": 1,
+        "claim_type": "surface_reference",
+        "value": "HUMAN_ACCEPTED_RISK",
+        "by": "Reviewer",
+    }
+    record = {"id": content_id(body), **body}
+    with pytest.raises(decision.DecisionInvalid, match="not keyed to evidence"):
+        decision.apply(candidate, (record,), decided_run_id=RUN, decided_proof_scope_hash=SCOPE)
+
+
+def test_a_decision_from_a_foreign_run_never_applies_to_the_candidate() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"})
+    base = ledger_of([before], {"a.py": "UNKNOWN"})
+    body: dict[str, Any] = {
+        "run_id": CANDIDATE_RUN,
+        "proof_scope_hash": CANDIDATE_SCOPE,
+        "candidate_id": base.candidates[0]["id"],
+        "blob_hash": "a" * 64,
+        "path": "a.py",
+        "line_start": 1,
+        "claim_type": "surface_reference",
+        "value": "HUMAN_ACCEPTED_RISK",
+        "by": "Reviewer",
+    }
+    record = {"id": content_id(body), **body}
+    with pytest.raises(decision.DecisionInvalid, match="different ProofScope or run"):
+        decision.apply(base, (record,), decided_run_id=RUN, decided_proof_scope_hash=SCOPE)
+
+
 def test_a_new_unknown_is_preserved_not_a_violation() -> None:
     before = evidence("a.py", "surface_reference", {"pattern": "x"})
     base = ledger_of([before], {"a.py": "NOT_AFFECTED_WITH_EVIDENCE"})
@@ -165,6 +282,49 @@ def test_a_request_the_oracle_could_not_read_is_unresolved_not_accepted() -> Non
         "a request the oracle never saw is unproven, not proven; it must reach the verdict as "
         "unresolved rather than as a silent pass"
     )
+
+
+def test_a_request_site_closed_by_a_recorded_decision_is_decided_not_unreachable() -> None:
+    holed = evidence(
+        "q.py",
+        "request_text",
+        {"skeleton": {"fragments": ["select "], "holes": ["$FIELD"]}},
+    )
+    book = ledger_of([holed], {"q.py": "HUMAN_ACCEPTED_RISK"})
+    decided_book = Ledger(
+        provider=book.provider,
+        run_id=book.run_id,
+        proof_scope_hash=book.proof_scope_hash,
+        evidence=book.evidence,
+        candidates=tuple(
+            {**item, "reason": f"{DECISION_REASON_PREFIX}abc by owner for source blob {'a' * 64}"}
+            for item in book.candidates
+        ),
+    )
+    sites = oracle.request_sites(decided_book, ())
+    assert sites.requests == ()
+    assert sites.unreachable == ()
+    assert sites.decided == ("q.py:1",)
+    report = oracle.review(
+        _AcceptingOracle(),
+        sites.requests,
+        "v2",
+        unreachable=sites.unreachable,
+        decided=sites.decided,
+    ).report()
+    assert report.unresolved == ()
+    assert report.detail["decided"] == ["q.py:1"]
+
+
+def test_a_request_site_with_the_same_status_but_no_decision_stays_unreachable() -> None:
+    holed = evidence(
+        "q.py",
+        "request_text",
+        {"skeleton": {"fragments": ["select "], "holes": ["$FIELD"]}},
+    )
+    sites = oracle.request_sites(ledger_of([holed], {"q.py": "HUMAN_ACCEPTED_RISK"}), ())
+    assert sites.unreachable == ("q.py:1",)
+    assert sites.decided == ()
 
 
 def test_a_readable_request_reaches_the_oracle() -> None:
@@ -223,7 +383,17 @@ def test_captured_request_shapes_walk_objects_inside_arrays() -> None:
 
 class _AcceptingOracle:
     def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome:
-        return OracleOutcome(code="VALID", reason="fixture accepts")
+        return OracleOutcome(code="VALID", reason="fixture accepts", authority="CATALOG")
+
+
+class _LiveOracle:
+    def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome:
+        return OracleOutcome(code="VALID", reason="provider accepts", authority="LIVE")
+
+
+class _UnattributedOracle:
+    def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome:
+        return OracleOutcome(code="VALID", reason="accepts without saying who says so")
 
 
 class _InvalidOracle:
@@ -236,6 +406,20 @@ def test_an_invalid_oracle_code_is_unknown_not_accepted() -> None:
     assert review.accepted() == ()
     assert review.report().passed is True
     assert any("no valid outcome code" in item for item in review.report().unresolved)
+
+
+def test_an_acceptance_that_names_no_authority_is_refused() -> None:
+    review = oracle.review(_UnattributedOracle(), (("a" * 64, {"origin": "captured"}),), "v2")
+    assert review.accepted() == ()
+    assert review.available is False
+    assert review.authority() == "ORACLE_UNAVAILABLE"
+    assert "without naming an authority" in review.checks[0].reason
+
+
+def test_the_review_reports_the_weakest_authority_that_accepted_anything() -> None:
+    requests = (("a" * 64, {"origin": "captured"}),)
+    assert oracle.review(_LiveOracle(), requests, "v2").authority() == "LIVE"
+    assert oracle.review(_AcceptingOracle(), requests, "v2").authority() == "CATALOG"
 
 
 def test_an_oracle_that_saw_nothing_while_subjects_changed_is_unresolved() -> None:
@@ -371,7 +555,7 @@ def test_a_pure_deletion_hunk_spans_its_anchor() -> None:
 
 
 def _empty_graph() -> ImportGraph:
-    return ImportGraph((), (), (), (), (), (), (), (), (), (), ())
+    return ImportGraph((), (), (), (), (), (), (), (), (), (), (), ())
 
 
 def test_a_binary_change_is_never_absent_from_containment() -> None:
@@ -455,7 +639,7 @@ def test_a_definition_deleted_from_the_base_graph_enters_unknown_blast() -> None
         range=SourceRange(0, 24, 1, 3),
         asynchronous=False,
     )
-    baseline = ImportGraph((old,), (), (), (), (), (), (), (), (), (), ())
+    baseline = ImportGraph((old,), (), (), (), (), (), (), (), (), (), (), ())
     frozen = SuiteRun("FROZEN_BASELINE", True, 1, 0, 0, "COMPLETED", "", ())
     result = radius.blast(delta, _empty_graph(), frozen, base_graph=baseline)
     assert result.changed_definitions == ("old-definition",)
@@ -575,20 +759,25 @@ def test_an_abnormal_pytest_exit_never_becomes_a_completed_suite(
         report=workspace / "coverage.jsonl",
         plugin=workspace / "plugin.py",
         paths=("tests",),
+        layout=runners.SuiteLayout(
+            runner="pytest", languages=("python",), paths=("tests",), project="."
+        ),
     )
 
     def abnormal_pytest(
-        plan: suites.FrozenSuitePlan,
-        python_executable: str,
+        argv: tuple[str, ...],
         wall_seconds: float,
+        output_bytes: int,
+        name: str,
         environment: dict[str, str],
+        working_directory: str,
     ) -> tuple[str, int | None, bytes, bytes]:
         return "COMPLETED", 3, b"1 passed", b"internal error"
 
     def passing_report(path: Path) -> tuple[SuiteCase, ...]:
         return (SuiteCase("test_ok", "passed", ("app.py",)),)
 
-    monkeypatch.setattr(suites, "_pytest", abnormal_pytest)
+    monkeypatch.setattr(suites, "bounded_process", abnormal_pytest)
     monkeypatch.setattr(coverage, "read_report", passing_report)
     result = suites.run_frozen(plan, "python", 1)
     assert result.outcome == "EXECUTION_FAILED"
@@ -601,7 +790,7 @@ def test_an_untraceable_language_is_named_not_assumed_covered() -> None:
     assert coverage.unsupported_modules(modules, languages) == ("b.ts", "c.php")
 
 
-def test_the_coverage_report_survives_a_corrupt_line(tmp_path: Path) -> None:
+def test_the_coverage_report_names_a_corrupt_line_as_a_failed_case(tmp_path: Path) -> None:
     report = tmp_path / "coverage.jsonl"
     report.write_bytes(
         b'{"test":"a","outcome":"passed","files":["x.py"]}\n'
@@ -609,7 +798,40 @@ def test_the_coverage_report_survives_a_corrupt_line(tmp_path: Path) -> None:
         b'{"test":"b","outcome":"failed","files":[]}\n'
     )
     outcomes = coverage.read_report(report)
-    assert [item.name for item in outcomes] == ["a", "b"]
+    assert [item.name for item in outcomes] == ["<unparseable report line 2>", "a", "b"]
+    assert outcomes[0].outcome == "error"
+
+
+def test_the_coverage_report_names_a_non_record_line_and_a_truncation_as_failed_cases(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    report = tmp_path / "coverage.jsonl"
+    report.write_bytes(b'[]\n{"test":"a","outcome":"passed","files":[]}\n"x"\n')
+    outcomes = coverage.read_report(report)
+    assert [(item.name, item.outcome) for item in outcomes] == [
+        ("<non-record report line 1>", "error"),
+        ("<non-record report line 3>", "error"),
+        ("a", "passed"),
+    ]
+    monkeypatch.setattr(coverage, "MAX_REPORT_BYTES", 8)
+    truncated = coverage.read_report(report)
+    assert ("<report truncated at 8 bytes>", "error") in [
+        (item.name, item.outcome) for item in truncated
+    ]
+
+
+def test_the_coverage_report_keeps_a_record_whose_name_carries_a_line_separator(
+    tmp_path: Path,
+) -> None:
+    report = tmp_path / "coverage.jsonl"
+    name = f"test_a{chr(0x2028)}b"
+    report.write_text(
+        json.dumps({"test": name, "outcome": "passed", "files": ["x.py"]}, ensure_ascii=False)
+        + "\n",
+        encoding="utf-8",
+    )
+    outcomes = coverage.read_report(report)
+    assert [(item.name, item.outcome) for item in outcomes] == [(name, "passed")]
 
 
 def test_the_coverage_plugin_needs_no_third_party_import() -> None:
@@ -699,3 +921,95 @@ def test_an_authority_path_is_never_collateral(path: str) -> None:
 @pytest.mark.parametrize("path", ["src/app.py", "uv.lock", "tests/test_a.py"])
 def test_an_ordinary_path_is_not_an_authority_path(path: str) -> None:
     assert radius.is_authority_path(path) is False
+
+
+def test_every_verdict_affecting_input_moves_the_verification_manifest_hash() -> None:
+    capture = verification.CaptureArtifact(
+        (capture_event(),),
+        {"repo_sha": "a" * 40, "execution_spec": "one"},
+        "b" * 64,
+    )
+    inputs: dict[str, object] = {
+        "base_sha": "a" * 40,
+        "candidate_sha": "b" * 40,
+        "from_version": "v1",
+        "to_version": "v2",
+        "obligation_records": ({"id": "o1", "status": "OPEN"},),
+        "decisions": ({"id": "d1", "value": "accept"},),
+        "base_capture": capture,
+        "candidate_capture": capture,
+        "frozen_suite": {"paths": ["tests"], "files": {"tests/a.py": "c" * 64}},
+    }
+    original = verification_input_hash(inputs)
+    variants: tuple[Mapping[str, object], ...] = (
+        {**inputs, "base_sha": "c" * 40},
+        {**inputs, "candidate_sha": "d" * 40},
+        {**inputs, "from_version": "v0"},
+        {**inputs, "to_version": "v3"},
+        {**inputs, "obligation_records": ({"id": "o2", "status": "OPEN"},)},
+        {**inputs, "decisions": ({"id": "d2", "value": "reject"},)},
+        {**inputs, "base_capture": None},
+        {**inputs, "candidate_capture": None},
+        {**inputs, "frozen_suite": {"paths": ["spec"], "files": {}}},
+    )
+    assert all(verification_input_hash(variant) != original for variant in variants)
+
+
+def verification_input_hash(inputs: Mapping[str, object]) -> str:
+    return verification.verification_inputs_hash(
+        base_sha=cast(str, inputs["base_sha"]),
+        candidate_sha=cast(str, inputs["candidate_sha"]),
+        from_version=cast(str, inputs["from_version"]),
+        to_version=cast(str, inputs["to_version"]),
+        obligation_records=cast(tuple[Mapping[str, Any], ...], inputs["obligation_records"]),
+        decisions=cast(tuple[Mapping[str, Any], ...], inputs["decisions"]),
+        base_capture=cast(verification.CaptureArtifact | None, inputs["base_capture"]),
+        candidate_capture=cast(verification.CaptureArtifact | None, inputs["candidate_capture"]),
+        frozen_suite=cast(Mapping[str, Any], inputs["frozen_suite"]),
+    )
+
+
+def test_a_capture_without_an_execution_manifest_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "events.jsonl"
+    path.write_text(json.dumps(capture_event()) + "\n", encoding="utf-8")
+    with pytest.raises(verification.VerificationInvalid, match="cannot be read"):
+        verification.read_scoped_capture(path, None, "a" * 40, "_mock", "base")
+
+
+def test_an_input_record_from_another_scope_is_refused(tmp_path: Path) -> None:
+    record = {
+        "id": "1" * 64,
+        "run_id": "2" * 64,
+        "proof_scope_hash": "3" * 64,
+        "provider_change_id": "change",
+        "evidence_ids": ["4" * 64],
+        "current_state": "old",
+        "required_state": "new",
+        "repair_class": "DETERMINISTIC",
+        "verification_method": "check",
+        "status": "OPEN",
+    }
+    path = tmp_path / "obligations.json"
+    path.write_text(json.dumps([record]), encoding="utf-8")
+    with pytest.raises(verification.VerificationInvalid, match="not bound to the base ProofScope"):
+        verification.read_obligation_records(path, "5" * 64, "2" * 64)
+
+
+class _ChangingContextOracle:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def context_hash(self) -> str:
+        return str(self.calls).zfill(64)
+
+    def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome:
+        self.calls += 1
+        return OracleOutcome(code="VALID", reason="changed")
+
+
+def test_an_oracle_result_is_rejected_if_its_bound_context_moves() -> None:
+    contract = _ChangingContextOracle()
+    bound = verification.InjectedOracle(cast(Any, contract), contract.context_hash())
+    outcome = bound.validate({}, "v2")
+    assert outcome.code == "ORACLE_UNAVAILABLE"
+    assert "changed while validating" in outcome.reason

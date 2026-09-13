@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text, is_mapping
-from hubbleops.core.verification import ChangeSet, CheckReport, ObligationView
+from hubbleops.core.verification import ChangeSet, CheckReport, ObligationView, parse_method
 from hubbleops.graph import ImportGraph, SyntaxMatch
 from hubbleops.observe import Ledger
 from hubbleops.verify.oracle import captured_body
@@ -146,6 +146,7 @@ def differential(
     candidate: Sequence[Shape],
     obligations: Sequence[ObligationView],
     source: str,
+    changes: ChangeSet | None = None,
     resolved: bool = True,
     reason: str = "",
 ) -> ShapeDifferential:
@@ -163,9 +164,17 @@ def differential(
     after = {shape.identity() for shape in candidate}
     added = tuple(sorted(after - before))
     removed = tuple(sorted(before - after))
-    subjects = {item.provider_change_id for item in obligations} | {
-        item.verification_method.partition(":")[2].strip() for item in obligations
-    }
+    subjects = {item.provider_change_id for item in obligations}
+    for item in obligations:
+        parsed = parse_method(item.verification_method)
+        if parsed is not None:
+            subjects.add(parsed.argument)
+    if changes is not None:
+        subjects.update(
+            change.replacement
+            for change in changes.changes
+            if change.replacement and change.subject in subjects
+        )
     patterns = [
         re.compile(rf"(?<![\w.]){re.escape(subject)}(?![\w.])")
         for subject in sorted(subjects)
@@ -189,15 +198,20 @@ def differential(
     )
 
 
-def consumers(graph: ImportGraph, changes: ChangeSet, root: Path) -> ConsumerCheck:
-    watched: set[str] = set()
-    for change in (*changes.removed(), *changes.renamed()):
-        watched.add(change.subject)
-        leaf = change.subject.rsplit(".", 1)[-1]
-        if leaf:
-            watched.add(leaf)
+def consumers(
+    graph: ImportGraph,
+    changes: ChangeSet,
+    root: Path,
+    provider_paths: Collection[str] = (),
+) -> ConsumerCheck:
+    qualified = {change.subject for change in (*changes.removed(), *changes.renamed())}
+    leaves = {
+        leaf for subject in qualified if (leaf := subject.rsplit(".", 1)[-1]) and leaf != subject
+    }
+    watched = qualified | leaves
     if not watched:
         return ConsumerCheck(hits=(), unresolved=())
+    reachable = frozenset(provider_paths)
     hits: set[str] = set()
     unresolved: set[str] = set()
     sources: dict[str, bytes | None] = {}
@@ -205,11 +219,16 @@ def consumers(graph: ImportGraph, changes: ChangeSet, root: Path) -> ConsumerChe
         name = _unquote(atom.text)
         if name not in watched:
             continue
+        if name not in qualified and atom.path not in reachable:
+            continue
         source = sources.setdefault(atom.path, _read(root / atom.path))
         if source is None:
             unresolved.add(f"response_consumer_check: {atom.path} could not be read")
             continue
-        if _is_read_position(source, atom.range.end_byte):
+        if not _is_read_position(source, atom.range.end_byte):
+            continue
+        quoted = name != atom.text.strip()
+        if name in qualified or quoted or _is_member_access(source, atom.range.start_byte):
             hits.add(f"{name} at {atom.path}:{atom.range.start_line}")
     for built in (*graph.concatenations, *graph.formats):
         assembled = _assembled(built)
@@ -243,11 +262,23 @@ def _read(path: Path) -> bytes | None:
         return None
 
 
+def _is_member_access(source: bytes, start_byte: int) -> bool:
+    index = start_byte - 1
+    while index >= 0 and source[index : index + 1].isspace():
+        index -= 1
+    return index >= 0 and source[index : index + 1] in (b".", b"?")
+
+
 def _is_read_position(source: bytes, end_byte: int) -> bool:
     index = end_byte
     while index < len(source) and source[index : index + 1].isspace():
         index += 1
-    return source[index : index + 1] != b":"
+    following = source[index : index + 1]
+    if following == b":":
+        return False
+    if following == b"=":
+        return source[index + 1 : index + 2] == b"="
+    return True
 
 
 def _unquote(text: str) -> str:

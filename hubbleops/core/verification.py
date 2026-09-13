@@ -8,6 +8,9 @@ from hubbleops.core.canonical import content_id
 from hubbleops.core.records import as_mapping, as_sequence, as_text
 
 OracleCode = Literal["VALID", "INVALID", "UNKNOWN_PROVIDER_CONTRACT", "ORACLE_UNAVAILABLE"]
+OracleAuthority = Literal["LIVE", "CATALOG"]
+ORACLE_AUTHORITIES: tuple[OracleAuthority, ...] = ("LIVE", "CATALOG")
+RECEIPT_AUTHORITIES = ("LIVE", "CATALOG", "ORACLE_UNAVAILABLE")
 FalsifierResult = Literal["PASS", "FAIL", "UNKNOWN"]
 SubjectChangeKind = Literal["ADDED", "REMOVED", "CHANGED"]
 Verdict = Literal["VERIFIED_FOR_SCOPE", "HUMAN_REQUIRED", "UNKNOWN", "FAILED"]
@@ -63,6 +66,7 @@ class OracleOutcome:
     code: OracleCode
     reason: str
     response: Mapping[str, Any] | None = None
+    authority: OracleAuthority | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,6 +79,7 @@ class OracleCheck:
     code: OracleCode
     reason: str
     checked_at: str
+    authority: OracleAuthority | None = None
 
     def body(self) -> dict[str, Any]:
         return {
@@ -85,6 +90,7 @@ class OracleCheck:
             "origin": self.origin,
             "code": self.code,
             "reason": self.reason,
+            "authority": self.authority,
         }
 
     def to_mapping(self) -> dict[str, Any]:
@@ -124,6 +130,57 @@ class FalsifierView(Protocol):
     failure_class: str
 
     def check(self, subject: FalsifierInput) -> FalsifierOutcome: ...
+
+
+def watched_subjects(changes: ChangeSet) -> tuple[str, ...]:
+    return sorted_unique(
+        [item.subject for item in (*changes.removed(), *changes.renamed()) if item.subject]
+    )
+
+
+ABSENT = "absent"
+PRESENT = "present"
+VERSION = "version"
+SUPPORTS = "supports"
+CONSERVED = "conserved"
+
+OBLIGATION_METHODS = (ABSENT, PRESENT, VERSION, SUPPORTS, CONSERVED)
+
+METHOD_INTENTS = {
+    ABSENT: "the candidate rescan observes no {argument}",
+    PRESENT: "the candidate rescan observes {argument}",
+    VERSION: "the candidate rescan observes version {argument}",
+    SUPPORTS: "the resolved client library supports {argument}",
+    CONSERVED: "candidate {argument} is still carried or accounted for",
+}
+
+
+@dataclass(frozen=True, slots=True)
+class ObligationMethod:
+    kind: str
+    argument: str
+
+    def render(self) -> str:
+        return f"{self.kind}:{self.argument}"
+
+    def intent(self) -> str:
+        return METHOD_INTENTS[self.kind].format(argument=self.argument)
+
+
+def method(kind: str, argument: str) -> str:
+    if kind not in OBLIGATION_METHODS:
+        raise ValueError(f"{kind} is not an obligation method this build executes")
+    if not argument or ":" in argument:
+        raise ValueError(f"{argument!r} is not a usable argument for the {kind} method")
+    return ObligationMethod(kind=kind, argument=argument).render()
+
+
+def parse_method(verification_method: str) -> ObligationMethod | None:
+    kind, separator, argument = verification_method.strip().partition(":")
+    if not separator or kind not in OBLIGATION_METHODS:
+        return None
+    subject = argument.strip()
+    return ObligationMethod(kind=kind, argument=subject) if subject else None
 
 
 @dataclass(frozen=True, slots=True)
@@ -216,6 +273,8 @@ class SuiteRun:
     outcome: str
     reason: str
     tests: tuple[SuiteCase, ...] = ()
+    languages: tuple[str, ...] = ()
+    runner: str = ""
 
     def all_passed(self) -> bool:
         return (
@@ -236,6 +295,8 @@ class SuiteRun:
             "skipped": self.skipped,
             "outcome": self.outcome,
             "reason": self.reason,
+            "runner": self.runner,
+            "languages": list(self.languages),
             "tests": [test.to_mapping() for test in self.tests],
         }
 
@@ -309,7 +370,13 @@ def sorted_unique(values: Sequence[str]) -> tuple[str, ...]:
 
 
 __all__ = [
+    "ABSENT",
+    "CONSERVED",
+    "OBLIGATION_METHODS",
+    "PRESENT",
+    "SUPPORTS",
     "VERDICTS",
+    "VERSION",
     "ChangeSet",
     "CheckReport",
     "FalsifierInput",
@@ -318,6 +385,7 @@ __all__ = [
     "FalsifierView",
     "Hunk",
     "HunkMapping",
+    "ObligationMethod",
     "ObligationView",
     "OracleCheck",
     "OracleCode",
@@ -329,7 +397,10 @@ __all__ = [
     "SuiteRun",
     "Verdict",
     "VerificationResult",
+    "method",
+    "parse_method",
     "request_identity",
     "request_text_of",
     "sorted_unique",
+    "watched_subjects",
 ]

@@ -94,6 +94,6 @@ def test_wrapper_rename_move_query_split_and_intermediate_hop_preserve_semantics
         observed[name] = semantics(scan_repository(root, load_pack("google_ads")))
     assert all(value == observed["base"] for value in observed.values())
     assert observed["base"]["requests"] == {
-        ("UNKNOWN", "gaql", QUERY, (), "CONTRACT_VALIDATION_DEFERRED")
+        ("AFFECTED", "gaql", QUERY, (), "CONTRACT_VALIDATION_DEFERRED")
     }
     assert observed["base"]["versions"] == {("AFFECTED", "v24")}

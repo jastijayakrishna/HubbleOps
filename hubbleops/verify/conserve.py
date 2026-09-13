@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from hubbleops.core.candidate import OPEN_STATUSES
-from hubbleops.core.evidence import AI_DERIVATION
+from hubbleops.core.evidence import AI_DERIVATION, observation_identity
 from hubbleops.core.verification import CheckReport
 from hubbleops.observe import Ledger
 
@@ -69,7 +69,7 @@ def compare(
     decisions: Sequence[Mapping[str, Any]] = (),
 ) -> Conservation:
     before = {str(item["id"]): item for item in base.candidates if item["status"] in OPEN_STATUSES}
-    base_evidence_ids = {str(record["id"]) for record in base.evidence}
+    base_observations = {observation_identity(record) for record in base.evidence}
     candidate_by_id = {str(item["id"]): item for item in candidate.candidates}
     candidate_evidence = candidate.evidence_by_id()
     decided = {str(item.get("candidate_id", "")): item for item in decisions}
@@ -97,8 +97,9 @@ def compare(
             sorted(
                 eid
                 for eid in now["evidence_ids"]
-                if eid not in base_evidence_ids
-                and str(candidate_evidence.get(eid, {}).get("derivation")) != AI_DERIVATION
+                if (record := candidate_evidence.get(eid)) is not None
+                and observation_identity(record) not in base_observations
+                and str(record.get("derivation")) != AI_DERIVATION
             )
         )
         decision = decided.get(candidate_id)

@@ -107,7 +107,7 @@ def events_from_jsonl(data: bytes) -> EventBatch:
         return EventBatch((), (EventIssue("EVENT_FILE_TOO_LARGE", 0, "event input exceeds bound"),))
     events: list[dict[str, Any]] = []
     issues: list[EventIssue] = []
-    for row, line in enumerate(data.splitlines(), start=1):
+    for row, line in enumerate(data.split(b"\n"), start=1):
         if not line.strip():
             continue
         if len(events) >= MAX_EVENTS:

@@ -3,14 +3,21 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from hubbleops.app import registry, verification
+from hubbleops.app import decision, registry, verification
+from hubbleops.core.candidate import OPEN_STATUSES
 from hubbleops.core.canonical import content_id
 from hubbleops.core.verification import ObligationView
+from hubbleops.sandbox import DetachedWorktree
 from hubbleops.verify import authority
+
+if TYPE_CHECKING:
+    from hubbleops.app.cli import ScanResult
 
 FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures" / "phase5"
 BASE_TREE = FIXTURE_ROOT / "base"
@@ -90,12 +97,15 @@ DEFAULT_SITES: tuple[tuple[str, int, str], ...] = (
 
 def obligation_records(
     sites: Sequence[tuple[str, int, str]] = DEFAULT_SITES,
+    *,
+    run_id: str | None = None,
+    proof_scope_hash: str | None = None,
 ) -> list[dict[str, object]]:
     return [
         {
             "id": content_id({"path": path, "line": line, "method": method}),
-            "run_id": content_id({"run": "phase5-fixture"}),
-            "proof_scope_hash": content_id({"scope": "phase5-fixture"}),
+            "run_id": run_id or content_id({"run": "phase5-fixture"}),
+            "proof_scope_hash": proof_scope_hash or content_id({"scope": "phase5-fixture"}),
             "provider_change_id": method.partition(":")[2],
             "evidence_ids": [content_id({"path": path, "line": line})],
             "current_state": f"{path}:{line} carries the pre-migration state",
@@ -115,12 +125,58 @@ def obligations_for(
 
 
 def write_obligations(
-    destination: Path, sites: Sequence[tuple[str, int, str]] = DEFAULT_SITES
+    destination: Path,
+    repository: Repository,
+    sites: Sequence[tuple[str, int, str]] = DEFAULT_SITES,
 ) -> Path:
+    run_id, scope_hash = base_scan_identity(repository)
     destination.write_text(
-        json.dumps(obligation_records(sites), indent=2, sort_keys=True), encoding="utf-8"
+        json.dumps(
+            obligation_records(sites, run_id=run_id, proof_scope_hash=scope_hash),
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
     )
     return destination
+
+
+def base_scan(repository: Repository) -> ScanResult:
+    from hubbleops.app.cli import scan_repository
+
+    with tempfile.TemporaryDirectory(prefix="hops-test-base-") as scratch:
+        with DetachedWorktree(repository.path, Path(scratch) / "base", repository.base_sha) as base:
+            return scan_repository(base, mock_pack())
+
+
+def base_scan_identity(repository: Repository) -> tuple[str, str]:
+    scan = base_scan(repository)
+    return scan.run_id, scan.proof_scope_hash
+
+
+def write_decision(
+    destination: Path,
+    repository: Repository,
+    claim_type: str,
+    path: str,
+    value: str = "HUMAN_ACCEPTED_RISK",
+    decided_by: str = "Reviewer",
+) -> tuple[Path, str]:
+    scan = base_scan(repository)
+    evidence = scan.ledger.evidence_by_id()
+    chosen = next(
+        item
+        for item in scan.ledger.ordered_candidates()
+        if item["status"] in OPEN_STATUSES
+        and any(
+            evidence[eid]["claim_type"] == claim_type and evidence[eid]["path"] == path
+            for eid in item["evidence_ids"]
+            if eid in evidence
+        )
+    )
+    record = decision.record(scan.ledger, str(chosen["id"]), value, decided_by)
+    destination.write_text(json.dumps([record], indent=2, sort_keys=True), encoding="utf-8")
+    return destination, str(chosen["id"])
 
 
 def verify(
@@ -130,6 +186,8 @@ def verify(
     decisions_path: Path | None = None,
     base_capture_path: Path | None = None,
     candidate_capture_path: Path | None = None,
+    base_capture_manifest_path: Path | None = None,
+    candidate_capture_manifest_path: Path | None = None,
     from_version: str = "v1",
     to_version: str = "v2",
 ) -> verification.VerificationRun:
@@ -145,6 +203,8 @@ def verify(
             decisions_path=decisions_path,
             base_capture_path=base_capture_path,
             candidate_capture_path=candidate_capture_path,
+            base_capture_manifest_path=base_capture_manifest_path,
+            candidate_capture_manifest_path=candidate_capture_manifest_path,
         )
     )
 
@@ -156,11 +216,14 @@ __all__ = [
     "DEFAULT_SITES",
     "FIXTURE_ROOT",
     "Repository",
+    "base_scan",
+    "base_scan_identity",
     "build_repository",
     "git",
     "mock_pack",
     "obligation_records",
     "obligations_for",
     "verify",
+    "write_decision",
     "write_obligations",
 ]

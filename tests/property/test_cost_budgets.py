@@ -147,6 +147,7 @@ def _graph(paths: int, per_path: int) -> imports.ImportGraph:
         decorators=(),
         registrations=(),
         atoms=atoms,
+        comments=(),
         parse_errors=(),
         concatenations=(),
         formats=(),

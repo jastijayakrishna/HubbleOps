@@ -586,7 +586,9 @@ def _proxy_events(data: bytes, pack: LoadedPack) -> EventBatch:
         return EventBatch((), (issue,))
     events: list[dict[str, Any]] = []
     issues: list[EventIssue] = []
-    for row, line in enumerate(data.splitlines(), start=1):
+    for row, line in enumerate(data.split(b"\n"), start=1):
+        if not line.strip():
+            continue
         parsed = parse_json(line)
         if not parsed.ok():
             issues.append(EventIssue("EVENT_INVALID", row, str(parsed.reason)))

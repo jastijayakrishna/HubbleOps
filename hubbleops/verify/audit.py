@@ -6,8 +6,21 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from hubbleops.core.records import as_mapping, as_sequence, as_text
-from hubbleops.core.verification import ChangeSet, CheckReport, ObligationView
+from hubbleops.core.evidence import declared_versions, searchable_text
+from hubbleops.core.records import as_text
+from hubbleops.core.subjects import in_text
+from hubbleops.core.verification import (
+    ABSENT,
+    CONSERVED,
+    OBLIGATION_METHODS,
+    PRESENT,
+    SUPPORTS,
+    ChangeSet,
+    CheckReport,
+    ObligationView,
+    parse_method,
+    watched_subjects,
+)
 from hubbleops.observe import Ledger
 
 RESIDUE_CLAIM_TYPES = ("call_version", "endpoint_reference", "config_reference")
@@ -15,16 +28,6 @@ SURFACE_CLAIM_TYPES = ("surface_reference", "request_text")
 OPEN_STATUS = "OPEN"
 DISCHARGED_STATUS = "DISCHARGED"
 UNRECONCILABLE_STATUS = "UNRECONCILABLE"
-METHOD_PREFIXES = ("absent:", "present:", "version:")
-SOURCE_JOINER_CHARACTERS = frozenset(" \t\r\n'\"+()\\")
-
-
-class _TrieNode:
-    __slots__ = ("children", "terminal")
-
-    def __init__(self) -> None:
-        self.children: dict[str, _TrieNode] = {}
-        self.terminal: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,6 +85,7 @@ def run(
     candidate_root: Path | None = None,
     candidate_paths: Sequence[str] = (),
     captured: Sequence[Mapping[str, Any]] = (),
+    supported_targets: Sequence[str] = (),
 ) -> Audit:
     evidence = ledger.evidence_by_id()
     residue = tuple(
@@ -102,7 +106,8 @@ def run(
         )
     )
     reconciliations = tuple(
-        _reconcile(item, ledger, evidence, changes) for item in sorted(obligations, key=_key)
+        _reconcile(item, ledger, evidence, changes, supported_targets)
+        for item in sorted(obligations, key=_key)
     )
     unresolved = tuple(
         sorted(
@@ -110,7 +115,10 @@ def run(
             for item in reconciliations
             if item.status == UNRECONCILABLE_STATUS
         )
-        + sorted(f"contract subject {item.subject}" for item in changes.unresolved())
+        + sorted(
+            f"contract subject {subject}"
+            for subject in _consumed_unresolved(ledger, evidence, changes)
+        )
     )
     return Audit(
         residue=residue,
@@ -133,14 +141,13 @@ def _captured_residue(
 def _captured_reintroduced(
     captured: Sequence[Mapping[str, Any]], changes: ChangeSet
 ) -> tuple[str, ...]:
-    watched = tuple(sorted({item.subject for item in (*changes.removed(), *changes.renamed())}))
+    watched = watched_subjects(changes)
     if not watched:
         return ()
-    trie = _subject_trie(watched)
     found: set[str] = set()
     for index, event in enumerate(captured, start=1):
         text = as_text(event.get("request_text")) or ""
-        for subject, _ in _subject_occurrences(text, trie):
+        for subject, _ in in_text(text, watched):
             found.add(f"{subject} at captured event {index}")
     return tuple(sorted(found))
 
@@ -150,64 +157,38 @@ def _source_reintroduced(
 ) -> tuple[str, ...]:
     if root is None:
         return ()
-    watched = tuple(sorted({item.subject for item in (*changes.removed(), *changes.renamed())}))
+    watched = watched_subjects(changes)
     if not watched:
         return ()
-    trie = _subject_trie(watched)
     found: set[str] = set()
     for relative in sorted(set(paths)):
         try:
             text = (root / relative).read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        for subject, offset in _subject_occurrences(text, trie):
+        for subject, offset in in_text(text, watched):
             line = text.count("\n", 0, offset) + 1
             found.add(f"{subject} at {relative}:{line} (independent source extinction)")
     return tuple(sorted(found))
 
 
-def _subject_trie(subjects: Sequence[str]) -> _TrieNode:
-    root = _TrieNode()
-    for subject in subjects:
-        node = root
-        for character in subject:
-            node = node.children.setdefault(character, _TrieNode())
-        node.terminal = subject
-    return root
-
-
-def _subject_occurrences(text: str, trie: _TrieNode) -> tuple[tuple[str, int], ...]:
-    normalized = tuple(
-        (character, offset)
-        for offset, character in enumerate(text)
-        if character not in SOURCE_JOINER_CHARACTERS
-    )
-    found: set[tuple[str, int]] = set()
-    for start, (character, offset) in enumerate(normalized):
-        if offset and _word_character(text[offset - 1]):
+def _consumed_unresolved(
+    ledger: Ledger, evidence: Mapping[str, Mapping[str, Any]], changes: ChangeSet
+) -> tuple[str, ...]:
+    undecided = tuple(sorted({item.subject for item in changes.unresolved() if item.subject}))
+    if not undecided:
+        return ()
+    attached = {eid for candidate in ledger.candidates for eid in candidate["evidence_ids"]}
+    named: set[str] = set()
+    for eid in sorted(attached):
+        record = evidence.get(eid)
+        if record is None:
             continue
-        child = trie.children.get(character)
-        if child is None:
+        text = searchable_text(record)
+        if not text:
             continue
-        node = child
-        cursor = start + 1
-        while True:
-            terminal = node.terminal
-            end = normalized[cursor - 1][1] + 1
-            if isinstance(terminal, str) and (end == len(text) or not _word_character(text[end])):
-                found.add((terminal, offset))
-            if cursor >= len(normalized):
-                break
-            child = node.children.get(normalized[cursor][0])
-            if child is None:
-                break
-            node = child
-            cursor += 1
-    return tuple(sorted(found))
-
-
-def _word_character(character: str) -> bool:
-    return character == "_" or character.isalnum()
+        named.update(subject for subject, _ in in_text(text, undecided))
+    return tuple(sorted(named))
 
 
 def _key(obligation: ObligationView) -> str:
@@ -230,18 +211,8 @@ def _residue(
     return tuple(sorted(found))
 
 
-def _version_values(record: Mapping[str, Any]) -> set[str]:
-    value = as_mapping(record.get("value"))
-    versions: set[str] = set()
-    for key in ("version", "detected", "target"):
-        text = as_text(value.get(key))
-        if text:
-            versions.add(text.lower())
-    versions.update(str(item).lower() for item in as_sequence(value.get("versions")))
-    subject = as_text(record.get("provider_subject"))
-    if subject:
-        versions.add(subject.lower())
-    return versions
+def _version_values(record: Mapping[str, Any]) -> frozenset[str]:
+    return declared_versions(record)
 
 
 def _reintroduced(
@@ -269,24 +240,34 @@ def _reconcile(
     ledger: Ledger,
     evidence: Mapping[str, Mapping[str, Any]],
     changes: ChangeSet,
+    supported_targets: Sequence[str],
 ) -> Reconciliation:
-    method = obligation.verification_method.strip()
-    if not method.startswith(METHOD_PREFIXES):
+    parsed = parse_method(obligation.verification_method)
+    if parsed is None:
         return Reconciliation(
             obligation_id=obligation.id,
             status=UNRECONCILABLE_STATUS,
             reason=(
-                f"verification_method {method!r} names no check this build executes; "
-                f"expected one of {', '.join(METHOD_PREFIXES)}"
+                f"verification_method {obligation.verification_method!r} names no check this "
+                f"build executes; expected one of {', '.join(OBLIGATION_METHODS)}"
             ),
             evidence_ids=(),
         )
-    kind, _, argument = method.partition(":")
-    subject = argument.strip()
+    subject = parsed.argument
+    if parsed.kind == CONSERVED:
+        return _conserved(obligation, ledger, subject)
+    if parsed.kind == SUPPORTS:
+        return _decide(
+            obligation,
+            subject in supported_targets,
+            (),
+            f"the resolved client library supports {', '.join(supported_targets) or 'nothing'}, "
+            f"not {subject}",
+        )
     matches = _subject_sites(ledger, evidence, subject)
-    if kind == "absent":
+    if parsed.kind == ABSENT:
         return _decide(obligation, not matches, matches, f"{subject} is still present")
-    if kind == "present":
+    if parsed.kind == PRESENT:
         return _decide(obligation, bool(matches), matches, f"{subject} is absent")
     known = {item.subject for item in changes.changes} | {changes.to_version}
     if subject not in known:
@@ -297,6 +278,27 @@ def _reconcile(
             evidence_ids=(),
         )
     return _decide(obligation, bool(matches), matches, f"{subject} is not observed")
+
+
+def _conserved(obligation: ObligationView, ledger: Ledger, candidate_id: str) -> Reconciliation:
+    carried = next(
+        (item for item in ledger.candidates if str(item["id"]) == candidate_id),
+        None,
+    )
+    if carried is None:
+        return _decide(
+            obligation,
+            False,
+            (),
+            f"candidate {candidate_id[:12]} is in no candidate-run ledger entry, so the UNKNOWN "
+            "it carried was dropped rather than preserved or closed",
+        )
+    return _decide(
+        obligation,
+        True,
+        tuple((str(eid), str(carried["status"])) for eid in carried["evidence_ids"]),
+        "",
+    )
 
 
 def _decide(
@@ -326,19 +328,10 @@ def _subject_sites(
         if (
             as_text(record.get("provider_subject")) == subject
             or subject in _version_values(record)
-            or pattern.search(_searchable_text(record))
+            or pattern.search(searchable_text(record))
         ):
             sites.add((eid, f"{record['path']}:{record['line_start'] or 0}"))
     return tuple(sorted(sites))
-
-
-def _searchable_text(record: Mapping[str, Any]) -> str:
-    value = as_mapping(record.get("value"))
-    parts = [as_text(value.get("line")) or ""]
-    parts.extend(str(item) for item in as_sequence(value.get("matches")))
-    skeleton = as_mapping(value.get("skeleton"))
-    parts.extend(str(item) for item in as_sequence(skeleton.get("fragments")))
-    return "\n".join(parts)
 
 
 __all__ = ["Audit", "Reconciliation", "run"]

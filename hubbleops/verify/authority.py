@@ -70,6 +70,7 @@ class Inputs:
     candidate_captured: tuple[Mapping[str, Any], ...] = ()
     decisions: tuple[Mapping[str, Any], ...] = ()
     uncoverable: tuple[str, ...] = ()
+    supported_targets: tuple[str, ...] = ()
     captures_supplied: bool = False
     now: datetime | None = None
 
@@ -82,15 +83,17 @@ def evaluate(inputs: Inputs) -> Evaluation:
         Path(inputs.candidate_root),
         inputs.candidate_paths,
         inputs.candidate_captured,
+        inputs.supported_targets,
     )
-    requests, unreachable = oracle.requests_from(inputs.candidate_ledger, inputs.candidate_captured)
+    sites = oracle.request_sites(inputs.candidate_ledger, inputs.candidate_captured)
     oracle_result = oracle.review(
         inputs.oracle,
-        requests,
+        sites.requests,
         inputs.changes.to_version,
         inputs.now,
-        unreachable,
+        sites.unreachable,
         subjects_changed=bool(inputs.changes.changes),
+        decided=sites.decided,
     )
     containment = radius.contain(
         inputs.delta,
@@ -107,7 +110,10 @@ def evaluate(inputs: Inputs) -> Evaluation:
     )
     differential = _differential(inputs)
     consumers = behavior.consumers(
-        inputs.candidate_graph, inputs.changes, Path(inputs.candidate_root)
+        inputs.candidate_graph,
+        inputs.changes,
+        Path(inputs.candidate_root),
+        _provider_paths(inputs.candidate_ledger),
     )
     falsifiers = falsify.run(
         inputs.falsifiers,
@@ -160,6 +166,13 @@ def evaluate(inputs: Inputs) -> Evaluation:
     )
 
 
+def _provider_paths(ledger: Ledger) -> frozenset[str]:
+    attached = {eid for candidate in ledger.candidates for eid in candidate["evidence_ids"]}
+    return frozenset(
+        str(record["path"]) for record in ledger.evidence if str(record["id"]) in attached
+    )
+
+
 def _differential(inputs: Inputs) -> behavior.ShapeDifferential:
     if inputs.captures_supplied:
         if not inputs.base_captured or not inputs.candidate_captured:
@@ -187,6 +200,7 @@ def _differential(inputs: Inputs) -> behavior.ShapeDifferential:
             candidate_shapes,
             inputs.obligations,
             behavior.CAPTURED_SOURCE,
+            inputs.changes,
         )
     base_shapes = behavior.shapes_of(inputs.base_ledger, ())
     candidate_shapes = behavior.shapes_of(inputs.candidate_ledger, ())
@@ -203,7 +217,7 @@ def _differential(inputs: Inputs) -> behavior.ShapeDifferential:
             ),
         )
     return behavior.differential(
-        base_shapes, candidate_shapes, inputs.obligations, behavior.STATIC_SOURCE
+        base_shapes, candidate_shapes, inputs.obligations, behavior.STATIC_SOURCE, inputs.changes
     )
 
 
