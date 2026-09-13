@@ -6,6 +6,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_ROOT = REPO_ROOT / "hubbleops"
 FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "phase1"
+COVERAGE_ROOT = REPO_ROOT / "tests" / "fixtures" / "coverage"
 
 GENERIC_LAYERS = (
     "core",

@@ -63,7 +63,7 @@ def render(book: Ledger, expand: bool = False) -> str:
         target="v25",
         repository="/repo",
         repo_sha=None,
-        expand_not_affected=expand,
+        expand=expand,
     )
 
 
