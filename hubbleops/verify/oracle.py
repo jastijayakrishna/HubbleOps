@@ -9,22 +9,18 @@ from hubbleops.core.candidate import DECISION_REASON_PREFIX
 from hubbleops.core.records import (
     as_line,
     as_mapping,
-    as_sequence,
     as_text,
     is_mapping,
-    parse_json,
 )
+from hubbleops.core.requests import REQUEST_CLAIM_TYPE, request_from_text, static_request
 from hubbleops.core.verification import (
-    ORACLE_AUTHORITIES,
     CheckReport,
     OracleCheck,
-    OracleOutcome,
     OracleView,
     request_identity,
+    validated_outcome,
 )
 from hubbleops.observe import Ledger
-
-REQUEST_CLAIM_TYPE = "request_text"
 
 
 @dataclass(frozen=True, slots=True)
@@ -164,37 +160,6 @@ def _covered(
     )
 
 
-def static_request(record: Mapping[str, Any]) -> Mapping[str, Any] | None:
-    value = as_mapping(record.get("value"))
-    dynamic = _request_from_text(value)
-    if dynamic is not None:
-        return {
-            "service": as_text(value.get("service")) or "",
-            "method": as_text(value.get("method")) or "",
-            "request": dynamic,
-            "origin": (
-                "captured"
-                if record.get("observer") in ("dynamic", "sentinel")
-                else f"static:{record['path']}:{record['line_start'] or 0}"
-            ),
-        }
-    skeleton = as_mapping(value.get("skeleton"))
-    if as_sequence(skeleton.get("holes")):
-        return None
-    fragments = [str(item) for item in as_sequence(skeleton.get("fragments"))]
-    text = as_text(value.get("text")) or as_text(value.get("query")) or " ".join(fragments)
-    if not text.strip():
-        return None
-    sink = as_mapping(value.get("sink"))
-    return {
-        "service": as_text(value.get("service")) or "",
-        "method": as_text(value.get("method")) or "",
-        "request": {"query": text},
-        "origin": f"static:{record['path']}:{record['line_start'] or 0}",
-        **({"sink": dict(sink)} if sink else {}),
-    }
-
-
 def _captured_request(event: Mapping[str, Any]) -> Mapping[str, Any] | None:
     service = as_text(event.get("service"))
     method = as_text(event.get("method"))
@@ -213,20 +178,7 @@ def captured_body(event: Mapping[str, Any]) -> Mapping[str, Any] | None:
     body = event.get("request")
     if is_mapping(body) and body:
         return dict(as_mapping(body))
-    return _request_from_text(event)
-
-
-def _request_from_text(value: Mapping[str, Any]) -> Mapping[str, Any] | None:
-    text = as_text(value.get("request_text"))
-    if text is None or not text.strip():
-        return None
-    parsed = parse_json(text)
-    if parsed.ok() and is_mapping(parsed.value) and parsed.value:
-        return dict(as_mapping(parsed.value))
-    method = as_text(value.get("method")) or ""
-    if method in ("Search", "SearchStream"):
-        return {"query": text}
-    return None
+    return request_from_text(event)
 
 
 def review(
@@ -242,7 +194,7 @@ def review(
     checks: list[OracleCheck] = []
     available = True
     for request_hash, request in requests:
-        outcome = _validate(oracle, request, target_version)
+        outcome = validated_outcome(oracle, request, target_version)
         if outcome.code == "ORACLE_UNAVAILABLE":
             available = False
         checks.append(
@@ -265,29 +217,6 @@ def review(
         silent=subjects_changed and not checks,
         decided=tuple(sorted(set(decided))),
     )
-
-
-def _validate(oracle: OracleView, request: Mapping[str, Any], target_version: str) -> OracleOutcome:
-    try:
-        outcome: Any = oracle.validate(request, target_version)
-    except Exception as error:
-        return OracleOutcome(code="ORACLE_UNAVAILABLE", reason=str(error))
-    if not isinstance(outcome, OracleOutcome) or outcome.code not in (
-        "VALID",
-        "INVALID",
-        "UNKNOWN_PROVIDER_CONTRACT",
-        "ORACLE_UNAVAILABLE",
-    ):
-        return OracleOutcome(
-            code="UNKNOWN_PROVIDER_CONTRACT",
-            reason="the injected oracle returned no valid outcome code",
-        )
-    if outcome.code == "VALID" and outcome.authority not in ORACLE_AUTHORITIES:
-        return OracleOutcome(
-            code="ORACLE_UNAVAILABLE",
-            reason="the injected oracle accepted the request without naming an authority",
-        )
-    return outcome
 
 
 __all__ = [

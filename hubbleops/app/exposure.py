@@ -10,11 +10,11 @@ from hubbleops.app import migration, registry
 from hubbleops.app.verification import InjectedOracle
 from hubbleops.core.proof_scope import short_scope
 from hubbleops.core.records import as_mapping, as_sequence, as_text
+from hubbleops.core.requests import static_request
 from hubbleops.obligations import ObligationInputs
 from hubbleops.obligations import build as build_obligations
 from hubbleops.observe.ledger import Ledger
 from hubbleops.observe.telemetry import production_coverage
-from hubbleops.verify import static_request
 
 RULE = "─" * 56
 LOCATION_WIDTH = 26

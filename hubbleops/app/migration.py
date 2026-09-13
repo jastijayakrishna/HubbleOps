@@ -295,7 +295,7 @@ def migrate(
         ObligationInputs(
             ledger=ledger,
             change_sets=composition.sets,
-            oracle=InjectedOracle(pack.verification_contract()),
+            oracle=InjectedOracle(pack.contract),
             target=target,
             sources=first_party_sources(closure, root),
             uncomposable=composition.uncomposable,

@@ -8,6 +8,7 @@ from hubbleops.core.candidate import OPEN_STATUSES
 from hubbleops.core.canonical import content_id
 from hubbleops.core.evidence import declared_versions, searchable_text
 from hubbleops.core.records import as_line, as_mapping, as_sequence, as_text
+from hubbleops.core.requests import REQUEST_CLAIM_TYPE, static_request
 from hubbleops.core.schema import validate
 from hubbleops.core.subjects import in_sources
 from hubbleops.core.verification import (
@@ -15,9 +16,11 @@ from hubbleops.core.verification import (
     CONSERVED,
     SUPPORTS,
     ChangeSet,
+    OracleOutcome,
     OracleView,
     SubjectChange,
     method,
+    validated_outcome,
 )
 from hubbleops.observe import CandidateLocation, FileVersionEvidence, Ledger
 
@@ -26,6 +29,10 @@ HUMAN = "HUMAN"
 PRESERVE_UNKNOWN = "PRESERVE_UNKNOWN"
 
 OPEN = "OPEN"
+
+ORACLE_VALID = "VALID"
+ORACLE_INVALID = "INVALID"
+_ORACLE_VERSION = "ORACLE"
 
 VERSION_CLAIMS = ("call_version",)
 ENDPOINT_CLAIMS = ("endpoint_reference",)
@@ -269,7 +276,60 @@ def _query_drafts(
     attached: Sequence[Mapping[str, Any]],
     inputs: ObligationInputs,
 ) -> list[ObligationDraft]:
-    return _subjects_across_versions(candidate, location, attached, inputs, None)
+    drafts = _subjects_across_versions(candidate, location, attached, inputs, None)
+    judged = _oracle_draft(candidate, location, attached, inputs)
+    return drafts if judged is None else [*drafts, judged]
+
+
+def _oracle_draft(
+    candidate: Mapping[str, Any],
+    location: CandidateLocation,
+    attached: Sequence[Mapping[str, Any]],
+    inputs: ObligationInputs,
+) -> ObligationDraft | None:
+    site = location.display()
+    for record in attached:
+        if str(record.get("claim_type")) != REQUEST_CLAIM_TYPE:
+            continue
+        request = static_request(record)
+        if request is None:
+            continue
+        outcome = validated_outcome(inputs.oracle, request, inputs.target)
+        if outcome.code == ORACLE_VALID:
+            continue
+        return ObligationDraft(
+            candidate_id=str(candidate["id"]),
+            effective_version=_ORACLE_VERSION,
+            provider_change_id=f"oracle:{inputs.target}",
+            evidence_ids=_evidence_ids(attached),
+            current_state=f"{site} builds a request the {inputs.target} oracle did not accept",
+            required_state=_oracle_required(outcome, site, inputs.target),
+            repair_class=_oracle_class(outcome),
+            verification_method=_oracle_method(outcome, str(record["id"]), str(candidate["id"])),
+        )
+    return None
+
+
+def _oracle_class(outcome: OracleOutcome) -> str:
+    return HUMAN if outcome.code == ORACLE_INVALID else PRESERVE_UNKNOWN
+
+
+def _oracle_method(outcome: OracleOutcome, evidence_id: str, candidate_id: str) -> str:
+    if outcome.code == ORACLE_INVALID:
+        return method(ABSENT, evidence_id)
+    return method(CONSERVED, candidate_id)
+
+
+def _oracle_required(outcome: OracleOutcome, site: str, target: str) -> str:
+    if outcome.code == ORACLE_INVALID:
+        return (
+            f"{site} builds a request {target} accepts; the oracle rejected this one: "
+            f"{outcome.reason}"
+        )
+    return (
+        f"decide this request against {target} by hand or capture it against the provider; "
+        f"the oracle could not: {outcome.reason}"
+    )
 
 
 def _carried_subjects(

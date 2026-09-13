@@ -40,6 +40,7 @@ from hubbleops.core.proof_scope import (
     short_scope,
 )
 from hubbleops.core.records import as_mapping
+from hubbleops.core.requests import static_request
 from hubbleops.graph import indexers
 from hubbleops.graph.imports import AstGrep, language_for
 from hubbleops.observe import DEFERRED_VALIDATION, deps, ledger, structure, telemetry, text
@@ -47,7 +48,6 @@ from hubbleops.observe.dynamic import runner as dynamic
 from hubbleops.proof import exposure_workflow, guard, memory, pr_body, receipt
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
-from hubbleops.verify import static_request
 
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
 OBSERVATION_SOURCES = tuple(sorted(PACKAGE_ROOT.rglob("*.py")))

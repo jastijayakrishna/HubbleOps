@@ -10,6 +10,12 @@ from hubbleops.core.records import as_mapping, as_sequence, as_text
 OracleCode = Literal["VALID", "INVALID", "UNKNOWN_PROVIDER_CONTRACT", "ORACLE_UNAVAILABLE"]
 OracleAuthority = Literal["LIVE", "CATALOG"]
 ORACLE_AUTHORITIES: tuple[OracleAuthority, ...] = ("LIVE", "CATALOG")
+ORACLE_CODES: tuple[OracleCode, ...] = (
+    "VALID",
+    "INVALID",
+    "UNKNOWN_PROVIDER_CONTRACT",
+    "ORACLE_UNAVAILABLE",
+)
 RECEIPT_AUTHORITIES = ("LIVE", "CATALOG", "ORACLE_UNAVAILABLE")
 FalsifierResult = Literal["PASS", "FAIL", "UNKNOWN"]
 SubjectChangeKind = Literal["ADDED", "REMOVED", "CHANGED"]
@@ -100,6 +106,26 @@ class OracleCheck:
 @runtime_checkable
 class OracleView(Protocol):
     def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome: ...
+
+
+def validated_outcome(
+    oracle: OracleView, request: Mapping[str, Any], version: str
+) -> OracleOutcome:
+    try:
+        outcome: Any = oracle.validate(request, version)
+    except Exception as error:
+        return OracleOutcome(code="ORACLE_UNAVAILABLE", reason=str(error))
+    if not isinstance(outcome, OracleOutcome) or outcome.code not in ORACLE_CODES:
+        return OracleOutcome(
+            code="UNKNOWN_PROVIDER_CONTRACT",
+            reason="the injected oracle returned no valid outcome code",
+        )
+    if outcome.code == "VALID" and outcome.authority not in ORACLE_AUTHORITIES:
+        return OracleOutcome(
+            code="ORACLE_UNAVAILABLE",
+            reason="the injected oracle accepted the request without naming an authority",
+        )
+    return outcome
 
 
 @dataclass(frozen=True, slots=True)

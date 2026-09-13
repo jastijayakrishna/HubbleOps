@@ -14,8 +14,23 @@ RUN = "1" * 64
 
 
 class StubOracle:
+    def __init__(self, outcome: OracleOutcome | None = None) -> None:
+        self.outcome = outcome or OracleOutcome(code="VALID", reason="stub", authority="CATALOG")
+        self.seen: list[tuple[Mapping[str, Any], str]] = []
+
     def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome:
-        return OracleOutcome(code="VALID", reason="stub")
+        self.seen.append((request, version))
+        return self.outcome
+
+
+class SilentOracle:
+    def validate(self, request: Mapping[str, Any], version: str) -> Any:
+        return "accepted"
+
+
+class RaisingOracle:
+    def validate(self, request: Mapping[str, Any], version: str) -> OracleOutcome:
+        raise RuntimeError("the provider transport is down")
 
 
 def evidence(
@@ -77,8 +92,99 @@ def change_set(from_version: str, to_version: str, *changes: SubjectChange) -> C
     )
 
 
-def inputs_for(ledger: Ledger, sets: dict[str, ChangeSet], target: str) -> ObligationInputs:
-    return ObligationInputs(ledger=ledger, change_sets=sets, oracle=StubOracle(), target=target)
+def inputs_for(
+    ledger: Ledger, sets: dict[str, ChangeSet], target: str, oracle: Any = None
+) -> ObligationInputs:
+    return ObligationInputs(
+        ledger=ledger, change_sets=sets, oracle=oracle or StubOracle(), target=target
+    )
+
+
+def query_ledger() -> Ledger:
+    return ledger_of(
+        [
+            evidence(
+                "src/query.py",
+                "request_text",
+                {
+                    "service": "ReportService",
+                    "method": "Search",
+                    "skeleton": {"fragments": ["SELECT campaign.id FROM campaign"], "holes": []},
+                },
+            )
+        ],
+        {"src/query.py": "AFFECTED"},
+    )
+
+
+def oracle_obligations(built: tuple[dict[str, Any], ...]) -> list[dict[str, Any]]:
+    return [item for item in built if item["provider_change_id"].startswith("oracle:")]
+
+
+def test_the_injected_oracle_judges_every_request_skeleton_against_the_target() -> None:
+    oracle = StubOracle()
+    build(inputs_for(query_ledger(), {"v22": change_set("v22", "v25")}, "v25", oracle))
+    assert oracle.seen, (
+        "DoD 1 and ARCHITECTURE §7.2: request skeletons are validated against the target "
+        "catalog via the injected oracle in the obligation engine, not in the observers"
+    )
+    assert {version for _, version in oracle.seen} == {"v25"}
+    assert all("query" in dict(request["request"]) for request, _ in oracle.seen)
+
+
+def test_an_accepted_request_earns_no_obligation_of_its_own() -> None:
+    built = build(inputs_for(query_ledger(), {"v22": change_set("v22", "v25")}, "v25"))
+    assert oracle_obligations(built) == []
+
+
+def test_a_rejected_request_is_human_work_carrying_the_oracles_reason() -> None:
+    rejected = OracleOutcome(code="INVALID", reason="campaign.id is not selectable in v25")
+    built = build(
+        inputs_for(query_ledger(), {"v22": change_set("v22", "v25")}, "v25", StubOracle(rejected))
+    )
+    entry = oracle_obligations(built)[0]
+    assert entry["repair_class"] == "HUMAN"
+    assert "campaign.id is not selectable in v25" in entry["required_state"]
+
+
+def test_an_oracle_that_cannot_decide_preserves_the_unknown_rather_than_passing_it() -> None:
+    undecided = OracleOutcome(code="UNKNOWN_PROVIDER_CONTRACT", reason="no catalog for v25")
+    built = build(
+        inputs_for(query_ledger(), {"v22": change_set("v22", "v25")}, "v25", StubOracle(undecided))
+    )
+    entry = oracle_obligations(built)[0]
+    assert entry["repair_class"] == "PRESERVE_UNKNOWN"
+    assert "no catalog for v25" in entry["required_state"]
+
+
+def test_an_oracle_that_raises_never_passes_the_request_as_accepted() -> None:
+    built = build(
+        inputs_for(query_ledger(), {"v22": change_set("v22", "v25")}, "v25", RaisingOracle())
+    )
+    entry = oracle_obligations(built)[0]
+    assert entry["repair_class"] == "PRESERVE_UNKNOWN"
+    assert "the provider transport is down" in entry["required_state"]
+
+
+def test_an_acceptance_that_names_no_authority_is_not_an_acceptance() -> None:
+    unattributed = OracleOutcome(code="VALID", reason="looks fine")
+    built = build(
+        inputs_for(
+            query_ledger(), {"v22": change_set("v22", "v25")}, "v25", StubOracle(unattributed)
+        )
+    )
+    entry = oracle_obligations(built)[0]
+    assert entry["repair_class"] == "PRESERVE_UNKNOWN"
+    assert "without naming an authority" in entry["required_state"]
+
+
+def test_an_oracle_returning_something_else_entirely_is_not_believed() -> None:
+    built = build(
+        inputs_for(query_ledger(), {"v22": change_set("v22", "v25")}, "v25", SilentOracle())
+    )
+    entry = oracle_obligations(built)[0]
+    assert entry["repair_class"] == "PRESERVE_UNKNOWN"
+    assert "no valid outcome code" in entry["required_state"]
 
 
 def test_an_affected_call_site_earns_a_deterministic_version_obligation() -> None:
