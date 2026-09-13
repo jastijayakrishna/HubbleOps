@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+import re
 import subprocess
 import tempfile
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from hubbleops.app import registry
 from hubbleops.app.verification import InjectedOracle, first_party_sources
 from hubbleops.closure import source_closure
-from hubbleops.core.errors import HubbleOpsError
-from hubbleops.core.evidence import declared_versions
+from hubbleops.core.errors import HubbleOpsError, PackDataError
 from hubbleops.core.repair import TransformInput
 from hubbleops.core.subjects import parse_sites
 from hubbleops.core.verification import ChangeSet, SubjectChange
@@ -26,6 +26,7 @@ VERSION_PREFIX = "version:"
 SUBJECT_PREFIX = "subject:"
 GIT_TIMEOUT_SECONDS = 60.0
 MAX_NAMED_PATHS = 20
+VERSION_SHAPE = re.compile(r"^(?P<prefix>\D*)(?P<ordinal>\d+)$")
 
 
 class MigrationInvalid(HubbleOpsError):
@@ -94,6 +95,7 @@ class MigrationResult:
     report: deterministic.RepairReport
     target: str
     written: tuple[str, ...]
+    uncomposable: Mapping[str, str] = field(default_factory=dict[str, str])
 
     def open_for_human(self) -> tuple[dict[str, Any], ...]:
         discharged = set(self.report.discharged())
@@ -109,14 +111,22 @@ class MigrationResult:
         )
 
 
-def change_sets_for(
-    pack: registry.LoadedPack, versions: Sequence[str], target: str
-) -> dict[str, ChangeSet]:
+@dataclass(frozen=True, slots=True)
+class Composition:
+    sets: Mapping[str, ChangeSet]
+    uncomposable: Mapping[str, str]
+
+
+def change_sets_for(pack: registry.LoadedPack, versions: Sequence[str], target: str) -> Composition:
     built: dict[str, ChangeSet] = {}
+    uncomposable: dict[str, str] = {}
     for version in sorted(set(versions)):
+        if version == target:
+            continue
         try:
             diff = pack.contract.diff(version, target)
-        except Exception:
+        except PackDataError as error:
+            uncomposable[version] = uncomposable_reason(pack, version, target, error)
             continue
         built[version] = ChangeSet(
             from_version=diff.from_version,
@@ -142,7 +152,28 @@ def change_sets_for(
                 )
             ),
         )
-    return built
+    return Composition(sets=built, uncomposable=uncomposable)
+
+
+def uncomposable_reason(
+    pack: registry.LoadedPack, version: str, target: str, error: PackDataError
+) -> str:
+    lattice = tuple(entry.id for entry in pack.versions())
+    if (
+        lattice
+        and version.lower() not in {entry.lower() for entry in lattice}
+        and _below(version, lattice[0])
+    ):
+        return f"{version} is below this pack's lattice floor ({lattice[0]})"
+    return f"the pack composes no diff from {version} to {target}: {error}"
+
+
+def _below(version: str, floor: str) -> bool:
+    found = VERSION_SHAPE.match(version.lower())
+    first = VERSION_SHAPE.match(floor.lower())
+    if found is None or first is None or found["prefix"] != first["prefix"]:
+        return False
+    return int(found["ordinal"]) < int(first["ordinal"])
 
 
 def detected_versions(ledger: Ledger) -> tuple[str, ...]:
@@ -258,20 +289,21 @@ def migrate(
     target: str,
     write: bool = True,
 ) -> MigrationResult:
-    change_sets = change_sets_for(pack, detected_versions(ledger), target)
+    composition = change_sets_for(pack, detected_versions(ledger), target)
     obligations = build_obligations(
         ObligationInputs(
             ledger=ledger,
-            change_sets=change_sets,
+            change_sets=composition.sets,
             oracle=InjectedOracle(pack.verification_contract()),
             target=target,
             sources=first_party_sources(closure, root),
+            uncomposable=composition.uncomposable,
         )
     )
     requests = transform_requests(
         obligations=obligations,
         ledger=ledger,
-        change_sets=change_sets,
+        change_sets=composition.sets,
         root=root,
         target=target,
     )
@@ -286,10 +318,12 @@ def migrate(
         report=report,
         target=target,
         written=tuple(sorted(written)),
+        uncomposable=composition.uncomposable,
     )
 
 
 __all__ = [
+    "Composition",
     "MigrationInvalid",
     "MigrationResult",
     "change_sets_for",
@@ -297,4 +331,5 @@ __all__ = [
     "edit_sites",
     "migrate",
     "transform_requests",
+    "uncomposable_reason",
 ]

@@ -5,7 +5,7 @@ from typing import Any
 
 from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.evidence import make_evidence
-from hubbleops.core.verification import ChangeSet, OracleOutcome, SubjectChange
+from hubbleops.core.verification import ABSENT, ChangeSet, OracleOutcome, SubjectChange, method
 from hubbleops.obligations import ObligationInputs, build
 from hubbleops.observe.ledger import Ledger
 
@@ -191,6 +191,74 @@ def test_a_missing_composed_diff_is_preserved_never_guessed() -> None:
     assert built[0]["provider_change_id"] == "UNKNOWN_PROVIDER_CONTRACT"
 
 
+def test_a_version_below_the_lattice_floor_earns_a_human_obligation_never_silence() -> None:
+    record = evidence("spikes/get_campaigns.py", "call_version", {"literal": "v9"}, "v9")
+    ledger = ledger_of([record], {"spikes/get_campaigns.py": "AFFECTED"})
+    built = build(
+        ObligationInputs(
+            ledger=ledger,
+            change_sets={"v24": change_set("v24", "v25")},
+            oracle=StubOracle(),
+            target="v25",
+            uncomposable={"v9": "v9 is below this pack's lattice floor (v19)"},
+        )
+    )
+    assert len(built) == 1
+    assert built[0]["repair_class"] == "HUMAN"
+    assert built[0]["provider_change_id"] == "version:v9->v25"
+    assert built[0]["current_state"] == "spikes/get_campaigns.py:7 calls the provider at v9"
+    assert built[0]["required_state"] == (
+        "spikes/get_campaigns.py:7 calls the provider at v25; v9 is below this pack's lattice "
+        "floor (v19) so no deterministic transform applies: migrate by hand or retire the call"
+    )
+    assert built[0]["verification_method"] == method(ABSENT, "v9")
+
+
+def test_every_affected_version_bearing_candidate_has_at_least_one_obligation() -> None:
+    records = [
+        evidence("src/composable.py", "call_version", {"literal": "v22"}, "v22"),
+        evidence("src/floor.py", "call_version", {"literal": "v9"}, "v9"),
+        evidence("src/at_target.py", "call_version", {"literal": "v25"}, "v25"),
+        evidence("src/torn.py", "call_version", {"literal": "v22"}, "v22"),
+        evidence("src/torn.py", "call_version", {"literal": "v24"}, "v24"),
+        evidence("src/unmapped.py", "call_version", {"literal": "v21"}, "v21"),
+        evidence("requirements.txt", "sdk_installed", {"line": "google-ads==22.1.0"}),
+    ]
+    bound = structural_reference(
+        "src/bound.py", 3, {"node_kind": "identifier", "binding": "sdk", "binding_versions": ["V9"]}
+    )
+    paths = {str(item["path"]) for item in records}
+    ledger = ledger_of(records, dict.fromkeys(sorted(paths), "AFFECTED"))
+    ledger = Ledger(
+        provider="p",
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        evidence=(*ledger.evidence, bound),
+        candidates=(
+            *ledger.candidates,
+            candidate_of(
+                "src/bound.py:3:ProviderClient", "surface_reference", [bound["id"]], "AFFECTED"
+            ),
+        ),
+    )
+    built = build(
+        ObligationInputs(
+            ledger=ledger,
+            change_sets={"v22": change_set("v22", "v25"), "v25": change_set("v25", "v25")},
+            oracle=StubOracle(),
+            target="v25",
+            uncomposable={"v9": "v9 is below this pack's lattice floor (v19)"},
+        )
+    )
+    for candidate in ledger.candidates:
+        assert candidate["status"] == "AFFECTED"
+        attached = set(candidate["evidence_ids"])
+        owned = [item for item in built if set(item["evidence_ids"]) <= attached]
+        assert owned, f"{candidate['id']} has no obligation"
+    floor = [item for item in built if item["provider_change_id"] == "version:v9->v25"]
+    assert [item["repair_class"] for item in floor] == ["HUMAN", "HUMAN"]
+
+
 def test_the_same_ledger_builds_byte_identical_obligations_twice() -> None:
     record = evidence("src/client.py", "call_version", {"literal": "v22"}, "v22")
     ledger = ledger_of([record], {"src/client.py": "AFFECTED"})
@@ -275,6 +343,56 @@ def test_a_reference_bound_to_its_files_version_literal_names_that_literal_as_th
     assert reference["repair_class"] == "DETERMINISTIC"
     assert "src/a.py:7" in reference["current_state"]
     assert not any(item["provider_change_id"] == "EFFECTIVE_VERSION_UNRESOLVED" for item in built)
+
+
+def test_a_file_bound_reference_names_where_the_literal_is_written_not_where_it_is_read() -> None:
+    reader = make_evidence(
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        claim_type="call_version",
+        observer="structure",
+        repo_sha=None,
+        path="src/a.py",
+        line_start=425,
+        line_end=425,
+        source_hash="a" * 64,
+        value={
+            "literal": "v24",
+            "paths": [
+                {
+                    "terminal": "LITERAL",
+                    "literal": "v24",
+                    "path": "src/a.py",
+                    "range": {"start_line": 17, "end_line": 17},
+                }
+            ],
+        },
+        provider_subject="v24",
+        dependency_context_hash=None,
+        derivation="OBSERVED",
+        confidence="PROVEN",
+    )
+    bound = structural_reference("src/a.py", 9, {"node_kind": "identifier", "binding": "sdk"})
+    ledger = Ledger(
+        provider="p",
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        evidence=(reader, bound),
+        candidates=(
+            candidate_of("src/a.py:425", "call_version", [reader["id"]], "AFFECTED"),
+            candidate_of(
+                "src/a.py:9:ProviderClient", "surface_reference", [bound["id"]], "AFFECTED"
+            ),
+        ),
+    )
+    built = build(inputs_for(ledger, {"v24": change_set("v24", "v25")}, "v25"))
+    by_candidate = {item["evidence_ids"][0]: item for item in built}
+    assert by_candidate[bound["id"]]["current_state"] == (
+        "src/a.py:9 is bound to the provider at v24; the v24 literal is written at src/a.py:17"
+    )
+    assert by_candidate[reader["id"]]["current_state"] == (
+        "src/a.py:425 calls the provider at v24; the v24 literal is written at src/a.py:17"
+    )
 
 
 def test_a_reference_whose_binding_carries_a_version_uses_that_version() -> None:

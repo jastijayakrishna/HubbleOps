@@ -107,14 +107,15 @@ class MigrationFindings:
 
 
 def findings(*, pack: registry.LoadedPack, ledger: Ledger, target: str) -> MigrationFindings:
-    change_sets = migration.change_sets_for(pack, migration.detected_versions(ledger), target)
+    composition = migration.change_sets_for(pack, migration.detected_versions(ledger), target)
     obligations = build_obligations(
         ObligationInputs(
             ledger=ledger,
-            change_sets=change_sets,
+            change_sets=composition.sets,
             oracle=InjectedOracle(pack.contract),
             target=target,
             sources={},
+            uncomposable=composition.uncomposable,
         )
     )
     return MigrationFindings(
@@ -122,8 +123,8 @@ def findings(*, pack: registry.LoadedPack, ledger: Ledger, target: str) -> Migra
         obligations=tuple(obligations),
         subject_changes={
             change.subject: change.change
-            for version in sorted(change_sets)
-            for change in change_sets[version].changes
+            for version in sorted(composition.sets)
+            for change in composition.sets[version].changes
         },
         minimums=_minimums(pack, target),
         sunsets={entry.id: entry.sunset_at for entry in pack.versions() if entry.sunset_at},

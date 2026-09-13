@@ -42,12 +42,13 @@ class ObligationInputs:
     oracle: OracleView
     target: str
     sources: Mapping[str, str] = field(default_factory=dict[str, str])
+    uncomposable: Mapping[str, str] = field(default_factory=dict[str, str])
 
 
 @dataclass(frozen=True, slots=True)
 class BoundVersion:
     version: str
-    written_at: str | None
+    written_at: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +74,7 @@ def build(inputs: ObligationInputs) -> tuple[dict[str, Any], ...]:
     ledger = inputs.ledger
     index = ledger.evidence_by_id()
     file_versions = ledger.file_versions()
+    literal_sites = _literal_sites_by_path(ledger.evidence, file_versions)
     drafts: list[ObligationDraft] = []
     for candidate in ledger.ordered_candidates():
         attached = _attached(candidate, index)
@@ -84,7 +86,9 @@ def build(inputs: ObligationInputs) -> tuple[dict[str, Any], ...]:
             continue
         if status != "AFFECTED":
             continue
-        bound = bound_version(attached, file_versions.get(location.path))
+        bound = bound_version(
+            attached, file_versions.get(location.path), literal_sites.get(location.path, ())
+        )
         drafts.extend(_affected(candidate, location, attached, inputs, bound))
     return tuple(
         _record(draft, run_id=ledger.run_id, proof_scope_hash=ledger.proof_scope_hash)
@@ -130,6 +134,23 @@ def _affected(
                 ),
                 repair_class=PRESERVE_UNKNOWN,
                 verification_method=method(CONSERVED, str(candidate["id"])),
+            )
+        ]
+    uncomposable = inputs.uncomposable.get(effective)
+    if uncomposable is not None:
+        return [
+            ObligationDraft(
+                candidate_id=str(candidate["id"]),
+                effective_version=effective,
+                provider_change_id=f"version:{effective}->{inputs.target}",
+                evidence_ids=_evidence_ids(attached),
+                current_state=f"{site} calls the provider at {effective}",
+                required_state=(
+                    f"{site} calls the provider at {inputs.target}; {uncomposable} so no "
+                    "deterministic transform applies: migrate by hand or retire the call"
+                ),
+                repair_class=HUMAN,
+                verification_method=method(ABSENT, effective),
             )
         ]
     changes = inputs.change_sets.get(effective)
@@ -192,7 +213,7 @@ def _version_drafts(
         current = f"{site} is bound to the provider at {effective}"
         required = f"{site} is bound to the provider at {inputs.target}"
         if bound.written_at and not written:
-            written = (bound.written_at,)
+            written = bound.written_at
     else:
         return []
     if written and written != (site,):
@@ -407,8 +428,24 @@ def effective_version(attached: Sequence[Mapping[str, Any]]) -> str | None:
     return found.pop()
 
 
+def _literal_sites_by_path(
+    records: Sequence[Mapping[str, Any]], file_versions: Mapping[str, FileVersionEvidence]
+) -> dict[str, tuple[str, ...]]:
+    carriers: dict[str, list[Mapping[str, Any]]] = {}
+    for record in records:
+        path = str(record.get("path"))
+        if path in file_versions and str(record.get("claim_type")) in VERSION_CLAIMS:
+            carriers.setdefault(path, []).append(record)
+    return {
+        path: resolved_sites(found, file_versions[path].version)
+        for path, found in sorted(carriers.items())
+    }
+
+
 def bound_version(
-    attached: Sequence[Mapping[str, Any]], file_evidence: FileVersionEvidence | None
+    attached: Sequence[Mapping[str, Any]],
+    file_evidence: FileVersionEvidence | None,
+    literal_sites: tuple[str, ...] = (),
 ) -> BoundVersion | None:
     structural = [
         as_mapping(record.get("value"))
@@ -430,11 +467,12 @@ def bound_version(
             ),
             None,
         )
-        return BoundVersion(version=bindings.pop(), written_at=written_at)
+        return BoundVersion(version=bindings.pop(), written_at=(written_at,) if written_at else ())
     if bindings or file_evidence is None:
         return None
     return BoundVersion(
-        version=file_evidence.version.lower(), written_at=file_evidence.example_location
+        version=file_evidence.version.lower(),
+        written_at=literal_sites or (file_evidence.example_location,),
     )
 
 
