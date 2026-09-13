@@ -22,7 +22,7 @@ LANGUAGES = {
     ".php": ("php", "Php"),
     ".py": ("python", "Python"),
     ".ts": ("typescript", "TypeScript"),
-    ".tsx": ("typescript", "TypeScript"),
+    ".tsx": ("tsx", "Tsx"),
 }
 ENTRY_KEYS = frozenset(
     {

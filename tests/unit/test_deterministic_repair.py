@@ -58,6 +58,38 @@ def test_a_generated_namespace_segment_is_rewritten_as_a_version_token() -> None
     assert produced.text == "from google.ads.googleads.v25.services import x\n"
 
 
+def test_an_upper_case_namespace_segment_is_rewritten_preserving_its_case() -> None:
+    subject = request(
+        "use Google\\Ads\\GoogleAds\\V22\\Services\\GoogleAdsServiceClient;\n",
+        path="src/Ads.php",
+    )
+    transform = VersionLiteralTransform()
+    assert transform.precondition(subject) is True
+    produced = transform.apply(subject)
+    assert produced.text == "use Google\\Ads\\GoogleAds\\V25\\Services\\GoogleAdsServiceClient;\n"
+    assert transform.postcondition(produced) is True
+
+
+def test_a_branch_alias_pin_is_never_rewritten_into_a_release_that_does_not_exist() -> None:
+    subject = request(
+        '"googleads/google-ads-php": "dev-legacy-v32.1.0"\n',
+        path="composer.json",
+        claim_type="sdk_installed",
+    )
+    assert SdkPinTransform(minimums=MINIMUMS).precondition(subject) is False
+
+
+def test_a_caret_pin_below_the_php_minimum_is_raised() -> None:
+    subject = request(
+        '"googleads/google-ads-php": "^32.1.0"\n', path="composer.json", claim_type="sdk_installed"
+    )
+    transform = SdkPinTransform(minimums=MINIMUMS)
+    assert transform.precondition(subject) is True
+    produced = transform.apply(subject)
+    assert produced.text == '"googleads/google-ads-php": "^33.6.0"\n'
+    assert transform.postcondition(produced) is True
+
+
 def test_a_rest_path_is_reversioned_only_after_a_slash() -> None:
     subject = request(
         'url = "https://googleads.googleapis.com/v22/customers"\n',
@@ -182,6 +214,46 @@ def test_two_obligations_on_one_file_thread_the_text_through() -> None:
     )
     assert report.texts["src/client.py"] == 'a = "v25"\nb = "v25"\n'
     assert len(report.discharged()) == 2
+
+
+def test_a_second_obligation_on_a_line_an_earlier_edit_rewrote_is_satisfied_not_human() -> None:
+    text = "use Google\\Ads\\GoogleAds\\V22\\Services\\GoogleAdsRow;\n"
+    report = deterministic.run(
+        transforms=transforms(MINIMUMS),
+        requests=[
+            request(text, path="src/Ads.php", line=1, obligation_id="a" * 64),
+            request(
+                text,
+                path="src/Ads.php",
+                line=1,
+                claim_type="surface_reference",
+                obligation_id="b" * 64,
+            ),
+        ],
+    )
+    assert [item.result for item in report.outcomes] == ["APPLIED", "SATISFIED"]
+    assert len(report.discharged()) == 2
+    assert report.undischarged() == ()
+
+
+def test_a_bound_reference_is_rewritten_at_the_import_line_it_names() -> None:
+    subject = request(
+        "use Google\\Ads\\GoogleAds\\V22\\Services\\GoogleAdsRow;\n",
+        path="src/Ads.php",
+        claim_type="surface_reference",
+    )
+    transform = VersionLiteralTransform()
+    assert transform.precondition(subject) is True
+    assert (
+        transform.apply(subject).text
+        == "use Google\\Ads\\GoogleAds\\V25\\Services\\GoogleAdsRow;\n"
+    )
+
+
+def test_a_site_that_already_carries_nothing_to_rewrite_stays_open_for_a_human() -> None:
+    subject = request("$request = new MutateGoogleAdsRequest();\n", claim_type="surface_reference")
+    report = deterministic.run(transforms=transforms(MINIMUMS), requests=[subject])
+    assert [item.result for item in report.outcomes] == ["NO_TRANSFORM"]
 
 
 def test_the_runner_is_deterministic() -> None:

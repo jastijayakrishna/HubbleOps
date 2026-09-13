@@ -219,3 +219,157 @@ def test_every_affected_candidate_earns_at_least_one_obligation() -> None:
     built = build(inputs_for(ledger, sets, "v25"))
     covered = {item["id"] for item in built}
     assert len(covered) == 2
+
+
+def structural_reference(path: str, line: int, value: dict[str, Any]) -> dict[str, Any]:
+    return make_evidence(
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        claim_type="surface_reference",
+        observer="structure",
+        repo_sha=None,
+        path=path,
+        line_start=line,
+        line_end=line,
+        source_hash="a" * 64,
+        value=value,
+        provider_subject="ProviderClient",
+        dependency_context_hash=None,
+        derivation="OBSERVED",
+        confidence="PROVEN",
+    )
+
+
+def candidate_of(key: str, claim_type: str, ids: list[str], status: str) -> dict[str, Any]:
+    return make_candidate(
+        candidate_id=candidate_identity("p", claim_type, key),
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        provider="p",
+        evidence_ids=ids,
+        status=status,
+        reason="fixture",
+        close_with=None,
+    )
+
+
+def test_a_reference_bound_to_its_files_version_literal_names_that_literal_as_the_edit() -> None:
+    literal = evidence("src/a.py", "call_version", {"literal": "v22"}, "v22")
+    bound = structural_reference("src/a.py", 20, {"node_kind": "identifier", "binding": "sdk"})
+    ledger = Ledger(
+        provider="p",
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        evidence=(literal, bound),
+        candidates=(
+            candidate_of("src/a.py:7", "call_version", [literal["id"]], "AFFECTED"),
+            candidate_of(
+                "src/a.py:20:ProviderClient", "surface_reference", [bound["id"]], "AFFECTED"
+            ),
+        ),
+    )
+    built = build(inputs_for(ledger, {"v22": change_set("v22", "v25")}, "v25"))
+    by_candidate = {item["evidence_ids"][0]: item for item in built}
+    reference = by_candidate[bound["id"]]
+    assert reference["provider_change_id"] == "version:v22->v25"
+    assert reference["repair_class"] == "DETERMINISTIC"
+    assert "src/a.py:7" in reference["current_state"]
+    assert not any(item["provider_change_id"] == "EFFECTIVE_VERSION_UNRESOLVED" for item in built)
+
+
+def test_a_reference_whose_binding_carries_a_version_uses_that_version() -> None:
+    bound = structural_reference(
+        "src/b.py", 3, {"node_kind": "identifier", "binding": "sdk", "binding_versions": ["V22"]}
+    )
+    ledger = Ledger(
+        provider="p",
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        evidence=(bound,),
+        candidates=(
+            candidate_of(
+                "src/b.py:3:ProviderClient", "surface_reference", [bound["id"]], "AFFECTED"
+            ),
+        ),
+    )
+    built = build(inputs_for(ledger, {"v22": change_set("v22", "v25")}, "v25"))
+    assert [item["provider_change_id"] for item in built] == ["version:v22->v25"]
+    assert built[0]["repair_class"] == "DETERMINISTIC"
+
+
+def test_a_bound_reference_names_the_import_line_that_carries_its_version_as_the_edit() -> None:
+    bound = structural_reference(
+        "src/b.py",
+        40,
+        {
+            "node_kind": "bound_identifier",
+            "binding": "sdk.V22.Client",
+            "binding_versions": ["V22"],
+            "binding_site": "src/b.py:3",
+        },
+    )
+    ledger = Ledger(
+        provider="p",
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        evidence=(bound,),
+        candidates=(
+            candidate_of(
+                "src/b.py:40:ProviderClient", "surface_reference", [bound["id"]], "AFFECTED"
+            ),
+        ),
+    )
+    built = build(inputs_for(ledger, {"v22": change_set("v22", "v25")}, "v25"))
+    assert built[0]["current_state"].endswith("the v22 literal is written at src/b.py:3")
+
+
+def query_record(path: str, fragments: list[str]) -> dict[str, Any]:
+    return make_evidence(
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        claim_type="request_text",
+        observer="structure",
+        repo_sha=None,
+        path=path,
+        line_start=12,
+        line_end=12,
+        source_hash="a" * 64,
+        value={
+            "resolution": "CONTRACT_VALIDATION_DEFERRED",
+            "skeleton": {"fragments": fragments, "holes": []},
+        },
+        provider_subject="gaql",
+        dependency_context_hash=None,
+        derivation="OBSERVED",
+        confidence="RAW",
+    )
+
+
+def test_an_accepted_query_whose_fields_did_not_change_needs_nothing() -> None:
+    query = query_record("src/q.py", ["SELECT campaign.id FROM campaign"])
+    ledger = Ledger(
+        provider="p",
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        evidence=(query,),
+        candidates=(candidate_of("src/q.py:12:gaql", "request_text", [query["id"]], "AFFECTED"),),
+    )
+    built = build(inputs_for(ledger, {"v22": change_set("v22", "v25")}, "v25"))
+    assert built == ()
+
+
+def test_a_query_selecting_a_removed_field_earns_the_subject_obligation() -> None:
+    query = query_record("src/q.py", ["SELECT campaign.legacy FROM campaign"])
+    ledger = Ledger(
+        provider="p",
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        evidence=(query,),
+        candidates=(candidate_of("src/q.py:12:gaql", "request_text", [query["id"]], "AFFECTED"),),
+    )
+    removed = SubjectChange(
+        subject="campaign.legacy", change="REMOVED", replacement=None, kind="RESOLVED", reason=""
+    )
+    built = build(inputs_for(ledger, {"v22": change_set("v22", "v25", removed)}, "v25"))
+    assert [item["provider_change_id"] for item in built] == ["subject:campaign.legacy"]
+    assert built[0]["repair_class"] == "HUMAN"

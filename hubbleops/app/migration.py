@@ -1,27 +1,91 @@
 from __future__ import annotations
 
+import subprocess
+import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from hubbleops.app import registry
-from hubbleops.app.verification import InjectedOracle
+from hubbleops.app.verification import InjectedOracle, first_party_sources
+from hubbleops.closure import source_closure
 from hubbleops.core.errors import HubbleOpsError
+from hubbleops.core.evidence import declared_versions
 from hubbleops.core.repair import TransformInput
+from hubbleops.core.subjects import parse_sites
 from hubbleops.core.verification import ChangeSet, SubjectChange
 from hubbleops.obligations import ObligationInputs
 from hubbleops.obligations import build as build_obligations
 from hubbleops.observe.ledger import Ledger
 from hubbleops.repair import deterministic
+from hubbleops.sandbox import DetachedWorktree
 
 DETERMINISTIC = "DETERMINISTIC"
 VERSION_PREFIX = "version:"
 SUBJECT_PREFIX = "subject:"
+GIT_TIMEOUT_SECONDS = 60.0
+MAX_NAMED_PATHS = 20
 
 
 class MigrationInvalid(HubbleOpsError):
     pass
+
+
+def require_head_materialization(repository: Path) -> str:
+    root = repository.resolve()
+    head = _git(root, "rev-parse", "HEAD").strip()
+    if len(head) != 40:
+        raise MigrationInvalid(
+            f"{root} has no resolvable HEAD, so an obligation derived here would name no base "
+            "commit; commit the tree before migrating it"
+        )
+    pending = [line for line in _git(root, "status", "--porcelain").splitlines() if line.strip()]
+    if pending:
+        raise MigrationInvalid(
+            "the working tree differs from HEAD, so obligations derived from it would bind to a "
+            "ProofScope no commit reproduces; commit or stash these first:\n"
+            + "\n".join(f"  {entry}" for entry in pending[:MAX_NAMED_PATHS])
+        )
+    working = source_closure.build(root)
+    with tempfile.TemporaryDirectory(prefix="hops-migrate-head-") as scratch:
+        with DetachedWorktree(root, Path(scratch) / "head", head) as materialized:
+            committed = source_closure.build(materialized)
+    divergent = _divergent_paths(working, committed)
+    if divergent:
+        raise MigrationInvalid(
+            f"the bytes on disk are not the bytes {head[:12]} materializes, so `hops verify` "
+            "would scan a different tree than this migration did; restore the checkout (a line-"
+            "ending or filter setting is the usual cause) before migrating:\n"
+            + "\n".join(f"  {path}" for path in divergent[:MAX_NAMED_PATHS])
+        )
+    return head
+
+
+def _divergent_paths(
+    working: source_closure.SourceClosure, committed: source_closure.SourceClosure
+) -> tuple[str, ...]:
+    left = {entry.path: entry.blob_sha for entry in working.entries}
+    right = {entry.path: entry.blob_sha for entry in committed.entries}
+    return tuple(
+        sorted(path for path in set(left) | set(right) if left.get(path) != right.get(path))
+    )
+
+
+def _git(repository: Path, *arguments: str) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(repository), *arguments],
+        capture_output=True,
+        text=True,
+        timeout=GIT_TIMEOUT_SECONDS,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise MigrationInvalid(
+            f"git {' '.join(arguments)} failed in {repository}: "
+            f"{completed.stderr.strip() or completed.returncode}"
+        )
+    return completed.stdout
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,12 +146,9 @@ def change_sets_for(
 
 
 def detected_versions(ledger: Ledger) -> tuple[str, ...]:
-    found = {
-        str(record["provider_subject"])
-        for record in ledger.evidence
-        if record["claim_type"] == "call_version" and record["provider_subject"]
-    }
-    return tuple(sorted(found))
+    return tuple(
+        sorted({version for record in ledger.evidence for version in declared_versions(record)})
+    )
 
 
 def transform_requests(
@@ -107,29 +168,45 @@ def transform_requests(
         located = _locate(obligation, index, by_candidate, ledger)
         if located is None:
             continue
-        path, line, claim_type = located
-        source = root / path
-        try:
-            text = source.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
-            continue
+        claim_type = located[2]
         subject, replacement = _subject_of(obligation, change_sets)
-        requests.append(
-            TransformInput(
-                obligation_id=str(obligation["id"]),
-                path=path,
-                text=text,
-                current_state=str(obligation["current_state"]),
-                required_state=str(obligation["required_state"]),
-                from_version=_from_version(obligation, target),
-                to_version=target,
-                claim_type=claim_type,
-                line=line,
-                subject=subject,
-                replacement=replacement,
+        for path, line in edit_sites(obligation, located):
+            source = root / path
+            try:
+                text = source.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+            requests.append(
+                TransformInput(
+                    obligation_id=str(obligation["id"]),
+                    path=path,
+                    text=text,
+                    current_state=str(obligation["current_state"]),
+                    required_state=str(obligation["required_state"]),
+                    from_version=_from_version(obligation, target),
+                    to_version=target,
+                    claim_type=claim_type,
+                    line=line,
+                    subject=subject,
+                    replacement=replacement,
+                )
             )
-        )
     return tuple(requests)
+
+
+def edit_sites(
+    obligation: Mapping[str, Any], located: tuple[str, int | None, str]
+) -> tuple[tuple[str, int | None], ...]:
+    state = str(obligation["current_state"])
+    head, marker, written = state.partition(" written at ")
+    if marker:
+        literal_sites = parse_sites(written)
+        if literal_sites:
+            return literal_sites
+    declared = parse_sites(head)
+    if declared:
+        return declared
+    return ((located[0], located[1]),)
 
 
 def _locate(
@@ -176,6 +253,7 @@ def migrate(
     *,
     pack: registry.LoadedPack,
     ledger: Ledger,
+    closure: source_closure.SourceClosure,
     root: Path,
     target: str,
     write: bool = True,
@@ -187,6 +265,7 @@ def migrate(
             change_sets=change_sets,
             oracle=InjectedOracle(pack.verification_contract()),
             target=target,
+            sources=first_party_sources(closure, root),
         )
     )
     requests = transform_requests(
@@ -215,6 +294,7 @@ __all__ = [
     "MigrationResult",
     "change_sets_for",
     "detected_versions",
+    "edit_sites",
     "migrate",
     "transform_requests",
 ]

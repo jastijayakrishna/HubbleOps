@@ -4,9 +4,10 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from hubbleops.core.repair import TransformInput, TransformView
+from hubbleops.core.repair import TransformInput, TransformOutput, TransformView
 
 APPLIED = "APPLIED"
+SATISFIED = "SATISFIED"
 NO_TRANSFORM = "NO_TRANSFORM"
 PRECONDITION_FAILED = "PRECONDITION_FAILED"
 POSTCONDITION_REVERTED = "POSTCONDITION_REVERTED"
@@ -31,7 +32,7 @@ class RepairOutcome:
     reason: str
 
     def discharged(self) -> bool:
-        return self.result == APPLIED
+        return self.result in (APPLIED, SATISFIED)
 
     def to_mapping(self) -> dict[str, Any]:
         return {
@@ -105,6 +106,20 @@ def _apply_one(
             )
         texts[request.path] = produced.text
         return _outcome(request, transform.name, APPLIED, produced.reason)
+    for transform in transforms:
+        unchanged = TransformOutput(source=request, result="APPLIED", text=request.text, reason="")
+        try:
+            holds = transform.postcondition(unchanged)
+        except Exception as error:
+            return _outcome(request, transform.name, TRANSFORM_FAILED, f"postcondition: {error}")
+        if holds:
+            return _outcome(
+                request,
+                transform.name,
+                SATISFIED,
+                "the required state already holds at this site, written by an earlier edit "
+                "in this run or by the tree itself; nothing was changed",
+            )
     return _outcome(
         request,
         "",
@@ -128,6 +143,7 @@ __all__ = [
     "NO_TRANSFORM",
     "POSTCONDITION_REVERTED",
     "PRECONDITION_FAILED",
+    "SATISFIED",
     "TERMINAL_RESULTS",
     "TRANSFORM_FAILED",
     "UNCHANGED",
