@@ -324,3 +324,115 @@ def test_an_execution_failure_without_output_still_names_the_exit_code() -> None
         runners.execution_failure(_pytest_layout(), 2, "", "")
         == "pytest exited 2 (collection or usage error)"
     )
+
+
+CIRCLECI = """version: 2.1
+jobs:
+  run_unit_tests:
+    steps:
+      - run:
+          name: 'Run Unit Tests'
+          command: |
+            source /usr/local/share/virtualenvs/app/bin/activate
+            uv pip install pytest coverage
+            coverage run -m pytest tests/unittests
+            coverage html
+"""
+
+ACTIONS = """name: checks
+jobs:
+  test:
+    steps:
+      - run: uv run pytest tests/unittests -q
+"""
+
+
+def _ci_tree(tmp_path: Path, relative: str, body: str) -> Path:
+    tree = _python_tree(tmp_path, "tests", "tests/unittests")
+    config = tree / relative
+    config.parent.mkdir(parents=True, exist_ok=True)
+    config.write_text(body, encoding="utf-8")
+    return tree
+
+
+def test_a_circleci_command_narrows_the_suite_to_what_the_repository_runs(tmp_path: Path) -> None:
+    tree = _ci_tree(tmp_path, ".circleci/config.yml", CIRCLECI)
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/unittests",), (
+        "the repository declares its own test command; running the whole tests/ tree runs "
+        "integration tests it never intended the verifier to run"
+    )
+
+
+def test_a_github_workflow_command_is_read_the_same_way(tmp_path: Path) -> None:
+    tree = _ci_tree(tmp_path, ".github/workflows/checks.yml", ACTIONS)
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/unittests",)
+
+
+def test_a_pytest_configuration_always_wins_over_ci(tmp_path: Path) -> None:
+    tree = _ci_tree(tmp_path, ".circleci/config.yml", CIRCLECI)
+    (tree / "pytest.ini").write_text("[pytest]\ntestpaths = tests\n", encoding="utf-8")
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",)
+
+
+def test_a_token_that_is_not_a_test_path_is_never_taken_for_one(tmp_path: Path) -> None:
+    tree = _ci_tree(tmp_path, ".circleci/config.yml", CIRCLECI)
+    (tree / "coverage").mkdir()
+    (tree / "coverage" / "notes.md").write_text("output\n", encoding="utf-8")
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests/unittests",), (
+        "`uv pip install pytest coverage` names pytest and then a directory that exists; "
+        "only a path that actually holds tests may enter the suite"
+    )
+
+
+def test_an_unresolvable_token_is_refused_rather_than_guessed(tmp_path: Path) -> None:
+    body = "jobs:\n  test:\n    steps:\n      - run: pytest ${{ matrix.suite }}\n"
+    tree = _ci_tree(tmp_path, ".github/workflows/checks.yml", body)
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",), "a CI variable names no path, so discovery stands"
+
+
+def test_a_path_outside_the_tree_never_enters_the_suite(tmp_path: Path) -> None:
+    outside = tmp_path / "elsewhere" / "tests"
+    outside.mkdir(parents=True)
+    (outside / "test_x.py").write_text("def test_x():\n    pass\n", encoding="utf-8")
+    body = "jobs:\n  test:\n    steps:\n      - run: pytest ../elsewhere/tests\n"
+    tree = _ci_tree(tmp_path, ".github/workflows/checks.yml", body)
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",)
+
+
+def test_a_ci_file_that_does_not_parse_leaves_discovery_alone(tmp_path: Path) -> None:
+    tree = _ci_tree(tmp_path, ".circleci/config.yml", "jobs:\n  - [unbalanced\n")
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",)
+
+
+def test_a_repository_whose_ci_names_no_pytest_path_is_unchanged(tmp_path: Path) -> None:
+    body = "jobs:\n  test:\n    steps:\n      - run: npm run test:js\n"
+    tree = _ci_tree(tmp_path, ".github/workflows/checks.yml", body)
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",)
+
+
+def test_a_nested_path_never_duplicates_the_directory_that_contains_it(tmp_path: Path) -> None:
+    body = (
+        "jobs:\n  test:\n    steps:\n"
+        "      - run: pytest tests\n"
+        "      - run: pytest tests/unittests\n"
+    )
+    tree = _ci_tree(tmp_path, ".github/workflows/checks.yml", body)
+    layout = runners.python_layout(tree)
+    assert layout is not None
+    assert layout.paths == ("tests",)

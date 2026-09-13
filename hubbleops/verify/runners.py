@@ -4,6 +4,7 @@ import configparser
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import tomllib
@@ -11,6 +12,8 @@ import xml.etree.ElementTree as ElementTree
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+
+import yaml
 
 from hubbleops.core.records import as_mapping, as_sequence, as_text, parse_json
 from hubbleops.core.verification import SuiteCase
@@ -23,6 +26,39 @@ PYTEST_TOML = "pyproject.toml"
 PYTEST_FALLBACK_INI_SECTIONS = (("tox.ini", "pytest"), ("setup.cfg", "tool:pytest"))
 TESTPATHS = "testpaths"
 GLOB_CHARACTERS = "*?["
+CI_CONFIG_FILES = (".circleci/config.yml", ".circleci/config.yaml", ".gitlab-ci.yml")
+CI_WORKFLOW_DIRECTORY = ".github/workflows"
+CI_CONFIG_SUFFIXES = (".yml", ".yaml")
+CI_COMMAND_KEYS = frozenset({"run", "command", "commands", "script"})
+CI_UNRESOLVABLE = "$*?[]{}<>\"'`\\"
+MAX_CI_CONFIG_BYTES = 262_144
+MAX_CI_CONFIG_DEPTH = 32
+MAX_CI_COMMANDS = 512
+PYTEST_NAMES = frozenset({"pytest", "py.test"})
+PYTEST_VALUE_FLAGS = frozenset(
+    {
+        "--basetemp",
+        "--confcutdir",
+        "--cov",
+        "--deselect",
+        "--durations",
+        "--ignore",
+        "--ignore-glob",
+        "--import-mode",
+        "--junitxml",
+        "--maxfail",
+        "--rootdir",
+        "-W",
+        "-c",
+        "-k",
+        "-m",
+        "-n",
+        "-o",
+        "-p",
+        "-r",
+    }
+)
+SHELL_SEPARATORS = re.compile(r"[\n;&|]+")
 FAILURE_TAIL_LINES = 5
 COLLECTION_EXIT_CODE = 2
 JAVASCRIPT_SUITE_FILE = re.compile(r"^.*\.(test|spec)\.[cm]?[jt]sx?$")
@@ -120,7 +156,112 @@ def _declared_testpaths(tree: Path) -> tuple[str, ...] | None:
         declared = _ini_testpaths(tree / name, section)
         if declared is not None:
             return declared or None
-    return None
+    return _ci_testpaths(tree)
+
+
+def _ci_testpaths(tree: Path) -> tuple[str, ...] | None:
+    named: set[str] = set()
+    for config in _ci_configs(tree):
+        for command in _ci_commands(config):
+            named.update(_pytest_arguments(command))
+    carries = sorted(entry for entry in named if _carries_tests(tree / entry))
+    return _outermost(_paths_inside(tree, carries)) or None if carries else None
+
+
+def _carries_tests(target: Path) -> bool:
+    if target.is_dir():
+        return _holds(target, PYTHON_SUITE_FILE)
+    return target.is_file() and PYTHON_SUITE_FILE.match(target.name) is not None
+
+
+def _ci_configs(tree: Path) -> tuple[Path, ...]:
+    found = [tree / name for name in CI_CONFIG_FILES if (tree / name).is_file()]
+    workflows = tree / CI_WORKFLOW_DIRECTORY
+    if workflows.is_dir():
+        found.extend(
+            path
+            for path in sorted(workflows.iterdir())
+            if path.is_file() and path.suffix in CI_CONFIG_SUFFIXES
+        )
+    return tuple(sorted(found))
+
+
+def _ci_commands(config: Path) -> tuple[str, ...]:
+    try:
+        payload = config.read_bytes()[:MAX_CI_CONFIG_BYTES]
+        document: object = yaml.safe_load(payload.decode("utf-8", errors="replace"))
+    except (OSError, yaml.YAMLError, RecursionError):
+        return ()
+    found: list[str] = []
+    _collect_commands(document, found, 0)
+    return tuple(found)
+
+
+def _collect_commands(node: object, found: list[str], depth: int) -> None:
+    if depth > MAX_CI_CONFIG_DEPTH or len(found) >= MAX_CI_COMMANDS:
+        return
+    for key, value in as_mapping(node).items():
+        if str(key) in CI_COMMAND_KEYS:
+            found.extend(_command_strings(value))
+        _collect_commands(value, found, depth + 1)
+    for item in as_sequence(node):
+        _collect_commands(item, found, depth + 1)
+
+
+def _command_strings(value: object) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    return [item for item in as_sequence(value) if isinstance(item, str)]
+
+
+def _pytest_arguments(command: str) -> list[str]:
+    found: list[str] = []
+    for fragment in SHELL_SEPARATORS.split(command):
+        try:
+            tokens = shlex.split(fragment, posix=True)
+        except ValueError:
+            continue
+        found.extend(_paths_after_pytest(tokens))
+    return found
+
+
+def _paths_after_pytest(tokens: Sequence[str]) -> list[str]:
+    start = next(
+        (index for index, token in enumerate(tokens) if token.rsplit("/", 1)[-1] in PYTEST_NAMES),
+        None,
+    )
+    if start is None:
+        return []
+    found: list[str] = []
+    skip_value = False
+    for token in tokens[start + 1 :]:
+        if token.startswith("-"):
+            skip_value = "=" not in token and token in PYTEST_VALUE_FLAGS
+            continue
+        if skip_value:
+            skip_value = False
+            continue
+        if _is_literal_path(token):
+            found.append(token)
+    return found
+
+
+def _is_literal_path(token: str) -> bool:
+    if not token or token.startswith("-"):
+        return False
+    if any(character in token for character in CI_UNRESOLVABLE):
+        return False
+    return not token.startswith(".github/")
+
+
+def _outermost(paths: Sequence[str]) -> tuple[str, ...]:
+    return tuple(
+        sorted(
+            path
+            for path in paths
+            if not any(other != path and path.startswith(f"{other}/") for other in paths)
+        )
+    )
 
 
 def _ini_testpaths(config: Path, section: str) -> tuple[str, ...] | None:
