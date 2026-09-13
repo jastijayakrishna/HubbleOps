@@ -1591,6 +1591,8 @@ of these changed in this tier).
   `precise_indexes: tuple[SymbolIndex, ...]`, an analysis artifact computed by `app/` before the
   observers run, so that the structure observer and the coverage report read the same objects.
   It is data, provider-neutral, defaulted to empty, and the Observer signature is unchanged.
+  **Superseded by P-035**: §3.2 is FROZEN, so this is a change to a frozen surface and not a
+  deviation to record. It awaits a human decision there.
 - §10's listing omits `core/precise.py` (the SCIP reader lives in core because
   `core/observer.py` may not import `graph/`) and `graph/indexers.py`.
 
@@ -1634,5 +1636,47 @@ the scan path, forbidden). Pretending: a scan without the indexer says recall-on
 keeps saying it.
 
 **Decision.** Pending repository-owner approval of the wheel size and the node requirement.
+
+---
+
+## P-035 — `ObserverContext` admits a precise index
+
+| | |
+|---|---|
+| **Raised** | 2026-09-13, Phase 6 (engine-v0) |
+| **Touches** | `docs/ARCHITECTURE.md` §3.2, the FROZEN Observer contract |
+| **Status** | OPEN |
+
+**What forced this.** §3.2 freezes `ObserverContext` as carrying "only pack-provided parts
+(surface, rules, hooks) and run metadata". Tier 3b added `precise_indexes: tuple[SymbolIndex, ...]`
+to it (`core/observer.py`), which is neither: it is an analysis artifact `app/` computes before the
+observers run, so the structure observer and the coverage report read the same symbol objects
+rather than each re-deriving them. P-030 decided the indexer capability and said explicitly "no
+frozen schema changes"; it did not ask for this field. P-033 then recorded the field as a standing
+deviation, and a standing deviation is not how a frozen surface changes — CLAUDE.md permits exactly
+one route, a proposal a human accepts. The Phase 6 gate audit named this as blocker (4) and it is
+correct: the code and the frozen contract disagree, and no human has ruled on the difference.
+
+**Proposed change.** Amend §3.2's comment to: "`ObserverContext` carries pack-provided parts
+(surface, rules, hooks), run metadata, and provider-neutral analysis artifacts `app/` computed for
+this run. No pack import." The field itself is already implemented and unchanged by this proposal:
+`precise_indexes: tuple[SymbolIndex, ...] = ()`, provider-neutral, defaulted to empty, with the
+`Observer.scan` signature untouched.
+
+**Blast radius.** None in code — this records what already ships. `docs/ARCHITECTURE.md` §3.2 is
+edited. Existing Receipts survive: `SymbolIndex` identity is already inside `scanner_version`, so a
+run with indexes and a run without them do not share a ProofScope, and nothing about the binding
+changes. P-033's fourth bullet is superseded by this proposal and should point at it.
+
+**Alternatives rejected.** *Remove the field and pass indexes as a separate argument to `scan`* —
+that changes `Observer.scan`, which is the more central half of the same frozen section, and every
+observer would carry a parameter only one of them reads. *Recompute the index inside the structure
+observer* — two readers of one artifact drift, and the coverage report would run the indexer a
+second time inside the scan path. *Leave it as a P-033 deviation* — that is the state the gate
+audit failed, and it leaves the frozen document describing a contract the code does not honour.
+
+**Decision.** Pending repository-owner ruling. If rejected, the field comes out and `app/` passes
+the index by another route the owner names; the capability itself is P-030's, already DECIDED, and
+is not reopened here.
 
 ---
