@@ -59,17 +59,32 @@ def test_phase_one_layers_exist() -> None:
     assert missing == [], f"generic layers missing, so the import law is untested: {missing}"
 
 
+def forbidden_for(layer: str) -> tuple[str, ...]:
+    own = (layer, f"hubbleops.{layer}")
+    return tuple(prefix for prefix in FORBIDDEN_PREFIXES if prefix not in own)
+
+
 def test_generic_layers_never_import_packs_or_repair() -> None:
     offences: list[str] = []
     for directory in generic_layer_dirs():
         for source in python_sources(directory):
             for module in imported_modules(source):
-                for prefix in FORBIDDEN_PREFIXES:
+                for prefix in forbidden_for(directory.name):
                     if module == prefix or module.startswith(f"{prefix}."):
                         offences.append(
                             f"{source.relative_to(PACKAGE_ROOT.parent)} imports {module}"
                         )
     assert offences == [], "law L5: generic layers must receive pack parts as parameters"
+
+
+def test_the_repair_layer_is_scanned_by_the_leak_tests() -> None:
+    scanned = {directory.name for directory in generic_layer_dirs()}
+    assert "repair" in scanned, (
+        "repair/ receives pack transforms as parameters like every other generic layer, "
+        "so the import and provider-name laws have to look there"
+    )
+    assert "hubbleops.packs" in forbidden_for("repair")
+    assert "hubbleops.repair" not in forbidden_for("repair")
 
 
 def test_an_injected_generic_pack_import_is_detected(tmp_path: Path) -> None:

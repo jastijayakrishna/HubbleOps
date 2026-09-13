@@ -14,6 +14,7 @@ GENERIC_LAYERS = (
     "observe",
     "graph",
     "obligations",
+    "repair",
     "verify",
     "proof",
     "store",
