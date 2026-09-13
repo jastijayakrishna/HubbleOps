@@ -1,0 +1,8 @@
+{
+  "summary": "the old generated namespace is still imported alongside the migrated client",
+  "expected_verdict": "FAILED",
+  "reason_contains": "audit_pass is FAIL",
+  "caught_by": "migration audit (old-version residue) and the generated-namespace falsifier",
+  "delete": [],
+  "obligation_sites": []
+}

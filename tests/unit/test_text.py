@@ -204,8 +204,12 @@ def test_a_match_in_a_closure_marked_unscannable_file_is_not_discarded(
         yield text.TextHit(path="blob.bin", line_number=1, line_text="mockprov")
 
     monkeypatch.setattr(text, "_search", stray)
-    claims = {record["claim_type"] for record in text.scan(closure, ctx)}
-    assert claims == {"file_unscanned", "package_reference", "surface_reference"}
+    records = text.scan(closure, ctx)
+    claims = {record["claim_type"] for record in records}
+    assert claims == {"file_unscanned", "surface_reference"}
+    merged = next(item for item in records if item["claim_type"] == "surface_reference")
+    assert merged["value"]["claims"] == ["package_reference", "surface_reference"]
+    assert merged["value"]["kinds"] == ["identifier", "package"]
 
 
 def test_a_media_suffix_never_removes_a_file_from_the_ledger(
@@ -224,7 +228,7 @@ def test_a_media_suffix_never_removes_a_file_from_the_ledger(
         for candidate in book.candidates
         if book.location_of(candidate).claim_type == "file_unscanned"
     }
-    assert unscanned == {"logo.png": "UNKNOWN", "blob.dat": "UNKNOWN"}
+    assert unscanned == {"logo.png": "UNSCANNED", "blob.dat": "UNSCANNED"}
     assert book.counts()["unexplained"] == 0
     for candidate in book.candidates:
         if book.location_of(candidate).claim_type == "file_unscanned":
@@ -259,6 +263,58 @@ def test_a_file_ripgrep_cannot_read_does_not_throw_the_whole_scan_away(
     assert book.counts()["unexplained"] == 0
 
 
+def test_a_record_stream_dense_with_surface_names_becomes_one_accounted_candidate(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    rows = "".join(f'{{"client": "MockProvClient", "row": {index}}}\n' for index in range(500))
+    build(tmp_path, {"data/catalog.jsonl": rows})
+
+    book = scan_repository(tmp_path, mock_pack).ledger
+    bulk = [
+        candidate
+        for candidate in book.candidates
+        if book.location_of(candidate).claim_type == "bulk_data_reference"
+    ]
+
+    assert len(bulk) == 1
+    assert bulk[0]["status"] == "PROVIDER_REFERENCE_DATA"
+    assert book.location_of(bulk[0]).path == "data/catalog.jsonl"
+    assert book.counts()["unexplained"] == 0
+
+
+def test_collapsing_a_bulk_file_never_loses_a_match(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    rows = "".join(f'{{"client": "MockProvClient", "row": {index}}}\n' for index in range(500))
+    build(tmp_path, {"data/catalog.jsonl": rows})
+
+    book = scan_repository(tmp_path, mock_pack).ledger
+    record = next(item for item in book.evidence if item["claim_type"] == "bulk_data_reference")
+
+    assert record["value"]["match_count"] >= 500
+    assert record["value"]["line_count"] == 500
+    assert "MockProvClient" in record["value"]["subjects"]
+
+
+def test_a_source_file_with_many_surface_names_is_never_collapsed(
+    tmp_path: Path, mock_pack: registry.LoadedPack
+) -> None:
+    lines = "".join(f'client_{index} = MockProvClient(version="v22")\n' for index in range(300))
+    build(tmp_path, {"src/wide.py": lines})
+
+    book = scan_repository(tmp_path, mock_pack).ledger
+    claim_types = {book.location_of(candidate).claim_type for candidate in book.candidates}
+    located = [
+        candidate
+        for candidate in book.candidates
+        if book.location_of(candidate).path == "src/wide.py"
+    ]
+
+    assert "bulk_data_reference" not in claim_types
+    assert len(located) > 100
+    assert book.counts()["unexplained"] == 0
+
+
 def test_a_call_site_ripgrep_quarantines_as_binary_still_raises_a_candidate(
     tmp_path: Path, mock_pack: registry.LoadedPack
 ) -> None:
@@ -273,5 +329,27 @@ def test_a_call_site_ripgrep_quarantines_as_binary_still_raises_a_candidate(
         for candidate in book.candidates
         if book.location_of(candidate).claim_type == "file_unscanned"
     }
-    assert unscanned["src/late.py"] == "UNKNOWN"
+    assert unscanned["src/late.py"] == "UNSCANNED"
     assert book.counts()["unexplained"] == 0
+
+
+@pytest.mark.parametrize("separator", (chr(0x85), chr(0x2028), chr(0x2029), "\x0b", "\x0c"))
+def test_a_matched_line_with_a_unicode_line_separator_keeps_the_json_stream_whole(
+    tmp_path: Path, mock_pack: registry.LoadedPack, separator: str
+) -> None:
+    closure = build(
+        tmp_path,
+        {"bundle.js": f'const a = "api.mockprov.test/v22/x{separator}y";\nconst b = 1;\n'},
+    )
+    ctx = ObserverContext(
+        provider="_mock",
+        run_id=content_id({"run": 1}),
+        proof_scope_hash=content_id({"scope": 1}),
+        repo_sha=None,
+        dependency_context_hash=None,
+        surface=mock_pack.surface,
+    )
+    records = text.scan(closure, ctx)
+    matched = [item for item in records if item["path"] == "bundle.js"]
+    assert matched, records
+    assert {item["line_start"] for item in matched} == {1}

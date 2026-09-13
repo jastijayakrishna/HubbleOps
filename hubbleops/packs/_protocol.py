@@ -5,12 +5,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Protocol, runtime_checkable
 
+from hubbleops.core.repair import TransformInput, TransformOutput
 from hubbleops.core.surface import (
     RequestLanguage,
     SinkArgument,
     SurfaceSpec,
     VersionCarrier,
 )
+from hubbleops.core.verification import FalsifierInput, FalsifierOutcome, OracleAuthority
 
 Confidence = Literal["PROVEN", "DOCUMENTED"]
 ContractCode = Literal[
@@ -109,6 +111,7 @@ class ValidationResult:
     code: ContractCode
     reason: str
     response: Mapping[str, Any] | None = None
+    authority: OracleAuthority | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -175,6 +178,8 @@ class Transport(Protocol):
 class ContractOracle(Protocol):
     """Provider contract catalogs, computed diffs, and validation-only oracle access."""
 
+    def context_hash(self) -> str: ...
+
     def catalog(self, version: str) -> Catalog: ...
 
     def diff(self, version_from: str, version_to: str) -> ContractDiff: ...
@@ -218,9 +223,21 @@ class CaptureHooks(Protocol):
 
 @runtime_checkable
 class Transform(Protocol):
-    """Deterministic provider repair transform implemented in a later phase."""
+    """Deterministic provider repair transform: precondition, apply, then post-check.
+
+    A transform whose precondition is false does not apply and does not fail the run; its
+    obligation stays open for a human. A transform whose postcondition is false after applying
+    reverts and names its failure class.
+    """
 
     name: str
+    failure_class: str
+
+    def precondition(self, subject: TransformInput) -> bool: ...
+
+    def apply(self, subject: TransformInput) -> TransformOutput: ...
+
+    def postcondition(self, subject: TransformOutput) -> bool: ...
 
 
 @runtime_checkable
@@ -232,9 +249,12 @@ class ToolSpec(Protocol):
 
 @runtime_checkable
 class Falsifier(Protocol):
-    """Provider adversarial check implemented in the verification phase."""
+    """Provider adversarial check selected by failure class and executed by the verifier."""
 
     name: str
+    failure_class: str
+
+    def check(self, subject: FalsifierInput) -> FalsifierOutcome: ...
 
 
 @runtime_checkable
@@ -279,6 +299,8 @@ __all__ = [
     "ContractOracle",
     "DiffFact",
     "Falsifier",
+    "FalsifierInput",
+    "FalsifierOutcome",
     "ProviderPack",
     "RequestLanguage",
     "RuleSet",
@@ -289,6 +311,8 @@ __all__ = [
     "TelemetryResult",
     "ToolSpec",
     "Transform",
+    "TransformInput",
+    "TransformOutput",
     "Transport",
     "ValidationResult",
     "Version",

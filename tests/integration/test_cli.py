@@ -5,19 +5,23 @@ import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 import hubbleops
 from hubbleops.app import cli, registry
 from hubbleops.app.cli import (
     EXIT_FAILED,
     EXIT_OK,
+    EXIT_TOOLING_MISSING,
     EXIT_UNKNOWN,
     OBSERVATION_SOURCES,
     main,
     scan_repository,
 )
+from hubbleops.core.candidate import OPEN_STATUSES
 from hubbleops.core.errors import ToolingTimeout
 from hubbleops.core.proof_scope import scanner_fingerprint
+from hubbleops.proof import guard
 from hubbleops.store.sqlite import DATABASE_FILENAME, Store
 from tests.support import fixture_repos
 
@@ -142,14 +146,15 @@ def test_exposure_reports_the_surface_the_run_recorded_not_the_one_on_disk(
     state = tmp_path / "state"
     run_scan(state)
     capsys.readouterr()
-    recorded = registry.load_pack("google_ads").changes.lattice_hash
-
-    def refuse(name: str) -> registry.LoadedPack:
-        raise AssertionError("the map must render from the stored run, not the pack on disk")
-
-    monkeypatch.setattr(registry, "load_pack", refuse)
+    changes = registry.load_pack("google_ads").changes
+    recorded = changes.lattice_hash
+    monkeypatch.setattr(type(changes), "lattice_hash", property(lambda _: "f" * 64))
     assert main(["exposure", "--state-dir", str(state)]) == EXIT_OK
-    assert recorded[:8] in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert f"google_ads@{recorded[:8]}" in captured.out
+    assert f"google_ads@{'f' * 8}" not in captured.out
+    assert "no provider contract was supplied to this rendering" in captured.out
+    assert "is not the one run" in captured.err
 
 
 def test_exposure_without_a_run_fails_rather_than_printing_an_empty_map(
@@ -193,3 +198,174 @@ def test_a_tool_timeout_is_reported_as_unknown_not_as_a_failure(
     monkeypatch.setattr("hubbleops.app.cli.scan_repository", timeout)
     assert run_scan(tmp_path / "state") == EXIT_UNKNOWN
     assert "UNKNOWN: rg exceeded its 600s budget" in capsys.readouterr().err
+
+
+def test_a_vendored_binary_whose_hash_was_swapped_stops_the_scan_and_never_falls_back(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    vendored = tmp_path / "_toolchain" / "win_amd64"
+    vendored.mkdir(parents=True)
+    (vendored / "rg.exe").write_bytes(b"not the pinned ripgrep")
+    (vendored / "manifest.json").write_text(
+        json.dumps(
+            {
+                "platform": "win_amd64",
+                "tools": {"rg": {"file": "rg.exe", "version": "14.1.1", "sha256": "0" * 64}},
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("hubbleops.core.toolchain.vendored_root", lambda: tmp_path / "_toolchain")
+    monkeypatch.setattr("hubbleops.core.toolchain.platform_tag", lambda: "win_amd64")
+    state = tmp_path / "state"
+    assert run_scan(state) == EXIT_TOOLING_MISSING
+    assert "vendored binary hash mismatch" in capsys.readouterr().err
+    assert not (state / DATABASE_FILENAME).exists()
+
+
+def test_decide_writes_an_idempotent_source_bound_human_decision(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    state = tmp_path / "state"
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    assert run_scan(state, pack="_mock") == EXIT_OK
+    capsys.readouterr()
+    with Store(state) as store:
+        run = store.latest_run("_mock")
+        assert run is not None
+        candidate = next(
+            item for item in store.candidates_for(run.run_id) if item["status"] in OPEN_STATUSES
+        )
+    arguments = [
+        "decide",
+        str(candidate["id"])[:12],
+        "--value",
+        "HUMAN_ACCEPTED_RISK",
+        "--by",
+        "Reviewer",
+        "--run",
+        run.run_id,
+        "--repo",
+        str(repository),
+        "--state-dir",
+        str(state),
+    ]
+    assert main(arguments) == EXIT_OK
+    output = capsys.readouterr().out
+    destination = repository / ".hubbleops" / "decisions.yml"
+    first = destination.read_bytes()
+    document = yaml.safe_load(first)
+    item = document["decisions"][0]
+    assert item["candidate_id"] == candidate["id"]
+    assert item["proof_scope_hash"] == run.proof_scope_hash
+    assert item["run_id"] == run.run_id
+    assert len(item["blob_hash"]) == 64
+    assert "DECIDED" in output
+    assert main(arguments) == EXIT_OK
+    assert destination.read_bytes() == first
+
+
+def test_replay_verifies_a_completed_runs_identity_and_artifacts(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    state = tmp_path / "state"
+    assert run_scan(state, pack="_mock") == EXIT_OK
+    capsys.readouterr()
+    with Store(state) as store:
+        run = store.latest_run("_mock")
+        assert run is not None
+    assert main(["replay", run.run_id, "--state-dir", str(state)]) == EXIT_OK
+    output = capsys.readouterr().out
+    assert "REPLAY VERIFIED" in output
+    assert run.proof_scope_hash in output
+
+
+def test_replay_fails_closed_when_an_artifact_was_changed(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    state = tmp_path / "state"
+    assert run_scan(state, pack="_mock") == EXIT_OK
+    capsys.readouterr()
+    with Store(state) as store:
+        run = store.latest_run("_mock")
+        assert run is not None
+        artifact = store.artifacts_for(run.run_id)[0]
+    Path(artifact.path).write_bytes(b"tampered\n")
+    assert main(["replay", run.run_id, "--state-dir", str(state)]) == EXIT_FAILED
+    assert "no longer matches" in capsys.readouterr().err
+
+
+def test_impact_is_a_full_rescan_report_without_repository_writes(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    output = tmp_path / "impact.json"
+    assert (
+        main(
+            [
+                "impact",
+                str(FIXTURE),
+                "--pack",
+                "_mock",
+                "--output",
+                str(output),
+            ]
+        )
+        == EXIT_OK
+    )
+    record = json.loads(output.read_text(encoding="utf-8"))
+    assert record["full_rescan"] is True
+    assert record["candidate_counts"]["unexplained"] == 0
+    assert all(item["candidate_id"] for item in record["obligations"])
+    assert "full clean rescan" in capsys.readouterr().out
+
+
+def test_guard_cli_passes_then_rejects_a_retired_literal(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    guard.write_retired(
+        tmp_path,
+        patterns=("retired.call",),
+        provider="_mock",
+        proof_scope_hash="a" * 64,
+    )
+    source = tmp_path / "app.py"
+    source.write_text("active.call()\n", encoding="utf-8")
+    arguments = ["guard", "--repo", str(tmp_path)]
+    assert main(arguments) == EXIT_OK
+    assert "PASS" in capsys.readouterr().out
+    source.write_text("retired.call()\n", encoding="utf-8")
+    assert main(arguments) == EXIT_FAILED
+    assert "REINTRODUCED" in capsys.readouterr().out
+
+
+def test_exposure_installs_a_read_only_pull_request_workflow_without_a_run(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    arguments = [
+        "exposure",
+        "--install-workflow",
+        "--pack",
+        "_mock",
+        "--target",
+        "v2",
+        "--repo",
+        str(tmp_path),
+        "--state-dir",
+        str(tmp_path / "state"),
+    ]
+    assert main(arguments) == EXIT_OK
+    assert "EXPOSURE WORKFLOW" in capsys.readouterr().out
+    workflow = (tmp_path / ".github" / "workflows" / "hubbleops-exposure.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "permissions:\n  contents: read\n" in workflow
+    assert "hops scan . --pack _mock --target v2" in workflow
+    assert 'uvx --from "hubbleops==' in workflow
+
+
+def test_exposure_workflow_install_refuses_a_missing_pack(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main(["exposure", "--install-workflow", "--repo", str(tmp_path)]) == EXIT_FAILED
+    assert "--pack" in capsys.readouterr().err

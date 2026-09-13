@@ -1,0 +1,8 @@
+{
+  "indexer": "scip-python",
+  "version": "0.6.6",
+  "entry_script": "@sourcegraph/scip-python/index.js",
+  "command": ["scip-python", "index", ".", "--project-name", "repository", "--project-version", "0.0.0", "--output", "<out>"],
+  "run_in": "a copy of repo/ under WSL Ubuntu 24.04 with node v18.19.1; the indexer does not start on Windows",
+  "project_root": "rewritten to file:///repo after generation"
+}

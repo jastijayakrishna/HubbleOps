@@ -78,6 +78,14 @@ def test_event_jsonl_is_deterministic_and_retains_named_failures() -> None:
     assert batch.bytes() == events_from_jsonl(second + b"\n" + first + b"\n").bytes()
 
 
+def test_an_event_whose_request_text_carries_a_unicode_line_separator_stays_one_event() -> None:
+    text = f"SELECT a{chr(0x2028)}FROM b"
+    record = json.dumps(event(request_text=text), ensure_ascii=False).encode()
+    batch = events_from_jsonl(record + b"\n")
+    assert batch.issues == ()
+    assert [item["request_text"] for item in batch.events] == [text]
+
+
 def test_truncated_stack_never_looks_complete() -> None:
     frame = {
         "function": None,

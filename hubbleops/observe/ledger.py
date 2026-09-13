@@ -7,6 +7,7 @@ from typing import Any
 from hubbleops.closure.source_closure import SourceClosure
 from hubbleops.core.candidate import STATUSES, candidate_identity, claim_key, make_candidate
 from hubbleops.core.errors import UnexplainedCandidates
+from hubbleops.core.surface import SurfaceSpec
 from hubbleops.observe import resolver
 
 
@@ -31,6 +32,9 @@ class Ledger:
 
     def evidence_by_id(self) -> dict[str, dict[str, Any]]:
         return {str(record["id"]): record for record in self.evidence}
+
+    def file_versions(self) -> dict[str, resolver.FileVersionEvidence]:
+        return resolver.file_version_index(self.evidence)
 
     def location_of(self, candidate: Mapping[str, Any]) -> CandidateLocation:
         index = self.evidence_by_id()
@@ -66,6 +70,10 @@ class Ledger:
             "unknown": 0,
             "human_required": 0,
             "excluded_with_evidence": 0,
+            "provider_reference_data": 0,
+            "unsupported": 0,
+            "unscanned": 0,
+            "human_accepted_risk": 0,
             "unexplained": self.unexplained(),
         }
         for candidate in self.candidates:
@@ -104,8 +112,13 @@ def build(
     proof_scope_hash: str,
     evidence: Sequence[dict[str, Any]],
     closure: SourceClosure,
+    surface: SurfaceSpec | None = None,
+    validations: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> Ledger:
     classifications = {entry.path: entry.classification.value for entry in closure.entries}
+    roles = {entry.path: entry.role.value for entry in closure.entries}
+    path_versions = resolver.file_version_index(evidence)
+    context = resolver.resolution_context(evidence, surface, validations)
     groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for record in evidence:
         key = (str(record["claim_type"]), claim_key(record))
@@ -114,7 +127,9 @@ def build(
     candidates: list[dict[str, Any]] = []
     attached: set[str] = set()
     for (claim_type, key), records in sorted(groups.items()):
-        resolution = resolver.resolve_claim(claim_type, records, classifications)
+        resolution = resolver.resolve_claim(
+            claim_type, records, classifications, roles, path_versions, context
+        )
         ids = sorted({str(record["id"]) for record in records})
         candidates.append(
             make_candidate(

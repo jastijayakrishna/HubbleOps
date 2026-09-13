@@ -1,0 +1,10 @@
+{
+  "indexer": "scip-typescript",
+  "version": "0.4.0",
+  "entry_script": "@sourcegraph/scip-typescript/dist/src/main.js",
+  "entry_sha256": "22104bf4323e7667ff0d6f38606937c467af2d6e1fda171203c2065d9b757979",
+  "command": ["scip-typescript", "index", "--output", "<out>"],
+  "run_in": "a copy of repo/",
+  "host": "win_amd64, node v22.12.0",
+  "project_root": "rewritten to file:///repo after generation"
+}

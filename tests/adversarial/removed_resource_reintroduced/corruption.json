@@ -1,0 +1,8 @@
+{
+  "summary": "the query selects the new field and quietly keeps selecting the removed one",
+  "expected_verdict": "FAILED",
+  "reason_contains": "falsifier removed_field_in_request FAILED",
+  "caught_by": "falsifier (removed subject still named in a request)",
+  "delete": [],
+  "obligation_sites": []
+}

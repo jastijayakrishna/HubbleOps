@@ -182,6 +182,27 @@ def test_detached_worktree_records_and_restores_exact_git_metadata(tmp_path: Pat
     assert all("stdout" in record and "stderr" in record for record in attestation["commands"])
 
 
+def test_detached_worktree_enables_long_paths_for_every_git_operation(tmp_path: Path) -> None:
+    repository = tmp_path / "repo"
+    repository.mkdir()
+    repository.joinpath("source.py").write_text("value = 1\n", encoding="utf-8")
+    for command in (
+        ("git", "init", "-q"),
+        ("git", "config", "user.email", "phase4@example.invalid"),
+        ("git", "config", "user.name", "Phase 4"),
+        ("git", "add", "source.py"),
+        ("git", "commit", "-q", "-m", "fixture"),
+    ):
+        subprocess.run(command, cwd=repository, check=True, capture_output=True)
+    manager = DetachedWorktree(repository, tmp_path / "detached", "HEAD")
+    with manager:
+        pass
+    assert all(
+        record["argv"][1:3] == ["-c", "core.longpaths=true"]
+        for record in manager.attestation()["commands"]
+    )
+
+
 def test_a_worktree_whose_removal_is_refused_still_restores_the_repository(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

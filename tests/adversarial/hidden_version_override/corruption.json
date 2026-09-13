@@ -1,0 +1,8 @@
+{
+  "summary": "the client is migrated everywhere except one per-call override left on the old version",
+  "expected_verdict": "FAILED",
+  "reason_contains": "audit_pass is FAIL",
+  "caught_by": "migration audit (old-version residue)",
+  "delete": [],
+  "obligation_sites": []
+}

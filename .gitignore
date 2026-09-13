@@ -15,7 +15,9 @@ build/
 .coverage
 htmlcov/
 /.hubbleops/toolchain/
+/.hubbleops/toolchain-cache/
 /.hubbleops/uv-cache/
+/hubbleops/_toolchain/
 
 # HubbleOps run state — regenerated, never proof
 artifacts/

@@ -12,6 +12,7 @@
     "changed_files",
     "migration_audit",
     "oracle_results",
+    "oracle_authority",
     "blast_radius",
     "request_shape_differential",
     "response_consumer_check",
@@ -38,6 +39,10 @@
         "unknown",
         "human_required",
         "excluded_with_evidence",
+        "provider_reference_data",
+        "unsupported",
+        "unscanned",
+        "human_accepted_risk",
         "unexplained"
       ],
       "properties": {
@@ -47,6 +52,10 @@
         "unknown": { "type": "integer", "minimum": 0 },
         "human_required": { "type": "integer", "minimum": 0 },
         "excluded_with_evidence": { "type": "integer", "minimum": 0 },
+        "provider_reference_data": { "type": "integer", "minimum": 0 },
+        "unsupported": { "type": "integer", "minimum": 0 },
+        "unscanned": { "type": "integer", "minimum": 0 },
+        "human_accepted_risk": { "type": "integer", "minimum": 0 },
         "unexplained": {
           "type": "integer",
           "const": 0,
@@ -58,6 +67,10 @@
     "changed_files": { "type": "array", "items": { "type": "string" } },
     "migration_audit": { "type": "object" },
     "oracle_results": { "type": "array", "items": { "type": "object" } },
+    "oracle_authority": {
+      "enum": ["LIVE", "CATALOG", "ORACLE_UNAVAILABLE"],
+      "description": "Which authority accepted the requests (P-020, P-022). LIVE is the provider itself. CATALOG is the pack's own version catalog, never the provider; what a CATALOG acceptance does and does not prove is stated by each accepting check's own reason and is never asserted generically here, because a generic claim goes stale the moment a pack learns a new check. ORACLE_UNAVAILABLE is no decision at all. Required so a receipt can never stay silent about the strength of its own oracle evidence."
+    },
     "blast_radius": { "type": "object" },
     "request_shape_differential": { "type": "object" },
     "response_consumer_check": { "type": "object" },

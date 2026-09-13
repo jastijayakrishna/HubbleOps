@@ -8,9 +8,11 @@ from hubbleops.packs._protocol import (
     CaptureHooks,
     ChangeCompiler,
     ContractOracle,
+    Falsifier,
     ProviderPack,
     RuleSet,
     TelemetryAdapter,
+    Transform,
     WireSignature,
 )
 
@@ -21,13 +23,24 @@ def test_full_provider_contract(name: str, tmp_path: Path) -> None:
     assert isinstance(pack.implementation, ProviderPack)
     assert isinstance(pack.changes, ChangeCompiler)
     assert isinstance(pack.contract, ContractOracle)
+    assert len(pack.contract.context_hash()) == 64
     assert isinstance(pack.telemetry, TelemetryAdapter)
     assert isinstance(pack.wire_signature, WireSignature)
     assert isinstance(pack.rules("python"), RuleSet)
     assert isinstance(pack.capture_hooks("python"), CaptureHooks)
     assert pack.rules("unknown-language").paths == ()
     assert pack.capture_hooks("unknown-language").paths == ()
-    assert pack.repair_transforms() == pack.repair_tools() == pack.falsifiers() == []
+    assert pack.repair_tools() == [], "ToolSpec stays deferred until a PROVIDER_TOOL class ships"
+    repairs = pack.repair_transforms()
+    assert repairs, "a pack with no transform leaves every DETERMINISTIC obligation undischarged"
+    assert all(isinstance(item, Transform) for item in repairs)
+    assert len({item.name for item in repairs}) == len(repairs)
+    assert all(item.failure_class for item in repairs)
+    falsifiers = pack.falsifiers()
+    assert falsifiers, "a pack with no falsifier makes falsifiers_pass vacuous"
+    assert all(isinstance(item, Falsifier) for item in falsifiers)
+    assert len({item.name for item in falsifiers}) == len(falsifiers)
+    assert all(item.failure_class for item in falsifiers)
     versions = pack.versions()
     assert len(versions) >= 2
     for version in versions:

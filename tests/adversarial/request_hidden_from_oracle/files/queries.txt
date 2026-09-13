@@ -1,0 +1,1 @@
+mockprov_query = resource=campaigns fields=campaigns.id,campaigns.name

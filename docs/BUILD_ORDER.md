@@ -10,11 +10,11 @@ followed by a [real-repo loop](../prompts/cross-cutting/real-repo-loop.md).
 | 2 | [Google Ads Provider Pack + Change Pack version lattice](../prompts/phases/02-google-ads-pack-and-change-pack.md) | `packs/google_ads`, offline Change Pack (per-version catalogs + computed diffs), `hops pack verify` | §3, §5, §7 | `v0.2` | COMPLETE |
 | 3 | [Wrapper Engine](../prompts/phases/03-wrapper-engine.md) | `observe/structure.py`, ast-grep rules, k-hop walk, query skeletons | §6 + Wrapper | `v0.3` | COMPLETE |
 | 4 | [Dynamic capture + sandbox + sentinel + telemetry](../prompts/phases/04-dynamic-capture-and-sentinel.md) | `hops capture`, `sandbox/`, `hubbleops-sentinel`, `hops promote` | §6 D/E, §8, Memory | `v0.4` | COMPLETE |
-| 5 | [Independent Verification Authority](../prompts/phases/05-verification-authority.md) | `hops verify`, verdict function, Receipt, adversarial suite | §9 + Verdict rule | `v0.5` | IN PROGRESS |
-| 6 | [Obligation Engine + Repair Worker](../prompts/phases/06-obligations-and-repair.md) | `hops migrate`, deterministic transforms, bounded agent, one retry | §7–§8 | `v0.6` | NOT STARTED |
-| 7 | [Proof Pack, PR, Backslide Guard, `.hubbleops` memory](../prompts/phases/07-proof-pack-and-pr.md) | PR body, status check, guard workflow, `hops decide` | §16–§19 | `v0.7` | NOT STARTED |
-| 8 | [Incremental system](../prompts/phases/08-incremental-system.md) | fact cache, bindings, reverse index, `hops impact` | Memory | `v0.8` | NOT STARTED |
-| 9 | [Mock pack conformance](../prompts/phases/09-mock-pack-conformance.md) | full pipeline on `packs/_mock` with zero generic-layer changes | §3 | `v0.9` | NOT STARTED |
+| 5 | [Independent Verification Authority](../prompts/phases/05-verification-authority.md) | `hops verify`, verdict function, Receipt, adversarial suite | §9 + Verdict rule | `v0.5` | IMPLEMENTED — GATE PENDING |
+| 6 | [Obligation Engine + deterministic repair](../prompts/phases/06-obligations-and-repair.md) | `hops migrate`, deterministic transforms — **no repair agent** (`dev/plan.md` Part Two) | §7–§8 | `v0.6` | IMPLEMENTED — GATE PENDING |
+| 7 | [Proof Pack, PR, Backslide Guard, `.hubbleops` memory](../prompts/phases/07-proof-pack-and-pr.md) | PR body, guard workflow, `hops decide`, `hops impact` — **Action, not a hosted App** | §16–§19 | `v0.7` | IMPLEMENTED — GATE PENDING |
+| 8 | ~~Incremental system~~ | deferred — see *Deliberately not built* | Memory | — | DEFERRED |
+| 9 | ~~Mock pack conformance~~ | deferred — see *Deliberately not built* | §3 | — | DEFERRED |
 | 10 | [Pilot hardening](../prompts/phases/10-pilot-hardening.md) | real customer repo → Exposure Map, Proof Pack, PR, guard | — | `v1.0` | NOT STARTED |
 
 ## Dependency notes
@@ -34,3 +34,16 @@ followed by a [real-repo loop](../prompts/cross-cutting/real-repo-loop.md).
 - A second real provider pack. `packs/_mock` is the abstraction test. A real second provider is
   built only when a paying reason exists.
 - Any GraphQL-specific code, `packs/shopify/`, UI, multi-repo, Postgres, multi-tenant service.
+- **The repair agent** (`repair/agent.py`, the sandboxed loop, `pack.repair_tools()`, the retry).
+  The composed v22→v25 diff is ~1,577 ADDED, 6 CHANGED, 174 REMOVED, so deterministic transforms
+  carry the bulk; the residue is `HUMAN`, which the frozen `obligation.json` already permits.
+  *Trigger to build:* the first pilot where `HUMAN` obligations exceed 20% of mapped hunks.
+- **The hosted GitHub App.** A committed Action running `hops verify` in the customer's own runner
+  satisfies every §17 clause, including `merge_group`, and removes an enterprise security review at
+  pilot stage. *Trigger to build:* a customer needing org-wide rollout across repositories they will
+  not commit a workflow to, or a status check that must outlive the customer's own runner.
+- **Phase 8's incremental machinery** (fact cache, bindings, reverse index, `--incremental`).
+  `hops impact` ships as a report over a full rescan. *Trigger to build:* a repository where a clean
+  rescan is too slow to run per PR. No cache lands before the incremental-equals-clean proof.
+- **Phase 9's conformance run.** `test_no_provider_leak` and `test_imports` defend the boundary on
+  every run; Phase 9 proves it. *Trigger to build:* the second real provider pack.

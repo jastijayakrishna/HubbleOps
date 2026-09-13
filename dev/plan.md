@@ -1,483 +1,1039 @@
-# Phase 4 plan — Dynamic capture, isolated execution, telemetry, and sentinel
+# Plan — closing the migrate → verify → prepare-pr chain
 
-## Scope and maturity
+## The outcome under construction
 
-Classification: **Build**, Phase 4, targeting local tag `v0.4`. Phase 3 is merged on `main`, tagged
-`v0.3`, and has a literal post-loop `GATE: PASS`. Ubuntu WSL now has Podman 4.9.3 and the selected
-engine has been measured as Linux, local, rootless, uid/gid-remapped, seccomp-enabled, and able to
-run a capability-free non-root container with a read-only root and no network. The host's Docker
-Desktop engine is rootful and is therefore not an eligible Phase 4 runner.
+One obligations file written by `hops migrate` is accepted by `hops verify`, reconciled
+obligation by obligation, and rendered by `hops prepare-pr`, with no hand-editing between
+the verbs. Today no such run exists: `migrate` is correct on its own and every joint after
+it is broken.
 
-This phase stops after isolated test-time capture, telemetry reconciliation, the standalone
-sentinel, promotion, a fresh gate, and the Phase 4 real-repo loop. It does not implement verification,
-repair, obligations, receipts, deployment, production credentials, or P-009 producer attestation.
-AI triage remains default-off and disconnected.
+## Ground truth measured this session
 
-## Outcome
+All of the following is this tree, `phase-06-repository-intelligence` at `66e5b75` plus the
+uncommitted working set, through the real library entry points.
 
-A successful implementation lets a user run:
+**The chain, end to end, on a git copy of `tests/fixtures/phase5/base` with `_mock`.**
+`hops migrate` → commit → `hops verify` stops at the first joint, and stopping each joint in
+turn exposes the next:
 
-```text
-hops capture <repo> --pack <name> --cmd "<test command>"
+1. `VerificationInvalid: the base tree detects nothing; pass --from …` — on `_mock` as well as
+   on Google Ads, so this is not a provider-specific detection gap.
+2. With `--from v1 --to v2`: `VerificationInvalid: obligation input is not bound to the base
+   ProofScope` — migrate scope `3717…`, verify base scope `fc1e…`.
+3. With the obligation records stamped to the base-worktree identity (probe only — no code
+   does this, and none will): `VERDICT FAILED`, with five distinct causes:
+
+```
+  migration_audit            FAIL   removed subject still present: campaigns.legacy at reporting.py:3 and :12
+                                    13 / 13 obligations UNRECONCILABLE
+  contract_oracle            PASS
+  diff_containment           FAIL   unexplained hunk client.py@5,1+5,1
+  frozen_baseline_tests      PASS   5 passed
+  request_shape_differential PASS
+  response_consumer_check    FAIL   response handling still reads campaigns.legacy at reporting.py:12
+  falsifiers                 FAIL   removed_field_in_request: a request still names a removed subject
+  unknown_conservation       PASS
 ```
 
-and receive an evidence-backed ledger from the repository's own tests without exposing host
-credentials or granting unrestricted network access. Proxy mode is the default and hook mode is an
-explicit alternative. Both produce the same versioned event format. Provider telemetry and
-standalone sentinel output reconcile to candidates without silently proving absence. A confirmed
-dynamic or sentinel wrapper can be promoted into a revocable repository-local ast-grep rule that
-the next static scan consumes.
+**Closure identity.** A detached worktree's `.git` is a *file*; the closure filters `.git`
+only out of `dirnames`, never out of `filenames`:
 
-## Why this matters
-
-Phase 3 can prove many wrapper paths statically but correctly preserves runtime configuration,
-opaque call paths, and query holes as UNKNOWN. Phase 4 adds independent execution, wire, and
-production-observation channels. The value is reduced uncertainty with provenance, not a promise
-that one passing test run observed all production behavior.
-
-The highest-risk assumption is that customer tests can run in an isolated container with either a
-pack hook or an egress proxy in their path. The cheapest credible proof is the existing DI wrapper
-fixture executed in both modes, with equivalent provider tuple identity and a recorded hook stack,
-plus direct adversarial probes for network bypass, environment leakage, timeout, mounts, and limits.
-
-## Success measures
-
-- The DI fixture yields the same `(service, method, version)` candidate identity in hook and proxy
-  modes; hook evidence carries a complete repository stack and proxy evidence carries the matched
-  request target.
-- A host-only sentinel environment variable is absent inside the workload container.
-- Direct application-container egress fails; proxy egress rejects a destination outside the
-  allowlist; the empty allowlist permits no forwarding.
-- Workload and proxy containers run as non-root numeric uids with all Linux capabilities dropped,
-  `no-new-privileges`, read-only root filesystems, and bounded CPU time, address space, processes,
-  open files, output, and wall time. Mandatory in-container POSIX limits remain active when a
-  rootless host cannot delegate cgroup controllers; ignored runtime-limit warnings are recorded and
-  cannot be presented as enforcement.
-- Every subprocess invocation, duration, exit code, stdout, and stderr is recorded under the run's
-  ignored artifact directory without recording inherited host environment values.
-- Zero dynamic events with static call sites yields one or more `UNKNOWN_DYNAMIC` candidates with a
-  precise closing instruction. It never yields evidence of no usage.
-- A deliberately unmatched telemetry tuple yields `TELEMETRY_UNEXPLAINED`; a tuple with at least
-  one explained exact mapping counts once in deterministic `Production services accounted for N/M`
-  output, while multiple source-site mappings retain explicit association ambiguity.
-- The sentinel wheel installs in an isolated environment and its hook and proxy commands emit events
-  validated against byte-identical copies of the shared schema without importing `hubbleops.*`.
-- Promotion is idempotent and revocable, records run/evidence/source provenance, and reduces the
-  confirmed fixture wrapper to a direct promoted sink on the next scan.
-- Full tests, property tests, Ruff, formatting, strict Pyright, import/provider-leak checks, package
-  build/install checks, rootless Podman integration probes, deterministic artifact checks, and diff checks
-  pass. The post-loop fresh auditor returns literal `GATE: PASS`.
-
-## Relevant contracts and existing system
-
-- `CLAUDE.md` Laws L1, L3, L4, L5, L7, L9, and L10 remain controlling.
-- Frozen `Evidence`, `Candidate`, `ProofScope`, and `Observer` schemas/interfaces remain unchanged.
-- `ProviderPack.capture_hooks(language)`, `wire_signature`, and `telemetry` are injected by `app/`;
-  generic sandbox and observer modules never import or name a pack.
-- `request_text` and `production_version` use the frozen per-claim precedence in §5.
-- Phase 3 static observations and wrapper chains are rebuilt under the capture ProofScope rather
-  than copied across a scope boundary.
-- Capture and repair share `sandbox/`; Phase 5 uses a separate `sandbox/verifier_image.py` contract.
-- `.hubbleops/surface.yml` is the frozen repository-local promotion location. Capture artifacts,
-  logs, worktrees, images, SQLite files, and events remain uncommitted.
-- P-006 requires the language-independent wire channel. P-008 makes the versioned request target
-  authoritative over client metadata. P-009 stays open and operational AI remains unreachable.
-
-## Deliverable boundaries
-
-### Sandbox
-
-Add `hubbleops/sandbox/{runner,image,limits,network,mounts,capture,verifier_image}.py` with small value
-objects that validate before constructing any process invocation. The application workload runs in
-a detached git worktree at the captured SHA. Temporary paths are resolved and checked beneath the
-run artifact root before cleanup.
-
-Git worktree creation has one narrow, unavoidable host write outside those paths: Git owns
-administrative metadata under the target repository's resolved git-common-dir `/worktrees/`.
-Before invoking Git, the runner resolves the repository with `git rev-parse`, requires the metadata
-target to be beneath that exact git-common-dir, records the before/after entry, and permits only
-`git worktree add --detach` and `git worktree remove` to mutate it. It never edits source files in
-the prospect checkout or any other `.git` path.
-
-The runner refuses every engine unless its machine-readable security report says `rootless=true`.
-The workload container is non-root, capability-free, no-new-privileges, read-only at its root,
-limited, and attached only to a per-run internal network. Mandatory `RLIMIT_CPU`, `RLIMIT_AS`,
-`RLIMIT_NPROC`, `RLIMIT_NOFILE`, and `RLIMIT_FSIZE` enforcement complements runtime cgroup flags;
-the parent enforces wall time and bounded stdout/stderr. A separate, equally hardened capture-proxy
-container may join that internal network and an external bridge. The workload therefore cannot
-bypass the proxy.
-
-The proxy is the official mitmproxy 12.2.3 image pinned as
-`docker.io/mitmproxy/mitmproxy@sha256:00b77b5d8804c8ad18cb6caefbf9d5849e895e8986c5ce011f4ae30f4385962f`,
-invoked through a fixed container-only Python entrypoint that applies and attests the mandatory
-rlimits before replacing itself with `mitmdump`, as uid/gid 1000 with the same capability,
-filesystem, process, and output bounds as the workload. A generic mounted add-on owns policy and emits neutral flow
-records; provider parsing remains injected in `app/`.
-
-The proxy allowlist consists of exact normalized `(scheme, host, port)` entries. An empty allowlist
-is valid deny-all configuration and permits zero forwarded destinations. The proxy rejects IP
-literals unless explicitly listed, credentials in authorities, loopback, unspecified,
-link-local, multicast, and private destinations, post-resolution forbidden addresses, DNS changes
-between policy and connection, disallowed redirect targets, oversized or invalid headers, and
-oversized or opaque bodies. IPv4 and IPv6 receive the same policy. Logs redact authorization,
-cookies, API keys, and configured sensitive fields. Request/body/event limits are hard bounds.
-Plain HTTP is decoded. For HTTPS/gRPC, the proxy generates a per-execution disposable CA, exposes
-only its public certificate to the workload via a read-only mount and generic runtime trust
-variables, decrypts the request in the separately constrained proxy, and records the versioned
-target for the injected wire signature. The private key is confined to the proxy's validated
-temporary directory and destroyed after artifact finalization; its public-certificate hash and
-proxy configuration enter ProofScope. Certificate pinning, unsupported trust stores, failed
-handshakes, or an application ignoring proxy settings yields `TLS_INTERCEPTION_FAILED` or
-`PROXY_BYPASS_BLOCKED`, never absence. The DI equivalence test uses a TLS/gRPC-shaped target on a
-separate fixture service reachable only from the proxy's egress network, proving the normal
-language-independent TLS path without provider credentials or production traffic.
-
-The integration runner creates one test-only exception for that service: its generated container
-identity, network id, exact hostname, port, and resolved address are bound into the execution
-manifest, and the proxy accepts that private address only when all five values match the runner's
-per-run fixture record. The public CLI cannot declare this exception. It is absent from customer
-capture, expires with the run network, and does not relax unconditional denial of undeclared
-private, loopback, link-local, host, or user-supplied destinations.
-
-The capture image is reproducibly described. ProofScope binds hashes of the exact dynamic schema,
-generic loader assets, selected pack hook assets, pack wire implementation plus declarative
-conformance corpus, normalized allowlist, proxy implementation and resolved image digest, workload
-image digest, runner/runtime identity, command/working directory, limits, mounts, capture mode, and
-the immutable execution manifest. `verifier_image.py` defines a separately hashed immutable
-configuration and is never accepted as a runner mode.
-
-### Shared event contract and dynamic observer
-
-Add `hubbleops/observe/dynamic/schema.json`, schema revision `1`, and generic
-validation/normalization, loaders, proxy-event parsing, and runner integration. Event objects use
-the architecture fields `{version, service, method, request_text, request_type, stack, ts}` plus the
-Phase 4 prompt's optional `mode: hook|proxy`, with `additionalProperties: false`; observer
-provenance lives in Evidence and the execution manifest. Version/service/method/type are non-empty bounded
-strings, request text is bounded or null, and timestamps are RFC 3339 UTC. A stack retains every
-captured repository, dependency, library, and runtime frame in order: repository paths are
-slash-normalized and relative, while container-only external paths are normalized beneath
-`<dependency>` or `<runtime>` so host paths cannot leak. Frames carry kind, path, positive line when
-known, and function. The schema imposes a hard frame bound; exceeding it appends an explicit
-truncation frame with the omitted count and emits `STACK_TRUNCATED` UNKNOWN, so a limited trace is
-never called full. Canonical
-ordering and JSONL encoding are deterministic for a fixed event set. Oversize, non-canonical, or
-schema-invalid input is retained raw only as a bounded artifact and yields a named UNKNOWN.
-
-Hook loaders use Python `sitecustomize`, PHP `auto_prepend_file`, and Node `--require` to load only
-the paths returned by the selected pack. The loaders contain no provider knowledge. Proxy records
-carry request path, normalized headers, request body when bounded and textual, and an explicit
-truncation/opaque reason. `app/` applies the injected `wire_signature` exactly once to turn raw wire
-records into typed events or named UNKNOWN evidence.
-
-Dynamic event conversion emits:
-
-- `production_version` evidence keyed by service, method, and version for hook/proxy equivalence;
-- same-identity `call_version` and `request_text` evidence when a repository stack location matches
-  a static candidate, allowing L3-compliant closure through newly attached evidence;
-- an AFFECTED candidate with reason `OBSERVED_NOT_STATIC` when execution proves a call absent from
-  the static candidate set;
-- `UNKNOWN_DYNAMIC` when static call sites exist but the test run emits no events;
-- named UNKNOWN evidence for malformed, truncated, opaque, or unmatched proxy records.
-
-Each invocation first writes append-only partial JSONL and bounded logs to a fresh temporary attempt
-directory. On success, non-zero exit, timeout, signal, malformed output, or observer loss, the parent
-flushes those partial artifacts and finalizes an immutable execution manifest containing their
-hashes and the exact exit/failure state. The manifest hash enters `build_config_hash` before ledger
-materialization. Its resulting run directory is content-addressed and creation is no-clobber: two
-executions can never overwrite or silently union event sets. Fixed manifest bytes produce the same
-run id and artifact bytes; distinct outputs, timestamps, failure states, or event sets produce
-distinct run ids.
-
-No event, hook output, or proxy output is trusted until schema validation, source-path confinement,
-source-hash verification, ProofScope rebinding, and deterministic deduplication succeed. Valid
-partial events survive a failed or timed-out workload and remain paired with a named execution
-UNKNOWN; failure does not discard observations or imply absence.
-
-### Provider capture hooks
-
-Add Google Ads capture assets under `hubbleops/packs/google_ads/capture/{python,php,node}/` and return
-them from `capture_hooks(language)`. They may name the provider because they are pack-owned. The
-Python hook supplies the gate's executable DI evidence; PHP and Node loaders/hooks receive smoke and
-failure tests so this is not a Python-only capture design. Add a minimal `_mock` hook so pack
-injection remains testable without generic-layer changes.
-
-Provider hook assets do not import the main `hubbleops` package inside the workload. They emit the
-shared event shape to the path supplied by the generic loader and include a bounded full stack.
-Malformed hook output fails closed and remains an artifact. A pack-owned declarative wire
-conformance corpus covers positive, negative, versioned, malformed, redirect, authority-only, and
-bounded-body cases; the independent sentinel vendors the corpus bytes, and the root suite requires
-byte identity plus identical normalized outputs across pack and sentinel adapters.
-
-### Telemetry reconciliation and Exposure Map
-
-Add generic `hubbleops/observe/telemetry.py`. It accepts an injected adapter result and an existing
-ledger, produces telemetry Evidence, and maps every unique `(service, method, version)` tuple to at
-least one explained candidate or a `TELEMETRY_UNEXPLAINED` UNKNOWN. Adapter issues also become named
-UNKNOWNs rather than disappearing.
-
-`hops capture <repo> --pack <name> --telemetry-export <file>` and
-`--sentinel-events <file> --sentinel-manifest <file>` are explicit application-layer ingestion
-paths. Before parsing either,
-the application finalizes a no-clobber production-input manifest containing the exact input-byte
-hash, input kind, import mode, schema hash, selected telemetry/wire adapter bytes and identity,
-mandatory sentinel package version, conformance-corpus hash, repository/tree/dependency hashes,
-and parser limits. The manifest hash enters `build_config_hash`; its run and raw bounded artifact
-are content-addressed before Evidence materialization. Separate imports never overwrite or union
-under one provenance claim. Malformed, foreign-schema, or adapter-mismatched input yields a scoped
-UNKNOWN and retained artifact rather than partial trust. A sentinel import requires every event's
-`mode` to equal the manifest mode; the CLI never accepts a caller-supplied mode override.
-
-Each pack ships a provider-owned `capture/sentinel_contract.json` mapping supported sentinel
-package versions and modes to the expected adapter-source, schema, and conformance-corpus hashes;
-its exact bytes join `provider_contract_hash`. Ingestion recomputes the event-file hash, validates
-each event against the current dynamic schema, hashes the current schema/corpus, and compares every
-sidecar field against that pack-owned expected record. It rejects the entire import before Evidence
-materialization if the version is unsupported, any hash differs, modes disagree, fields are absent,
-or the file exceeds its declared bound. This validates integrity/compatibility, not producer
-identity or authenticity, and sentinel evidence remains non-closing on its own.
-
-`production_version` candidate identity includes service, method, and version. Resolver behavior is
-observer-specific: unmatched telemetry remains UNKNOWN; dynamic or sentinel execution can be
-AFFECTED with `OBSERVED_NOT_STATIC`; matched evidence records the candidate ids it reconciles.
-Exposure derives its production denominator from unique telemetry/sentinel tuples and its numerator
-from tuples with at least one explained candidate mapping, matching frozen §6.6. Exact matching
-means all normalized service, method, and version fields are equal. Zero matches is
-`TELEMETRY_UNEXPLAINED` and is not accounted. Multiple legitimate source-site mappings increment the
-tuple numerator once but emit `TELEMETRY_SITE_AMBIGUOUS` association evidence; they never attribute
-the production call to one site or close any per-site UNKNOWN. With no production observer it
-preserves the existing text exactly.
-
-### Standalone sentinel
-
-Add `packages/hubbleops-sentinel/` as a separate distribution with its own source tree, version,
-tests, wheel metadata, and CLI. It uses only the Python standard library. It never imports or loads
-`hubbleops.*`, never writes a verdict, and never shares runtime code with test capture.
-
-The sentinel has two commands over the same vendored event schema and conformance corpus:
-
-- hook mode installs its own Google Ads logging/interceptor adapter and writes observed events;
-- proxy mode, documented and presented as the recommended default, reads bounded egress/client
-  request logs and applies its independent wire adapter without any language-specific loader.
-
-Both modes write atomic local JSONL plus a mandatory atomic `<output>.manifest.json` sidecar. The
-sidecar contains the sentinel package version, mode, exact adapter-source hash, schema hash,
-conformance-corpus hash, event-file hash, and output limits. It contains no wall-clock generation
-field: fixed input events, including their observational timestamps, produce byte-identical JSONL
-and sidecar bytes. Optional URL export
-is explicit, bounded by a timeout, and sends only validated event bytes. Export failure leaves the local artifact intact and exits non-zero. The
-root suite asserts that the sentinel schema bytes match the dynamic schema and that no source,
-metadata, test, or built wheel imports `hubbleops`. It also executes the corpus against both
-independent wire adapters and rejects semantic drift; the sentinel never imports pack code at
-runtime.
-
-Sentinel ingestion emits only `production_version` Evidence and promotion-eligible observed stack
-provenance; it is mechanically forbidden from emitting or attaching `call_version` or
-`request_text` Evidence at a static candidate identity. The resolver and store integration retain a
-pre-existing static UNKNOWN when the only new observation is sentinel. Tests inject forged
-sentinel-labelled call-site evidence and require rejection. A later scan may independently use a
-source-valid promoted rule, but that structure observation—not sentinel alone—performs any closure.
-
-### Promotion
-
-Add `hops promote` with explicit repository, run, candidate, and state inputs. Only a candidate with
-dynamic or sentinel observed stack evidence can be promoted. Promotion writes a schema-versioned,
-sorted `.hubbleops/surface.yml` entry containing an active/revoked state, language, symbol, a valid
-ast-grep rule, run id, evidence ids, and source hash.
-
-Creating or reactivating an entry requires current same-scope OBSERVED stack evidence and matching
-source bytes. Revocation addresses an existing provenance-bound entry by its stable identity and is
-always allowed after source drift or deletion; it changes only that entry to `revoked` and cannot
-create, reactivate, or rewrite its rule. On every scan, `app/` re-hashes the active entry's recorded
-source path before materializing its neutral rule. A mismatch or missing source never applies the
-rule and aborts with the named `PROMOTION_SOURCE_DRIFT` fail-closed outcome; the user can still run
-revocation against the stable entry identity afterward. `hops scan` binds validated active promotion
-bytes into `rules_hash` and passes materialized neutral rules to the structure observer. Revocation removes the rule from the
-active set without deleting provenance. Duplicate promotion is byte-idempotent. Invalid YAML,
-foreign-run evidence, source drift during creation/reactivation, unsupported language, or a missing
-stack fails closed.
-
-## Definition of done
-
-1. All six sandbox modules and separate verifier image module exist and enforce the isolation,
-   worktree, network, limit, mount, timeout, and logging facts above with unit and real-runtime tests.
-2. The versioned dynamic schema validates both modes; Python/PHP/Node generic loaders inject only
-   pack assets; proxy is the CLI default and hook is opt-in.
-3. `hops capture` persists a capture-scoped ledger and no-clobber content-addressed execution
-   manifests/events/log artifacts, including partial evidence from failures and timeouts.
-   Hook/proxy DI runs have equivalent provider candidates; hook has the stack; zero events with
-   static sites is UNKNOWN; observed-only calls are AFFECTED with `OBSERVED_NOT_STATIC`.
-4. Generic telemetry/sentinel import uses no-clobber content-addressed production-input manifests;
-   reconciliation accounts for every tuple or emits `TELEMETRY_UNEXPLAINED`, and Exposure renders
-   deterministic `N/M` production coverage.
-5. The independently packaged sentinel installs and passes local-output plus mandatory producer
-   manifest, URL-export failure, hook, proxy, schema, no-verdict, no-UNKNOWN-alone, and no-import tests.
-6. `hops promote` is provenance-bound, idempotent, revocable, and consumed by the next scan as an
-   active ast-grep rule.
-7. Capture uses no production credentials, no host environment leakage, no unrestricted workload
-   egress, no host writes outside validated worktree/artifact/repository-promotion targets and the
-   exact Git-owned `.git/worktrees` metadata needed for detached worktree lifecycle, and no silent
-   fallback.
-8. Existing Phase 1–3 behavior and byte determinism remain green; no generic layer imports a pack or
-   contains a provider name.
-9. Evidence commands in the Phase 4 prompt are executed, a fresh audit returns literal
-   `GATE: PASS`, the real-repo loop runs `scan`, `exposure`, and `capture` on two pinned repositories,
-   every UNKNOWN receives one allowed disposition, every NEW_PATTERN becomes an anonymized fixture,
-   and a final fresh gate passes after any loop change.
-
-## Non-negotiable invariants
-
-- L1/L3/L4/L5/L7/L9/L10 and all frozen schemas/interfaces remain mechanically enforced.
-- Test capture and production sentinel share schema bytes, not implementation code or imports.
-- Sentinel input without a matching mandatory producer manifest stays UNKNOWN; sentinel evidence
-  alone never attaches to or closes a static call-site UNKNOWN.
-- Capture never inherits or discovers production credentials. Explicit production-looking secret
-  variable names are rejected even if requested.
-- Application workload egress is impossible except through the policy proxy; default is deny-all.
-- Proxy is the default, not a lower-confidence fallback. Hook and proxy evidence differ only where
-  the channel genuinely observes different facts, such as stacks.
-- Zero events, malformed events, opaque TLS, adapter issues, runtime loss, timeout, and source drift
-  become named UNKNOWN/failure outcomes, never absence or a smaller ledger.
-- Dynamic, telemetry, and sentinel evidence bind to the current tree, dependencies, pack contract, exact
-  schema/loaders/hooks/wire corpus/proxy bytes, normalized policy, runtime identity, command, images,
-  execution manifest, and capture configuration. No evidence crosses a ProofScope.
-- Promotion preserves provenance and revocation history. Memory reduces future work and never proves
-  a verdict.
-- Verifier isolation is a separate image/config and cannot be selected as a runner flag.
-- No command pushes, publishes, deploys, uses real provider credentials, or writes to prospect
-  repositories during the real-repo loop.
-
-## Authority
-
-Authorized autonomously: inspect the repository and local runtime; use the measured rootless Podman
-engine in Ubuntu WSL; create the Phase 4 branch; implement scoped modules, package assets, schemas, tests,
-fixtures, and required completion records; build local images and wheels; pull a pinned public base
-image when required; create/remove validated temporary worktrees, containers, networks, and volumes;
-run non-destructive tests and the public-repository loop; make logical local commits; merge to
-`main`; and create local tag `v0.4` only after the literal final gate pass.
-
-Requires human approval: changing a frozen schema/interface or P-009; accepting production
-credentials; weakening isolation; persistent writes outside the target repository's explicit
-`.hubbleops/surface.yml` promotion or the selected state directory; adding a sentinel runtime
-dependency; incurring material paid cost; pushing, publishing, deploying, or releasing.
-
-## Explicitly outside scope
-
-- Verification, Receipt/verdict generation, repair, obligations, change application, or agent access.
-- Production deployment or enrollment of the sentinel and live provider credentials.
-- Field-level contract validation and Phase 5 request-shape differential checks.
-- Transparent capture of protocols a selected proxy cannot decode; these remain explicit UNKNOWNs.
-- Java/C# capture hooks, Kubernetes, orchestration, cloud control planes, dashboards, databases, or
-  generic plugin frameworks.
-- Enabling AI triage or implementing producer attestation while P-009 is open.
-- Phase 7 decision/retired/binding registries beyond the single Phase 4 promotion file required now.
-
-## Risks, assumptions, and alternatives
-
-1. **Container limit portability.** The measured WSL rootless Podman host is on hybrid cgroup v1 and
-   reports that cgroup resource flags are ignored. The runner therefore requires POSIX rlimits and
-   parent wall/output bounds, records the runtime warning, and proves each bound adversarially. A
-   runtime with neither delegated cgroups nor working rlimits is rejected.
-2. **TLS/protocol opacity.** A proxy cannot claim a provider tuple from an undecodable request.
-   The selected pinned mitmproxy container performs controlled interception using a disposable CA
-   trusted only by the workload. Failed trust injection, pinning, or missing path visibility remains
-   a named UNKNOWN. Never infer version from client metadata or CONNECT authority.
-3. **Hook brittleness.** Library internals change. Keep hooks pack-owned, smoke all three loaders,
-   and let proxy remain the default cross-language path.
-4. **Container escape or credential exposure.** Validate mounts and target paths, pass an allowlisted
-   environment from scratch, use an internal workload network, drop privileges/capabilities, and
-   test hostile commands.
-5. **False telemetry reconciliation.** Match exact normalized tuples and retain unmatched records
-   as UNKNOWN. A tuple with multiple legitimate explained source mappings counts once as accounted
-   but keeps site association ambiguous and never closes per-site unknowns. Do not fuzzy-match
-   provider operations.
-6. **Sentinel dependency coupling.** Keep it stdlib-only and audit wheel contents/import AST. A
-   shared library was rejected because it violates the independent-products boundary. Byte-identical
-   schema/corpus assets and cross-product conformance tests provide mechanical drift detection.
-7. **Promotion overreach.** Promote one observed symbol and exact source hash, keep it revocable,
-   and prove source drift invalidates it. Auto-promoting inferred/AI evidence was rejected.
-8. **Doing nothing.** Leaves runtime-only calls and production usage permanently UNKNOWN and fails
-   the ordered Phase 4 contract.
-
-## Verification
-
-Required commands and objective evidence:
-
-```text
-wsl.exe -d Ubuntu -- podman info --format json
-wsl.exe -d Ubuntu -- sh -ceu 'test "$(podman info --format "{{.Host.Security.Rootless}}")" = true; echo rootless=true'
-wsl.exe -d Ubuntu -- podman run --rm --user 65532:65532 --cap-drop=all --security-opt=no-new-privileges --network=none --read-only --tmpfs /tmp:rw,noexec,nosuid,nodev,size=16m docker.io/library/alpine@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce sh -ceu "ulimit -t 2; ulimit -v 131072; ulimit -u 64; ulimit -n 64; ulimit -f 128; id; test ! -w /"
-wsl.exe -d Ubuntu -- podman run --rm --user 1000:1000 --cap-drop=all --security-opt=no-new-privileges --network=none --read-only --tmpfs /tmp:rw,noexec,nosuid,nodev,size=16m --tmpfs /home/mitmproxy/.mitmproxy:rw,noexec,nosuid,nodev,size=16m --entrypoint /usr/local/bin/mitmdump docker.io/mitmproxy/mitmproxy@sha256:00b77b5d8804c8ad18cb6caefbf9d5849e895e8986c5ce011f4ae30f4385962f --version
-uv run pytest -q
-uv run pytest -q tests/unit/test_phase4_sandbox.py tests/unit/test_phase4_dynamic.py tests/unit/test_google_ads_telemetry.py
-uv run pytest -q tests/integration/test_phase4_capture.py tests/integration/test_sandbox_runtime.py
-uv run pytest -q tests/unit/test_phase4_promotion.py
-uv run pytest -q tests/property/test_phase4_properties.py
-uv run pytest -q tests/unit/test_imports.py tests/unit/test_no_provider_leak.py
-uv run ruff check .
-uv run ruff format --check .
-uv run pyright
-uv run --package hubbleops-sentinel pytest -c pyproject.toml --override-ini="testpaths=packages/hubbleops-sentinel/tests" --override-ini="pythonpath=packages/hubbleops-sentinel/src" packages/hubbleops-sentinel/tests -q
-uv build --package hubbleops-sentinel --out-dir .hubbleops/artifacts/phase4-sentinel-dist
-uv venv --seed --clear .hubbleops/artifacts/phase4-sentinel-venv
-uv pip install --python .hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe --no-deps .hubbleops/artifacts/phase4-sentinel-dist/hubbleops_sentinel-0.1.0-py3-none-any.whl
-.hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe -I -m hubbleops_sentinel hook --input tests/fixtures/phase4/inputs/sentinel_hook_app.py --output .hubbleops/artifacts/phase4-sentinel-hook.jsonl
-.hubbleops/artifacts/phase4-sentinel-venv/Scripts/python.exe -I -m hubbleops_sentinel proxy --input tests/fixtures/phase4/inputs/sentinel_proxy_input.jsonl --output .hubbleops/artifacts/phase4-sentinel-proxy.jsonl
-git diff --check
+```
+worktree .git is a file: True
+main  entries: ['a.py']
+wtree entries: ['.git', 'a.py']
+EQUAL: False
 ```
 
-Manual evidence prints the DI hook stack, the equivalent proxy candidate id, a denied direct egress
-attempt, absence of the host-secret canary, a timed-out process, an unmatched telemetry tuple,
-`Production services accounted for N/M`, and the promotion before/after hop count. Every command's
-exit code is recorded. Determinism compares event normalization, telemetry reconciliation,
-promotion YAML, command plans, and artifact bytes for identical fixed inputs.
+**Repair sites.** `_mock`'s `MockVersionLiteral.apply` rewrites `subject.text` whole-file.
+Two obligations (`client.py:1`, `client.py:14`) produced three edits (lines 1, 5, 14), one
+`APPLIED`, one `NO_TRANSFORM`, and the line-5 hunk is unexplained.
 
-After the implementation gate, run current `scan`, `exposure`, and `capture` against the two pinned
-public repositories already stored under `.hubbleops/artifacts/phase2-real-repos/`. Use
-`python -m unittest discover -v` for `mcp-google-ads` and `npm test -- --runInBand` for
-`google-ads-api`, in their pinned worktrees, with a deny-all network, an environment built only from
-fixed safe variables, and no dependency installation or credentials. A missing offline dependency
-or non-zero test result is an explicit `CAPTURE_EXECUTION_FAILED` UNKNOWN with preserved partial
-events, never a reason to enable network or invent coverage. Classify every UNKNOWN using the
-operating protocol. Any new generalized pattern goes through the fixture-writer and is entered in
-the Failure Atlas. Rerun the complete fresh gate on the post-loop tree unconditionally.
+**Consumer-check watch set.** Larger than the brief recorded, because `consumers()` watches
+renamed subjects as well as removed ones:
 
-## Release and learning
+```
+removed 236 changed 1346
+distinct leaves 997
+generic leaves watched: ['customer_id', 'end_date', 'id', 'name', 'resource_name',
+                         'start_date', 'status', 'type', 'value']
+```
 
-This phase creates local CLI/package capability only. There is no production rollout or sentinel
-deployment. Local rollback is the Phase 4 merge revert while `v0.3` remains intact. Capture artifacts
-are disposable and content-addressed; repository promotion is recoverable from git and revocable in
-place.
+`id`, `name`, `value`, `type` and `status` are watched as bare identifiers in read position
+anywhere in the tree. `response_consumer_check_pass` is therefore false for essentially any
+repository, not only a Google Ads one.
 
-The real-repo loop measures event yield, UNKNOWN_DYNAMIC rate, proxy opacity, hook failures,
-telemetry reconciliation, and promotion usefulness. A pattern graduates only when generalized and
-anonymized. Phase 5 proceeds only after the final post-loop gate passes.
+**Uncommitted.** 69 files, 4,262 insertions above `66e5b75`; `app/{decision,impact,replay}.py`,
+`proof/{guard,memory,pr_body}.py`, `tests/unit/test_phase7_delivery.py` and six other test
+paths untracked.
 
-## Architecture record
+---
 
-No frozen architecture change is planned. The chosen two-container internal-network topology is an
-implementation of the already-open proxy and sandbox design: the non-root workload has no direct
-egress, while the separately constrained proxy owns allowlisting and observation. Any need to alter
-the Evidence schema, Observer contract, verdict function, or P-009 boundary stops for a proposal.
+## The classes, and the fix for each
 
-## Working method
+Each item names the *class*. Where a fix would only repair the measured instance it is
+written as a proposal instead.
 
-Preserve unrelated work. Implement the smallest complete capability behind the existing injected
-pack contracts. Prefer immutable value objects, deterministic serialization, narrow subprocess
-boundaries, fake runtime tests for error surfaces, and a small number of real rootless Podman
-integration tests for claims mocks cannot establish. Do not weaken a check to accommodate the host.
+### C-1 — Control metadata enters the source closure when it is a file
 
-## Stop and escalate conditions
+`closure/source_closure.py` drops `.git` in the `dirnames` loop (line ~364) and never in the
+`filenames` loop (line ~382). A detached worktree, a submodule checkout, and a `git
+worktree`-managed tree all carry `.git` as a pointer file, so `tree_hash` — hashed over every
+entry — differs from the working tree's for the same commit.
 
-Stop and report the evidence if the measured rootless Podman engine cannot execute a non-root
-isolated test or the mandatory rlimits cannot be proved; a required image cannot be acquired without credentials or
-material cost; the workload cannot be prevented from bypassing an allowlist; the disposable CA or
-proxy private key cannot be confined to the validated per-run boundary; a frozen schema/interface must change;
-sentinel independence cannot be enforced; a target test requires production credentials; or a
-prospect repository would need modification.
+**Class:** the closure filters control entries by *directory-ness*, not by *identity*.
+**Fix:** filter the control entry in both loops. In `closure/`, never in `verify/` (trap 2).
+**Test:** closure of a detached worktree at SHA X is byte-identical to the closure of a clean
+working tree at SHA X — an equality, not a `.git` assertion, so the test survives the next
+control-file shape.
 
-## Open questions
+### C-2 — Scan identity is the filesystem path
 
-None. The frozen architecture chooses the two capture products, injected pack boundaries, shared
-event contract, proxy-default policy, sandbox model, telemetry behavior, and promotion location.
-Implementation choices remain open inside those hard edges. P-009 is a pending owner decision but
-does not block Phase 4 because AI triage remains operationally disconnected.
+`app/cli.py:321` `identity = run_target or str(resolved)`; `run_id = sha256({scope_hash,
+provider, verb, target})`. `verify` passes `commit:<sha>`, `migrate` passes nothing, so the
+run ids never match even once C-1 makes the scopes match.
+
+**Class:** run identity is a function of where the tree happens to sit on disk.
+**Fix:** derive it from what was scanned — `commit:<repo_sha>` when the closure bound one,
+else `tree:<tree_hash>`. `run_target` stays as an override, and verify's existing
+`commit:<sha>` becomes the same string rather than a divergent one. Nothing anywhere rewrites
+an id or a scope hash after computing it (trap 8).
+**Depends on** the dirty-tree answer (Q1): a working tree that differs from `HEAD` has a
+different `tree_hash`, so `commit:<sha>` would name a scope that is not the commit's.
+
+### C-3 — The obligation method grammar lives in two places and they disagree
+
+`verify/audit.py:18` executes `absent:`, `present:`, `version:`. `obligations/engine.py`
+emits English at lines 93, 111, 128, 144, 163, 167, 211, 236. Measured: 13 / 13
+UNRECONCILABLE, and `Audit.report()` still says `passed=True` because UNRECONCILABLE lands in
+`unresolved`, not in `reasons` — so the receipt prints `MIGRATION AUDIT PASS` beside 13
+unreconciled obligations while the verdict is capped at UNKNOWN.
+
+**Class:** one vocabulary encoded twice, with no mechanism that fails when the two disagree.
+**Fix:** one generic home that both import; constructors on the emit side, a parser and an
+executor registry on the audit side. A property test asserts *every* method the engine can
+emit is executable, so the two cannot drift again. The grammar must grow members for the
+obligations that exist and have no method today — the SDK pin and the carried UNKNOWN (Q2).
+**Also:** the audit's headline must account for its own `unresolved` set, so `PASS` can never
+sit beside unreconciled obligations. No verdict-function change; `UNKNOWN iff any input
+unresolvable` already holds, only the rendering lied.
+
+### C-4 — "Which version does this evidence claim" has three readers and three answers
+
+`app/verification.py:570` `_detected` reads `value.version` / `value.detected`.
+`obligations/engine.effective_version` reads `provider_subject`.
+`verify/audit._version_values` reads all of them plus `value.versions` and `value.target`.
+Google Ads `call_version` evidence carries the version in `provider_subject`, so `_detected`
+returns nothing and every repository is told to pass `--from`. Measured on `_mock` too.
+
+**Class:** three readers of one fact.
+**Fix:** one function in a generic layer, used by all three. Detection stays honest —
+ambiguous or empty still raises and names `--from` (Phase-5 decision, unchanged). Never
+derive the base version by guessing when detection fails (trap 4).
+
+### C-5 — The obligation names where the usage was observed, not where the edit must be made
+
+Two instances of one class:
+
+- `_mock`: the transform rewrites the whole file, so one obligation's repair silently edits
+  lines no obligation names → unexplained hunk, and the second obligation reports
+  `NO_TRANSFORM` although its site was in fact repaired.
+- Google Ads / Dub: `app/migration._locate` anchors at the candidate's own line and
+  `packs/google_ads/repairs.py` reads only that line, so an obligation at `api.ts:60` whose
+  literal lives at `constants.ts:20` gets `NO_TRANSFORM` and nothing is written.
+
+The resolved site is already in the evidence: `value.paths[]` carries `path`, `range`,
+`literal`, `terminal == "LITERAL"`. Verified on the `_mock` ledger.
+
+**Class:** an obligation carries an observation site, and the repair needs an edit site.
+**Fix:** resolve the edit site from `value.paths[]` (the LITERAL terminal whose literal
+carries the from-version), carry it on the obligation, open *that* file at *that* line in
+`transform_requests`, and make every transform edit only its declared site. `verify/radius`
+containment already maps a hunk by a `path:line` named in `current_state`, so the constants
+hunk maps to the obligation without a containment change — containment is never matched by
+path alone (trap 3). N call sites resolving to one literal produce N obligations naming one
+edit site and therefore one edit; the first applies and verify discharges all N by the
+`absent:` check at that site, because discharge is verify's judgement and never the repair
+report's. Shape of the carry: Q5.
+
+### C-6 — The consumer check watches bare leaf names
+
+`verify/behavior.consumers` adds `change.subject.rsplit(".", 1)[-1]` for every removed *and*
+renamed subject: 997 leaves on v22→v25, including `id`, `name`, `value`, `type`, `status`,
+`customer_id`, `resource_name`, `start_date`, `end_date`. `_is_read_position` only excludes a
+name immediately followed by `:`, which rejects a dict key and accepts a Python keyword
+argument, so `service.search(customer_id=…)` is a hit.
+
+**Class:** a check that matches on an unqualified name cannot tell a provider response field
+from any identifier in the language.
+**This narrows a verdict conjunct, so it is a proposal, not an edit** (approval boundary).
+The qualified-subject watch is sound and stays: `_mock` fires correctly on
+`campaigns.legacy`. The proposal concerns the bare-leaf watch only, and it must not become a
+check that watches nothing (trap 5). Design in Q3; every corruption in `tests/adversarial`,
+including the split-literal P0 and FA-019/FA-020, must still be rejected, proved by the
+revert-check table rather than by assertion.
+
+### C-7 — The frozen baseline runner is pytest, hard-wired
+
+`verify/suites.py` discovers only top-level `tests|test|spec|__tests__` directories and only
+`.py` test files, and `_argv` runs `python -m pytest`; `verify/coverage.py` is a pytest
+plugin over `sys.monitoring`. Dub's suite is vitest under `apps/web/tests`. Result:
+`NO_FROZEN_TESTS` → `frozen_baseline_tests_pass` false → FAILED regardless of the diff.
+
+**Class:** the verifier has one runner wired in, so a repository with real tests it cannot
+drive is judged as one with no tests.
+**Fix:** a runner abstraction inside `verify/` — these are ecosystem facts, not provider
+facts, so they stay out of `packs/` and out of the pack protocol. Discovery walks below the
+root and reads the repository's own declaration (`package.json` `scripts.test`, vitest/jest
+config). The repository's own runner is used and nothing is installed into the customer tree.
+A suite whose runner is absent stays `NO_FROZEN_TESTS` and the receipt names the missing
+runner — "no JS coverage" is never treated as covered (trap 6), and
+`radius.blast`'s existing treatment of uncoverable modules as `UNKNOWN_BLAST` is kept.
+Coverage source: Q4.
+
+### C-8 — A method-less static request reaches the oracle
+
+The static GAQL skeleton at `static:src/reporting.py:3` arrives with no service and no method
+and returns `UNKNOWN_PROVIDER_CONTRACT` "validation requires a GoogleAdsService method and
+request mapping", so `ORACLE_UNAVAILABLE` caps the verdict. The same fixture's `_mock`
+equivalent passes, so this is Google-Ads-specific today.
+
+**Reading: this is a discovery gap, not an oracle gap.** §9B validates *requests*. A query
+string with no service and no method is not a request; it is a fragment. The structure
+observer already resolves the skeleton and already knows the sink that consumes it, so
+binding `QUERY` to the executing `service.search` call is discovery's work. Where the walk
+cannot bind it, the correct result is a preserved UNKNOWN whose closing instruction is
+"capture the executed request", not an oracle that accepts a method-less shape. Confirm at
+Q6 before implementing; do not paper over it by accepting method-less requests.
+
+### C-9 — `migrate` and `prepare-pr` do not agree on where the obligations file lives
+
+`proof/memory.prepare` requires `<repo>/.hubbleops/obligations.json`; `hops migrate`
+defaults to `<cwd>/.hubbleops/obligations.json` (`app/cli.py:51`, `:927`). Running `hops
+migrate <repo>` from anywhere but inside `<repo>` breaks `prepare-pr`.
+
+**Class:** a state directory that follows the current working directory rather than the
+repository the verb names.
+**Fix:** for every verb that takes a repository, the default state directory resolves against
+that repository. This is a defaults change with no proof semantics attached; recorded here,
+not raised as a proposal.
+
+### C-10 — The PR body restates the receipt
+
+`proof/pr_body.render` prints verdict, authority, SHAs, ProofScope, a blast table and the
+receipt text. It has no P-017 discovery-completeness section, no obligation list, no P-013
+grouped UNKNOWNs, and never shows `EXCLUDED_WITH_EVIDENCE` adjacent contracts. Phase 7 DoD 1
+names discovery, obligations, oracle results, blast radius, falsifiers, UNKNOWNs with closing
+instructions, and ProofScope hashes.
+
+**Fix:** render the Exposure Map's discovery section and the obligation reconciliation table
+as first-class sections; the receipt block stays as the appendix it already is, not as the
+body's content (trap 10). Layout: Q9, an open middle rather than a blocker.
+
+### C-11 — A removed subject becomes an obligation only at an AFFECTED candidate
+
+Measured on phase5: `campaigns.legacy` at `reporting.py:3` is a carried UNKNOWN
+(`request_text`), and `reporting.py:12` (`row["campaigns.legacy"]`) produces no candidate at
+all. `obligations/engine._subject_drafts` runs only for `status == "AFFECTED"`, so neither
+site gets an obligation, migrate leaves both, and the audit's independent source-extinction
+scan — which reads *all* candidate source, not only AFFECTED sites — fails on both.
+
+**Class:** the engine and the audit disagree about what must change. The audit's extinction
+scan is the stricter and, under L1, the correct one.
+**Consequence:** DoD 1 (phase5 → `VERIFIED_FOR_SCOPE` through the real verbs) is not
+reachable without closing this. Q7 decides how. Emitting an obligation at an UNKNOWN
+candidate does **not** change that candidate's status, so L2 and L3 are untouched; the
+candidate stays UNKNOWN and conservation still carries it. `reporting.py:12` is exactly
+P-025's response-read class, which is OPEN.
+
+---
+
+## Order of work
+
+Tests first at every step; each step's evidence is a pasted command and its output.
+
+1. **The failing end-to-end test** (DoD 1). `tests/integration`: copy `tests/fixtures/phase5`
+   into a git repo, run `hops migrate`, commit, `hops verify --obligations <migrate's file>`,
+   `hops prepare-pr`; assert `VERIFIED_FOR_SCOPE`, every obligation `DISCHARGED`, PR materials
+   written. It fails on the current tree — the measurement above is what it will print.
+2. **C-1, C-2** — identity. Then the same commit scanned two ways is one ProofScope and one
+   run id (DoD 3).
+3. **C-4** — one version reader. `--from` becomes unnecessary on both packs, and stays
+   available.
+4. **C-3** — one grammar, both sides, plus the audit headline. Then every obligation
+   reconciles or names why it cannot.
+5. **C-5** — edit sites. New anonymized fixture (fixture-writer) for the constant-hoisted
+   literal; prove on Dub.
+6. **C-11** — subject obligations beyond AFFECTED, per Q7.
+7. **C-6** — consumer check, per the accepted proposal, with the revert-check table.
+8. **C-7** — the runner abstraction and JS coverage, per Q4.
+9. **C-8** — oracle mapping, per Q6.
+10. **C-9, C-10** — paths and body.
+11. Determinism triple, red-team, FAILURE_ATLAS rows and fixtures, commits.
+
+`python_pinned_v22` is never the end-to-end proof (trap 7): it has no test suite, so it must
+never reach `VERIFIED_FOR_SCOPE`, and a run in which it does is the bug. Its role is DoD 2 —
+the three verbs by hand reaching a verdict whose only reasons are its own.
+
+## Proposals this raises
+
+- **P-027 — the response-consumer check must bind a leaf to a response read.** Narrows a
+  verdict conjunct; approval boundary. Blocked on Q3.
+- **P-028 — the frozen baseline suite is runner-plural.** Does not narrow a conjunct (it
+  turns `NO_FROZEN_TESTS`-because-unsupported into a real result and leaves
+  `NO_FROZEN_TESTS`-because-missing alone), but it adds a runner the verifier drives, which
+  is an approval boundary on "any new dependency or runner". Blocked on Q4.
+- **P-025** is already OPEN and C-11 depends on its shape.
+
+Nothing here changes `core/schemas`, the `ProviderPack` protocol, or `verify/verdict.py`.
+If Q5 is answered "a named field on the obligation", that becomes a third proposal under
+`core/schemas` and an approval boundary of its own.
+
+---
+
+## PROGRESS — 2026-09-12
+
+Landed, each with a test that fails when the fix is reverted:
+
+| Class | State | Evidence |
+|---|---|---|
+| C-1 control metadata in the closure | done | `test_a_detached_worktree_and_a_working_tree_of_one_commit_share_a_closure` |
+| C-2 scan identity | done | `test_one_commit_scanned_two_ways_is_one_proof_scope_and_one_run` (DoD 3) |
+| C-3 one method grammar | done | `tests/unit/test_obligation_methods.py`, 13 tests (DoD 4) |
+| C-4 one version reader | done | `--from` is no longer needed on either pack |
+| C-5 edit sites | done | phase5 containment 4 hunks → 4 obligations, 0 unexplained |
+| C-6 consumer check (P-027) | done | new `aliased_leaf_response_read` fixture; 17/17 adversarial |
+| C-8 oracle sink binding | done | the pinned fixture's request now reaches a decision |
+| C-9 obligations path | done | migrate and prepare-pr share one default and one override |
+| C-11 subject obligations beyond AFFECTED | done | phase5 `MIGRATION AUDIT PASS` |
+| — engine vs audit subject semantics | done | a `CHANGED` fact with no replacement no longer demands absence |
+
+**DoD 1 met.** `tests/integration/test_chain.py` runs `hops migrate` → commit → `hops verify` →
+`hops prepare-pr` on a copy of `tests/fixtures/phase5` and asserts `VERIFIED_FOR_SCOPE` with every
+obligation `DISCHARGED`. Full evidence: `663 passed, 1 xfailed` across unit, property, adversarial
+and the chain.
+
+**DoD 2 in progress.** On `python_pinned_v22` the chain now reaches `UNKNOWN` with a clean audit
+(`21 total · 21 resolved · 0 open · 0 unexplained`), `MIGRATION AUDIT PASS`, `response-consumer
+check PASS`, and `UNKNOWN_BLAST src/reporting.py` — no reason names binding, reconciliation,
+detection or a false consumer hit. What is left is two unscoped sets, raised as **P-029**.
+
+Not started: C-7 (runner plurality, P-028), C-10 (PR body), DoD 8 (Dub), DoD 9 (determinism triple),
+DoD 10 (atlas rows and fixtures), DoD 11 (commits), DoD 12 (red team).
+
+Found and recorded, not fixed (out of this brief's scope, worth a fixture):
+a version literal in a **default parameter value** (`def __init__(self, token, version="v1")`) is a
+carrier no call-shaped regex sees, so `client.py:5` in the phase5 fixture is never observed and never
+repaired. Discovery gap in pack data, not an engine gap.
+
+## ANSWERED — 2026-09-12, repository owner (Jaya Krishna J)
+
+- **Q1 → (a) refuse a dirty tree**, naming the files.
+- **Q2 → `core/verification.py`, and every obligation reconciles.** A `PRESERVE_UNKNOWN`
+  obligation reconciles through a conservation method, not by exemption.
+- **Q3 → (b) with (c)**: gate the bare-leaf watch on provider evidence reaching the site, and
+  fix the read-position test so a keyword argument or named parameter is not a read. The
+  qualified-subject watch is unchanged. Ships as P-027.
+- **Q4 → one aggregate `SuiteCase` per runner-suite.** Ships as P-028.
+- **Q5 → (a) the edit site is named in `current_state`.** No `core/schemas` change.
+- **Q6 → discovery binds the skeleton.** The oracle never validates a method-less shape.
+- **Q7 → (a) emit a subject obligation wherever attached evidence names a removed subject**,
+  whatever the candidate's status; the candidate's status is untouched.
+- **Q8 → the layout as planned.**
+
+## The questions as asked
+
+**Q1 — `hops migrate`'s dirty-tree policy.** *(approval boundary)* Obligations are bound to
+the scope of the tree that was scanned. If migrate scans a working tree that differs from
+`HEAD`, that scope names no commit, and `hops verify --base HEAD` can never match it.
+(a) Refuse a dirty tree, naming the files; (b) scan `HEAD` in a detached worktree and write
+repairs to the working tree; (c) bind to `tree:<tree_hash>` and let verify accept a base whose
+tree hash matches. Recommend **(a)** — it is the only one where the thing proved and the thing
+committed are the same bytes, and it needs no new acceptance rule inside verify.
+
+**Q2 — where the method grammar lives, and its members.** `core/verification.py` already holds
+the neutral verification vocabulary by the Phase-5 decision, and both `obligations/` and
+`verify/` may import `core/`. Recommend it there. Members: `absent:<subject>`,
+`present:<subject>`, `version:<version>` exist; this work needs at least a dependency-pin
+method for the SDK-bump obligation and a conservation method for the `PRESERVE_UNKNOWN`
+carry, since both are emitted today and neither is executable. Confirm the home, and confirm
+that a `PRESERVE_UNKNOWN` obligation reconciles against `verify/conserve.py` rather than being
+exempt from reconciliation.
+
+**Q3 — the consumer check's new shape** *(approval boundary, P-027)*. The qualified-subject
+watch stays. For the bare leaf, which of: (a) watch a leaf only where the site is a
+response-read claim (needs P-025 decided); (b) watch a leaf only where provider evidence
+already reaches that file or that object; (c) keep the leaf watch and fix only the read-position
+test so keyword arguments and named parameters are not reads; (d) drop the leaf watch and rely
+on the qualified watch plus the falsifiers. Recommend **(b) with (c)**: (c) alone still fires
+on `row["id"]`, and (d) alone loses FA-019's consumer coverage. (a) is the right long-run
+shape and should be where this lands once P-025 is decided.
+
+**Q4 — where JS coverage comes from** *(approval boundary, P-028)*. vitest and jest report
+coverage for a run, not per test. Recommend one aggregate `SuiteCase` per runner-suite whose
+`files` is the union of covered files and whose outcome is `passed` only if the whole suite
+passed. This is sound because `frozen_baseline_tests_pass` is a conjunct: if any frozen test
+fails the verdict is FAILED and the radius no longer decides anything, and if all pass the
+union *is* the union over passing tests. The alternative — one runner invocation per test file
+— is exact and O(N) slower. Confirm the aggregate is acceptable as proof, because it is a
+proof-granularity decision, not an implementation detail.
+
+**Q5 — how the edit site is carried on the obligation.** `obligation.json` is frozen with
+`additionalProperties: false`, and `current_state` is described as "What is there now, at
+file:line". (a) Name the edit site in `current_state` prose, which `verify/radius`'s `SITE`
+regex already parses, with the observation site named alongside it; (b) add a frozen
+`edit_site` field, which is a `core/schemas` change and its own proposal and approval
+boundary. Recommend **(a)**: it needs no schema change, containment already reads it, and a
+reviewer reads the same sentence the machine does.
+
+**Q6 — who owns the method-less static request.** Confirm the reading in C-8 — discovery binds
+the query skeleton to its executing call, and an unbindable skeleton stays a preserved UNKNOWN
+— rather than teaching the oracle to validate a request with no service and no method.
+
+**Q7 — does the engine emit a subject obligation at a non-AFFECTED candidate?** Required for
+DoD 1. Today only AFFECTED candidates reach `_subject_drafts`, while the audit's extinction
+scan reads all candidate source, so the two disagree and phase5 cannot reach
+`VERIFIED_FOR_SCOPE` through the real verbs. Options: (a) emit a subject obligation wherever
+attached evidence names a removed subject, whatever the candidate's status — the obligation's
+`repair_class` still routes `UNKNOWN_PROVIDER_CONTRACT` to `PRESERVE_UNKNOWN`, and the
+candidate's status is untouched; (b) keep the engine as it is and accept that a repository
+with a removed subject at an UNKNOWN site can never be verified without a human decision;
+(c) decide P-025 first so `reporting.py:12` has a claim, and revisit. Recommend **(a)**, which
+is the reading that makes the engine and the audit agree on one definition of "must change",
+with (c) landing afterwards for the response-read site specifically.
+
+**Q8 — PR body layout.** Open middle, not a blocker. Intended order: verdict and authority;
+ProofScope and SHAs; P-017 discovery completeness; discovery counts; obligations with their
+reconciliation status; oracle results; blast-radius table; falsifiers; P-013 grouped UNKNOWNs
+with closing instructions; `EXCLUDED_WITH_EVIDENCE` adjacent contracts; receipt as appendix.
+Say so now if a different order is wanted.
+
+---
+
+## PART SEVEN — why the product reports "1 issue and hundreds of UNKNOWNs" (2026-09-12)
+
+Measured on this tree (`66e5b75` plus the working set) against a fresh read-only scan of
+`woocommerce/google-listings-and-ads` at `b43b322`, plus `hops impact` on the same tree, plus
+direct calls into the pack. Suite evidence on the same bytes: unit + property + adversarial
+**671 passed, 1 xfailed** in 5m14s. Scan: 1,364 candidates, 249 AFFECTED, 672 UNKNOWN,
+306 UNSUPPORTED, 26 UNSCANNED, 110 NOT_AFFECTED, 0 unexplained, 2m10s.
+
+### The root cause, in order of blast radius
+
+**R1 — 47% of the field catalog declares itself undecidable, and every layer downstream inherits it.**
+`packs/google_ads/changes.py:_reconcile_field` marks a field `UNKNOWN_PROVIDER_CONTRACT` unless it
+has *exactly one* proto record and *exactly one* Query Builder record. The proto projection carries
+1,728 field records against the Query Builder's 2,995, so **1,407 of 2,995 v25 fields** (all 337
+`metrics.*`, all 166 `segments.*`, 904 attributes including `customer.id`) are "conflicted" when
+nothing conflicts — the second source is merely absent. Measured consequences:
+
+- Oracle: `SELECT customer.id FROM customer` → `UNKNOWN_PROVIDER_CONTRACT: field customer.id has
+  conflicting provider sources`. Any query naming a metric or segment cannot be accepted, so
+  `oracle_all_accepted` is unreachable for a real report query.
+- Diff: v23→v24 has 1,238 `CHANGED/UNKNOWN_PROVIDER_CONTRACT` facts and **1,086 of them have
+  byte-identical before/after attributes**. v22→v25: 1,181 of 1,346 CHANGED are UNKNOWN.
+- Obligations: `hops impact` on the real repository emitted 21 subject obligations, every one
+  `PRESERVE_UNKNOWN`, reading "resolve what replaces `metrics.clicks` / `segments.date` /
+  `campaign.advertising_channel_type` in v25". None of those fields changed. This is a false
+  alarm presented as a migration finding.
+- Repair: **0** REMOVED facts carry a `replacement` (the 38 `upgrade_guidance` facts are proto
+  file topics, not subject mappings), so no subject removal can ever be DETERMINISTIC.
+
+**R2 — the scan never consults the target contract.** `scan_repository` takes no target;
+AFFECTED means "this line carries a version literal or an SDK pin". "You select
+`campaign.start_date`, removed in v23" exists only as an obligation inside `migrate`/`impact`
+and as an audit failure inside `verify`. The report a user reads first cannot list a single
+contract-level finding. This is the unit mismatch behind "AI found 4, we found 1": an AI's
+unit is a migration finding; the Exposure Map's unit is a version-carrying line.
+
+**R3 — counting unit is the line, not the finding.** 229 of 249 AFFECTED are
+`use Google\Ads\GoogleAds\V23\...` statements in 38 files: one finding ("this repository is on
+V23") printed 229 times. The 672 UNKNOWNs sit on 449 locations: 194 are one `google-ads` token
+claimed twice (FA-035, undecided); 85 are in `.md`, 32 in `.lock`, 16 in `.scss`, 20 in `.json`;
+290 say "resolve the version at this call site" for identifiers in files whose own imports
+declare V23; 69 are the first-party `GoogleAdsClient` wrapper (FA-039); 29 are the
+`ads_failure_detail` shape matching the bare word `errorCode` in JavaScript. All 229
+`call_version` records agree on V23 and the map never says so; its header reads
+`Target UNKNOWN (SDK compatibility unresolved)` because the composer pin `dev-legacy-v32.1.0`
+maps to no API version (FA-009).
+
+**R4 — `impact` reports 474 "affected paths", 301 of them images, JSON mocks and markdown.**
+1,004 of its 1,274 obligations are carried UNKNOWN/UNSUPPORTED/UNSCANNED candidates, and their
+paths are rendered as affected.
+
+**R5 — `verify` cannot reach VERIFIED_FOR_SCOPE on any PHP or JavaScript repository.** The
+frozen suite runner is pytest only (C-7 / P-028, not started), so a PHPUnit or vitest suite is
+`NO_FROZEN_TESTS` and the verdict is FAILED regardless of the diff. The chain is proven end to
+end only on the `_mock` fixture.
+
+### What a correct report for this repository says
+
+Effective version V23 (229 import sites, 38 files; composer pins `googleads/google-ads-php`
+`dev-legacy-v32.1.0`; v25 requires PHP client ≥ 33.6.0; v25 sunsets 2027-08). Findings:
+(1) SDK pin below the v25 floor — deterministic; (2) 229 namespace imports V23→V25 —
+deterministic; (3) fields used against the v23→v25 diff: 0 removed fields in use, N changed
+fields listed with what changed; (4) 187 GAQL sites, each validated against the v25 catalog or
+carrying a real reason; (5) residual UNKNOWNs grouped by what closes them, with the 4 genuinely
+runtime-only sites named. Then `migrate` performs (1) and (2), and `verify` runs the frozen
+PHPUnit suite and the oracle over every query.
+
+### Programme (root cause first; each step lands with a test that fails when reverted)
+
+- **F1 catalog reconciliation.** A field with a complete Query Builder record and no proto
+  projection is `RESOLVED` at `DOCUMENTED` confidence; `PROVEN` when the proto corroborates;
+  `UNKNOWN_PROVIDER_CONTRACT` only when two present sources disagree. Fix the proto projection
+  for `common/metrics.proto` and `common/segments.proto` so they corroborate. Rebuild catalogs
+  (lattice hash moves; every proof re-scopes, which is correct). Expected: unresolved fields
+  1,407 → ~140 (the real type disagreements); oracle accepts metric and segment queries;
+  v23→v24 CHANGED/UNKNOWN 1,238 → ~150.
+- **F2 diff invariant.** A subject whose attributes are equal across versions is never
+  CHANGED. Property test over every adjacent pair.
+- **F3 replacements.** Parse the upgrade guide's subject-level renames and replacements into
+  `replacement` on REMOVED facts. Removals with no documented replacement stay HUMAN.
+- **F4 target-aware Exposure Map.** `hops scan` and `hops exposure` take `--target` (default:
+  pack latest). New section MIGRATION FINDINGS computed from the ledger and the change set,
+  grouped by finding with site counts: effective version per repository and per file, SDK pin
+  versus floor, subjects in use that are REMOVED or CHANGED, query validation results, sunset.
+  The ledger stays target-free; only the rendering reads the change set. AFFECTED lines stay in
+  the ledger (L1) and render as "V23 namespace import · 229 sites · 38 files".
+- **F5 UNKNOWN volume, by mechanism.** Decide P-024 (one observation, one candidate; removes
+  the 194 double claims). Non-code carriers by role, as DATA already is: `DOCUMENTATION`,
+  stylesheet and lock-file matches resolve `NOT_AFFECTED_WITH_EVIDENCE` naming the role, with a
+  documentation-drift count as Q21 decided for comments. File-level version binding: an
+  identifier in a file whose only version evidence is a single version resolves to that version
+  through the P-023 binding path, with the import line as evidence. Tighten
+  `ads_failure_detail` to a qualified shape.
+- **F6 impact and migrate rendering.** Affected paths = paths of DETERMINISTIC and HUMAN
+  obligations. Carried UNKNOWNs render through the P-013 grouping, never as affected paths.
+- **F7 runner plurality (P-028).** PHPUnit and vitest/jest as frozen-suite runners per Q4.
+- **F8 held-out proof.** Run scan → exposure → migrate → verify → prepare-pr on
+  `google-listings-and-ads` and `dubinc/dub`; gate on zero subject obligations for unchanged
+  fields, every GAQL site accepted or carrying a named reason, and a Receipt on both.
+
+### ANSWERED — 2026-09-12, repository owner (Jaya Krishna J), by instruction to "fix all of them now"
+
+- **Q25 → yes.** A field resolved by one complete source is RESOLVED at DOCUMENTED confidence;
+  a conflict needs two present sources that disagree. P-031 raised for the field service.
+- **Q26 → target-aware rendering over a target-free ledger.** `--target` on scan and exposure;
+  nothing target-specific persisted in the ledger or ProofScope.
+- **Q27 → P-024 ACCEPTED.** One observation, one candidate; the real-repo baseline is re-frozen
+  under the new identity with permitted-disposition sets preserved.
+- **Q28 → NOT_AFFECTED_WITH_EVIDENCE with a role reason.** No new status; documentation,
+  stylesheet and lock-file matches resolve by role. P-030 raised for precise indexers; the AI
+  edit/triage route stays closed under P-009 until the attestation boundary is decided.
+
+### PROGRESS — 2026-09-12, same day
+
+All of F1-F8 landed; the per-item evidence is in `dev/tasks.md` and the atlas rows FA-049 to
+FA-053. What a later session must not undo: absence of a catalog source is never a conflict; a
+CHANGED fact never has equal before/after; replacements come only from rows whose both sides
+resolve uniquely, with the rest counted; the ledger stays target-free while the map reads the
+target; one observation is one candidate; file-level version binding requires a structural
+adjudication of the site; a declared-but-missing test runner sinks the merged suite. Left open:
+bound-reference obligations (`EFFECTIVE_VERSION_UNRESOLVED` for references whose version comes
+from the file), P-030, P-031, and running `hops verify` on the two real repositories with their
+dependencies installed in the sandbox.
+
+### Open questions for the owner (approval boundaries), as asked
+
+- **Q25** F1 changes what CATALOG authority means: a field resolved by one complete source,
+  corroborated by proto where the projection exists. P-020 made CATALOG acceptance depend on
+  "every field resolves"; this is the definition of "resolves". Accept?
+- **Q26** F4 gives `scan` a target. The ledger and ProofScope are unchanged; the run id already
+  carries provider, verb and identity. Confirm that a target-aware rendering over a
+  target-free ledger is the intended shape, rather than a target-bound ledger.
+- **Q27** P-024 claim identity (FA-035) — needed for F5; it changes candidate ids, so the frozen
+  baseline must be re-frozen under the new identity.
+- **Q28** Non-code carriers: is `NOT_AFFECTED_WITH_EVIDENCE` with a role reason the right
+  disposition for documentation, stylesheet and lock-file matches, or does this need a status
+  of its own (frozen `candidate.json` enum, so a proposal)?
+
+## PART EIGHT — Tier 3a: ship path and the first real Receipt (2026-09-12)
+
+### Outcome
+
+A customer goes from `git clone` to a target-aware Exposure Map in under five minutes with
+Python 3.12 and git only, and `google-listings-and-ads` produces a Receipt whose every
+conjunct is decided and whose `receipt_body_hash` repeats across two runs.
+
+### Ground truth measured this session
+
+Tree: `phase-06-repository-intelligence` at `66e5b75` plus the uncommitted F1-F8 working set.
+Both prospect checkouts are clean at their pinned commits (`git status --short` empty).
+
+```
+uv run hops scan .hubbleops/artifacts/phase7-real-repos/dub --pack google_ads --target v25
+  Commit b8866f413cec065438d6e5faabbd9dac7d1ceea5   ProofScope ps_43036ba3
+  candidates 326 · affected 2 · not affected 4 · excluded 3 · unsupported 207 · unscanned 7
+  unknown 103 · unexplained 0 · evidence 370                      real 1m39.150s
+uv run hops scan .hubbleops/artifacts/phase7-real-repos/google-listings-and-ads --pack google_ads --target v25
+  Commit b43b322771071ed88d5a817422dd222acbaa5f33   ProofScope ps_8915f415
+  candidates 1143 · affected 259 · not affected 193 · excluded 1 · unsupported 306 · unscanned 26
+  unknown 358 · unexplained 0 · evidence 1371                     real 1m34.210s
+uv run hops migrate <dub> --pack google_ads --target v25 --dry-run
+  obligations 319 · discharged 1 · open for a human 1 · files that would change 0
+  NO_TRANSFORM apps/web/lib/integrations/google-ads/api.ts (line 60 is a template with the
+  hole GOOGLE_ADS_API_VERSION; the v22 literal is written at constants.ts:20)
+uv run hops migrate <google-listings-and-ads> --pack google_ads --target v25 --dry-run
+  obligations 950 · discharged 0 · open for a human 259 · files that would change 0
+  NO_TRANSFORM on all 258 version:v23->v25 sites and on composer.lock
+```
+
+Tool state on this machine: `ripgrep 14.1.1 (rev 4649aa9700)`, `ast-grep 0.45.0`, `uv 0.12.9`,
+`uv run python` 3.12.14 (PATH python is 3.11.9), `podman 4.9.3` via WSL, `docker 29.7.2`,
+`node v22.12.0`, `pnpm 10.33.4`, **no `php`, no `composer`**. Neither prospect has its
+dependencies installed (`vendor/`, `node_modules/` absent). The pinned release assets all answer
+200 except `ast-grep app-x86_64-unknown-linux-musl.zip` (404; the gnu build is used).
+
+### What the ground truth says the chain is missing
+
+- **M1 — the deterministic repair claims nothing on either real repository.**
+  `VersionLiteralTransform` matches `\bv23\b` case-sensitively; the PHP namespace carrier is
+  `Google\Ads\GoogleAds\V23\...`, so all 258 sites are `NO_TRANSFORM` and `hops migrate` writes
+  no file. §3.1 names "namespace rename" as a pack transform; it does not exist. On Dub the edit
+  is attempted at the template line `api.ts:60` although the structural walk already found the
+  literal at `constants.ts:20` (evidence value `paths[2].literal = "v22"`).
+- **M2 — the frozen suite runs on the host, not in the verifier image.** `verify/suites.py`
+  executes the repository's own runner through `bounded_process`; the container is fingerprinted
+  into the ProofScope and proved isolated, but the tests never enter it. Dependencies come only
+  from the customer checkout (`runners.link_dependencies`). Nothing installs anything, by P-028.
+- **M3 — `exposure.findings` validates with `pack.verification_contract()`**, which builds a
+  transport from the environment; with credentials in the environment a map rendering would go
+  to the network. Scan and exposure must use the offline `pack.contract` (catalog authority).
+- **M4 — `.tsx` files are counted as structurally supported and never parsed.** `.tsx` maps to
+  `typescript` and ast-grep is forced `-l typescript`; on `page-client.tsx` a forced typescript
+  run returns 0 import matches and `-l tsx` returns 26. Every recall match in a `.tsx` file is
+  therefore unadjudicated while coverage reports it supported. New atlas row.
+- **M5 — three GLNA request-site classes never reach the oracle** (32 evidence records):
+  GAQL built by the first-party fluent builder `AdsQuery`/`AdsReportQuery` (`->columns()`,
+  `->from()`, `->where()`), the Merchant API client (`src/API/Google/Mapi/MerchantApiClient.php`,
+  a different Google API), and `metrics.*` anchors in JavaScript adapters. Each becomes an
+  `oracle undecided`/`never reached the oracle` unresolved entry, so the verdict is UNKNOWN
+  whatever the diff says.
+- **M6 — without a PHP interpreter the frozen PHPUnit suite is `TOOLING_MISSING`**, which
+  `radius.frozen_report` renders unresolved (verdict UNKNOWN). Correct, and it means DoD 5 cannot
+  be met on this machine until Q29 is answered.
+
+### Dub's 103 UNKNOWNs by mechanism (from the ledger export, every site listed in the scratch log)
+
+| # | mechanism | sites | disposition after this tier |
+|---|---|---|---|
+| a | `google-ads` inside an import specifier the structural layer resolved to a first-party file (`binding_target` in-repo) | 22 | NOT_AFFECTED_WITH_EVIDENCE naming the resolved module |
+| b | the same in `.tsx` files, unadjudicated because of M4 | 2 | as (a) once tsx parses |
+| c | `customers/…`, `conversionActions/…`, `FROM clickevent`, `FROM tinybird` in Stripe/Shopify/test files whose only provider context is a first-party import (`context_paths` grows through imports) | 17 | NOT_AFFECTED_WITH_EVIDENCE: no provider context in the same file |
+| d | credential keys `GOOGLE_ADS_DEVELOPER_TOKEN`/`CLIENT_ID`/`CLIENT_SECRET` read via `process.env` or declared in `.env.example` | 9 | NOT_AFFECTED_WITH_EVIDENCE: configuration, never a version |
+| e | `ADS_API_VERSION` matched as a substring of `GOOGLE_ADS_API_VERSION` | 3 | retired by identity migration into the enclosing key's candidate |
+| f | `GOOGLE_ADS_API_VERSION` at its definition `= "v22"`, its import, and its use in the URL template | 3 | definition → AFFECTED v22 (the true edit site); import → first-party; use → explained by the structural resolution on the same line |
+| g | `fetch`/`post` sinks in Shopify Playwright helpers with no provider context in the file or on the wrapper chain | 13 | NOT_AFFECTED_WITH_EVIDENCE: generic HTTP sink whose skeleton and chain name no provider surface |
+| h | `CONTRACT_VALIDATION_DEFERRED` skeletons at `api.ts:274/375/420` | 3 | judged by the offline oracle across the lattice → AFFECTED with accepting versions |
+| i | text recall on a line the structural layer resolved (the three query lines; host + `googleads` on `api.ts:60`) | 5 | NOT_AFFECTED_WITH_EVIDENCE naming the structural candidate |
+| j | `google-ads` as a route path, slug, redis key or logger key inside a string literal | 14 | stays UNKNOWN (no observer proves a string inert; closing instruction: recorded decision) |
+| k | test fixture `type.googleapis.com/google.ads.googleads.v22.errors.GoogleAdsFailure` (5 candidates on one line) and `'login-customer-id'` in the same test | 6 | stays UNKNOWN (a v22 artifact in test data) |
+| l | contract surfaces in provider-context files (`"developer-token"`, `googleAds:searchStream`, `customers:listAccessibleCustomers`, auth scopes, `errorCode?.authorizationError`, `googleAds:oauth:refresh`, `customers/${…}/conversionActions`) | 8 | stays UNKNOWN (CONTRACT_SURFACE_UNRESOLVED; binding these to catalog subjects is later work) |
+
+Expected: 103 → 28 if (g) holds, 41 if it does not; the DoD bound is 40, so (g) is in scope.
+No status is forced: every closure names the evidence (a resolved import target, the file's
+context inventory, an environment-read node, an oracle result at CATALOG authority) or a role.
+
+### Decisions taken in this plan (not questions)
+
+- `config_env_keys` means keys whose value can select the API version (§3.1 lists env/config
+  keys under *Version carriers*). Credential keys move to `identifiers`. A new carrier
+  `config_literal_version` (`(GOOGLE_ADS_API_VERSION|GOOGLE_ADS_VERSION|ADS_API_VERSION)\s*[=:]\s*["']?(?P<version>v\d+)`,
+  slot `config`, languages any) makes `constants.ts:20` the AFFECTED site it is. Pack data only.
+- Config-key and identifier patterns match on identifier boundaries. The three substring
+  candidates retire through the baseline's `identity_migration`, carried by the enclosing key.
+- The Merchant API (`merchantapi.googleapis.com`, `shoppingcontent.googleapis.com`) is declared
+  an adjacent contract of the Google Ads pack, like Data Manager. Pack data; a Google API with
+  its own lattice, not a repository-specific rule.
+- Dub's residue candidates in import-only-context files are still raised and then explained,
+  never dropped, so the frozen baseline's "absent is a violation" holds.
+- Toolchain binaries ship inside platform wheels under `hubbleops/_toolchain/<platform>/`; the
+  runtime manifest carries name, version and sha256 only. Download URLs live in a build-time file
+  at the repository root, so no generic module carries a hostname. Lookup order: vendored binary
+  for the running platform (sha256 verified, mismatch fails closed as `TOOLING_MISSING`), then
+  PATH (sha256 of whatever ran is recorded). `scanner_version` binds `rg=<version>+sha256:<hex>`
+  and `ast-grep=<version>+sha256:<hex>` either way. `uvx hubbleops` needs a console script
+  named `hubbleops`; it is added beside `hops`, same entry point.
+- The Exposure Action is generated by `hops exposure --install-workflow --pack <p> --target <t>`,
+  writes `.github/workflows/hubbleops-exposure.yml`, runs on `pull_request` with
+  `permissions: contents: read`, installs nothing but uv, runs `uvx --from "<source>" hops scan .`
+  then `hops exposure`, prints the map to the job log and uploads `ledger.json` and the map as
+  an artifact. `<source>` defaults to `hubbleops==<__version__>` and is overridable with
+  `--source`; publication to an index is not performed here (approval boundary).
+- Per-query oracle judgement has two halves and both are offline: the resolver judges every
+  resolved skeleton against every lattice version with `pack.contract` (target-free, bound by
+  `provider_contract_hash`) and resolves the candidate AFFECTED with the accepting versions or
+  UNKNOWN with the rejecting reason; the obligation engine judges against the target and the map
+  renders one line per query. `hops scan --target` prints the MIGRATION FINDINGS and QUERIES
+  blocks at the end of the scan, so the judgement is visible during the scan while the ledger
+  stays target-free (Q26).
+- Sandbox dependency provisioning is proposed as P-032 and not executed without the owner's yes.
+
+### Ordered work (each item lands with a test that fails when the mechanism is reverted)
+
+**W0 — freeze Dub's baseline before touching the scanner.**
+`tests/fixtures/real_repo/dub_unknowns_before.json` in the GLNA fixture's shape (repo_sha,
+scanner, proof_scope_hash, ledger_counts, 103 entries with root cause and permitted set).
+`tests/unit/test_real_repo_baseline.py` parameterised over both fixtures. After every scanner
+change the conservation script runs over the fresh export and is pasted.
+
+**W1 — vendored toolchain (DoD 1).** Owner: subagent A.
+- `toolchain.json` (root, build-time): per tool × platform: url, archive sha256, member, binary sha256.
+- `hatch_build.py` (root): hatchling custom hook; `HUBBLEOPS_WHEEL_PLATFORM` ∈ {`win_amd64`,
+  `manylinux_2_35_x86_64`, `macosx_11_0_arm64`, `macosx_10_12_x86_64`} selects the tag; archives
+  are fetched into `HUBBLEOPS_TOOLCHAIN_CACHE` (default `.hubbleops/toolchain-cache/`), both
+  hashes verified, binaries force-included at `hubbleops/_toolchain/<tag>/` with a `manifest.json`;
+  unset → today's pure wheel. `pyproject.toml`: the hook, the `hubbleops` script.
+- `hubbleops/core/toolchain.py`: `platform_tag()`, `locate(tool)` → `ToolBinary(path, origin,
+  sha256)`, `identity(tool, version_text)`. `observe/text.py` and `graph/imports.py` call it;
+  `app/cli.scan_repository` binds the identities into `scanner_version`.
+- Tests: `tests/unit/test_toolchain.py` (vendored preferred over PATH; hash mismatch fails
+  closed; PATH fallback records the hash; platform tag mapping), `tests/integration/test_cli.py`
+  (`scanner_version` carries `+sha256:` for both tools).
+- Evidence: `uv build --wheel` for the current platform, `unzip -l` of the wheel, and the timed
+  cold path on both prospects (`git clone` → `uv tool install <wheel>` → scan → exposure) with
+  PATH stripped of `rg` and `ast-grep`.
+
+**W2 — Exposure Action (DoD 2).** Owner: subagent B.
+`hubbleops/proof/exposure_workflow.py` (`workflow(provider, target, source)` and `install`),
+`hops exposure --install-workflow --pack --target [--source] [--repo]` in `app/cli.py`. Tests in
+`tests/unit/test_phase7_delivery.py`: `contents: read` only, `pull_request` trigger, pinned
+source, no secret reaches the file, YAML-injection refusal as `memory.workflow` already has.
+
+**W3 — per-query oracle judgement (DoD 3).** Owner: coordinator.
+- `app/cli.scan_repository`: `validations = contract.validate(skeleton, v)` for every resolved
+  structural skeleton and every lattice version, with `pack.contract` (offline); passed to
+  `ledger.build(..., validations=)` as a plain mapping keyed by evidence id. `observe/ledger.py`
+  hands it to `resolve_claim` like `roles` and `path_versions`; `_request_text` resolves
+  CONTRACT_VALIDATION_DEFERRED → AFFECTED "GAQL over `customer_client` accepted at CATALOG
+  authority in v19…v25" or UNKNOWN naming the rejecting field.
+- `app/exposure.py`: `findings()` uses `pack.contract` (M3) and gains `queries`; new block
+  `QUERIES  → v25` with one line per query: `path:line  ACCEPTED (CATALOG)` /
+  `REJECTED <reason>` / `UNDECIDED <reason>` / `HOLE <names>` and the totals line.
+  `hops scan --target` renders MIGRATION FINDINGS and QUERIES after the summary.
+- Tests: `tests/unit/test_exposure.py` (one line per query, totals add up, byte-identical on two
+  renders, no network transport is ever constructed: the oracle is `pack.contract`),
+  `tests/unit/test_resolver.py` (accepted → AFFECTED with versions; rejected → UNKNOWN naming the
+  field; a hole never reaches the oracle).
+
+**W4 — Dub residue (DoD 4).** Owner: subagent C for 4a–4c (observe/text.py, graph/imports.py,
+observe/structure.py, pack data), coordinator for 4d–4g (observe/resolver.py, engine edit site).
+- 4a M4: `.tsx` → language `tsx`; `AST_GREP_LANGUAGES["tsx"] = "tsx"`; pack ships `rules/tsx.yml`
+  (`language: Tsx`, otherwise the TypeScript rule) plus `rules/tests/tsx-test.yml`;
+  `SUPPORTED_LANGUAGES`, capture hooks and runner language sets include `tsx`. Atlas FA-054.
+- 4b first-party import: `_adjudicated_reference` with `node_kind == import` and an in-repo
+  `binding_target` and no `binding_versions` → NOT_AFFECTED_WITH_EVIDENCE.
+- 4c direct provider context: the text observer records `context_scope` on every gated
+  observation (`direct` when the file itself carries a context hit on a line that is not an
+  import resolving in-repo; `imported` otherwise); `context_paths` no longer grows through
+  imports for gating, but every previously raised candidate is still raised. The resolver
+  explains `imported`-scope `contract_surface` and `request_resource` matches.
+- 4d config keys: pack data as decided above; structure adjudicates environment reads
+  (`process.env.X`, `os.environ[...]`, `getenv(...)`, `$_ENV[...]`) as node kind
+  `environment_read`; resolver: key ∈ `config_env_keys` → UNKNOWN runtime config (unchanged);
+  otherwise NOT_AFFECTED_WITH_EVIDENCE "configuration, never a version". CONFIG-role
+  declarations of non-version keys resolve by role.
+- 4e generic sinks: the resolver receives the per-file direct-context set; a structural
+  `request_text` whose skeleton fragments name no provider host, carrier or request-language
+  shape, in a file without direct context, on a chain whose files have none, resolves
+  NOT_AFFECTED_WITH_EVIDENCE listing what was checked.
+- 4f structural coverage of a text line: a text `request_text`/`endpoint_reference`/
+  `surface_reference` candidate on a line where a structural candidate resolved a version or a
+  skeleton is explained by that candidate's id.
+- 4g edit site: `_version_drafts` names the literal's site from `paths[].literal` when the
+  carrier is computed; `transform_requests` edits there.
+- Tests: `tests/unit/test_unknown_mechanisms.py` one test per mechanism, each asserting the
+  before/after resolution on a fixture line; `tests/property/test_adjudication_invariants.py`
+  gains "absence of adjudication is never a disposition" for every new branch;
+  `tests/fixtures/coverage/tsx_import/` for 4a with its expected candidates.
+- Evidence: fresh scan of both prospects, counts pasted, conservation over both baselines
+  (`glna_unknowns_before.json` with permitted sets intersected, `dub_unknowns_before.json`),
+  and every AFFECTED candidate preserved.
+
+**W5 — repair chain and the Receipt (DoD 5).** Owner: coordinator.
+- `packs/google_ads/repairs.py`: `VersionLiteralTransform` becomes case-preserving on the
+  letter (`V23` → `V25`, `v23` → `v25`) and declines when the line's token case does not match
+  the carrier's; `SdkPinTransform` declines non-semver pins (`dev-legacy-v32.1.0` stays HUMAN).
+  Tests in `tests/unit/test_deterministic_repair.py`.
+- `dev/proposals.md` P-032 — sandbox dependency provisioning for verify: the suite runs in the
+  staged workspace copy, never the customer tree; provisioning is a separate verb step before
+  verify that runs the ecosystem's own installer against a pre-populated offline cache
+  (`composer install --no-dev` from a mirrored `~/.composer/cache`, `pnpm install
+  --frozen-lockfile --offline` from a pnpm store) or, when the owner allows it, against an
+  allowlisted registry set through the existing egress proxy, recording lockfile hash, installer
+  identity and every fetched package hash into `verification_inputs_hash`. Verify itself never
+  opens a socket; a provisioning transcript is an input like a capture manifest.
+- `verify/oracle.py`: a request site whose candidate carries a recorded human decision is listed
+  under decisions, not under `unreachable` (L3's decision channel). `verify/verdict.py` untouched.
+- Then, only after Q29 and Q30 are answered: `hops migrate` → commit in a scratch clone →
+  `hops verify` → `hops prepare-pr` on `google-listings-and-ads`, twice, with both
+  `receipt_body_hash` values pasted.
+
+**W6 — five-minute integration test (DoD 6).** `tests/integration/test_ship_path.py`: builds
+the current-platform wheel with the toolchain cache, installs it with `uv tool install` into a
+temporary `UV_TOOL_DIR`, strips `rg` and `ast-grep` from PATH, runs `hops scan` on
+`tests/fixtures/phase1/monorepo_workspace/repo` with `--pack google_ads --target v25` and
+`hops exposure`, asserts the wall clock under 300 s, the `+sha256:` identities, and the QUERIES
+block. A cold toolchain cache needs the network once, at build time, never at scan time.
+
+**W7 — gate.** Three consecutive byte-identical scans of one fixture; the revert check per
+mechanism (revert the file, run its test, expect failure, restore); full suite on a quiet tree;
+ruff, pyright strict, `hops pack verify google_ads`; spec-auditor and red-team with two new
+corruptions (`vendored_binary_swapped`: a wheel whose `rg` hash mismatches its manifest must fail
+closed; `decided_request_site_forged`: a decision on a request site recorded under a foreign run
+must not count as reached); atlas rows; `dev/context.md` and `dev/tasks.md`.
+
+### PROGRESS — 2026-09-13, on the owner's instruction to build
+
+The owner answered the three questions with "do whatever is best for customers and the product".
+Q29: no PHP was installed; GLNA's PHPUnit bootstrap needs the WordPress test library and a
+database, which no installer provides, so the frozen-suite conjunct stays unresolved here and
+P-032 says where such suites run. Q30: the decision channel landed in `verify/oracle.py`
+(a request site closed by a recorded decision is `decided`, never `unreachable`); builder-skeleton
+extraction is not built. Q31: reading one, tightened to files with no provider link at all,
+direct or imported, on the whole chain.
+
+Landed: W0 (`dub_unknowns_before.json`, 100 entries, 3 retired by identifier-boundary keys, 6
+re-keyed when credentials became identifiers), W1 (four platform wheels, real hashes,
+`scanner_version` binds `rg=…+sha256:` and `ast-grep=…+sha256:`, a swapped binary stops the scan),
+W2 (`hops exposure --install-workflow`), W3 (lattice judgement in the resolver, QUERIES block,
+offline contract everywhere), W4 (all eight mechanisms plus FA-054 tsx parsing and `.env*` as
+CONFIG), W5 (case-preserving namespace transform, non-semver pins stay HUMAN, bound references
+edit their import line, an obligation whose required state already holds is SATISFIED, P-032
+proposed), W6 (`tests/integration/test_ship_path.py`, 35 s on win_amd64).
+
+Measured on the final bytes: Dub 326 → 327 candidates (one React file now honestly UNSCANNED),
+UNKNOWN **103 → 32**, three consecutive scans byte-identical, 0 unexplained, 0 baseline
+violations, one AFFECTED became NOT_AFFECTED by design (a first-party import line the file-level
+binding had borrowed a version for). GLNA 1,143 candidates, UNKNOWN **358 → 333**, all 259
+AFFECTED preserved, the one baseline violation (`AdsMissingEuDeclarationQuery.php:31`) was
+already absent before this session. Four GLNA Merchant API sinks frozen RUNTIME_ONLY were
+relabelled FA-058 on the new file-context evidence, recorded in the fixture rather than widened
+silently. Migrate on GLNA: 229 of 258 namespace sites discharged before the SATISFIED and
+bound-site fixes; the chain result on the final bytes is in `dev/context.md`.
+
+### OPEN QUESTIONS (answered by delegation on 2026-09-13; kept for the record)
+
+- **Q29 — the PHP toolchain for the GLNA frozen suite.** This machine has no `php` and no
+  `composer`, so the frozen PHPUnit suite is `TOOLING_MISSING`, `frozen_baseline_tests` is
+  unresolved and the verdict is UNKNOWN. Installing PHP 8 and composer (host or a PHP verifier
+  image) is a new binary, an approval boundary. (a) Approve PHP 8.3 + composer on this machine;
+  the suite then runs in the staged workspace copy under P-032 with `vendor/` provisioned from
+  an offline composer cache. (b) Accept an UNKNOWN Receipt with the conjunct named, and DoD 5's
+  "every conjunct decided" is deferred. (c) Build a PHP verifier image (a second pinned image
+  under `sandbox/verifier_image.py`). Recommendation: (a) now, (c) when the Action must run it.
+- **Q30 — the 32 GLNA request sites the oracle never reaches.** (a) Build fluent-builder
+  skeleton extraction: the pack declares builder method names (`columns`/`select` → fields,
+  `from` → resource, `where`/`order_by` → fields) and the structure observer composes a skeleton
+  from literal arguments along the chain, holes for the rest; the oracle then judges them like
+  any skeleton. Generic, honest, about two days, and it is what closes this class on every
+  builder-style repository. (b) The owner records a decision per site with `hops decide`, and
+  verify treats a decided site as reached (the W5 change). (c) Accept an UNKNOWN Receipt.
+  Recommendation: (a), with (b) available for the residue (a) cannot resolve. Without one of
+  these, no Receipt on this repository can have `oracle_all_accepted` decided.
+- **Q31 — Dub's Shopify HTTP sinks (mechanism g).** Reading one: a generic-verb sink with no
+  provider surface in its skeleton and no direct provider context in the file or on its chain is
+  NOT_AFFECTED_WITH_EVIDENCE (the plan's reading; Dub lands at 28). Reading two: any structural
+  sink match stays UNKNOWN until captured, because a hole could hide the host (Dub lands at 41,
+  above the DoD bound). The two readings differ on whether "no provider context anywhere on the
+  chain" is evidence. Recommendation: reading one, with the checked chain listed in the reason.
+
+## PART NINE — Tier 3b: precise indexers behind the graph (2026-09-13)
+
+### Outcome
+
+The structure observer resolves callers, import targets and identifier bindings by **symbol**
+wherever a proof-bound precise index covers the file, by **name** everywhere else, and the map
+says which. A file with no precise index keeps its recall claims exactly as today and the
+coverage block names the indexer that would change that. Nothing pretends; search stays the net.
+
+### Ground truth on this tree before any change (2026-09-13, quiet tree)
+
+```
+uv run hops scan .hubbleops/artifacts/phase7-real-repos/google-listings-and-ads --pack google_ads
+  Commit b43b322771071ed88d5a817422dd222acbaa5f33   ProofScope ps_73400f54   real 1m33.467s
+  candidates 1143 · affected 259 · not affected 218 · excluded 1 · unsupported 306 · unscanned 26
+  unknown 333 · unexplained 0 · evidence 1371
+  UNKNOWN by file type: php 206 · js 112 · json 12 · sh 3
+uv run hops scan .hubbleops/artifacts/phase7-real-repos/dub --pack google_ads
+  Commit b8866f413cec065438d6e5faabbd9dac7d1ceea5   ProofScope ps_a66c7e73
+  candidates 327 · affected 4 · not affected 73 · excluded 3 · unsupported 207 · unscanned 8
+  unknown 32 · unexplained 0 · evidence 376
+  UNKNOWN by file type: ts 31 · tsx 1
+```
+
+The prompt's figures (358 and 103) predate Tier 3a; these are the numbers every after-count
+compares against. Dub's 32 are: 17 provider-name string slugs (URL paths, redis keys — UNKNOWN by
+design, PART EIGHT), 11 unbound contract surfaces, 2 `GOOGLE_ADS_API_VERSION` reads (the import
+at `api.ts:2` and the literal definition at `constants.ts:20`), 1 oracle-undecided query, 1 wire
+namespace in a test fixture. GLNA's 112 JavaScript UNKNOWNs are 'google-ads' slugs in test data,
+`item.metrics.conversions` property reads matched as GAQL anchors, and package names in strings.
+No precise index decides a string literal, so the honest expectation is: UNKNOWN does not rise,
+a handful of symbol-bound sites close, and the gain is precision of what is already claimed —
+exact callers instead of name-and-arity, exact import targets across barrels and aliases,
+first-party versus package bindings named by symbol — plus the map's per-language truth.
+
+### SPIKE — measured, dependencies never installed in any repository
+
+Indexers pinned in the scratchpad only (nothing entered the tree): `@sourcegraph/scip-typescript`
+0.4.0, `@sourcegraph/scip-python` 0.6.6, `scip` CLI v0.10.0 (linux, `scip-code/scip`),
+Temurin JDK 17.0.20.1, coursier `cs`, .NET SDK 8.0.425 portable + `scip-dotnet` tool. Counts are
+from a 60-line SCIP wire-format reader written for the spike (`scratchpad/scipread.py`), which
+becomes `graph/precise.py`.
+
+| Language / indexer | Repository | Ran? | Documents | Occurrences (defs / refs) | Wall | Needs |
+|---|---|---|---|---|---|---|
+| TypeScript+JS — scip-typescript 0.4.0, `--infer-tsconfig` | GLNA `b43b322` (893 js) | yes, Windows | 891 | 74,928 (21,291 / 53,637) | 7.4 s, 7.2 MB | node ≥16; writes `tsconfig.json` **into the tree** (removed by hand; `git status` clean after) |
+| same, `--infer-tsconfig` at the workspace root | Dub `b8866f4` (2,348 ts + 1,992 tsx) | yes, Windows | 4,340 | 575,731 (159,271 / 416,460) | 40.7 s, 51 MB | same; cross-file references 32,872; the `@/lib/upstash` alias resolved, `@/lib/prisma` did not (partial without the real `paths`) |
+| same, `--pnpm-workspaces` | Dub | **no on Windows** (`projects ["C"]`: the path is split at the drive colon); **partial on Linux** | 140 | 16,700 (2,617 / 14,083) | 6.6 s | every workspace `tsconfig.json` `extends` a workspace package (`tsconfig/nextjs.json`) that only `node_modules` provides, so `apps/web` indexes nothing |
+| Python — scip-python 0.6.6 | Windows native | **no**: `SyntaxError: Invalid regular expression` from `new RegExp(path.sep)` at startup | — | — | — | Linux only |
+| same, WSL Ubuntu 24.04, node 18 | `googleads/google-ads-python` `f068d59` (8,532 files) | default heap: **OOM** (signal 6 at 2.27 GB RSS after 118 s); with `--max-old-space-size=12288`: **yes** | 8,532 | 1,906,775 (334,694 / 1,572,081), 878 external symbols | 1,733 s, 10.1 GB RSS, 334 MB | Linux, node, a heap sized to the tree (a generated client is the worst case; a customer repository is a few hundred files); no venv needed to start |
+| PHP — scip-php (davidrjenni, 19 stars) | GLNA | **not run**: no `php`, no `composer` on this machine or in WSL (sudo needs a password) | — | — | — | PHP ≥ 8.1, composer, and the repository's `composer install` (it resolves through the project autoloader); P-032 provisioning in the sandbox |
+| Java — scip-java via `cs launch --contrib scip-java` | `googleads/google-ads-java` `6c240f2` (Gradle 8.10) | **no**: `gradlew --init-script … scipCompileAll` needs the Gradle distribution and every dependency; the wrapper download timed out twice | — | — | 18–30 s to fail | JDK 17 + a full Gradle/Maven build with the semanticdb javac plugin, i.e. network and compilation of the entire generated client |
+| .NET — scip-dotnet (tool) on `Google.Ads.GoogleAds.sln` | `googleads/google-ads-dotnet` `6c240f2`… (14 csproj) | **yes**, but it **restored 11 NuGet projects itself** before indexing (network egress the scan may never perform) | 5,852 | 5,548,842 (540,479 / 5,008,363) | 448 s, 505 MB; `git status` clean afterwards | .NET SDK 8; a solution or project path (a bare directory is refused); `--skip-dotnet-restore` to forbid egress, which then needs a provisioned package cache |
+
+### GO / NO-GO (decided from the table; the owner delegated decisions on 2026-09-13)
+
+- **TypeScript, TSX, JavaScript — GO.** One indexer, three languages, no dependencies needed
+  to produce a usable index, seconds not minutes. Constraints the adapter must honour: run only
+  on a **staged copy** (the indexer writes `tsconfig.json` into the project); derive that
+  tsconfig from the repository's own file with unresolvable `extends` dropped and `paths`,
+  `baseUrl`, `include`, `jsx`, `allowJs` kept, so aliases resolve without `node_modules`; never
+  use `--pnpm-workspaces`/`--yarn-workspaces` (broken on Windows, empty without deps); bind
+  `scip-typescript=<version>+sha256:<entry script>` into `scanner_version`.
+- **Python — GO, Linux-hosted only.** The 12 GB run produced a complete index of the largest
+  generated Python client there is; the runner sets the heap itself and refuses to start on
+  Windows with the reason. Neither ground-truth repository has Python, so this lands as the
+  adapter plus a fixture whose index was generated in WSL, and the map reports the exact
+  sentence on this host: `recall-only: scip-python fails to start on Windows`.
+- **PHP — NO-GO on this machine.** The map says `php: recall-only; precise indexing needs PHP
+  8.1+, composer and the repository's composer install (scip-php)`. GLNA's 206 PHP UNKNOWNs
+  therefore stay exactly where they are, by evidence.
+- **Java — NO-GO.** `java: recall-only; precise indexing needs a JDK and a full Gradle or Maven
+  build with the semanticdb plugin (scip-java)`.
+- **.NET — NO-GO for the scan path** even if the index below succeeds: the indexer restores
+  packages (egress) unless told not to, and then needs a provisioned cache. `csharp: recall-only;
+  precise indexing needs the .NET SDK, a solution path and a restored package cache (scip-dotnet)`.
+
+### Design (open middle, decided)
+
+**Adapter shape.** `graph/precise.py` is provider-neutral and language-neutral: a `SymbolIndex`
+built from SCIP bytes by a dependency-free wire-format reader (Index → Document → Occurrence;
+paths normalised to `/`; ranges to line/character; roles as the SCIP bitmask). It answers three
+questions: `symbol_at(path, line, column)`, `definition_of(symbol) → (path, range) | None`, and
+`references(symbol) → occurrences`. `graph/indexers.py` runs one pinned indexer per language
+family on a staged copy: `Indexer(name, languages, version(), command(staged_root, output))`;
+the binary is located through `core/toolchain.locate` (PATH or an explicit path, never
+vendored yet — shipping node plus the package is a new binary and is raised as P-033 with the
+measured sizes). A missing indexer is not an error: the language is recall-only and the
+coverage block says so. A present indexer that fails is `TOOLING_FAILED` for that language,
+also visible, never silent. No network call: the indexer runs offline on the copy.
+
+**Where precision enters the graph.** `ImportGraph` gains an optional `SymbolIndex` per
+language. Three call sites change, each keeping the name path as the visible net:
+1. `callers(definition)`: with an index covering the definition's file, callers are the calls
+   whose callee occurrence carries the definition's symbol; the hop reads `callers by symbol`.
+   Without one, name-and-arity as today; the hop reads `callers by name`.
+2. `ImportBinding.target_path` and `_import_assignment`: the imported symbol's definition
+   document wins over the module-string resolver (barrels, re-exports, aliases the tsconfig
+   reader cannot see).
+3. `_bound` / `first_party_definition`: an identifier occurrence whose symbol is defined in the
+   index binds to that file; one whose symbol names a package (`npm <name> <version>`) binds to
+   that package at that version, recorded in `binding_target`; a site with no occurrence at all
+   is unchanged (a string literal has no symbol, and absence of adjudication is never a
+   disposition).
+
+**Proof binding.** `scanner_version` gains one segment per indexer that ran
+(`;scip-typescript=0.4.0+sha256:…`). The index's own `tool_info.version` must equal the
+binary's reported version or the index is refused (`TOOLING_FAILED`). `StructuralCoverage`
+gains `precise` per language (files covered by an index) and `precise_index` (the indexer
+identity or the sentence naming what would enable it). The Exposure Map prints both. No schema
+changes: ProofScope already carries `scanner_version` as free text; Evidence `value` carries
+the new `binding_target` and hop wording.
+
+**Fixture.** `tests/fixtures/precise/ts_symbol_binding/repo`: a `tsconfig.json` with `paths`,
+a barrel `lib/index.ts` re-exporting `lib/version.ts`, two same-named functions in different
+files with the same arity, one caller of each, and an aliased import through the barrel. Its
+index is committed as `index.scip` with `index.json` recording the indexer version, the entry
+script sha256 and the command, and a test regenerates and compares the parsed structure when
+the indexer is on PATH (skips with the reason otherwise, never silently).
+
+**Held-out transfer (DoD 4).** `google/ads-api-report-fetcher` (TypeScript + Python, Google-
+owned, GAQL-heavy), cloned once at HEAD after the work is done, scanned once with and once
+without the indexer, numbers written to `docs/FAILURE_ATLAS.md` untouched.
+
+### Ordered work
+
+- **B1** `graph/precise.py`: reader + `SymbolIndex`; property test that encoding-then-reading
+  is the identity over random small indexes (a test-side encoder); Windows `\` normalisation.
+- **B2** `graph/indexers.py`: `scip-typescript` runner on a staged copy with the derived
+  tsconfig; version + sha256 identity; timeout → `ToolingTimeout`; refusal when the index's
+  tool version disagrees. `scip-python` runner shaped the same, Linux-only, with the heap flag.
+- **B3** graph integration (callers, import targets, bindings) with hop wording; revert check:
+  the fixture's same-name caller test fails when symbol callers are removed.
+- **B4** coverage + ProofScope + map: `precise` counts and the enabling sentence per language;
+  `scan_repository` runs the indexers it finds and records each in `scanner_version`.
+- **B5** ground truth: both repositories before/after, three consecutive byte-identical scans,
+  UNKNOWN not risen, every AFFECTED preserved; baseline permitted sets intersected if ids move.
+- **B6** held-out transfer run, atlas rows, P-033, `dev/context.md`, `dev/tasks.md`.
+
+### OPEN QUESTIONS
+
+None that change the work: every decision above follows from a measured row. The single
+approval boundary touched — shipping an indexer binary — is not crossed; P-034 records what
+crossing it would cost.
+
+### PROGRESS — 2026-09-13, same day
+
+B1-B5 landed; evidence per item is in `dev/tasks.md` and the numbers in `dev/context.md`.
+Decisions a later session must not undo:
+- The indexer never runs on the customer tree: staged copy, synthesized root manifest, output
+  outside the copy, `project_root` never read out of the index (FA-061).
+- The staged tsconfig is the repository's own minus unresolvable `extends`; workspace flags are
+  never passed (FA-062). Every tsconfig directory is a project.
+- Symbol callers only ever *remove* a name-and-arity caller when its symbol belongs to another
+  definition in the graph (FA-066); a declaration, local or unreadable symbol keeps the
+  caller. Precision never trades recall.
+- The precise layer never binds to a package: external symbols are dropped before the graph
+  sees the index (FA-065), and the dependency observer owns packages and their versions.
+- Absence of an indexer is recall-only, visible per language; failure of a present indexer stops
+  the scan unless `--force`, and the forced map says so. Never a silent fallback.
+- `scip-python` refuses Windows with the reason as TOOLING_MISSING; the runner sets the heap.
+- The identity binds the indexer's entry script; P-034 is the path to binding the whole tree.
+
+The red team (2026-09-13) broke the first cut in three places, each now a fixture and an atlas
+row: host-ambient `@types` reached the index and moved a verdict under an unchanged ProofScope
+(FA-065 — external symbols are now dropped and type roots disabled, so the index is a function
+of the tree and the indexer); interface dispatch deleted a true caller and closed an UNKNOWN by
+deleting evidence (FA-066 — a caller is removed only when its symbol belongs to another
+definition in the graph, provenance is per caller); renamed imports never bound (FA-067 —
+positional lookup). Residue left open, on purpose: SCIP `position_encoding` is not read and
+columns are compared as character offsets (ast-grep characters, TypeScript UTF-16 units, equal
+outside astral planes), a mismatch degrades to name binding, proved on astral fixtures; a
+first-party symbol whose definition document the indexer skipped (files over its 1 MB limit)
+adjudicates nothing; the index is trusted as produced by the pinned indexer on a staged copy,
+with no cross-check against the source text; the indexer subprocess inherits the environment
+and network isolation is not enforced on the host (the sandbox image is where that belongs).
+
+The held-out transfer found FA-064 on its first scan (a U+0085 in a minified bundle split
+ripgrep's JSON stream and the text observer died with a traceback); the fix is a `\n`-only split
+of every line-delimited JSON stream. Held-out numbers on the final bytes, run once (FA-068):
+
+```
+google/ads-api-report-fetcher 2419122 · with scip-typescript on PATH        real 0m58.5s
+  candidates 5380 · affected 5 · not affected 454 · excluded 4323 · reference 7
+  unsupported 90 · unknown 501 · unexplained 0
+  typescript supported=63 precise=62 · javascript supported=7 precise=2 · python recall-only
+  configs rewritten without their extends 2 · external symbol occurrences dropped 2437
+same repository without the indexer: identical counts; git status clean after both
+```
+
+Final evidence on the same `hubbleops/` bytes: `uv run pytest -q` 1,181 passed, 2 failed in
+22m03s — both stale test expectations from the indexer being on PATH (the ship-path test now
+strips `scip-typescript` like `rg` and `ast-grep`; the real-indexer test compares first-party
+occurrences), fixed in the two test files only and rerun: `test_ship_path.py` 1 passed,
+`test_indexers.py` 25 passed. Three Dub scans byte-identical (`c285c311…`), Dub 327 · 4 · 73 ·
+32 · 0, GLNA 1143 · 259 · 218 · 333 · 0; `uv run pyright hubbleops tests` 0 errors; `ruff check`
+and `ruff format --check` clean over 219 files; `hops pack verify google_ads` OK, lattice
+unchanged.

@@ -133,7 +133,7 @@ def test_rerunning_an_identical_scan_is_idempotent(tmp_path: Path) -> None:
     assert len(store.evidence_for(run_id)) == 1
     stored = store.run(run_id)
     assert stored is not None
-    assert len(stored.proof_scope) == 10
+    assert len(stored.proof_scope) == 12
     store.close()
 
 
@@ -167,6 +167,9 @@ def test_an_artifact_row_records_its_digest(tmp_path: Path) -> None:
     row = store.connection.execute("SELECT * FROM artifacts").fetchone()
     assert row["sha256"] == EMPTY_SHA256
     assert row["run_id"] == run_id
+    artifacts = store.artifacts_for(run_id)
+    assert len(artifacts) == 1
+    assert artifacts[0].proof_scope_hash == scope_hash
     store.close()
 
 

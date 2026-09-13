@@ -3,9 +3,10 @@ from __future__ import annotations
 import hashlib
 import importlib
 import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 from hubbleops.core.errors import PackNotFound
 from hubbleops.core.records import as_mapping, as_text
@@ -50,6 +51,15 @@ class LoadedPack:
     def contract(self) -> ContractOracle:
         return self.implementation.contract
 
+    def verification_contract(self) -> ContractOracle:
+        factory = getattr(self.implementation, "verification_contract", None)
+        if factory is None:
+            return self.contract
+        contract = factory()
+        if not isinstance(contract, ContractOracle):
+            raise PackNotFound(f"pack {self.name!r} returned an invalid verification contract")
+        return contract
+
     @property
     def changes(self) -> ChangeCompiler:
         return self.implementation.changes
@@ -69,6 +79,22 @@ class LoadedPack:
 
     def falsifiers(self) -> list[Falsifier]:
         return self.implementation.falsifiers()
+
+    def verification_environment(self) -> Mapping[str, str]:
+        factory = getattr(self.implementation, "verification_environment", None)
+        if factory is None:
+            return {}
+        supplied = factory()
+        if not isinstance(supplied, Mapping):
+            raise PackNotFound(f"pack {self.name!r} returned an invalid verification environment")
+        result: dict[str, str] = {}
+        for key, value in cast(Mapping[object, object], supplied).items():
+            if not isinstance(key, str) or not isinstance(value, str):
+                raise PackNotFound(
+                    f"pack {self.name!r} returned an invalid verification environment"
+                )
+            result[key] = value
+        return result
 
     def contract_hash(self) -> str:
         from hubbleops.core.canonical import content_id
@@ -102,12 +128,29 @@ class LoadedPack:
         target = targets.pop()
         return f"latest ({target})"
 
+    def supported_targets(self, dependencies: Sequence[ParsedDependency]) -> tuple[str, ...]:
+        package_names = {normalize_package(name) for name in self.surface.package_names}
+        installed = [
+            item
+            for item in dependencies
+            if normalize_package(item.name) in package_names and item.version is not None
+        ]
+        if not installed:
+            return ()
+        supported: list[set[str]] = [set(self._targets_for(item)) for item in installed]
+        return tuple(sorted(supported[0].intersection(*supported[1:])))
+
     def _target_for(self, dependency: ParsedDependency) -> str | None:
+        targets = self._targets_for(dependency)
+        return targets[-1] if targets else None
+
+    def _targets_for(self, dependency: ParsedDependency) -> tuple[str, ...]:
         ecosystem = {"csharp": "dotnet"}.get(dependency.ecosystem, dependency.ecosystem)
         installed = _version_numbers(dependency.version or "")
         if installed is None:
-            return None
-        for version in reversed(self.versions()):
+            return ()
+        found: list[str] = []
+        for version in self.versions():
             compatibility = next(
                 (
                     fact
@@ -133,8 +176,8 @@ class LoadedPack:
                 and installed >= required
                 and (ceiling is None or installed <= ceiling)
             ):
-                return version.id
-        return None
+                found.append(version.id)
+        return tuple(found)
 
 
 def available_packs() -> tuple[str, ...]:

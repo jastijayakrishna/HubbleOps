@@ -79,6 +79,38 @@ def test_generic_layers_contain_no_provider_name() -> None:
     )
 
 
+CATALOG_SCOPE_CLAIMS = ("selectability", "filterability", "resource pairing", "mutate shape")
+
+
+def catalog_scope_offences(paths: list[Path], root: Path) -> list[str]:
+    offences: list[str] = []
+    for path in paths:
+        content = path.read_text(encoding="utf-8", errors="replace").lower()
+        for number, line in enumerate(content.splitlines(), start=1):
+            for claim in CATALOG_SCOPE_CLAIMS:
+                if claim in line:
+                    offences.append(f"{path.relative_to(root)}:{number} claims {claim!r}")
+    return offences
+
+
+def test_no_generic_surface_states_what_a_providers_catalog_authority_covers() -> None:
+    offences = catalog_scope_offences(scanned_files(), PACKAGE_ROOT.parent)
+    assert offences == [], (
+        "the scope of a CATALOG acceptance is the accepting pack's to state and the Receipt's to "
+        "quote; a generic layer that hardcodes it becomes false the moment a pack learns a new "
+        f"check: {offences}"
+    )
+
+
+def test_the_catalog_scope_scan_detects_an_injected_claim(tmp_path: Path) -> None:
+    root = tmp_path / "hubbleops"
+    proof = root / "proof"
+    proof.mkdir(parents=True)
+    claim = proof / "claim.py"
+    claim.write_text("SCOPE = 'proves nothing about any mutate shape'\n", encoding="utf-8")
+    assert catalog_scope_offences([claim], tmp_path)
+
+
 def test_an_injected_observe_to_pack_import_is_detected(tmp_path: Path) -> None:
     root = tmp_path / "hubbleops"
     observe = root / "observe"

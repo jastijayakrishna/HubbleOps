@@ -1,8 +1,28 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 
-from hubbleops.graph.imports import AstGrep, build
+import pytest
+
+from hubbleops.core.errors import ToolingFailed
+from hubbleops.graph.imports import (
+    AstGrep,
+    build,
+    combinable_queries,
+    queries_for,
+    separate_queries,
+)
+
+COMBINED_LANGUAGE_FIXTURES = (
+    ("python", "tests/fixtures/phase3/wrapper_patterns/repo", ("wrappers.py",)),
+    (
+        "typescript",
+        "tests/fixtures/phase3/typescript_version_symbol/repo",
+        ("release_value.ts", "transport_lookup.ts"),
+    ),
+)
 
 
 def test_python_imports_connect_to_local_definition_and_serialize_deterministically() -> None:
@@ -81,3 +101,78 @@ def test_wrapper_corpus_enters_definition_class_decorator_and_registration_graph
     assert any(item.startswith("class ") for item in search_context)
     assert any(item.startswith("registration ") for item in search_context)
     assert any(item.startswith("factory factory_registry") for item in search_context)
+
+
+@pytest.mark.parametrize(("language", "root", "paths"), COMBINED_LANGUAGE_FIXTURES)
+def test_one_combined_pass_returns_exactly_what_separate_queries_return(
+    language: str, root: str, paths: tuple[str, ...]
+) -> None:
+    runner = AstGrep()
+    target = Path(root)
+
+    sequential: set[object] = set()
+    for query in queries_for(language):
+        sequential |= set(runner.query(target, paths, language, query))
+
+    combined = set(runner.query_all(target, paths, language, combinable_queries(language)))
+    for query in separate_queries(language):
+        combined |= set(runner.query(target, paths, language, query))
+
+    assert combined == sequential
+    assert sequential
+
+
+@pytest.mark.parametrize("language", ("javascript", "php", "python", "typescript"))
+def test_every_query_the_partition_calls_combinable_is_accepted_by_the_rule_engine(
+    language: str,
+) -> None:
+    runner = AstGrep()
+    root = Path("tests/fixtures/phase3/wrapper_patterns/repo")
+    combinable = combinable_queries(language)
+
+    assert combinable
+    runner.query_all(root, ("wrappers.py",), language, combinable)
+
+
+@pytest.mark.parametrize("language", ("javascript", "php", "typescript"))
+def test_every_query_the_partition_holds_back_is_still_rejected_by_the_rule_engine(
+    language: str,
+) -> None:
+    runner = AstGrep()
+    root = Path("tests/fixtures/phase3/wrapper_patterns/repo")
+    held_back = separate_queries(language)
+
+    assert held_back
+    for query in held_back:
+        with pytest.raises(ToolingFailed):
+            runner.query_all(root, ("wrappers.py",), language, (query,))
+
+
+def test_ast_grep_prefers_the_vendored_binary_over_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    vendored = tmp_path / "_toolchain" / "win_amd64"
+    vendored.mkdir(parents=True)
+    binary = vendored / "ast-grep.exe"
+    binary.write_bytes(b"vendored ast-grep bytes")
+    (vendored / "manifest.json").write_text(
+        json.dumps(
+            {
+                "platform": "win_amd64",
+                "tools": {
+                    "ast-grep": {
+                        "file": "ast-grep.exe",
+                        "version": "0.45.0",
+                        "sha256": hashlib.sha256(b"vendored ast-grep bytes").hexdigest(),
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    binary.chmod(0o755)
+    monkeypatch.setattr("hubbleops.core.toolchain.vendored_root", lambda: tmp_path / "_toolchain")
+    monkeypatch.setattr("hubbleops.core.toolchain.platform_tag", lambda: "win_amd64")
+    located = AstGrep().binary
+    assert located.origin == "vendored"
+    assert located.path == str(binary)

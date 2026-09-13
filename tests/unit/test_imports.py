@@ -27,6 +27,7 @@ TOLERATED_DEEP_IMPORTS = frozenset(
         "app -> hubbleops.observe.ledger",
         "app -> hubbleops.observe.telemetry",
         "app -> hubbleops.packs._protocol",
+        "app -> hubbleops.sandbox.verifier_image",
         "app -> hubbleops.store.artifacts",
         "app -> hubbleops.store.sqlite",
         "observe -> hubbleops.closure.source_closure",

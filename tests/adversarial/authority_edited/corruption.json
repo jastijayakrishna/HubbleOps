@@ -1,0 +1,8 @@
+{
+  "summary": "the candidate edits the verification authority that is about to judge it",
+  "expected_verdict": "FAILED",
+  "reason_contains": "a candidate never edits the authority",
+  "caught_by": "diff containment (authority paths are never collateral)",
+  "delete": [],
+  "obligation_sites": []
+}

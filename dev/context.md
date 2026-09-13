@@ -7,10 +7,591 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 
 | | |
 |---|---|
-| **Current phase** | 5 — Independent Verification Authority. Phase 4 is merged to `main` and tagged `v0.4` |
-| **Branch** | `phase-05-verification-authority`, cut from `main` at `v0.4` |
+| **Current phase** | Compressed Tiers 0-2 are implemented through Phase 7 on top of an unmerged Phase 5. Phase 4 is merged to `main` and tagged `v0.4` |
+| **Branch** | `phase-06-repository-intelligence`, cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
-| **Next action** | Implement Phase 5 per `dev/plan.md`, then the fresh gate audit, red-team, and real-repo loop. P-009 must still be decided before AI triage receives any operational application, CLI, scan, or store route. Nothing has been pushed. |
+| **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) awaits the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
+
+**Phase 6 gate audit ran on `0aa558b` and returned `GATE: FAIL` (2026-09-13).** PR #1
+(`phase-06-repository-intelligence` → `main`, 45 commits) is green and `mergeable_state: clean`,
+and was NOT merged: CI proves the tests pass, not that the tree conforms. The blocker that matters
+is that a Receipt survives a new SHA — `prepare-pr` never compares the ProofScope it computes to
+the tree, so one forged string publishes a `VERIFIED_FOR_SCOPE` PR body for an unverified tree.
+The five blockers are in [dev/tasks.md](tasks.md). Nothing was merged, tagged or waived.
+
+**Working copy moved off OneDrive (2026-09-13).** The tree lives at `C:\dev\HubbleOps`; the
+OneDrive copy is left untouched as a fallback. Content is identical — same tree hash
+`592ba5b`, `git diff` empty; the only differences were CRLF-vs-LF working-tree bytes and two
+empty directories git cannot track. Use `uv sync --all-packages`, not `uv sync`: the plain
+form leaves `hubbleops-sentinel` uninstalled. OneDrive was worth leaving — every file was a
+Files-On-Demand placeholder, and SQLite WAL sidecars plus `.git` internals are exactly what a
+sync client corrupts.
+
+**Tier 3b built (2026-09-13) — precise indexers behind the graph, spike first (PART NINE of
+`dev/plan.md`).** Five indexers were run without installing any repository's dependencies and
+the numbers decided P-030: `scip-typescript` 0.4.0 indexes `google-listings-and-ads` (891
+documents, 74,928 occurrences, 7 s) and Dub (4,340 documents, 575,731 occurrences, 41 s) from a
+staged copy with a derived tsconfig; `scip-python` 0.6.6 does not start on Windows and needs a
+12 GB heap for the generated `google-ads-python` client (8,532 documents, 1,906,775 occurrences,
+1,733 s in WSL); `scip-php` needs PHP and composer (neither exists here); `scip-java` needs a full
+Gradle build that could not even download its distribution; `scip-dotnet` indexes
+`google-ads-dotnet` (5,852 documents, 5,548,842 occurrences, 448 s) only after restoring NuGet
+itself. GO: TypeScript, TSX, JavaScript, Python (Linux). NO-GO, recall-only with the enabling
+sentence on the map: PHP, Java, .NET. What landed: `core/precise.py` (dependency-free SCIP
+reader and `SymbolIndex`), `graph/indexers.py` (`ScipTypescript`, `ScipPython`, staged copies,
+entry-script identity, version-mismatch refusal), symbol-bound callers, barrel and alias imports
+resolved to their definition, identifier bindings by symbol, `precise` per language and the
+indexer status sentence on the map, and `;scip-typescript=<version>+sha256:<entry>` in
+`scanner_version`. Ground truth on the final bytes, indexer on PATH: GLNA 1,143 candidates ·
+259 AFFECTED · 218 NOT_AFFECTED · 333 UNKNOWN · 0 unexplained, javascript precise 873 of 891,
+php recall-only; Dub 327 · 4 · 73 · 32 · 0, typescript precise 2,346 of 2,348, tsx 1,991 of
+1,991; candidate ids and statuses identical to the pre-change baseline on both repositories,
+three consecutive Dub scans byte-identical. Six revert checks fail their tests. The held-out
+transfer (`google/ads-api-report-fetcher` `2419122`) found FA-064 on its first scan: a U+0085 in
+a minified bundle split ripgrep's JSON stream and the text observer died with a traceback; every
+line-delimited JSON stream now splits on `\n` only. The spec audit returned `GATE: FAIL` (a
+forced indexer failure shared its ProofScope with a success; a versionless symbol could replace
+a versioned alias binding; no direct test of identifier adjudication) and the red team returned
+`RED-TEAM: BROKEN` (host-ambient `@types` moved a verdict under one ProofScope, FA-065;
+interface dispatch deleted a true caller and closed an UNKNOWN by deleting evidence, FA-066;
+renamed imports never bound, FA-067). All of it is closed with fixtures and tests: external
+symbols are dropped so the index is a function of the tree and the pinned indexer, a caller is
+removed only when its symbol belongs to another definition in the graph, provenance is per
+caller, the forced path carries `+forced-recall-only`, and the package branch of adjudication
+is gone. Nothing was vendored (P-034 records the cost); no commit, push, or publication was
+requested or performed.
+
+**Tier 3a built (2026-09-13).** The customer path is real: `uv build --wheel` under
+`HUBBLEOPS_WHEEL_PLATFORM` produces platform wheels vendoring ripgrep 14.1.1 and ast-grep 0.45.0
+with pinned sha256 (`toolchain.json`, `hatch_build.py`, `core/toolchain.py`); the scan binds
+`rg=…+sha256:` and `ast-grep=…+sha256:` into `scanner_version`, so a swapped binary is a new
+ProofScope and a hash mismatch stops the scan (`TOOLING_MISSING`, never a PATH fallback).
+`tests/integration/test_ship_path.py` proves wheel → isolated `uv tool install` → `hops scan` →
+`hops exposure` with `rg` and `ast-grep` stripped from PATH in 35 s on win_amd64. Timed cold
+path on the ground truth with the same stripped PATH and the win_amd64 wheel: Dub `git clone` →
+map **183 s** (scan 171 s), `google-listings-and-ads` **126 s** (scan 104 s); wheel build 6.5 s
+from a warm cache, `uv tool install` 3.3 s. `hops exposure
+--install-workflow` writes a `pull_request` Action with `contents: read` only. Every resolved
+request skeleton is judged during the scan against every lattice version with the offline
+`pack.contract` (the map never builds a transport from the environment any more) and the map's
+QUERIES block shows one verdict per request site against the target; `hops scan --target` prints
+it. Dub's residue: UNKNOWN **103 → 32** on twelve named mechanisms (FA-054 … FA-060), three
+consecutive scans byte-identical, 0 unexplained, 0 violations of the re-frozen Dub baseline
+(`tests/fixtures/real_repo/dub_unknowns_before.json`: 3 substring identities retired, 6
+credential observations re-keyed from config to identifier claims, permitted sets carried, never
+widened). GLNA: UNKNOWN 358 → 333, all 259 AFFECTED preserved; four Merchant API sinks frozen
+RUNTIME_ONLY were relabelled FA-058 in the fixture with the reason recorded, and one baseline id
+(`AdsMissingEuDeclarationQuery.php:31`) was already absent before this session.
+
+The GLNA chain on the final bytes: `hops migrate` discharges **258 of 258** namespace sites
+(case-preserving `V23 → V25`; bound references edit the import line that carries their version;
+an obligation whose required state an earlier edit already wrote is SATISFIED, not human work) and
+leaves one for a human, the `dev-legacy-v32.1.0` composer pin, which the pin transform now refuses
+to rewrite into a release that does not exist. `hops verify --from v23 --to v25` twice → `VERDICT
+FAILED` with the identical `receipt_body_hash 12912e9af172451dbb078ebf8147c0016cccb651eb2be1055e9b3ff53d7ae04d`,
+and `hops prepare-pr` refused the FAILED receipt, as §17 requires. The failure is real and
+the Receipt names it: the pin supports no target; removed enum subjects (`ACQUISITION`,
+`CYO_INCENTIVE`) are still read in unit tests and e2e mocks; two `v20` per-call sites outside the
+v23 scope survive (`tests/e2e/utils/mock-requests.js:919`, a proxy mock JSON). **Not every
+conjunct is decided on this repository**, exactly as Q29/Q30 predicted: the frozen suite is
+`TOOLING_MISSING` (jest and phpunit are declared and not installed; PHPUnit's bootstrap also needs
+the WordPress test library and a database), the oracle reached none of the 32 request sites
+(first-party GAQL builder, Merchant API client, JS metric anchors), and the response-consumer
+check has 617 sites that assemble a name from parts this build cannot resolve. P-032 records
+where dependency provisioning belongs; builder-skeleton extraction and a resolvable
+name-assembly check are the next two closures on this repository.
+
+Evidence on the final bytes: full suite **1085 passed, 0 failed** (`uv run pytest -q`, 17m23s,
+including the two real-repo conservation scans); strict Pyright **0 errors, 0 warnings** over `hubbleops`
+and `tests`; Ruff lint and format clean over 206 files; `hops pack verify google_ads` passes;
+revert check **8 of 8** new mechanisms fail their own tests when reverted, every file restored
+byte-for-byte.
+
+**The first gate audit returned `GATE: FAIL` on three blockers, all closed the same night.**
+(1) `hops prepare-pr` accepted a Receipt bound to another SHA: `proof/memory.prepare` now refuses
+when the repository HEAD is not the receipt's `candidate_sha` ("a new SHA kills the old proof").
+(2) The Receipt's verdict was trusted as written: `proof/pr_body.eligible` now requires
+`verdict_holds`, which re-derives eligibility from the recorded conjuncts (every check section
+passed with nothing unresolved, the frozen suite executed and COMPLETED with passing tests, oracle
+authority CATALOG or LIVE with no INVALID result, falsifiers PASS or SKIPPED, zero unexplained
+hunks, no reasons, and UNKNOWN_BLAST empty exactly when the verdict is VERIFIED_FOR_SCOPE); the
+end-to-end chain test proves both refusals. (3) One GLNA baseline id was a pre-existing,
+unrecorded re-key (the anchor subject became the resource subject under P-026): it is now
+recorded under `identity_migration.rekeyed_identities`, and
+`tests/integration/test_real_repo_conservation.py` scans both pinned checkouts whenever they are
+present and asserts zero conservation violations, so a vanished candidate on the ground truth
+fails the suite on this machine. The audit's remaining notes: the host-execution deviation from
+§9's "own image" is recorded in P-032; the two W7 corruptions are locked by unit and CLI tests
+rather than corpus directories; the L10 store guard fires only on a transition (unreachable from
+the pipeline while AI triage is disconnected under P-009) and the guard hook's proposal-status
+bypass is self-certifying, both left open for the owner.
+
+**The re-audit closed all three and found the §17/§18 seam red by construction**: the tree
+`hops prepare-pr` leaves behind failed its own Backslide Guard, twice over. The PR body was
+written at the repository root and names the old version, so the guard flagged it; the body is
+run output and now lands under `.hubbleops/artifacts/`. And a removed field name still written
+as test data (a dict-literal key the audit deliberately treats as data, not a read) was retired
+anyway, so the rg-only guard fired on the very tree the Receipt verified; `prepare-pr` now defers
+any pattern the verified tree still contains textually (`NOT RETIRED … still written at N sites`),
+retires only what the tree is clean of, and the chain test asserts `hops guard` passes on the
+prepared tree. The same seam exposed a mock-pack gap (a `def __init__(…, version="v1")` default
+was never a carrier, so the machine migration left it behind while verify said VERIFIED); the
+mock surface gained `client_version_default`. The guard also resolves ripgrep through the vendored
+toolchain now, so the generated guard Action runs on a runner with nothing but uv. P-033 records
+the §6.4 (no hop cap) and §11 (no NetworkX, no coverage.py) deviations the auditor found
+unwritten. A third audit has not been run; nothing merges until one returns `GATE: PASS`.
+
+Three things a later session must not undo: the resolver judges skeletons against the lattice and
+the map judges against the target, both offline; a generic sink is explained only when no provider
+link, direct or imported, exists anywhere on its chain; the frozen baselines carry re-keys and
+relabels as recorded entries, never as widened permitted sets.
+
+
+
+**Tier 3a plan (2026-09-12) — PART EIGHT of `dev/plan.md`.** Ground truth re-measured on the
+working tree: Dub 326 candidates / 103 UNKNOWN in 1m39s, `google-listings-and-ads` 1,143 / 358
+in 1m34s, both 0 unexplained. Six chain gaps were found by running the verbs rather than reading
+them: `hops migrate --dry-run` claims **no transform on either repository** (the version-literal
+transform is case-sensitive, so `Google\Ads\GoogleAds\V23` never matches `v23`, and Dub's edit
+site is the template line rather than the `constants.ts:20` literal the walk already found);
+the frozen suite runs on the host with `bounded_process`, never inside the verifier image; the
+map validates through `pack.verification_contract()`, which would reach the network with
+credentials in the environment; `.tsx` files are counted structurally supported and never parsed
+(`-l typescript` is forced; `-l tsx` finds 26 imports where typescript finds 0); 32 GLNA request
+sites (first-party GAQL builder, Merchant API client, JS metric anchors) never reach the oracle;
+and this machine has no PHP, so the frozen PHPUnit suite is `TOOLING_MISSING`. Dub's 103
+UNKNOWNs are classified into twelve mechanisms with every site listed; eight are closable with
+evidence (expected 103 → 28, or 41 if generic HTTP sinks must stay UNKNOWN), and three classes
+stay UNKNOWN by design (string slugs, a v22 test fixture, unbound contract surfaces). Nothing
+was implemented; no file outside `dev/` changed.
+
+**Diagnosis of the "1 issue, hundreds of UNKNOWNs" complaint (2026-09-12) — PART SEVEN of
+`dev/plan.md`.** The owner asked why the product reports one issue and hundreds of UNKNOWNs
+where an AI reviewer reports four findings. Measured on a fresh scan of
+`google-listings-and-ads` (1,364 candidates, 249 AFFECTED, 672 UNKNOWN) and on `hops impact`:
+the root is pack data, not the engine. `_reconcile_field` marks **1,407 of 2,995 v25 fields**
+(every metric, every segment, `customer.id`) `UNKNOWN_PROVIDER_CONTRACT` because the proto
+projection is missing for them, so the oracle refuses `SELECT customer.id FROM customer`, 1,086
+of 1,238 v23→v24 "changed" facts are byte-identical, and `impact` tells the user to "resolve
+what replaces `metrics.clicks` in v25". Second, the scan never reads the target contract, so
+the Exposure Map cannot show a contract-level finding at all; its AFFECTED unit is a
+version-carrying line (229 of 249 are `use ...V23` statements). Third, `verify` is pytest-only,
+so no PHP/JS repository can reach a Receipt. Programme F1-F8 and questions Q25-Q28 are in
+PART SEVEN.
+
+**All of F1-F8 landed the same day, on the owner's instruction.** Evidence on the final bytes:
+full suite **990 passed, 0 failed** in 14m33s; strict Pyright **0 errors** over `hubbleops` and
+`tests`; Ruff lint and format clean over 200 files. Pack lattice is now
+`4555e93f3377db7e59de8d46f85c6a02c85b652f2a16df3309d8cc1945c4edca` (was `5b31c7c8…`); every
+earlier proof re-scopes, which is correct. Catalog: unresolved v25 fields 1,407 → 140, adjacent
+CHANGED/UNKNOWN 1,238 → 27, two genuine subject replacements now carried, 22 ambiguous
+release-notes rows counted and never guessed; the oracle accepts `SELECT customer.id FROM
+customer` at CATALOG authority. `google-listings-and-ads` at `b43b322`: candidates 1,364 → 1,143,
+UNKNOWN 672 → 358, NOT_AFFECTED 110 → 193, unexplained 0 → 0; the map now reads "V23 · 229 sites ·
+37 files", names the SDK floor (33.6.0, `floor unknown` for `dev-legacy-v32.1.0`) and sunsets;
+impact reports 259 deterministic edits, 0 human, 0 unresolved versions, 39 affected paths (was
+474). `dubinc/dub` at `b8866f4`: candidates 471 → 326, UNKNOWN 249 → 103, effective V22
+sunsetting 2026-10, one deterministic edit. Atlas rows FA-049 … FA-053; proposals P-030 and
+P-031 raised. Five things a later session must not undo are listed under PROGRESS in PART SEVEN.
+Not done: `hops verify` on either real repository (their dependencies are not installed in the
+sandbox); PHPUnit without a coverage driver is unverified on this machine and fails closed.
+Nothing was committed.
+
+**Coverage closure (2026-09-12) — FA-040 … FA-048, P-026.** A real-repo scan of `dubinc/dub` at
+`b8866f4` found observable Google Ads surface disappearing with **no candidate at all**, which
+contradicts §2's own promise that structural gaps only move work into UNKNOWN. Seven classes fixed
+architecturally, two more found on held-out repositories. Evidence on this tree: full host suite
+**820 passed, 1 xfailed, 0 failed** in 11m52s; strict Pyright **0 errors, 0 warnings**; Ruff check
+and format clean; revert-check **7 of 7** reverted fixes fail their own eval; three consecutive
+scans of one fixture byte-identical. Dub: 333 → 471 candidates, UNKNOWN 111 → 249,
+EXCLUDED_WITH_EVIDENCE 0 → 3, UNSCANNED 10 → 7, UNEXPLAINED **0 → 0**, scan 59s → 2m21s. No commit,
+merge, tag, push, or deployment was requested or performed.
+
+**The Phase 5 DoD audit (2026-09-11) — D-001 and D-002.** An audit of the shipped Phase 5 against
+its own DEFINITION OF DONE found two defects, both in `unknown_conservation_pass`, both fixed. The
+full account is PART FIVE of `dev/plan.md`.
+
+`decision.apply` checked a decision's `run_id` and `proof_scope_hash` against the ledger it was
+applying to — the *candidate* run — while `read_decisions` had already validated it against the
+*base* run it was recorded in. Base and candidate are never the same run, so every decision
+`hops decide` writes was refused and `hops verify --decisions` aborted without producing a Receipt.
+The recorded-human-decision half of L3 had never worked. The deciding identity is now an explicit
+parameter of `apply`; the blob-drift guard is what carries a decision across SHAs and still refuses
+one whose source moved.
+
+Worse: `conserve.compare` decided "new evidence" by comparing evidence record ids, and
+`evidence_identity` hashes `run_id`, `proof_scope_hash` and `repo_sha` alongside the observation.
+Those three always differ between base and candidate, so every candidate-run record counted as new
+and the violation branch could not fire for any candidate carrying evidence. One of the nine verdict
+conjuncts was always true in production. `core.evidence.observation_identity` — the record minus
+`id`, `run_id`, `proof_scope_hash`, `repo_sha` — now decides it, so "new evidence" means a new
+observation; `source_hash` and `value` stay in the key, so a changed file is genuinely new evidence.
+
+Both defects passed their unit tests because those tests built base and candidate ledgers under one
+synthetic run id, a state production never reaches. **A cross-run rule needs a cross-run fixture.**
+Three things a later session must not undo: "new evidence" stays scoped to the evidence attached to
+the closing candidate, because the looser reading restores the vacuity the fix removed; the three
+new decision-channel integration tests are the only end-to-end proof that L3's decision half works;
+and Q20 (is a relocated UNKNOWN dropped or conserved?) is open and deliberately unchanged.
+
+**The credential boundary (2026-09-11) — P-020.** The owner ruled that HubbleOps engages a customer
+repository read-only and asks for no provider credentials. The audit that forced it: the generated
+Action required the customer to place five Google Ads OAuth secrets in their own repository, and
+those credentials carry read *and* write authority because Google issues no validate-only
+credential — only our own source setting `validate_only = True` constrained them. Meanwhile eight of
+the nine conjuncts of the verdict rule never needed a network at all.
+
+`_validate_fields` now returns a positive `VALID` attributed to `CATALOG` authority when the target
+catalog's `field_inventory` asserts completeness and every field resolves; a configured live
+transport still outranks it and returns `LIVE`. `ValidationResult`, `OracleOutcome` and `OracleCheck`
+carry the authority, and `verify/oracle.py` refuses an acceptance that names none — an unstated
+strength is not proof. The Receipt gained the required top-level `oracle_authority`, so no Receipt
+can stay silent about the strength of its own oracle evidence, and both `receipt.md` and the PR body
+state it. Answers to Q17/Q18/Q19 are in PART FOUR of `dev/plan.md`.
+
+Three things a later session must not undo. Catalog authority proves only that a named field exists
+in a complete inventory: it proves nothing about selectability, filterability, segmentation,
+resource pairing or date ranges, and the reason string says so on every result. P-021 gives
+`GoogleAdsService.Mutate` a catalog-authority path only when every supplied protobuf JSON field and
+container shape recursively resolves through `message` and `proto_field` facts. It does not claim
+required-field, oneof, resource, permission or business-rule semantics; ambiguity stays UNKNOWN.
+The live transport is still exercised only against `_mock`: nothing may describe `LIVE` authority
+as provider-proven until a real run exists.
+
+**Where that scope is allowed to live (2026-09-11) — P-022, FA-033.** The two paragraphs above are
+the *pack's* statement, and the pack is the only place allowed to make it. P-020 had also written a
+fixed version of it into `proof/receipt.py` and into the `receipt.json` `oracle_authority`
+description, both ending "or any mutate shape". P-021 then made a validated mutate shape a CATALOG
+acceptance, so the Receipt and the frozen schema began denying what the same build proved, and no
+test could notice because none pinned the sentence. `proof/` now renders the distinct stated
+`reason` of every accepted CATALOG check — sorted, deduplicated, one `scope:` line each — and a
+CATALOG acceptance whose checks state no scope renders as proving nothing rather than falling
+silent. A later session must not reintroduce a generic scope sentence: the boundary test
+`test_no_generic_surface_states_what_a_providers_catalog_authority_covers` fails any generic surface
+that names a provider capability, and it is the reason this class of drift cannot recur.
+
+**Completion sweep (2026-09-11).** P-012 now binds every verdict-affecting input and non-secret
+oracle context into ProofScope; P-015/P-018 preserve provider reference data, unsupported files,
+unscanned files and human-accepted risk through ledgers, obligations and Receipts; SQLite schema v2
+refuses an old constraint instead of rewriting provenance. `hops decide`, `replay`, `impact`, `guard`
+and `prepare-pr` now exist. Phase 7 writes the complete PR body, cumulative retired-surface guard,
+repo-resident memory, and read-only exact-SHA pull-request/merge-queue Actions. P-019 keeps generated
+credential bindings provider-owned while generic Proof code sees only validated inert names.
+
+The ordinary-application real-repo loop ran on `woocommerce/google-listings-and-ads` at
+`b43b322771071ed88d5a817422dd222acbaa5f33`: 2,061 closure entries, 1,315 candidates, 230 affected,
+1 not affected, 306 unsupported, 26 unscanned, 752 unknown, zero unexplained and zero resolution-
+budget exhaustions. The first detached worktree exposed Windows long-path failure FA-026; scoped
+`core.longpaths=true` on every transcripted Git invocation closed it. The corrected PHP hook smoke
+ran in the pinned rootless image with network `none`, a read-only repository, exit 0 and an installed
+hook; because the benign workload emitted no provider request, the ledger correctly retained
+`UNKNOWN_DYNAMIC` instead of claiming absence.
+
+**What those 752 UNKNOWNs actually are (2026-09-11).** The loop's output was gone, so the scan was
+reproduced from a fresh read-only clone at the same pin and matched every number exactly — 2,061
+closure entries, 1,315 candidates, 230 AFFECTED, 1 NOT_AFFECTED, 306 UNSUPPORTED, 26 UNSCANNED, 752
+UNKNOWN, 0 unexplained — on HubbleOps `66e5b75` plus the uncommitted worktree. **Scans are
+reproducible across clones; only the run id moved, because it hashes the absolute target path.**
+
+Grouped by winning evidence record, the 752 are **eight causes, not 752 sites**, and they sit on only
+**488 distinct source locations**. Two causes are 704 of them (93.6%), and both are the same defect:
+the text observer emits one candidate per *lexical occurrence* of a surface identifier and records no
+syntactic role, so an import, a docblock, a type hint, a stylesheet selector, a help-centre URL and a
+UI slug each raise a candidate indistinguishable from a call. Only **4 candidates (0.53%) are
+genuinely undecidable** — `UNRESOLVED_SYMBOL` on a function parameter, which needs dynamic capture.
+The five patterns are FA-034 through FA-038.
+
+Four findings a later session should not have to rediscover. The application's own domain vocabulary
+*is* the provider's name, so recall matches scale with how much the product talks about the provider
+rather than with how much it calls it. One token (`google-ads`) sits in both `identifiers` and
+`package_names`, so 194 (path, line, subject) triples raise two candidates each — 25.8% of all
+UNKNOWNs is one observation counted twice. Sixteen sites are one join short of AFFECTED: the
+construction site and its versioned import are separate candidates nothing binds, and a further 110
+bind to a *first-party* import, which is positive evidence the token is not a provider symbol.
+And the repository is uniformly on **V23** across all 229 `call_version` records, so none of these
+UNKNOWNs is version ambiguity — the pack simply cannot map the lock's `dev-legacy-v32.1.0` to an API
+version, which is FA-009 again.
+
+The highest-leverage group is the 496 `surface_reference` recalls: 416 of them are in
+structurally-supported languages, so recording the containing node kind as evidence is enough to
+dispose of them. **Closing that one group alone moves the decided share from 17.6% to 55.3%.** The
+closer must stay evidence-based — a name-based exclusion list would hide real usage, which is the
+failure the laws exist to prevent.
+
+**The root-cause programme (2026-09-11) — PART SIX of `dev/plan.md`.** The owner directed that these
+be fixed as *mechanisms*, not symptoms: extract every generic failure mechanism, fix it once, encode
+it as evidence plus regression plus invariant, then prove it transfers to repositories never used to
+develop it. The optimisation is stated explicitly — maximise resolved candidates subject to
+`false_safe = 0`, `unexplained = 0`, `candidate_loss = 0`. **752 → 4 is the target; 752 → 0 would be
+evidence of a defect.**
+
+The 752 are frozen before any change in `tests/fixtures/real_repo/glna_unknowns_before.json`: every
+candidate id, location, claim, winning evidence, shipped closing instruction, root cause, and the
+**set of dispositions it is permitted to reach**. `tests/unit/test_real_repo_baseline.py` (9 tests)
+enforces it, including the two failures that matter — a candidate that vanishes, and a
+`RUNTIME_ONLY` site forced closed. Root-cause totals: FA-034 497, FA-035 208, FA-009 24, FA-038 19,
+RUNTIME_ONLY 4.
+
+The baseline rests on a measured fact: **two scans of the same commit produced byte-identical
+ledgers** (`sha256 ee807fc0…`), identical ProofScope, identical candidate ids, and all 752 conserved.
+Candidate identity carries no run id, so conservation is checkable rather than aspirational.
+
+Nine mechanisms are named in PART SIX (M1 recall matches carry no syntactic role; M2 one observation
+becomes two candidates; M3 missing symbol binding; M4 first-party wrappers shadowing provider names;
+M5 non-code carriers; M6 SDK release to API version; M7 request and response conflated; M8 embedded
+language parse failure; M9 the irreducible four). **P-023, P-024 and P-025 are raised and OPEN.**
+P-023 needs no frozen-schema change at all — `claim_type` is an open string, `value` is "any JSON
+value shaped by claim_type", `observer` already contains `structure` and `confidence` already
+contains `PROVEN` — so the structural layer can adjudicate the recall layer through the resolver's
+existing per-claim precedence. P-024 is the large one: it touches candidate identity and therefore
+every stored id, and it must land *after* P-023 so its effect is measured against an adjudicated
+corpus.
+
+The prior art was researched rather than assumed, and two points are load-bearing. OpenRewrite's
+type attribution is the right idea but needs the full compilation classpath, which a read-only
+customer engagement does not have — so HubbleOps takes import-table symbol binding instead, which
+resolves the measured cases without a build. Sourcegraph's documented failure mode is that precise
+navigation **silently falls back to search-based** when the index is missing; HubbleOps must never
+acquire that behaviour, and P-023 is written so that a file the structure observer did not parse
+produces no adjudication and the text claim survives as UNKNOWN. Absence of adjudication is never a
+disposition.
+
+**Q21-Q24 were answered by the owner on 2026-09-11.** Q21: a token proved by parse to sit inside a
+comment resolves `NOT_AFFECTED_WITH_EVIDENCE`, with a separate documentation-drift count so stale
+docs stay visible without being a safety claim. Q22: a string literal resolves only when its
+enclosing definition is itself reached by the graph and no path to a sink exists, so an incomplete
+graph reads as uncertainty rather than safety. Q23: one candidate per observation carrying multiple
+claims. Q24: three held-out repositories, at least one not PHP.
+
+**P-023 is ACCEPTED and implemented (M1 comments + M3 symbol binding + M4 handoff).** The graph
+gained `comment` nodes (verified present in all four supported languages); `observe/structure.py`
+adjudicates every recall match in a file it parsed, emitting `PROVEN` evidence carrying the
+containing node kind and the symbol binding; `CLAIM_PRECEDENCE["surface_reference"]` is now
+`("structure", "text")`, so the adjudication outranks the recall through the machinery the resolver
+already had. **No frozen schema changed.**
+
+Measured on the frozen baseline's own commit: **752 UNKNOWN → 624**, with 19 resolved to AFFECTED
+and 109 to NOT_AFFECTED_WITH_EVIDENCE. Candidates unchanged at 1,315, unexplained 0, **0 absent, 0
+in a non-permitted status, 0 previously-AFFECTED downgraded**, and the four statically undecidable
+sites still UNKNOWN. All 109 NOT_AFFECTED sites were audited by an independent comment-detection
+method written separately from the product code: **zero false safes**. Decided share 17.6% → 27.3%.
+Full suite **774 passed, 1 xfailed, 0 failed** in 14m09s; Ruff lint and format clean over 225 files;
+strict Pyright **0 errors, 0 warnings**.
+
+Four things a later session must not undo. A file the structural layer did not parse produces no
+adjudication and the recall UNKNOWN survives — **absence of adjudication is never a disposition**,
+which is precisely the Sourcegraph silent-fallback failure. A line carrying the subject in both code
+and a comment is not adjudicated at all, because the per-occurrence verdicts disagree and the
+unresolved reading is the safe one. A token that is merely a *substring* of a bound alias stays
+UNKNOWN, because substring-of-alias reasoning is unsound — `tests/fixtures/phase1/vendored_sdk` pins
+that asymmetry, and its one expectation change (UNKNOWN → AFFECTED on a genuine V22 provider import
+line) was verified by reading the source before it was recorded. And a first-party binding is never
+a safety verdict: 69 sites now carry a closing instruction naming the wrapper to follow (FA-039).
+
+Still open under the accepted proposal: Q22's string-literal reachability, Q21's documentation-drift
+count, and P-024, whose shape is accepted but which must land after P-023 and requires re-freezing
+the baseline under the new identity. The P-024 invariant is already a **strict xfail** in
+`tests/property/test_adjudication_invariants.py`, so it fails the suite the day the behaviour
+changes and cannot be forgotten. **No held-out repository has been run yet, so no claim of transfer
+is made.**
+
+**Repository Intelligence Engine (2026-09-09).** The owner directed a re-architecture: one
+provider-neutral repository model, with provider packs mapping external API contracts onto it, so
+provider logic never reimplements discovery, traversal, indexing, propagation, caching or
+completeness accounting. The full plan and the measurements behind it are PART THREE of
+`dev/plan.md`. Two new invariants govern it: **no optimization may silently reduce candidate
+coverage**, and **no hop limit determines safety**.
+
+What forced it, measured rather than assumed: a scan of *this repository's own tree* did not finish
+in 25 minutes, because 196 MB of provider catalogs carrying 287,240 surface matches were classified
+`INSIDE` and fed to source-code AST analysis. Five things landed, each with its own evidence.
+
+**Roles.** `FileRole` on every closure entry. Bulk roles (`DATA`, `SNAPSHOT`) are enumerated and
+counted but never AST-analysed; the text observer emits one `bulk_data_reference` per bulk file and
+the resolver returns `EXCLUDED_WITH_EVIDENCE` naming the role. Self-scan **>25 min → 52 s**,
+candidates 9,437 → 1,858, unexplained 0 throughout. Size alone was not enough — the sub-256 KB
+`proto_v*.json` blobs needed a density collapse past 100 records per file, which turned 7,926 JSON
+UNKNOWNs into 38 accounted candidates. **The role is a disposition input, never a filter**: the file
+is always enumerated, its matches always counted, and the closing instruction says how a data file
+that first-party code actually loads becomes a call site instead.
+
+**One parse per language.** `AstGrep.query_all` runs a single multi-rule `scan`, demultiplexing by
+`ruleId`, in place of 18–20 `run -p` invocations. Proven identical before switching: python
+60,210 = 60,210, php 263 = 263. Six patterns the rule engine rejects in `scan` mode are held back by
+an explicit partition, and a test asserts that partition is exactly right so an ast-grep upgrade
+fails loudly instead of silently degrading. Honest result: 3.22× at 200 files, 1.35× at 800, ~0.76×
+on few-large-file trees, neutral end to end. **§2 is not the big lever; roles were.**
+
+**The hop limit is gone as a proof boundary.** `MAX_CALL_DEPTH = 5` is replaced by
+`ResolutionBudget`; exhausting it yields `RESOLUTION_BUDGET_EXHAUSTED`, never `NOT_AFFECTED`. The
+`seen` frozenset already guaranteed termination, so the depth cap was only ever cost control. The
+6-hop `depth_6` fixture now resolves. Testing this found a real FA-020-class defect: an exhausted
+value was dropped from the record set entirely, and when kept was labelled
+`CONTRACT_VALIDATION_DEFERRED` — an exhausted walk reading as a *validated request*. Both fixed.
+
+**Compositional summaries.** `ResolutionCache` keyed by `(path, offset, text, owner)`. It stores hop
+*suffixes*, so a reused summary carries the calling wrapper chain rather than the cached one — that
+is what keeps the audit trail honest under reuse. It never stores a path-dependent terminal
+(`AMBIGUOUS_CYCLE`, `RESOLUTION_BUDGET`), which is what keeps it sound. **175 s → 55 s and 28 → 0
+budget exhaustions, with results identical to the uncapped run.** Budget sensitivity disappeared
+entirely: 0 exhaustions at 20k, 200k and 2M. This is the change that made the fixed point affordable.
+
+**Discovery completeness (P-017).** The Exposure Map gained a section stating what the *search*
+proved: corpus accounting, analysis reach, resolution frontier, role census, and an explicit
+`DISCOVERY_COMPLETE` / `DISCOVERY_INCOMPLETE` verdict naming each unmet reason. It earned its place
+on the first run by surfacing 28 budget exhaustions that were otherwise invisible. The verdict is
+about the search, never the repository's safety: `DISCOVERY_COMPLETE` alongside 400 preserved
+UNKNOWNs is a legitimate result, because L2 makes a preserved UNKNOWN a correct outcome.
+
+**P-015 and P-018 are implemented.** Candidate and Receipt accounting now distinguish
+`PROVIDER_REFERENCE_DATA`, `UNSUPPORTED`, `UNSCANNED`, and `HUMAN_ACCEPTED_RISK`; `FIXED` and
+`VERIFIED` remain deliberately excluded so a scan cannot assert a verification-time fact. P-016
+(one scan, many providers — one corpus and index, N ledgers and N ProofScopes, no composite scope)
+remains a future optimization outside the compressed milestone.
+
+**Compression of Phases 6-10 (2026-09-09).** The repository owner directed a compression to a
+pilot-ready product; the tier plan is PART TWO of `dev/plan.md`. What justified it, measured rather
+than assumed: the composed v22->v25 contract diff is ~1,577 ADDED, 6 CHANGED and 174 REMOVED, so the
+migration is dominated by version literals, generated namespaces, REST paths and the SDK pin, all
+deterministic; `repair_class` in the frozen `obligation.json` already enumerates `HUMAN`, so shipping
+without the LLM repair agent is sanctioned by the schema rather than a degradation of it; and
+`hops verify` takes two SHAs and an obligations file, so it never cared who wrote the candidate.
+Cut: `repair/agent.py` and the sandboxed repair loop, the hosted GitHub App (a committed Action in
+the customer's own runner satisfies every §17 clause and removes an enterprise security review), all
+of Phase 8's machinery (`hops impact` ships over a full rescan), and all of Phase 9. Every cut defers
+cost, never proof. **A compressed scope is not a compressed gate** — each tier still needs a fresh
+audit, the red-team and a real-repo loop.
+
+Landed on this branch under that plan: **P-014** (`Transform` gains `failure_class`, `precondition`,
+`apply`, `postcondition`, with `TransformInput`/`TransformOutput` in `core/repair.py` following
+P-011's placement so `repair/` never imports `packs/`); the **obligation engine**
+(`obligations/engine.py`, keyed by candidate and that candidate's *own* effective version against one
+target, `DETERMINISTIC` only where the diff names a replacement, `HUMAN` for a removal with none,
+`PRESERVE_UNKNOWN` for anything that does not compose); and **P-013** (the Exposure Map's UNKNOWN
+section groups by closing instruction, ranks by sink proximity, and collapses past a ten-site
+budget). Two things a later session must not undo: the grouping test asserts grouped site counts sum
+to the ungrouped UNKNOWN count, because a rendering that can lose a candidate is an L1 violation with
+a delay; and the group-expansion budget is checked *including* the candidate group, not before it —
+the first implementation checked before, so a 40-site group slipped through fully expanded.
+
+Tier 1's repair half also landed. `repair/deterministic.py` is a generic runner — precondition,
+apply, post-check — that threads text through several obligations touching one file, reverts on a
+failed post-check without writing, and converts a throwing transform into `TRANSFORM_FAILED` instead
+of a crash. `packs/google_ads/repairs.py` holds four transforms: version literal, REST path, subject
+rename and SDK pin. `hops migrate` (`app/migration.py`) scans, builds obligations, runs the
+transforms, writes the changed files and emits the obligations JSON that `hops verify --obligations`
+already consumes. It prints, and returns, no verdict.
+
+Proved end to end on `tests/fixtures/phase1/python_pinned_v22`, copied out of the repository:
+`version="v22"` became `version="v25"`, and `google-ads==22.1.0` became `google-ads==31.2.0` — the
+latter read from the catalog's own `client_compatibility.minimum_versions` for v25, never guessed.
+Three things a later session must not undo. The SDK pin's minimums are keyed by *target version*
+rather than captured at construction, so `repair_transforms()` keeps the frozen no-argument
+`ProviderPack` signature and a non-default `--target` still gets the right floor. A transform whose
+`precondition` returns false is not a failure: the obligation stays open and the runner reports
+`NO_TRANSFORM`, which is how a language with no documented minimum (JavaScript has none) correctly
+declines instead of inventing a pin. And `hops migrate` writes the working tree but does not commit,
+because committing on a user's behalf is hard to reverse and `hops verify` works on any two SHAs.
+
+`packs/_mock` gained a transform of its own at the same time, because the pack conformance test
+asserted `repair_transforms() == []` with the message "repair transforms and tools ship in Phase 6" —
+a placeholder asserting the feature's *absence*. Replacing it with the falsifier block's shape
+(non-empty, protocol-conforming, unique names, every `failure_class` set) meant `_mock` had to reach
+parity, which is the better outcome anyway: `repair/deterministic.py` is now exercised by two
+independent pack implementations rather than one, so the abstraction has evidence rather than a
+claim. `repair_tools()` stays `[]` on both, and the assertion now says why — `ToolSpec` is deferred
+until a `PROVIDER_TOOL` class ships. Note the frozen-dataclass trap: `Transform` declares writable
+attributes, so a member annotated `Transform` cannot be a `frozen=True` dataclass; `MockRemovedField`
+had already solved this with plain `@dataclass(slots=True)`.
+
+The first end-to-end run exposed a defect worth remembering: a dependency pin is AFFECTED but carries
+`sdk_installed` evidence, not `call_version`, so requiring a resolvable effective version turned
+every SDK-pin obligation into `EFFECTIVE_VERSION_UNRESOLVED` and the pin was silently never bumped.
+A dependency candidate now earns its obligation directly against the target. **The general shape:
+"what version is this site on" is not one question — a call site answers it from a literal, a
+dependency answers it from a compatibility table, and code that assumes the first silently drops the
+second.**
+
+**P-012 is implemented.** ProofScope carries explicit `verification_inputs_hash` and
+`oracle_context_hash` fields rather than overloading `build_config_hash`. The canonical input
+manifest binds base and candidate SHAs, version pair, obligations, decisions, captures and frozen
+suite identity; every source-bound input is validated before use. The oracle context binds the
+implementation, transport and non-secret authority context, and a context change during validation
+fails closed. `.claude/hooks/guard.py` now allows a frozen schema write only when an ACCEPTED
+proposal names that exact path, so the proposal route works without weakening the default denial.
+
+Phase 5 (2026-09-08): `hops verify <base> <candidate> --pack <name>` ships. `verify/` holds the six
+checks and the pure verdict; `proof/receipt.py` writes `receipt.json` and `receipt.md` in the §16
+layout; `sandbox/verifier_image.py` stops being a stub.
+
+Five things a later phase must not undo.
+
+- **The frozen suite is the base's, staged over candidate source.** `verify/suites.py` copies the
+  candidate tree to a scratch workspace and then copies the base SHA's test directories over it. A
+  candidate that weakens or deletes its own assertions still faces the base's. Candidate tests run
+  separately and are recorded as evidence; they never touch the verdict.
+- **Coverage is execution-derived.** A stdlib `sys.monitoring` line tracer, injected as a mounted
+  pytest plugin, emits one JSON line per test naming the files that test actually executed. No new
+  dependency and it works with `network=none`. There is no `test_foo.py → foo.py` heuristic anywhere
+  in the phase, and a language the tracer cannot follow is `COVERAGE_UNSUPPORTED`, which puts its
+  modules in `UNKNOWN_BLAST` rather than assuming them covered.
+- **The diff comes from `git`, inside `verify/`.** `verify/gitdiff.py` shells out itself and
+  cross-checks `--unified=0` against `--numstat`, so no caller can substitute a change manifest. A
+  hunk under `hubbleops/verify/`, `hubbleops/proof/` or the state directory is never COLLATERAL.
+- **An obligation locates itself by `current_state`.** Evidence ids are run-scoped, so resolving an
+  obligation's site only through them fails across runs. Containment reads the `file:line` the frozen
+  `obligation.json` already says `current_state` carries, and uses evidence ids when they resolve.
+- **The rescan's run id is the commit, not the worktree.** It used to be the temporary checkout path,
+  so two verifications of the same two commits produced different evidence ids and different
+  receipts. `scan_repository` now takes `run_target`, and verification passes `commit:<sha>`.
+
+Determinism is asserted, not assumed: `receipt_body_hash` is the content id of the receipt with
+every timestamp field stripped, and two runs of one scope must agree on it.
+
+**The Phase 5 red-team found a P0 and it is closed.** A response reader that keeps a removed field
+by writing `"campaigns." + "legacy"` defeated the consumer check, which only ever compared whole
+atoms. Every other conjunct was honestly clean, so a migration that raises `KeyError` against a real
+response reached `VERIFIED_FOR_SCOPE`. Recorded as **FA-019**; the check now reads the graph's
+`concatenation` and `format` nodes, reassembles a name whose parts are all literals, and emits a
+named UNKNOWN when an assembly mixes in something it cannot resolve. The corruption is kept as a
+permanent regression at `tests/adversarial/split_literal_response_read`.
+
+The same run found three checks that passed by having nothing to look at (**FA-020**): zero requests
+reaching the oracle while the Change Pack changes subjects, a falsifier set entirely skipped for want
+of its failure classes, and a base UNKNOWN whose candidate id simply vanished. Each now reports
+itself unresolved, capping the verdict at UNKNOWN. **The general lesson, which later phases inherit:
+a conjunct of the frozen verdict rule that cannot fail is a conjunct that is not there.** When adding
+a check, add the case where it has no input, and make that case unresolved rather than passing.
+
+Starting the verifier container for the first time also found the image wrong: a Debian-based Python
+has `dash` as `/bin/sh`, whose `ulimit` has no `-u`, so the mandatory process bound could not be
+applied and every verifier run refused to start. The capture images are Alpine; the verifier is now a
+distinct Alpine digest, measured applying all six rlimits. Do not move it to a Debian base.
+
+The response-consumer class now has two independent defences. The graph consumer analysis catches
+literal, getter, concatenated and formatted reads; the candidate audit independently scans every
+non-test source for removed and renamed subjects with a trie matcher that tolerates split literals
+without matching identifier superstrings. Both defences are asserted against the exact and split
+corruptions.
+
+Phase 5 gate hardening (2026-09-09) closed eleven additional false-proof paths. Binary diffs now
+materialize containment hunks; top-level edits and deleted base definitions enter the blast radius;
+lockfiles are collateral only to dependency obligations; a frozen suite with no passing test and an
+abnormal pytest exit are unresolved; empty, skipped, throwing or malformed falsifiers and oracles
+cannot pass silently; every verification input is bounded and shape-validated; capture input is
+validated against Phase 4's frozen event schema and its `request_text` is reconstructed for the
+oracle; dynamic versions and removed subjects reach audit and pack falsifiers; request shapes include
+the API version and recursively traverse objects inside arrays; and source-language coverage uses
+the graph's complete suffix map. Focused Phase 5 result: **179 passed, 8 skipped**. Full result:
+**586 passed, 40 skipped**. Ruff, format, and strict Pyright are clean.
+
+The same audit found one frozen-boundary defect and therefore ended **GATE: FAIL**. The candidate
+tree alone determines the current verification ProofScope; changing the base, selected versions,
+obligations, decisions, captures, or live oracle authority can change the verdict without changing
+the scope hash. P-012 is OPEN with the required input-manifest and oracle-context design. A bare
+capture is used as explicit verification input but is not promoted into source-bound ledger evidence.
+At that point no Google Ads credentials were present and the pre-P-020 prompt still required a live
+oracle run. P-020 later retired that requirement in favor of explicitly labelled catalog authority.
 
 Phase 4 merge (2026-09-08): merged to `main` as a `--no-ff` commit and tagged `v0.4`, on the
 repository owner's instruction. Two things a later session must not misread. First, the merged bytes
@@ -363,6 +944,43 @@ unscannable `rg` hit is preserved as evidence.
 
 *(record here anything a later phase must not re-litigate — with the phase it was decided in)*
 
+**Phase-5 decisions (2026-09-08).**
+- **P-011 ACCEPTED.** `Falsifier` gains `failure_class` and `check(FalsifierInput) ->
+  FalsifierOutcome`, with both types in `core/verification.py` so `verify/` never imports `packs/`.
+  `Transform` and `ToolSpec` carry the identical deferral and are deliberately untouched; Phase 6
+  raises its own proposal with the repair loop's evidence in hand.
+- The neutral verification vocabulary lives in `core/verification.py`, following `core/surface.py`
+  and `core/observer.py`. `app/` converts the pack's contract diff into a `ChangeSet` and passes an
+  `OracleView` and `FalsifierView`s in. Do not move these into `verify/`.
+- `bounded_process`, `command_record` and `command_transcript` live in `core/process.py`;
+  `sandbox/runner.py` re-exports them. `verify/` may not import `sandbox/runner`, and one safety
+  property implemented twice is two places to get it wrong.
+- **Verdict precedence is FAILED > UNKNOWN > HUMAN_REQUIRED > VERIFIED_FOR_SCOPE.** A definite
+  failure is more informative than an absence, so a candidate that both fails a falsifier and has an
+  unavailable oracle is FAILED. `UNKNOWN_BLAST ≠ ∅` with every other conjunct true is the only route
+  to HUMAN_REQUIRED.
+- Obligations are an **input** to Phase 5, not an output: read from `--obligations` and validated
+  against the frozen schema. With none supplied, containment requires every hunk to be
+  `COLLATERAL(reason)`, which is the strict reading. Phase 6 wires the engine's output into the same
+  input; it does not change the containment rule to be lenient.
+- `app -> hubbleops.sandbox.verifier_image` stays a tolerated deep import. Re-exporting the verifier
+  image through `sandbox/__init__.py` would hand `verify/` a route to the rest of the sandbox, which
+  is the boundary the Law exists to hold.
+- `verify/tests.py` is named `verify/suites.py`, and its record types are `SuiteRun`/`SuiteCase`, so
+  pytest does not try to collect the verifier. Do not rename them back.
+- Three tempting shortcuts were rejected: a name-based test-to-module map (trap 2), treating "tests
+  pass" as "radius covered" (trap 3), and letting `app/` compute `falsifiers_pass` and hand the
+  verifier a boolean (which would move an authority check outside the authority).
+- **Versions are never guessed.** `from` is the version the base rescan detected and `to` is the
+  latest in `pack.versions()`, both overridable by `--from`/`--to`. Detection that is ambiguous or
+  empty raises rather than picking one; the error names `--from`.
+- **`hops verify` has no `--force`.** It fell back to an empty import graph when ast-grep was
+  missing, which emptied the reachable set and made the blast radius vacuously clean. A verification
+  that cannot build the graph cannot compute a radius. Do not reintroduce a degraded verify mode.
+- The verifier's isolation is proved twice: `tests/unit/test_isolation.py` for the policy and
+  `tests/integration/test_verifier_runtime.py` for a real container, which skips without Podman.
+  The verdict never depends on whether the container ran — it depends on whether the checks ran.
+
 **Phase-4 decisions (2026-09-07).**
 - A memory bound is `RLIMIT_DATA`, never `RLIMIT_AS`. `RLIMIT_AS` is a separate, larger
   address-space bound because managed runtimes reserve address space they never touch. Do not
@@ -525,11 +1143,12 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
   resolver says which of the two a manifest location is, so its `close_with` points at the lock file
   rather than at a build script.
 - `store/sqlite.py` is where the laws are mechanically enforced on the way to disk, not only in the
-  builder that happens to call it today: an open candidate (`UNKNOWN`, `HUMAN_REQUIRED`) closes only
+  builder that happens to call it today: an open candidate (`UNKNOWN`, `HUMAN_REQUIRED`,
+  `UNSUPPORTED`, `UNSCANNED`) closes only
   when the write attaches an evidence id the stored row did not have (L3); no write may drop an
   attached evidence id (L1, and it is what stops L3 being bypassed by shrinking the set first); a
   record's `proof_scope_hash` must equal its run's (L4); `candidates.status` carries a SQL `CHECK`
-  over the frozen enum so raw SQL cannot write a sixth status; and `PRAGMA user_version` is stamped,
+  over the accepted enum so raw SQL cannot invent a status; and `PRAGMA user_version` is stamped,
   so a database written before these constraints existed is refused instead of silently trusted.
   Phase 7's `hops decide` closes an UNKNOWN by recording the decision as evidence and attaching it —
   that is the "recorded human decision" half of L3, and it needs no new closing mechanism.
@@ -540,7 +1159,7 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
   in `observe/ledger.py`.
 - A file's suffix is never evidence about its content. The closure still tells `binary_media` and
   `binary_opaque` apart, because the reason a customer reads should say which it is, but both emit
-  `file_unscanned` evidence and both resolve to `UNKNOWN` with a closing instruction. The media
+  `file_unscanned` evidence and both resolve to `UNSCANNED` with a closing instruction. The media
   reason no longer claims the file "cannot carry an executable provider call" — that is the very
   thing the scanner could not check.
 - `observe/resolver.py` fails closed when a location-bound claim cites a path the closure never
@@ -549,9 +1168,83 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
 - A tool timeout exits `5` (`EXIT_UNKNOWN`) and prints `UNKNOWN: <reason>`. It used to exit `4`
   alongside real failures, which contradicted L9's "timeout → UNKNOWN with reason".
 
+**Precise-indexer decisions (2026-09-13, Tier 3b, decided by measurement under the owner's
+"do not ask" instruction).**
+- **A precise index is an additive layer over the same graph, never a replacement for search.**
+  Symbol-bound callers remove a name-and-arity caller only when its symbol belongs to **another
+  definition in the graph** (FA-066); a declaration, local or unreadable symbol keeps the caller.
+  Provenance is per caller (`… at path:line by symbol`), never per definition. Files without an
+  index keep every claim exactly as today, and the map prints `precise=` per language with the
+  indexer identity or the sentence naming what would enable it.
+- **The indexer never runs on the customer tree, and the index is a function of the tree.**
+  Staged copy, synthesized root manifest, output outside the copy, `project_root` never read
+  out of the index (FA-061, FA-062); `typeRoots`/`types` forced empty and every occurrence not
+  owned by one of the repository's own manifests dropped before use (FA-065). This is what keeps
+  two hosts from producing two verdicts under one ProofScope.
+- **The precise layer never binds to a package.** External symbols do not survive the filter;
+  the dependency observer owns packages and their versions. A first-party symbol whose
+  definition the indexer skipped adjudicates nothing.
+- **Absence is recall-only; failure of a present indexer stops the scan unless forced.** A
+  timeout-dependent fallback would make two runs of one ProofScope disagree, so it is not silent
+  and not automatic. `scip-python` refuses Windows with the reason as TOOLING_MISSING.
+- **Identity binds the entry script; vendoring binds the tree.** `;scip-typescript=<version>
+  +sha256:<entry>` enters `scanner_version` today; P-034 is the path to an archive hash.
+- **Line-delimited JSON is split on `\n` only** (FA-064): `str.splitlines()` breaks on U+0085,
+  U+2028, U+2029, VT and FF inside a matched line, and a held-out repository carried one.
+
+**Coverage-closure decisions (2026-09-12, from the `dubinc/dub` audit; P-026 ACCEPTED).**
+- **A recall surface derived from a hand-maintained list is a defect, not a configuration choice.**
+  The text and structural channels each held their own copy of the GAQL resource enumeration, so
+  §2's independence assumption failed and a usage vanished with no candidate at all. The resource
+  set is now derived from the provider catalog. Do not reintroduce a literal resource list in
+  either `surface.yaml` or a rule bundle; `test_the_query_resource_set_is_derived_from_the_catalog`
+  fails if anyone does.
+- **`VersionCarrier.scope` distinguishes `wire` from `sdk`, and the loader refuses a `wire` carrier
+  that restricts languages.** A wire identifier (proto namespace, gRPC method path, versioned REST
+  target) is readable in every language by construction (§6.6, P-008). Do not re-add a
+  language-gated copy of one.
+- **A wire namespace seen only by the text observer names its version and stays UNKNOWN.** It is not
+  AFFECTED: `google.ads.googleads.vNN` appears in type URLs, fixtures and docs as data. This is what
+  reconciles FA-007 (a quoted namespace must not become a live call version) with FA-041 (the
+  version must still be read in every language). The discriminator is *request target*, not
+  language: `per_call` wire carriers stay AFFECTED, `sdk_default` ones do not.
+- **Provider context is transitive over resolved in-repo imports, and gates only the *generic*
+  contract-surface shapes.** A shape unambiguous on its own (`auth_scope`, `resource_name`) is
+  ungated and fires anywhere. Emitting every shape repository-wide is rejected — it trades a silent
+  miss for destroyed precision, which is the wrong trade in both directions.
+- **Closure enumeration and reads both use extended-length paths on Windows.** Enumerating without
+  it and searching with ripgrep (which handles them) makes the two disagree and stops the scan
+  fail-closed — observed on `googleads/google-ads-python` at a 273-character path.
+- **Held-out repositories earn their keep.** Fixing the long-path abort (FA-046) exposed FA-048: a
+  package-relative import (`from . import x`) crashed module resolution with a `ValueError` instead
+  of failing closed. No design fixture used a relative import, so only a repository we did not
+  design against could find it. Keep at least one held-out repo per language in the loop, and treat
+  a traceback from an observer as an L9 defect, never as a bad input.
+- **A definition query that misses a language's ordinary function forms is a recall defect, not a
+  coverage preference.** `LANGUAGE_QUERIES` for TypeScript and JavaScript captured only
+  `function f(){}`, `async function f(){}` and `const f = (p) => b`, so async arrows, generics,
+  class methods and object methods were not `Definition`s; the enclosing function of a sink was
+  invisible, the wrapper walk could not reach callers, and argument literals never resolved.
+  Parameters were positional-only, so a destructured parameter (`({path, method})`) never bound.
+  Both are fixed; a new language form added later owes the same two properties.
+- **Module resolution is language-configured, not convention-guessed.** `tsconfig.json` /
+  `jsconfig.json` `paths` and workspace layouts are read, so an in-repo import such as `@/lib/...`
+  resolves inside the repository instead of reporting "outside this repository" and flooding
+  UNKNOWN. A resolver that cannot read a language's own module configuration reports every aliased
+  import as external, which is a silent recall loss dressed as a boundary.
+
 ## Open threads
 
 - Phase 4 is merged to `main` and tagged `v0.4`; nothing was pushed.
+- Phase 5 needs a fresh independent gate audit and a post-gate real-repo-loop repeat before it
+  merges. The current full host suite is 745 passed with all rootless runtime checks executed; the
+  expanded adversarial corpus is 13 corruptions, run by 16 adversarial tests, and stays permanent.
+- P-020 and P-021 make supported Search and catalog-provable Mutate requests credential-free under
+  explicitly labelled `CATALOG` authority. The live transport remains opt-in and is exercised only
+  against `_mock`; nothing claims provider-proven `LIVE` authority without a real provider run.
+- Phases 6 and 7 are implemented but unmerged. The explicitly deferred SCC, cross-language,
+  type-model, compiler-frontend and incremental machinery remains outside the compressed milestone;
+  Phase 8 still requires an `incremental == clean` proof before any cache may influence proof.
 - P-009 must be decided before AI triage is operationally connected; no Phase 3 or Phase 4 runtime
   path reaches it.
 - The Exposure Map production-services line is live: it prints `N/M` once a telemetry or sentinel

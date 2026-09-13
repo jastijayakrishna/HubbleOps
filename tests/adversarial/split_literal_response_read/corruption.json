@@ -1,0 +1,8 @@
+{
+  "summary": "the query selects campaigns.name while the response reader still reads the removed campaigns.legacy, spelled as a concatenation so no single atom carries the removed name",
+  "expected_verdict": "FAILED",
+  "reason_contains": "response handling still reads",
+  "caught_by": "response-consumer check and independent source extinction",
+  "delete": [],
+  "obligation_sites": []
+}

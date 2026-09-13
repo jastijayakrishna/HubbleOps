@@ -49,6 +49,11 @@ REPLACEMENT = re.compile(
     r"\b([A-Za-z][A-Za-z0-9_.]+)\s+to replace\s+([A-Za-z][A-Za-z0-9_.]+)\b",
     re.I,
 )
+MIGRATION_HEADER = ("Initial state", "New state", "Change type", "Implementation guidance")
+SUBJECT_CHANGE_TYPE = re.compile(r"remov|renam|replac", re.I)
+GUIDANCE_TARGET = re.compile(r"\b(?:use|replaced by)\s+(.*?)(?:\binstead\b|\.\s|\.$|$)", re.I)
+IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_.]*")
+SUBJECT_KINDS = frozenset({"enum", "enum_value", "field", "message", "proto_field", "service"})
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -708,6 +713,22 @@ def docs_records(
     if not guide_sections:
         raise ValueError(f"upgrade guide has no {version} section")
     sunset_url, sunset, _ = pages.get(f"sunset_{version}", pages["sunset"])
+    text = release.decode("utf-8")
+    sections = [
+        item[0]
+        for item in re.finditer(r"<h2\b[^>]*>.*?(?=<h2\b|$)", text, re.S)
+        if re.match(rf"{version}(?:\b|\.)", clean(item[0].split("</h2>", 1)[0]))
+    ]
+    if not sections:
+        raise ValueError(f"release notes have no {version} section")
+    table_changes, unresolved_rows = migration_table_changes(
+        version,
+        sections,
+        previous_subjects,
+        current_subjects,
+        release_url,
+        blob_hash(release),
+    )
     records = [
         record(
             version,
@@ -732,19 +753,16 @@ def docs_records(
             "docs",
             f"docs.release.{version}",
             "release_notes",
-            {"major": version, "released_at": releases[version][0], "minor_updates_folded": True},
+            {
+                "major": version,
+                "released_at": releases[version][0],
+                "minor_updates_folded": True,
+                "unresolved_replacement_rows": unresolved_rows,
+            },
             release_url,
             blob_hash(release),
         ),
     ]
-    text = release.decode("utf-8")
-    sections = [
-        item[0]
-        for item in re.finditer(r"<h2\b[^>]*>.*?(?=<h2\b|$)", text, re.S)
-        if re.match(rf"{version}(?:\b|\.)", clean(item[0].split("</h2>", 1)[0]))
-    ]
-    if not sections:
-        raise ValueError(f"release notes have no {version} section")
     paragraphs = re.findall(r"<li\b[^>]*>(.*?)</li>", "".join(sections), re.S)
     for paragraph in paragraphs:
         claim = clean(paragraph)
@@ -806,7 +824,92 @@ def docs_records(
                 blob_hash(upgrade),
             )
         )
+    records.extend(table_changes)
     return records
+
+
+def migration_table_changes(
+    version: str,
+    sections: Sequence[str],
+    previous_subjects: Sequence[str],
+    current_subjects: Sequence[str],
+    source_url: str,
+    digest: str,
+) -> tuple[list[dict[str, Any]], int]:
+    records: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    unresolved = 0
+    for table in re.findall(r"<table\b.*?</table>", "".join(sections), re.S):
+        rows = [
+            [clean(cell) for cell in re.findall(r"<t[dh]\b[^>]*>(.*?)</t[dh]>", row, re.S)]
+            for row in re.findall(r"<tr\b[^>]*>(.*?)</tr>", table, re.S)
+        ]
+        if not rows or tuple(rows[0]) != MIGRATION_HEADER:
+            continue
+        for cells in rows[1:]:
+            if len(cells) != len(MIGRATION_HEADER) or not SUBJECT_CHANGE_TYPE.search(cells[2]):
+                continue
+            change_subject = documented_row_subject(cells[0], previous_subjects)
+            replacement = documented_row_subject(cells[1], current_subjects, cells[0])
+            if replacement is None:
+                stated = " ".join(item[1] for item in GUIDANCE_TARGET.finditer(cells[3]))
+                replacement = documented_row_subject(stated, current_subjects, cells[0])
+            if change_subject is None or replacement is None or change_subject == replacement:
+                unresolved += 1
+                continue
+            claim = " ".join(cells)
+            identity = canonical_text([change_subject, replacement, claim])
+            subject = f"docs.change.{blob_hash(identity.encode())}"
+            if subject in seen:
+                continue
+            seen.add(subject)
+            records.append(
+                record(
+                    version,
+                    "docs",
+                    subject,
+                    "documented_change",
+                    {
+                        "change_kind": "REPLACED",
+                        "change_subject": change_subject,
+                        "replacement": replacement,
+                        "claim": claim,
+                    },
+                    source_url,
+                    digest,
+                )
+            )
+    return records, unresolved
+
+
+def api_identifiers(phrase: str) -> list[str]:
+    found = [item.strip(".") for item in IDENTIFIER.findall(phrase)]
+    return [item for item in found if item and ("_" in item or "." in item or not item.islower())]
+
+
+def subject_identity(subject: str) -> str:
+    kind, _, rest = subject.partition(".")
+    return rest if kind in SUBJECT_KINDS and rest else subject
+
+
+def documented_row_subject(phrase: str, subjects: Sequence[str], context: str = "") -> str | None:
+    names = api_identifiers(phrase)
+    qualifiers = names + api_identifiers(context)
+    candidates = {
+        found
+        for name in set(names) | {f"{a}.{b}" for a in qualifiers for b in names if a != b}
+        for found in [documented_subject(name, subjects)]
+        if found is not None
+    }
+    resolved = {
+        value
+        for value in candidates
+        if not any(
+            other != value and subject_identity(other).startswith(f"{subject_identity(value)}.")
+            for other in candidates
+        )
+    }
+    return next(iter(resolved)) if len(resolved) == 1 else None
 
 
 def documented_replacements(

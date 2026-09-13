@@ -4,7 +4,7 @@
       "claim_type": "structure_unsupported",
       "location": "composer.json",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "package_reference",
@@ -27,12 +27,6 @@
     {
       "claim_type": "surface_reference",
       "location": "composer.json:4",
-      "provider_subject": "google-ads",
-      "status": "UNKNOWN"
-    },
-    {
-      "claim_type": "surface_reference",
-      "location": "composer.json:4",
       "provider_subject": "googleads",
       "status": "UNKNOWN"
     },
@@ -46,7 +40,7 @@
       "claim_type": "surface_reference",
       "location": "src/App.php:5",
       "provider_subject": "GoogleAdsService",
-      "status": "UNKNOWN"
+      "status": "AFFECTED"
     },
     {
       "claim_type": "surface_reference",
@@ -86,13 +80,17 @@
     }
   ],
   "counts": {
-    "affected": 1,
+    "affected": 2,
     "excluded_with_evidence": 5,
+    "human_accepted_risk": 0,
     "human_required": 0,
     "not_affected_with_evidence": 0,
-    "total": 14,
+    "provider_reference_data": 0,
+    "total": 13,
     "unexplained": 0,
-    "unknown": 8
+    "unknown": 5,
+    "unscanned": 0,
+    "unsupported": 1
   },
   "fixture": "vendored_sdk",
   "pack": "google_ads"

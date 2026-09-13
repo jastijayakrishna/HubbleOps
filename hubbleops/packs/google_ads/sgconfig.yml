@@ -3,5 +3,6 @@ ruleDirs:
   - rules/php.yml
   - rules/javascript.yml
   - rules/typescript.yml
+  - rules/tsx.yml
 testConfigs:
   - testDir: rules/tests

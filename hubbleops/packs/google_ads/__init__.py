@@ -8,8 +8,11 @@ import yaml
 from hubbleops.core.surface import SurfaceSpec
 from hubbleops.packs._protocol import CaptureHooks, Falsifier, RuleSet, ToolSpec, Transform, Version
 from hubbleops.packs.google_ads.changes import CHANGES
-from hubbleops.packs.google_ads.contract import CONTRACT
+from hubbleops.packs.google_ads.contract import CONTRACT, GoogleAdsContract, query_resources
+from hubbleops.packs.google_ads.falsifiers import FALSIFIERS
+from hubbleops.packs.google_ads.repairs import client_minimums, transforms
 from hubbleops.packs.google_ads.telemetry import TELEMETRY
+from hubbleops.packs.google_ads.transport import GoogleAdsRestTransport
 from hubbleops.packs.google_ads.wire import WIRE_SIGNATURE
 
 ROOT = Path(__file__).resolve().parent
@@ -21,12 +24,21 @@ class EmptyBundle:
     paths: tuple[Path, ...] = ()
 
 
-RULE_LANGUAGES = frozenset({"javascript", "php", "python", "typescript"})
+RULE_LANGUAGES = frozenset({"javascript", "php", "python", "tsx", "typescript"})
+
+
+def _surface() -> SurfaceSpec:
+    data = yaml.safe_load((ROOT / "surface.yaml").read_text("utf-8"))
+    resources = query_resources()
+    for language in data["request_languages"]:
+        if language.get("shapes"):
+            language["known_resources"] = list(resources)
+    return SurfaceSpec.from_mapping(data)
 
 
 class GoogleAdsPack:
     name = "google_ads"
-    surface = SurfaceSpec.from_mapping(yaml.safe_load((ROOT / "surface.yaml").read_text("utf-8")))
+    surface = _surface()
     wire_signature = WIRE_SIGNATURE
     contract = CONTRACT
     changes = CHANGES
@@ -47,6 +59,7 @@ class GoogleAdsPack:
             "php": "prepend.php",
             "javascript": "hook.cjs",
             "typescript": "hook.cjs",
+            "tsx": "hook.cjs",
             "node": "hook.cjs",
         }
         directories = {
@@ -54,6 +67,7 @@ class GoogleAdsPack:
             "php": "php",
             "javascript": "node",
             "typescript": "node",
+            "tsx": "node",
             "node": "node",
         }
         path = (
@@ -64,13 +78,31 @@ class GoogleAdsPack:
         return EmptyBundle(normalized, () if path is None else (path,))
 
     def repair_transforms(self) -> list[Transform]:
-        return []
+        minimums = {
+            entry.id: client_minimums(self.contract.catalog(entry.id).facts, entry.id)
+            for entry in self.versions()
+        }
+        return list(transforms(minimums))
 
     def repair_tools(self) -> list[ToolSpec]:
         return []
 
     def falsifiers(self) -> list[Falsifier]:
-        return []
+        return list(FALSIFIERS)
+
+    def verification_contract(self) -> GoogleAdsContract:
+        return GoogleAdsContract(transport=GoogleAdsRestTransport.from_environment())
+
+    def verification_environment(self) -> dict[str, str]:
+        names = (
+            "GOOGLE_ADS_CLIENT_ID",
+            "GOOGLE_ADS_CLIENT_SECRET",
+            "GOOGLE_ADS_CUSTOMER_ID",
+            "GOOGLE_ADS_DEVELOPER_TOKEN",
+            "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+            "GOOGLE_ADS_REFRESH_TOKEN",
+        )
+        return {name: name for name in names}
 
 
 PACK = GoogleAdsPack()

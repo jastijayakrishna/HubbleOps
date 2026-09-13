@@ -157,6 +157,27 @@ def test_a_version_carrier_without_a_literal_is_unknown_not_affected() -> None:
     assert resolution.close_with
 
 
+def test_unscanned_and_unsupported_candidates_keep_specialized_open_states() -> None:
+    unscanned = resolver.resolve_claim(
+        "file_unscanned",
+        [record(claim_type="file_unscanned", value={"reason": "binary"})],
+        CLOSURE_TREE,
+    )
+    unsupported = resolver.resolve_claim(
+        "structure_unsupported",
+        [
+            record(
+                claim_type="structure_unsupported",
+                observer="structure",
+                value={"language": "ruby"},
+            )
+        ],
+        CLOSURE_TREE,
+    )
+    assert (unscanned.status, unsupported.status) == ("UNSCANNED", "UNSUPPORTED")
+    assert unscanned.close_with and unsupported.close_with
+
+
 def test_non_inside_regions_are_excluded_with_the_classification_as_evidence() -> None:
     resolution = resolver.resolve_claim("call_version", [record()], {"src/app.py": "VENDORED"})
     assert resolution.status == "EXCLUDED_WITH_EVIDENCE"

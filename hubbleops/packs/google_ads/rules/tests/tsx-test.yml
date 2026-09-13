@@ -1,0 +1,9 @@
+id: google-ads-tsx-structure
+valid:
+  - 'const banner = <div className="settings">ordinary settings</div>'
+  - 'const value: string = "SELECT unrelated.value FROM unrelated"'
+invalid:
+  - 'client.search(request)'
+  - 'const link = <a href={`https://googleads.googleapis.com/v24/customers/1/googleAds:search`}>x</a>'
+  - 'const service = protos.google.ads.googleads[API_RELEASE].services'
+  - 'const query = `SELECT campaign.id FROM campaign`'

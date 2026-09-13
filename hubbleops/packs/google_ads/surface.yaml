@@ -16,6 +16,14 @@ identifiers:
   - google-ads.yaml
   - developer_token
   - login_customer_id
+  - GOOGLE_ADS_DEVELOPER_TOKEN
+  - GOOGLE_ADS_LOGIN_CUSTOMER_ID
+  - GOOGLE_ADS_CUSTOMER_ID
+  - GOOGLE_ADS_CLIENT_ID
+  - GOOGLE_ADS_CLIENT_SECRET
+  - GOOGLE_ADS_REFRESH_TOKEN
+  - GOOGLE_ADS_CONFIGURATION_FILE_PATH
+  - GOOGLE_ADS_JSON_KEY_FILE_PATH
 
 hosts:
   - googleads.googleapis.com
@@ -36,10 +44,27 @@ version_carriers:
     regex: 'googleads\.googleapis\.com/(?P<version>v[0-9]+)'
     slot: per_call
     languages: [any]
+    scope: wire
   - name: rest_path_version
     regex: '/(?P<version>v[0-9]+)/customers/'
     slot: per_call
     languages: [any]
+    scope: wire
+  - name: proto_namespace_version
+    regex: 'google\.ads\.googleads\.(?P<version>v[0-9]+)'
+    slot: sdk_default
+    languages: [any]
+    scope: wire
+  - name: python_namespace_version
+    regex: 'google\.ads\.googleads\.(?P<version>v[0-9]+)'
+    slot: sdk_default
+    languages: [python]
+    scope: sdk
+  - name: grpc_method_version
+    regex: '/google\.ads\.googleads\.(?P<version>v[0-9]+)\.services\.'
+    slot: per_call
+    languages: [any]
+    scope: wire
   - name: python_service_version
     regex: 'get_service\([^)]*version\s*=\s*["''](?P<version>v[0-9]+)["'']'
     slot: per_call
@@ -51,10 +76,6 @@ version_carriers:
   - name: python_client_version
     regex: 'GoogleAdsClient[^)]*version\s*=\s*["''](?P<version>v[0-9]+)["'']'
     slot: client_init
-    languages: [python]
-  - name: python_namespace_version
-    regex: 'google\.ads\.googleads\.(?P<version>v[0-9]+)'
-    slot: sdk_default
     languages: [python]
   - name: php_namespace_version
     regex: 'Google\\Ads\\GoogleAds\\(?P<version>V[0-9]+)'
@@ -75,13 +96,21 @@ version_carriers:
   - name: node_api_version
     regex: 'apiVersion\s*:\s*["''](?P<version>v[0-9]+)["'']'
     slot: client_init
-    languages: [javascript, typescript]
+    languages: [javascript, typescript, tsx]
+  - name: config_literal_version
+    regex: '(?:GOOGLE_ADS_API_VERSION|GOOGLE_ADS_VERSION|ADS_API_VERSION)\s*[=:]\s*["'']?(?P<version>v[0-9]+)'
+    slot: sdk_default
+    languages: [any]
+    scope: sdk
 
 request_languages:
   - name: gaql
+    shapes:
+      - '(?is)\bSELECT\b.*?\bFROM\s+(?P<resource>[a-z][a-z0-9_]*)'
+      - '(?is)\bSELECT\s+(?P<resource>[a-z][a-z0-9_]*)\.[a-z0-9_]+'
+      - '(?is)\bFROM\s+(?P<resource>[a-z][a-z0-9_]*)\s*(?:$|\bWHERE\b|\bLIMIT\b|\bORDER\b|\bPARAMETERS\b|["\x27`])'
+    resource_group: resource
     anchors:
-      - 'FROM\s+(campaign|campaign_budget|ad_group|ad_group_ad|ad_group_criterion|customer|customer_client|keyword_view|search_term_view|change_event|asset|asset_group)\b'
-      - 'SELECT\s+(campaign|ad_group|customer|metrics|segments)\.[a-z_]+'
       - 'metrics\.(impressions|clicks|cost_micros|conversions)'
       - 'segments\.(date|device|conversion_action)'
 
@@ -109,10 +138,46 @@ config_env_keys:
   - GOOGLE_ADS_API_VERSION
   - GOOGLE_ADS_VERSION
   - ADS_API_VERSION
-  - GOOGLE_ADS_DEVELOPER_TOKEN
-  - GOOGLE_ADS_LOGIN_CUSTOMER_ID
-  - GOOGLE_ADS_CLIENT_ID
-  - GOOGLE_ADS_CLIENT_SECRET
-  - GOOGLE_ADS_REFRESH_TOKEN
-  - GOOGLE_ADS_CONFIGURATION_FILE_PATH
-  - GOOGLE_ADS_JSON_KEY_FILE_PATH
+
+adjacent_contracts:
+  - name: data_manager
+    hosts:
+      - datamanager.googleapis.com
+    reason: >-
+      the Data Manager API carries its own version lattice and its own event schema; Google Ads
+      conversion upload migrated onto it, so it sits beside Google Ads code and must be separated
+      from the Google Ads contract rather than migrated with it
+  - name: google_oauth
+    hosts:
+      - oauth2.googleapis.com
+      - accounts.google.com
+    reason: >-
+      Google account OAuth is shared Google infrastructure with no Google Ads version in its
+      request target; it authorises Google Ads calls without being one
+  - name: merchant_api
+    hosts:
+      - merchantapi.googleapis.com
+      - shoppingcontent.googleapis.com
+    reason: >-
+      the Merchant API and the Content API for Shopping carry their own version lattices and
+      their own product and account schemas; Merchant Center code sits beside Google Ads code
+      and must be separated from the Google Ads contract rather than migrated with it
+
+contract_surfaces:
+  - kind: auth_scope
+    name: ads_oauth_scope
+    shape: 'https://www\.googleapis\.com/auth/(adwords|datamanager)'
+    gated: false
+  - kind: protocol_header
+    name: ads_request_header
+    shape: '["\x27](developer-token|login-customer-id|linked-customer-id)["\x27]'
+  - kind: resource_name
+    name: ads_resource_name
+    shape: 'customers/[^"\x27`\s]*/(conversionActions|customerClients|conversionUploads|adGroups|campaigns)'
+    gated: false
+  - kind: endpoint_path
+    name: ads_rest_method
+    shape: '(customers|googleAds|conversionActions)[:/][A-Za-z]+(:[a-zA-Z]+)?'
+  - kind: response_field
+    name: ads_failure_detail
+    shape: '(GoogleAdsFailure|partialFailureError|google\.ads\.googleads\.v[0-9]+\.errors|errors(?:\?\.)?\[[0-9]*\](?:\?\.|->|\.)errorCode(?:(?:\?\.|->|\.)(?:authorizationError|requestError|queryError|mutateError|fieldError|authenticationError))?|(?:errorCode|error_code)(?:\?\.|->|\.)(?:authorizationError|requestError|queryError|mutateError|fieldError|authenticationError))'

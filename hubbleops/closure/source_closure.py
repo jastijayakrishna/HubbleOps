@@ -16,7 +16,7 @@ SNIFF_BYTES = 8192
 READ_CHUNK = 1024 * 1024
 GIT_TIMEOUT_SECONDS = 30.0
 
-CONTROL_DIRECTORIES = frozenset({".git"})
+CONTROL_ENTRIES = frozenset({".git"})
 
 ENVIRONMENT_DIRECTORIES = frozenset(
     {
@@ -146,6 +146,107 @@ class Classification(StrEnum):
     UNSCANNED = "UNSCANNED"
 
 
+class FileRole(StrEnum):
+    SOURCE = "SOURCE"
+    CONFIG = "CONFIG"
+    MANIFEST = "MANIFEST"
+    DATA = "DATA"
+    SNAPSHOT = "SNAPSHOT"
+    DOCUMENTATION = "DOCUMENTATION"
+    STYLESHEET = "STYLESHEET"
+    GENERATED_SOURCE = "GENERATED_SOURCE"
+    OPAQUE = "OPAQUE"
+    UNKNOWN_ROLE = "UNKNOWN_ROLE"
+
+
+BULK_ROLES = frozenset({FileRole.DATA, FileRole.SNAPSHOT})
+
+NEVER_COLLAPSED_ROLES = frozenset({FileRole.SOURCE, FileRole.MANIFEST, FileRole.GENERATED_SOURCE})
+
+BULK_DATA_BYTES = 256 * 1024
+
+RECORD_STREAM_SUFFIXES = frozenset(
+    {".arrow", ".avro", ".csv", ".jsonl", ".ndjson", ".parquet", ".tsv"}
+)
+
+STRUCTURED_SUFFIXES = frozenset({".json", ".yaml", ".yml", ".xml"})
+
+SNAPSHOT_SUFFIXES = frozenset({".ambr", ".approved", ".snap"})
+
+SNAPSHOT_DIRECTORIES = frozenset(
+    {"__snapshots__", "cassettes", "fixtures", "recordings", "snapshots", "vcr"}
+)
+
+MANIFEST_NAMES = frozenset(
+    {
+        "berksfile.lock",
+        "build.gradle",
+        "build.gradle.kts",
+        "cargo.lock",
+        "cargo.toml",
+        "composer.json",
+        "composer.lock",
+        "gemfile",
+        "gemfile.lock",
+        "go.mod",
+        "go.sum",
+        "package-lock.json",
+        "package.json",
+        "packages.lock.json",
+        "pipfile",
+        "pipfile.lock",
+        "pnpm-lock.yaml",
+        "poetry.lock",
+        "pom.xml",
+        "pyproject.toml",
+        "requirements.txt",
+        "setup.cfg",
+        "setup.py",
+        "uv.lock",
+        "yarn.lock",
+    }
+)
+
+MANIFEST_SUFFIXES = frozenset({".csproj", ".fsproj", ".vbproj"})
+
+DOCUMENTATION_SUFFIXES = frozenset({".adoc", ".markdown", ".md", ".rst", ".textile", ".txt"})
+
+STYLESHEET_SUFFIXES = frozenset({".css", ".less", ".sass", ".scss"})
+
+CONFIG_SUFFIXES = frozenset({".cfg", ".conf", ".env", ".ini", ".properties", ".toml"})
+ENVIRONMENT_FILE_PREFIX = ".env"
+
+SOURCE_SUFFIXES = frozenset(
+    {
+        ".c",
+        ".cc",
+        ".cjs",
+        ".cpp",
+        ".cs",
+        ".go",
+        ".h",
+        ".hpp",
+        ".java",
+        ".js",
+        ".jsx",
+        ".kt",
+        ".m",
+        ".mjs",
+        ".php",
+        ".pl",
+        ".py",
+        ".rb",
+        ".rs",
+        ".scala",
+        ".sh",
+        ".sql",
+        ".swift",
+        ".ts",
+        ".tsx",
+    }
+)
+
+
 SCANNED_CLASSIFICATIONS = (
     Classification.INSIDE,
     Classification.GENERATED,
@@ -161,9 +262,19 @@ class ClosureEntry:
     reason: str
     blob_sha: str | None
     size: int | None
+    role: FileRole = FileRole.UNKNOWN_ROLE
 
     def carries_source(self) -> bool:
         return self.classification in SCANNED_CLASSIFICATIONS
+
+    def carries_bulk_data(self) -> bool:
+        return self.role in BULK_ROLES
+
+    def carries_analyzable_code(self) -> bool:
+        return self.carries_source() and self.role not in BULK_ROLES
+
+    def may_collapse_references(self) -> bool:
+        return self.role not in NEVER_COLLAPSED_ROLES
 
 
 @dataclass(frozen=True, slots=True)
@@ -171,7 +282,7 @@ class SourceClosure:
     root: Path
     repo_sha: str | None
     entries: tuple[ClosureEntry, ...]
-    control_directories: tuple[str, ...]
+    control_entries: tuple[str, ...]
 
     def tree_hash(self) -> str:
         return content_id([[entry.path, entry.blob_sha] for entry in self.entries])
@@ -189,7 +300,7 @@ class SourceClosure:
         )
 
     def search_exclusions(self) -> tuple[str, ...]:
-        return tuple(sorted({*self.control_directories, *self.unenumerated_directories()}))
+        return tuple(sorted({*self.control_entries, *self.unenumerated_directories()}))
 
     def scannable(self) -> tuple[ClosureEntry, ...]:
         return tuple(entry for entry in self.entries if entry.carries_source())
@@ -204,6 +315,18 @@ class SourceClosure:
         for entry in self.entries:
             counts[entry.classification.value] += 1
         return counts
+
+    def role_counts(self) -> dict[str, int]:
+        counts = {member.value: 0 for member in FileRole}
+        for entry in self.entries:
+            counts[entry.role.value] += 1
+        return counts
+
+    def analyzable(self) -> tuple[ClosureEntry, ...]:
+        return tuple(entry for entry in self.entries if entry.carries_analyzable_code())
+
+    def bulk_data(self) -> tuple[ClosureEntry, ...]:
+        return tuple(entry for entry in self.entries if entry.carries_bulk_data())
 
 
 @dataclass(frozen=True, slots=True)
@@ -221,26 +344,28 @@ def build(root: Path) -> SourceClosure:
         raise NotADirectoryError(f"closure root is not a directory: {resolved}")
     submodules = _submodule_prefixes(resolved)
     entries = sorted(
-        _walk(resolved, submodules), key=lambda entry: (entry.path, entry.classification.value)
+        (_with_role(entry) for entry in _walk(resolved, submodules)),
+        key=lambda entry: (entry.path, entry.classification.value),
     )
     return SourceClosure(
         root=resolved,
         repo_sha=_repo_sha(resolved),
         entries=tuple(entries),
-        control_directories=tuple(
-            sorted(name for name in CONTROL_DIRECTORIES if (resolved / name).exists())
+        control_entries=tuple(
+            sorted(name for name in CONTROL_ENTRIES if (resolved / name).exists())
         ),
     )
 
 
 def _walk(root: Path, submodules: frozenset[str]) -> Iterator[ClosureEntry]:
-    for dirpath, dirnames, filenames in os.walk(root, topdown=True, followlinks=False):
-        here = Path(dirpath)
+    base = system_path(root)
+    for dirpath, dirnames, filenames in os.walk(base, topdown=True, followlinks=False):
+        here = _rebase(root, base, dirpath)
         kept: list[str] = []
         for name in sorted(dirnames):
             child = here / name
             relative = _relative(root, child)
-            if relative in CONTROL_DIRECTORIES or name in CONTROL_DIRECTORIES:
+            if _is_control_entry(relative, name):
                 continue
             if child.is_symlink():
                 yield _directory_symlink(root, child, relative)
@@ -261,7 +386,14 @@ def _walk(root: Path, submodules: frozenset[str]) -> Iterator[ClosureEntry]:
         dirnames[:] = kept
         for name in sorted(filenames):
             child = here / name
-            yield _classify(root, child, _relative(root, child), submodules)
+            relative = _relative(root, child)
+            if _is_control_entry(relative, name):
+                continue
+            yield _classify(root, child, relative, submodules)
+
+
+def _is_control_entry(relative: str, name: str) -> bool:
+    return relative in CONTROL_ENTRIES or name in CONTROL_ENTRIES
 
 
 def _classify(root: Path, path: Path, relative: str, submodules: frozenset[str]) -> ClosureEntry:
@@ -349,6 +481,54 @@ def _classify(root: Path, path: Path, relative: str, submodules: frozenset[str])
     )
 
 
+def _role_of(relative: str, classification: Classification, size: int | None) -> FileRole:
+    if classification is Classification.UNSCANNED:
+        return FileRole.OPAQUE
+    if classification is Classification.GENERATED:
+        return FileRole.GENERATED_SOURCE
+    parts = relative.split("/")
+    name = parts[-1].lower()
+    suffix = _suffix_of(name)
+    if name in MANIFEST_NAMES or suffix in MANIFEST_SUFFIXES:
+        return FileRole.MANIFEST
+    if name.startswith(ENVIRONMENT_FILE_PREFIX):
+        return FileRole.CONFIG
+    if suffix in SNAPSHOT_SUFFIXES:
+        return FileRole.SNAPSHOT
+    directories = {part.lower() for part in parts[:-1]}
+    if directories & SNAPSHOT_DIRECTORIES and suffix in STRUCTURED_SUFFIXES:
+        return FileRole.SNAPSHOT
+    if suffix in RECORD_STREAM_SUFFIXES:
+        return FileRole.DATA
+    if suffix in STRUCTURED_SUFFIXES and size is not None and size > BULK_DATA_BYTES:
+        return FileRole.DATA
+    if suffix in DOCUMENTATION_SUFFIXES:
+        return FileRole.DOCUMENTATION
+    if suffix in STYLESHEET_SUFFIXES:
+        return FileRole.STYLESHEET
+    if suffix in CONFIG_SUFFIXES or suffix in STRUCTURED_SUFFIXES:
+        return FileRole.CONFIG
+    if suffix in SOURCE_SUFFIXES:
+        return FileRole.SOURCE
+    return FileRole.UNKNOWN_ROLE
+
+
+def _suffix_of(name: str) -> str:
+    dot = name.rfind(".")
+    return name[dot:] if dot > 0 else ""
+
+
+def _with_role(entry: ClosureEntry) -> ClosureEntry:
+    return ClosureEntry(
+        path=entry.path,
+        classification=entry.classification,
+        reason=entry.reason,
+        blob_sha=entry.blob_sha,
+        size=entry.size,
+        role=_role_of(entry.path, entry.classification, entry.size),
+    )
+
+
 def _is_state_output(relative: str) -> bool:
     parts = relative.split("/")
     return len(parts) == 2 and parts[0] == STATE_DIRECTORY and parts[1] in STATE_OUTPUT_DIRECTORIES
@@ -431,7 +611,7 @@ def _probe(path: Path) -> FileProbe:
     head = b""
     first = True
     try:
-        with open(path, "rb") as handle:
+        with open(system_path(path), "rb") as handle:
             while True:
                 chunk = handle.read(READ_CHUNK)
                 if not chunk:
@@ -445,6 +625,24 @@ def _probe(path: Path) -> FileProbe:
     except OSError as error:
         return FileProbe(None, None, False, f"{type(error).__name__}: {error}", b"")
     return FileProbe(digest.hexdigest(), total, binary, None, head)
+
+
+def _rebase(root: Path, base: str, dirpath: str) -> Path:
+    if dirpath == base:
+        return root
+    trailing = dirpath[len(base) :].lstrip("\\/")
+    return root / trailing if trailing else root
+
+
+def system_path(path: Path) -> str:
+    if os.name != "nt":
+        return str(path)
+    resolved = os.path.abspath(str(path))
+    if resolved.startswith("\\\\?\\"):
+        return resolved
+    if resolved.startswith("\\\\"):
+        return "\\\\?\\UNC" + resolved[1:]
+    return "\\\\?\\" + resolved
 
 
 def _relative(root: Path, path: Path) -> str:
@@ -483,9 +681,10 @@ def _submodule_prefixes(root: Path) -> frozenset[str]:
                 candidate = value.strip().strip('"')
                 if candidate:
                     prefixes.add(candidate.replace("\\", "/").rstrip("/"))
-    for dirpath, dirnames, _ in os.walk(root, topdown=True, followlinks=False):
-        dirnames[:] = sorted(name for name in dirnames if name not in CONTROL_DIRECTORIES)
-        here = Path(dirpath)
+    base = system_path(root)
+    for dirpath, dirnames, _ in os.walk(base, topdown=True, followlinks=False):
+        dirnames[:] = sorted(name for name in dirnames if name not in CONTROL_ENTRIES)
+        here = _rebase(root, base, dirpath)
         if here != root and (here / ".git").is_file():
             prefixes.add(_relative(root, here))
             dirnames.clear()

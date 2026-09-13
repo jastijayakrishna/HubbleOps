@@ -6,14 +6,21 @@ import posixpath
 import re
 import shutil
 import subprocess
+import tempfile
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
 
+import yaml
+
 from hubbleops.core.canonical import canonical_text, content_id
 from hubbleops.core.errors import ToolingFailed, ToolingMissing, ToolingTimeout
+from hubbleops.core.precise import Occurrence, SymbolIndex, descriptor_name
 from hubbleops.core.records import as_mapping, as_sequence
+from hubbleops.core.toolchain import ToolBinary, identity, locate, vendored
+
+AST_GREP = "ast-grep"
 
 
 class _HasPath(Protocol):
@@ -29,19 +36,21 @@ MAX_OUTPUT_CHARS = 512 * 1024 * 1024
 MAX_MATCHES_PER_INVOCATION = 2_000_000
 LANGUAGE_EXTENSIONS = {
     ".cs": "csharp",
+    ".cjs": "javascript",
     ".go": "go",
     ".java": "java",
     ".js": "javascript",
     ".jsx": "javascript",
     ".json": "json",
     ".md": "markdown",
+    ".mjs": "javascript",
     ".php": "php",
     ".py": "python",
     ".pyi": "python",
     ".rb": "ruby",
     ".rs": "rust",
     ".ts": "typescript",
-    ".tsx": "typescript",
+    ".tsx": "tsx",
     ".toml": "toml",
     ".yaml": "yaml",
     ".yml": "yaml",
@@ -50,6 +59,7 @@ AST_GREP_LANGUAGES = {
     "javascript": "javascript",
     "php": "php",
     "python": "python",
+    "tsx": "tsx",
     "typescript": "typescript",
 }
 
@@ -60,6 +70,8 @@ class SourceRange:
     end_byte: int
     start_line: int
     end_line: int
+    start_column: int = 0
+    end_column: int = 0
 
     def contains(self, other: SourceRange) -> bool:
         return self.start_byte <= other.start_byte and self.end_byte >= other.end_byte
@@ -123,6 +135,13 @@ class Definition:
     parameters: tuple[str, ...]
     range: SourceRange
     asynchronous: bool
+    bindings: tuple[tuple[str, int], ...] = ()
+
+    def slot_of(self, name: str) -> int | None:
+        for bound, position in self.bindings:
+            if bound == name:
+                return position
+        return None
 
     def to_mapping(self) -> dict[str, Any]:
         return {
@@ -133,6 +152,7 @@ class Definition:
             "parameters": list(self.parameters),
             "range": self.range.to_mapping(),
             "asynchronous": self.asynchronous,
+            "bindings": [list(item) for item in self.bindings],
         }
 
 
@@ -225,10 +245,15 @@ class ClassRelation:
 @dataclass(frozen=True, slots=True)
 class _GraphIndex:
     atoms: dict[str, list[SyntaxMatch]]
+    comments: dict[str, list[SyntaxMatch]]
     definitions: dict[str, list[Definition]]
     assignments: dict[str, list[Assignment]]
     imports: dict[str, list[ImportBinding]]
     definitions_by_id: dict[str, Definition]
+    call_symbols: dict[str, str | None]
+    calls_by_symbol: dict[str, list[Call]]
+    definition_symbols: dict[str, str | None]
+    definitions_by_symbol: dict[str, list[Definition]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -241,26 +266,113 @@ class ImportGraph:
     decorators: tuple[SyntaxMatch, ...]
     registrations: tuple[SyntaxMatch, ...]
     atoms: tuple[SyntaxMatch, ...]
+    comments: tuple[SyntaxMatch, ...]
     parse_errors: tuple[SyntaxMatch, ...]
     concatenations: tuple[SyntaxMatch, ...]
     formats: tuple[SyntaxMatch, ...]
+    indexes: tuple[SymbolIndex, ...] = ()
     _index: _GraphIndex = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        call_symbols = {item.id: self._call_symbol(item) for item in self.calls}
+        calls_by_symbol: dict[str, list[Call]] = {}
+        for item in self.calls:
+            symbol = call_symbols[item.id]
+            if symbol is not None:
+                calls_by_symbol.setdefault(symbol, []).append(item)
+        definition_symbols = {item.id: self._definition_symbol(item) for item in self.definitions}
+        definitions_by_symbol: dict[str, list[Definition]] = {}
+        for item in self.definitions:
+            symbol = definition_symbols[item.id]
+            if symbol is not None:
+                definitions_by_symbol.setdefault(symbol, []).append(item)
         object.__setattr__(
             self,
             "_index",
             _GraphIndex(
                 atoms=_group_by_path(self.atoms),
+                comments=_group_by_path(self.comments),
                 definitions=_group_by_path(self.definitions),
                 assignments=_group_by_path(self.assignments),
                 imports=_group_by_path(self.imports),
                 definitions_by_id={item.id: item for item in self.definitions},
+                call_symbols=call_symbols,
+                calls_by_symbol=calls_by_symbol,
+                definition_symbols=definition_symbols,
+                definitions_by_symbol=definitions_by_symbol,
             ),
         )
 
+    def index_for(self, path: str) -> SymbolIndex | None:
+        return next((item for item in self.indexes if item.covers(path)), None)
+
+    def _call_symbol(self, call: Call) -> str | None:
+        index = self.index_for(call.path)
+        if index is None:
+            return None
+        name = call.callee.rsplit(".", 1)[-1]
+        column = call.range.start_column + len(call.callee) - len(name)
+        found = index.occurrence_at(call.path, call.range.start_line - 1, column)
+        if (
+            found is None
+            or found.start_line != found.end_line
+            or found.start_column != column
+            or found.end_column - found.start_column != len(name)
+        ):
+            return None
+        return found.symbol
+
+    def call_symbol(self, call: Call) -> str | None:
+        return self._index.call_symbols.get(call.id)
+
+    def definition_symbol(self, definition: Definition) -> str | None:
+        return self._index.definition_symbols.get(definition.id)
+
+    def _definition_symbol(self, definition: Definition) -> str | None:
+        index = self.index_for(definition.path)
+        if index is None:
+            return None
+        first_line = definition.range.start_line - 1
+        last_line = definition.range.end_line - 1
+        named = [
+            item
+            for item in index.occurrences_in(definition.path)
+            if item.is_definition()
+            and first_line <= item.start_line <= last_line
+            and descriptor_name(item.symbol) == definition.name
+        ]
+        on_first_line = {item.symbol for item in named if item.start_line == first_line}
+        if len(on_first_line) == 1:
+            return next(iter(on_first_line))
+        symbols = {item.symbol for item in named}
+        if len(symbols) == 1:
+            return next(iter(symbols))
+        return None
+
+    def caller_binding(self, definition: Definition, call: Call) -> str:
+        symbol = self.definition_symbol(definition)
+        if symbol is not None and self.call_symbol(call) == symbol:
+            return "symbol"
+        return "name"
+
+    def precise_definition(self, path: str, name: str) -> Occurrence | None:
+        index = self.index_for(path)
+        if index is None:
+            return None
+        symbols = {
+            item.symbol
+            for item in index.occurrences_in(path)
+            if not item.is_definition() and descriptor_name(item.symbol) == name
+        }
+        if len(symbols) != 1:
+            return None
+        return index.definition_of(next(iter(symbols)))
+
     def atoms_in(self, path: str) -> Sequence[SyntaxMatch]:
         return self._index.atoms.get(path, ())
+
+    def comments_in(self, path: str) -> Sequence[SyntaxMatch]:
+        return self._index.comments.get(path, ())
 
     def definitions_in(self, path: str) -> Sequence[Definition]:
         return self._index.definitions.get(path, ())
@@ -281,9 +393,14 @@ class ImportGraph:
             "decorators": [item.to_mapping() for item in self.decorators],
             "registrations": [item.to_mapping() for item in self.registrations],
             "atoms": [item.to_mapping() for item in self.atoms],
+            "comments": [item.to_mapping() for item in self.comments],
             "parse_errors": [item.to_mapping() for item in self.parse_errors],
             "concatenations": [item.to_mapping() for item in self.concatenations],
             "formats": [item.to_mapping() for item in self.formats],
+            "indexes": [
+                {"tool": item.tool, "tool_version": item.tool_version, **item.counts()}
+                for item in self.indexes
+            ],
         }
         return f"{canonical_text(value)}\n".encode()
 
@@ -297,12 +414,25 @@ class ImportGraph:
         return self._index.definitions_by_id.get(identifier)
 
     def callers(self, definition: Definition) -> tuple[Call, ...]:
-        return tuple(
+        by_name = [
             item
             for item in self.calls
             if item.callee.rsplit(".", 1)[-1] == definition.name
             and _arity_matches(len(item.arguments), len(definition.parameters))
-        )
+        ]
+        symbol = self.definition_symbol(definition)
+        if symbol is None:
+            return tuple(by_name)
+        kept = {
+            item for item in by_name if not self._bound_elsewhere(self.call_symbol(item), symbol)
+        }
+        kept.update(self._index.calls_by_symbol.get(symbol, ()))
+        return tuple(sorted(kept))
+
+    def _bound_elsewhere(self, call_symbol: str | None, symbol: str) -> bool:
+        if call_symbol is None or call_symbol == symbol:
+            return False
+        return bool(self._index.definitions_by_symbol.get(call_symbol))
 
     def wrapper_context(self, definition: Definition) -> tuple[str, ...]:
         facts: set[str] = set()
@@ -381,8 +511,39 @@ COMMON_QUERIES = (
     Query("registration", "$REGISTRY[$KEY] = $VALUE"),
     Query("registration", "$REGISTRY = $VALUE"),
     Query("string", node_kind="string"),
+    Query("comment", node_kind="comment"),
     Query("parse_error", node_kind="ERROR"),
     Query("concatenation", "$LEFT + $RIGHT"),
+)
+
+TYPESCRIPT_QUERIES = (
+    Query("definition", "function $NAME($$$PARAMS) { $$$BODY }"),
+    Query("definition", "async function $NAME($$$PARAMS) { $$$BODY }"),
+    Query("definition", "const $NAME = ($$$PARAMS) => $BODY"),
+    Query("definition", "const $NAME = async ($$$PARAMS) => $BODY"),
+    Query("definition", "const $NAME = ($$$PARAMS): $RET => $BODY"),
+    Query("definition", "const $NAME = async ($$$PARAMS): $RET => $BODY"),
+    Query("definition", "const $NAME = <$T>($$$PARAMS) => $BODY"),
+    Query("definition", "const $NAME = async <$T>($$$PARAMS) => $BODY"),
+    Query("definition", "const $NAME = <$T>($$$PARAMS): $RET => $BODY"),
+    Query("definition", "const $NAME = async <$T>($$$PARAMS): $RET => $BODY"),
+    Query(
+        "definition",
+        "class C { async $NAME($$$PARAMS) { $$$BODY } }",
+        "method_definition",
+    ),
+    Query("definition", "class C { $NAME($$$PARAMS) { $$$BODY } }", "method_definition"),
+    Query("call", "$CALLEE<$T>($$$ARGS)"),
+    Query("assignment", "const $TARGET = $VALUE"),
+    Query("assignment", "let $TARGET = $VALUE"),
+    Query("assignment", "export const $TARGET = $VALUE"),
+    Query("import", "import { $$$NAMES } from $MODULE"),
+    Query("import", "import $NAME from $MODULE"),
+    Query("class", "class $NAME extends $BASE { $$$BODY }"),
+    Query("class", "class $NAME { $$$BODY }"),
+    Query("decorator", "@$DECORATOR", "decorator"),
+    Query("identifier", node_kind="identifier"),
+    Query("template_string", node_kind="template_string"),
 )
 
 LANGUAGE_QUERIES = {
@@ -414,6 +575,20 @@ LANGUAGE_QUERIES = {
         Query("definition", "function $NAME($$$PARAMS) { $$$BODY }"),
         Query("definition", "async function $NAME($$$PARAMS) { $$$BODY }"),
         Query("definition", "const $NAME = ($$$PARAMS) => $BODY"),
+        Query("definition", "const $NAME = async ($$$PARAMS) => $BODY"),
+        Query("definition", "const $NAME = ($$$PARAMS): $RET => $BODY"),
+        Query("definition", "const $NAME = async ($$$PARAMS): $RET => $BODY"),
+        Query("definition", "const $NAME = <$T>($$$PARAMS) => $BODY"),
+        Query("definition", "const $NAME = async <$T>($$$PARAMS) => $BODY"),
+        Query("definition", "const $NAME = <$T>($$$PARAMS): $RET => $BODY"),
+        Query("definition", "const $NAME = async <$T>($$$PARAMS): $RET => $BODY"),
+        Query(
+            "definition",
+            "class C { async $NAME($$$PARAMS) { $$$BODY } }",
+            "method_definition",
+        ),
+        Query("definition", "class C { $NAME($$$PARAMS) { $$$BODY } }", "method_definition"),
+        Query("call", "$CALLEE<$T>($$$ARGS)"),
         Query("assignment", "const $TARGET = $VALUE"),
         Query("assignment", "let $TARGET = $VALUE"),
         Query("import", "import { $$$NAMES } from $MODULE"),
@@ -424,22 +599,39 @@ LANGUAGE_QUERIES = {
         Query("identifier", node_kind="identifier"),
         Query("template_string", node_kind="template_string"),
     ),
-    "typescript": (
-        Query("definition", "function $NAME($$$PARAMS) { $$$BODY }"),
-        Query("definition", "async function $NAME($$$PARAMS) { $$$BODY }"),
-        Query("definition", "const $NAME = ($$$PARAMS) => $BODY"),
-        Query("assignment", "const $TARGET = $VALUE"),
-        Query("assignment", "let $TARGET = $VALUE"),
-        Query("assignment", "export const $TARGET = $VALUE"),
-        Query("import", "import { $$$NAMES } from $MODULE"),
-        Query("import", "import $NAME from $MODULE"),
-        Query("class", "class $NAME extends $BASE { $$$BODY }"),
-        Query("class", "class $NAME { $$$BODY }"),
-        Query("decorator", "@$DECORATOR", "decorator"),
-        Query("identifier", node_kind="identifier"),
-        Query("template_string", node_kind="template_string"),
-    ),
+    "tsx": TYPESCRIPT_QUERIES,
+    "typescript": TYPESCRIPT_QUERIES,
 }
+
+
+NON_COMBINABLE_QUERIES = frozenset(
+    {
+        ("javascript", "import", "import $NAME from $MODULE"),
+        ("javascript", "import", "import { $$$NAMES } from $MODULE"),
+        ("php", "assignment", "$TARGET = $VALUE"),
+        ("php", "registration", "$REGISTRY = $VALUE"),
+        ("tsx", "import", "import $NAME from $MODULE"),
+        ("tsx", "import", "import { $$$NAMES } from $MODULE"),
+        ("typescript", "import", "import $NAME from $MODULE"),
+        ("typescript", "import", "import { $$$NAMES } from $MODULE"),
+    }
+)
+
+
+def queries_for(language: str) -> tuple[Query, ...]:
+    return (*COMMON_QUERIES, *LANGUAGE_QUERIES.get(language, ()))
+
+
+def combinable_queries(language: str) -> tuple[Query, ...]:
+    return tuple(query for query in queries_for(language) if _combinable(language, query))
+
+
+def separate_queries(language: str) -> tuple[Query, ...]:
+    return tuple(query for query in queries_for(language) if not _combinable(language, query))
+
+
+def _combinable(language: str, query: Query) -> bool:
+    return (language, query.kind, query.pattern or "") not in NON_COMBINABLE_QUERIES
 
 
 class AstGrep:
@@ -448,8 +640,19 @@ class AstGrep:
         executable: str = "ast-grep",
         timeout_seconds: float = AST_GREP_TIMEOUT_SECONDS,
     ) -> None:
-        self.executable = _executable(executable)
+        self.requested = executable
         self.timeout_seconds = timeout_seconds
+        self._binary: ToolBinary | None = None
+
+    @property
+    def binary(self) -> ToolBinary:
+        if self._binary is None:
+            self._binary = _binary(self.requested)
+        return self._binary
+
+    @property
+    def executable(self) -> str:
+        return self.binary.path
 
     def version(self) -> str:
         completed = self._run(["--version"], None)
@@ -462,7 +665,7 @@ class AstGrep:
                 "ast-grep",
                 f"version {match.group('version')} is incompatible; require >=0.45.0,<0.46.0",
             )
-        return match.group("version")
+        return identity(self.binary, match.group("version"))
 
     def query(
         self,
@@ -488,6 +691,33 @@ class AstGrep:
             completed = self._run([*args, *batch], root)
             matches.extend(self.decode(completed.stdout, root, query.kind))
         return tuple(matches)
+
+    def query_all(
+        self,
+        root: Path,
+        paths: Sequence[str],
+        language: str,
+        queries: Sequence[Query],
+    ) -> tuple[SyntaxMatch, ...]:
+        if not paths or not queries:
+            return ()
+        kinds = {f"q{index}": query.kind for index, query in enumerate(queries)}
+        documents = [
+            _rule_document(identifier, language, query)
+            for identifier, query in zip(kinds, queries, strict=True)
+        ]
+        matches: list[SyntaxMatch] = []
+        with tempfile.TemporaryDirectory(prefix="hops-graph-queries-") as temporary:
+            rule_path = Path(temporary) / "queries.yml"
+            rule_path.write_text(
+                yaml.safe_dump_all(documents, sort_keys=True, allow_unicode=True),
+                encoding="utf-8",
+            )
+            args = ["scan", "-r", str(rule_path), "--json=compact"]
+            for batch in argument_batches(paths):
+                completed = self._run([*args, *batch], root)
+                matches.extend(self.decode_tagged(completed.stdout, root, kinds))
+        return tuple(sorted(set(matches)))
 
     def rule(
         self,
@@ -560,6 +790,62 @@ class AstGrep:
         matches = tuple(_decode_match(item, root, kind) for item in entries)
         return tuple(sorted(set(matches)))
 
+    def decode_tagged(
+        self, payload: str, root: Path, kinds: Mapping[str, str]
+    ) -> tuple[SyntaxMatch, ...]:
+        scale = max(len(kinds), 1)
+        if len(payload) > MAX_OUTPUT_CHARS * scale:
+            raise ToolingFailed(
+                "ast-grep",
+                f"a combined {scale} rule invocation returned {len(payload)} characters, over "
+                f"the {MAX_OUTPUT_CHARS * scale} character bound; split the closure",
+            )
+        try:
+            decoded: object = json.loads(payload or "[]")
+        except json.JSONDecodeError as error:
+            raise ToolingFailed("ast-grep", "output was malformed JSON") from error
+        except RecursionError as error:
+            raise ToolingFailed("ast-grep", "output nesting exceeded the parser bound") from error
+        if not isinstance(decoded, list):
+            raise ToolingFailed("ast-grep", "output JSON root was not an array")
+        entries = cast(list[object], decoded)
+        if len(entries) > MAX_MATCHES_PER_INVOCATION * scale:
+            raise ToolingFailed(
+                "ast-grep",
+                f"a combined {scale} rule invocation matched {len(entries)} nodes, over the "
+                f"{MAX_MATCHES_PER_INVOCATION * scale} match bound; split the closure",
+            )
+        matches: list[SyntaxMatch] = []
+        for item in entries:
+            record = as_mapping(cast(Mapping[str, object], item))
+            identifier = record.get("ruleId")
+            if identifier is None:
+                raise ToolingFailed(
+                    "ast-grep",
+                    "a combined rule invocation returned a match with no ruleId, so the "
+                    "query that produced it cannot be identified",
+                )
+            kind = kinds.get(str(identifier))
+            if kind is None:
+                raise ToolingFailed(
+                    "ast-grep",
+                    f"a combined rule invocation returned unknown ruleId {identifier!r}",
+                )
+            matches.append(_decode_match(item, root, kind))
+        return tuple(sorted(set(matches)))
+
+
+def _rule_document(identifier: str, language: str, query: Query) -> dict[str, Any]:
+    if query.node_kind is not None:
+        rule: dict[str, Any] = {"kind": query.node_kind}
+    elif query.pattern is not None and query.selector is not None:
+        rule = {"pattern": {"context": query.pattern, "selector": query.selector}}
+    elif query.pattern is not None:
+        rule = {"pattern": query.pattern}
+    else:
+        raise ValueError("ast-grep query requires a pattern or node kind")
+    return {"id": identifier, "language": AST_GREP_LANGUAGES[language], "rule": rule}
+
 
 def argument_batches(
     paths: Sequence[str], budget: int = ARGUMENT_BUDGET_CHARS
@@ -586,26 +872,29 @@ def build(
     root: Path,
     paths_by_language: Mapping[str, Sequence[str]],
     runner: AstGrep,
+    indexes: Sequence[SymbolIndex] = (),
 ) -> ImportGraph:
     matches: list[SyntaxMatch] = []
     for language in sorted(paths_by_language):
         paths = tuple(sorted(paths_by_language[language]))
         if not paths:
             continue
-        for query in (*COMMON_QUERIES, *LANGUAGE_QUERIES.get(language, ())):
+        matches.extend(runner.query_all(root, paths, language, combinable_queries(language)))
+        for query in separate_queries(language):
             matches.extend(runner.query(root, paths, language, query))
     unique = tuple(sorted(set(matches)))
     definitions = _definitions(unique)
     calls = _calls(unique, definitions)
     assignments = _assignments(unique, definitions)
     all_paths = tuple(path for paths in paths_by_language.values() for path in paths)
-    imports = _imports(unique, all_paths)
+    imports = _imports(unique, all_paths, module_aliases(root))
     classes = _classes(unique)
     decorators = tuple(item for item in unique if item.kind == "decorator")
     registrations = tuple(item for item in unique if item.kind == "registration")
     atoms = tuple(
         item for item in unique if item.kind in ("identifier", "string", "template_string")
     )
+    comments = tuple(item for item in unique if item.kind == "comment")
     parse_errors = tuple(item for item in unique if item.kind == "parse_error")
     concatenations = tuple(item for item in unique if item.kind == "concatenation")
     formats = tuple(item for item in unique if item.kind == "format")
@@ -618,9 +907,11 @@ def build(
         decorators=decorators,
         registrations=registrations,
         atoms=atoms,
+        comments=comments,
         parse_errors=parse_errors,
         concatenations=concatenations,
         formats=formats,
+        indexes=tuple(indexes),
     )
 
 
@@ -675,6 +966,8 @@ def _range(value: object) -> SourceRange:
         int(offsets["end"]),
         int(start["line"]) + 1,
         int(end["line"]) + 1,
+        int(start["column"]),
+        int(end["column"]),
     )
 
 
@@ -699,10 +992,14 @@ def _definitions(matches: Iterable[SyntaxMatch]) -> tuple[Definition, ...]:
         name = match.capture("NAME")
         if name is None:
             continue
-        parameters = tuple(
-            _parameter_name(match.path, item, identifiers)
-            for item in match.captures_named("PARAMS")
-            if item.text not in (",", "(", ")")
+        slots = [
+            item for item in match.captures_named("PARAMS") if item.text not in (",", "(", ")")
+        ]
+        parameters = tuple(_parameter_name(match.path, item, identifiers) for item in slots)
+        bindings = tuple(
+            (bound, position)
+            for position, item in enumerate(slots)
+            for bound in _bound_names(match.path, item, identifiers)
         )
         identity = content_id(
             {
@@ -721,6 +1018,7 @@ def _definitions(matches: Iterable[SyntaxMatch]) -> tuple[Definition, ...]:
                 parameters,
                 match.range,
                 match.text.lstrip().startswith("async "),
+                bindings,
             )
         )
     return tuple(sorted(set(definitions)))
@@ -786,7 +1084,11 @@ def _assignments(
     return tuple(sorted(set(assignments)))
 
 
-def _imports(matches: Iterable[SyntaxMatch], paths: Sequence[str]) -> tuple[ImportBinding, ...]:
+def _imports(
+    matches: Iterable[SyntaxMatch],
+    paths: Sequence[str],
+    aliases: Sequence[tuple[str, str, tuple[str, ...]]] = (),
+) -> tuple[ImportBinding, ...]:
     imports: list[ImportBinding] = []
     for match in matches:
         if match.kind != "import":
@@ -802,7 +1104,7 @@ def _imports(matches: Iterable[SyntaxMatch], paths: Sequence[str]) -> tuple[Impo
                 if item.text not in (",", "{", "}") and item is not module_capture
             )
         )
-        target = _import_target(match.path, module, match.language.lower(), paths)
+        target = _import_target(match.path, module, match.language.lower(), paths, aliases)
         identity = content_id(
             {
                 "path": match.path,
@@ -870,16 +1172,95 @@ def _owner(
     return min(candidates, key=lambda item: item.range.end_byte - item.range.start_byte).id
 
 
-def _import_target(path: str, module: str, language: str, paths: Sequence[str]) -> str | None:
+MODULE_CONFIG_FILES = ("tsconfig.json", "jsconfig.json")
+ECMASCRIPT_LANGUAGES = ("javascript", "tsx", "typescript")
+MODULE_SUFFIXES = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs")
+_CONFIG_SKIP = frozenset({"node_modules", ".git", "dist", "build", "vendor"})
+
+
+def module_aliases(root: Path) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    entries: list[tuple[str, str, tuple[str, ...]]] = []
+    for name in MODULE_CONFIG_FILES:
+        for config in sorted(root.rglob(name)):
+            relative = config.relative_to(root)
+            if any(part in _CONFIG_SKIP for part in relative.parts):
+                continue
+            document: object
+            try:
+                document = json.loads(config.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+                continue
+            options = as_mapping(as_mapping(document).get("compilerOptions"))
+            mapping = as_mapping(options.get("paths"))
+            if not mapping:
+                continue
+            base = options.get("baseUrl")
+            base_dir = config.parent / base if isinstance(base, str) else config.parent
+            try:
+                directory = posixpath.normpath(base_dir.resolve().relative_to(root).as_posix())
+            except ValueError:
+                continue
+            directory = "" if directory == "." else directory
+            for prefix in sorted(mapping):
+                targets = tuple(
+                    item for item in as_sequence(mapping[prefix]) if isinstance(item, str)
+                )
+                if targets:
+                    entries.append((directory, str(prefix), targets))
+    return tuple(sorted(set(entries)))
+
+
+def _aliased(module: str, aliases: Sequence[tuple[str, str, tuple[str, ...]]]) -> list[str]:
+    mapped: list[str] = []
+    for directory, prefix, targets in aliases:
+        for target in targets:
+            if prefix.endswith("*"):
+                head = prefix[:-1]
+                if not module.startswith(head):
+                    continue
+                rest = module[len(head) :]
+                value = target[:-1] + rest if target.endswith("*") else target
+            elif module == prefix:
+                value = target
+            else:
+                continue
+            mapped.append(posixpath.normpath(posixpath.join(directory, value)))
+    return mapped
+
+
+def resolve_specifier(
+    path: str,
+    module: str,
+    language: str,
+    paths: Sequence[str],
+    aliases: Sequence[tuple[str, str, tuple[str, ...]]] = (),
+) -> str | None:
+    return _import_target(path, module, language, paths, aliases)
+
+
+def _import_target(
+    path: str,
+    module: str,
+    language: str,
+    paths: Sequence[str],
+    aliases: Sequence[tuple[str, str, tuple[str, ...]]] = (),
+) -> str | None:
     parent = Path(path).parent
     candidates: list[Path] = []
     if language == "python":
-        base = Path(*module.split("."))
-        candidates.extend((parent / base.with_suffix(".py"), parent / base / "__init__.py"))
-    elif language in ("javascript", "typescript") and module.startswith("."):
-        base = parent / module
-        candidates.extend(base.with_suffix(suffix) for suffix in (".ts", ".tsx", ".js", ".jsx"))
-        candidates.extend(base / f"index{suffix}" for suffix in (".ts", ".tsx", ".js", ".jsx"))
+        segments = [segment for segment in module.split(".") if segment]
+        if segments:
+            base = Path(*segments)
+            candidates.extend((parent / base.with_suffix(".py"), parent / base / "__init__.py"))
+    elif language in ECMASCRIPT_LANGUAGES:
+        bases: list[Path] = []
+        if module.startswith("."):
+            bases.append(parent / module)
+        else:
+            bases.extend(Path(item) for item in _aliased(module, aliases))
+        for base in bases:
+            candidates.extend(base.with_suffix(suffix) for suffix in MODULE_SUFFIXES)
+            candidates.extend(base / f"index{suffix}" for suffix in MODULE_SUFFIXES)
     normalized = set(paths)
     return next(
         (
@@ -908,6 +1289,76 @@ def _parameter_name(
     if inside:
         return min(inside, key=lambda item: item.range.start_byte).text
     return capture.text
+
+
+DESTRUCTURED_NAME = re.compile(r"[A-Za-z_$][A-Za-z0-9_$]*")
+
+
+def narrow_to_property(capture: Capture, name: str) -> Capture | None:
+    text = capture.text
+    if not text.lstrip().startswith("{"):
+        return None
+    opening = re.compile(rf"(?<![A-Za-z0-9_$]){re.escape(name)}\s*:\s*")
+    found = opening.search(text)
+    if found is None:
+        return None
+    start = found.end()
+    depth = 0
+    end = len(text)
+    for index in range(start, len(text)):
+        character = text[index]
+        if character in "{[(":
+            depth += 1
+        elif character in "}])":
+            if depth == 0:
+                end = index
+                break
+            depth -= 1
+        elif character == "," and depth == 0:
+            end = index
+            break
+    value = text[start:end].strip()
+    if not value:
+        return None
+    offset = start + (len(text[start:end]) - len(text[start:end].lstrip()))
+    return Capture(
+        capture.name,
+        value,
+        SourceRange(
+            capture.range.start_byte + offset,
+            capture.range.start_byte + offset + len(value),
+            capture.range.start_line + text.count("\n", 0, offset),
+            capture.range.start_line + text.count("\n", 0, offset + len(value)),
+        ),
+    )
+
+
+def _bound_names(
+    path: str, capture: Capture, identifiers: Mapping[str, Sequence[SyntaxMatch]]
+) -> tuple[str, ...]:
+    text = capture.text
+    head = text.split(":", 1)[0] if text.lstrip().startswith(("{", "[")) else text
+    if head.lstrip().startswith(("{", "[")):
+        names: set[str] = set()
+        for part in head.strip().strip("{}[]").split(","):
+            candidate = part.split("=", 1)[0].split(":", 1)[-1].strip().lstrip(".")
+            match = DESTRUCTURED_NAME.fullmatch(candidate)
+            if match:
+                names.add(candidate)
+        if names:
+            return tuple(sorted(names))
+    inside = [item for item in identifiers.get(path, ()) if capture.range.contains(item.range)]
+    if not inside:
+        return (text,)
+    return tuple(sorted({item.text for item in inside if item.text.isidentifier()}))
+
+
+def _binary(requested: str) -> ToolBinary:
+    if requested == AST_GREP:
+        shipped = vendored(AST_GREP)
+        if shipped is not None:
+            return shipped
+    return locate(AST_GREP, _executable(requested))
 
 
 def _executable(requested: str) -> str:
@@ -944,5 +1395,8 @@ __all__ = [
     "SyntaxMatch",
     "build",
     "language_for",
+    "module_aliases",
+    "narrow_to_property",
+    "resolve_specifier",
     "scan_rules",
 ]

@@ -1,0 +1,8 @@
+{
+  "summary": "the query selects the new field name while response handling reads the removed field through its bare leaf on an attribute access, so no site spells the qualified subject",
+  "expected_verdict": "FAILED",
+  "reason_contains": "response handling still reads",
+  "caught_by": "response-consumer check (the bare-leaf watch, gated on provider evidence reaching the file)",
+  "delete": [],
+  "obligation_sites": []
+}

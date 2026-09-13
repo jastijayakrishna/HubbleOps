@@ -4,19 +4,19 @@
       "claim_type": "structure_unsupported",
       "location": "package-lock.json",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "package_reference",
       "location": "package-lock.json:10",
       "provider_subject": "google-ads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "package_reference",
       "location": "package-lock.json:10",
       "provider_subject": "google-ads-api",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "sdk_installed",
@@ -25,16 +25,10 @@
       "status": "AFFECTED"
     },
     {
-      "claim_type": "surface_reference",
-      "location": "package-lock.json:10",
-      "provider_subject": "google-ads",
-      "status": "UNKNOWN"
-    },
-    {
       "claim_type": "structure_unsupported",
       "location": "package.json",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "package_reference",
@@ -46,18 +40,6 @@
       "claim_type": "package_reference",
       "location": "package.json:5",
       "provider_subject": "google-ads-api",
-      "status": "UNKNOWN"
-    },
-    {
-      "claim_type": "surface_reference",
-      "location": "package.json:5",
-      "provider_subject": "google-ads",
-      "status": "UNKNOWN"
-    },
-    {
-      "claim_type": "package_reference",
-      "location": "src/client.js:1",
-      "provider_subject": "google-ads",
       "status": "UNKNOWN"
     },
     {
@@ -79,10 +61,10 @@
       "status": "UNKNOWN"
     },
     {
-      "claim_type": "config_reference",
+      "claim_type": "surface_reference",
       "location": "src/client.js:6",
       "provider_subject": "GOOGLE_ADS_DEVELOPER_TOKEN",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "surface_reference",
@@ -94,11 +76,15 @@
   "counts": {
     "affected": 1,
     "excluded_with_evidence": 0,
+    "human_accepted_risk": 0,
     "human_required": 0,
-    "not_affected_with_evidence": 0,
-    "total": 15,
+    "not_affected_with_evidence": 3,
+    "provider_reference_data": 0,
+    "total": 12,
     "unexplained": 0,
-    "unknown": 14
+    "unknown": 6,
+    "unscanned": 0,
+    "unsupported": 2
   },
   "fixture": "js_dynamic_version",
   "pack": "google_ads"

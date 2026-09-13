@@ -1,0 +1,8 @@
+{
+  "summary": "the candidate deletes the test suite so nothing can contradict it",
+  "expected_verdict": "FAILED",
+  "reason_contains": "unexplained hunk",
+  "caught_by": "diff containment (the frozen tests still ran; deleting them is an unexplained hunk)",
+  "delete": ["tests/test_reporting.py"],
+  "obligation_sites": []
+}

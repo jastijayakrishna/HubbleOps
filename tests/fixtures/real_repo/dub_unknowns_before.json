@@ -1,0 +1,2656 @@
+{
+ "description": "Every UNKNOWN candidate of the TypeScript real-repo loop, frozen before the Tier 3a scanner changes. A candidate in this file must never simply be absent from a later scan of the same commit: it resolves to a permitted status with stronger evidence, or it stays UNKNOWN. Disappearance is a law L1 violation.",
+ "identity_migration": {
+  "applied": "2026-09-12",
+  "frozen_identities_after": 100,
+  "frozen_identities_before": 103,
+  "merged": 3,
+  "note": "Configuration-key patterns now match on identifier boundaries, so the key ADS_API_VERSION no longer matches inside GOOGLE_ADS_API_VERSION. Each retired substring candidate maps to the candidate for the enclosing key at the same site, whose permitted set is the intersection of both. Credential keys moved from config_env_keys to identifiers, so the same observation is now a surface_reference claim; each retired config_reference id maps to the surface_reference candidate at the same site, carrying the same permitted set.",
+  "proposal": "identifier-boundary-keys",
+  "rekeyed_identities": {
+   "07367a121aed02947e239e9b2e25c4fddc73c7d7127bd9148e723c861656b82a": "3fb0ccf72e7cabcf51941436ec22f3dd9ac82ba1412fc086b8880ee528b8d8f6",
+   "13e4ed7b7bf1178dc2130c40d0e87112812e6ee6eebdebc80fc86f94a065fd8d": "6954671d410765ce62cab0ce282a04406ca87dc2ffc7db0999ab4a15901f814a",
+   "36bac21fa9d644da8e8160926e39ed9cc690ad86e5b2510b862ebef4bc358ebd": "fce5b3f27324f3536d0144de78981110d3faef713a29cb5bbead4d1cc8f4b870",
+   "7387bdae98ab70e77bb5fc38fd6c8c3ee7b82dd5f66a6a0e5a732d1ab367248e": "275462d975cbf01d7d396cd2604f96c079f921f3c41c8d2c910f2e3ebbfaf635",
+   "92eda602f2254571e04cff159deb00b77d18628d1f6e88c99faa2bd582ac898f": "822dd36318d6b540a6cdf1868e153b9d5c5e168000e5fd8797f679a06c1bc2a5",
+   "ae91832ee66790e640ec8d4f85569a3484969076e3f89761fd3782689ddf9904": "633740dd5163ef4624f20e598421e40271df51c3b14cbd1dc1694738c2f4adb3"
+  },
+  "retired_identities": {
+   "12dd3282837ca1038c350e8907e189ee2fad103c47e977c0743fe71d4a8d25a7": "e9ba4834fcbfbb11295268ef5e4bc2669b6dbb7c96da860b334d8f99936c4fdf",
+   "725af44f32a7d934e5f2207cd8bd8d942a206e7fcafe86c62b4424e71510cbf7": "5a222285134ee306b42181b928b71668857d8a813b1d615d7768e44db820a14d",
+   "7e3c9208e0abcdae9a2fdc8ffa5955b04f038bf0a8d319f961dc1ce8761a5888": "3ed469673562a5da73d259fb5fb0b2b340336457a18ef423abc213e32e88875e"
+  }
+ },
+ "ledger_counts": {
+  "affected": 2,
+  "excluded": 3,
+  "not_affected": 4,
+  "total": 326,
+  "unexplained": 0,
+  "unknown": 103,
+  "unscanned": 7,
+  "unsupported": 207
+ },
+ "proof_scope_hash": "43036ba3dd9f665f6b51bc21f3133e1fc3721b3116d50ec67316456c4bb33f02",
+ "provider": "google_ads",
+ "repo_sha": "b8866f413cec065438d6e5faabbd9dac7d1ceea5",
+ "repository": "dubinc/dub",
+ "root_cause_totals": {
+  "FA-034": 18,
+  "FA-045": 11,
+  "FA-054": 2,
+  "FA-055": 22,
+  "FA-056": 17,
+  "FA-057": 9,
+  "FA-058": 13,
+  "FA-059": 3,
+  "FA-060": 5
+ },
+ "run_id": "64ddda4d73038543398d70cf799d3f1e4db739e0860f5d0b4d27dd377bd3c7fb",
+ "scanner": "hubbleops=0.1.0;pipeline=510e161fc9d63a86c8de03f9d0fed4871e0ba8564f8c529b724d6195b1c117ec;rg=ripgrep 14.1.1 (rev 4649aa9700);ast-grep=0.45.0",
+ "unknown_total": 100,
+ "unknowns": [
+  {
+   "candidate_id": "0041f4c749ed08e8ed7c94b22ef31b006ac8e014d38b559557c89f2c11bfb43e",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 6,
+   "observer": "structure",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/invoice-paid.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "0f440f706474a6c351e561ea2064500d5d143361e8552fdeebf83e69ac9a877e",
+    "source_hash": "7faac7edd920bce067aed2119c83e49e8e32065893d0d5d0b7ecd031739748cd"
+   }
+  },
+  {
+   "candidate_id": "08de52447df31f63235a9e8fc9afba6a32a3fd4422989654a1ff6a62b491b7e8",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 6,
+   "observer": "structure",
+   "path": "apps/web/lib/api/conversions/track-sale.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "8e166daf9e6ec7ecd4892b9fe70a197fc753b4ce70493de1885bb06a1f9e0ee3",
+    "source_hash": "c2c847b6e13400eda92144824c62673085002aff21ef1f182537f11805c6071e"
+   }
+  },
+  {
+   "candidate_id": "0b5e2bf94816f175e7dc158b7f4c293fcca8e1b881bca60cc650721d4d46f408",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/schema.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 13,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/google-ads/callback/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "167f331c8fcdfd81fc8ebcd127b8340e43b6a3ae7c40f79d8cedb944370a390f",
+    "source_hash": "322ded80405f8c998ef17cba963563fc0ea05ffa79a5c67149fb87d481c20575"
+   }
+  },
+  {
+   "candidate_id": "112f09ea4a329ff6aad6c8cc1691db1031a2eb51156dfc38a121701e2c071679",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 143,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "1429411983620a5a99ffd5a38309286c71397d05e8a31a533b74d0fa10e275e1",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "172f7303eab48d17f84436cc851c3a9d91dee6ea10802ae240b2f3515dd4741f",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 8,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-lead-event-filter.test.ts",
+   "provider_subject": "customers/1/conversionActions",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "bc06f578b60462c30c6d5193e4bb3c5ccce84de726462b139dc199b83b859706",
+    "source_hash": "7aebd9a91ced4a8d3038c44bf5935183af9fc9ae9260dcc92d1c98718eb4a615"
+   }
+  },
+  {
+   "candidate_id": "19dfa7a6c50013cab03bfe40bb89ce6efd69bc4742b24ddf42c77482581c3c1c",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 219,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "customers:listAccessibleCustomers",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "00eed2423a05c222b16bb984d89a03e8403ad13341c7b4ac549de236083f416a",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "1b96e71a905f6d44c4be1808941fe6b2869d438a8705253d3e87ed33709089cd",
+   "claim_type": "request_text",
+   "close_with": "extract the request skeleton with the structure observer, or capture the executed request dynamically",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural candidate on the same line that resolved a version or a request skeleton; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 420,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "conversion_action",
+   "root_cause": "FA-060",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "71057ca29e72f012e076e04de77e1a74eadbbb3edab96471e9503e0faeb68ccb",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "203bc212672722338641fcae7ae8ca4b5a2c895d26ace6956391785a16f54e45",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 232,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/upload-conversion.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "80568599f50bc55910922de0a119ace1827d9bec38feeca8c6a26212bd5776ad",
+    "source_hash": "5fbdfbc828a2bf4f689e33d84e5e1653acf937ca15f89dd07f543e02008087fe"
+   }
+  },
+  {
+   "candidate_id": "20ca0d500267ee6fa46ec3e9e0e32c1f933d63d4ba5aafa5aeb3d23fedad531b",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 109,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/shopify/integration/webhook/route.ts",
+   "provider_subject": "customers/redact",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "edbe6525dcfe423e532fe6778ec35fdef157b7b3669b21678576756f84e70190",
+    "source_hash": "e46ea6c2e6e56398c610766f45ef8a0e11e7234521e9c2269f61e666849a21d1"
+   }
+  },
+  {
+   "candidate_id": "21bb6f69b45d6d02e93a65431bc25d85252072a6574c49f3a1f773ec43a42bb7",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 37,
+   "observer": "text",
+   "path": "apps/web/lib/actions/get-integration-install-url.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "81727a75aa626320fabce60d3aee95958fea6ec18e4da377fcf2f9ba89bf11b0",
+    "source_hash": "5be917532889d282e59c08bbd27f20ea67d5626f96d8884660ec360b0d23f26e"
+   }
+  },
+  {
+   "candidate_id": "275089ab4c5d1345b6b469884712d2bd7eef20b86dae515abefb0c97e9b184e1",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 17,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/constants.ts",
+   "provider_subject": "https://www.googleapis.com/auth/datamanager",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "18130125eb910aa4ac7925c38c0c92f50ddc81f7b5d9c29b06d06a7bf46bb4c4",
+    "source_hash": "f500a6569cfebf09b56099ed41f75b468ce60bb69ed0be513049620ccd22760a"
+   }
+  },
+  {
+   "candidate_id": "275462d975cbf01d7d396cd2604f96c079f921f3c41c8d2c910f2e3ebbfaf635",
+   "claim_type": "surface_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 38,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "GOOGLE_ADS_DEVELOPER_TOKEN",
+   "rekeyed_from": "7387bdae98ab70e77bb5fc38fd6c8c3ee7b82dd5f66a6a0e5a732d1ab367248e",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "04881a0c3bb502c349b68ef5c20996e360ef45c2678a39c5c4d6268f4f1f3fe5",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "2cd0dbb576691207aa6ef0590cd881c2d125f38526f338891cc2d4631f3e76d0",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 74,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "6a26f93b197cc5602b9cd97e83f8bd07b021d0154edd1807e19f69a5294e6e2e",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "2d114c6f8dd5c2a549ced97a3f800454b94d7564ca947c1fcb65307f36ba3430",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 8,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-lead-event-filter.test.ts",
+   "provider_subject": "conversionActions/trial",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "f51b1abdd73bb6cf01eea525a3e43adae5d34eb11efacf3a6958ff1675429681",
+    "source_hash": "7aebd9a91ced4a8d3038c44bf5935183af9fc9ae9260dcc92d1c98718eb4a615"
+   }
+  },
+  {
+   "candidate_id": "3097f47039355f8f2cd78eff39badc784333f53dde7c75b5a6f5783763081acb",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 9,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-lead-event-filter.test.ts",
+   "provider_subject": "conversionActions/purchase",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "953ef6a0253ed501769ef5b5335071dd1c38a3eaa8fb3e9aa77c929c55e86fae",
+    "source_hash": "7aebd9a91ced4a8d3038c44bf5935183af9fc9ae9260dcc92d1c98718eb4a615"
+   }
+  },
+  {
+   "candidate_id": "340c5fc4dacee3a7974494392d5274e06732c301d34233973e899bbfdbe9c8ef",
+   "claim_type": "request_text",
+   "close_with": "ingest the provider version that introduces this resource, or record a human decision that the query does not reach this provider",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 147,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/checkout-session-completed.ts",
+   "provider_subject": "clickevent",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "d32481f8c6ad3a4e9f21947008c1afaf2f369965efc837e64283ec676b14e040",
+    "source_hash": "7fb2427795af1a7d8af36a73fe57f843db0518250fe28c94e2203bf95736d6b8"
+   }
+  },
+  {
+   "candidate_id": "389c6e95e0b22f39afd8debc303e353a18b9c6da0cecc0fa269b3e9e37c7e2ae",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 141,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/google-ads/callback/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "7fea671e724f7849a05b0f02f6f387a65cfb1e86571e008e98f72d102964a8c2",
+    "source_hash": "322ded80405f8c998ef17cba963563fc0ea05ffa79a5c67149fb87d481c20575"
+   }
+  },
+  {
+   "candidate_id": "391aba63ff76e456dc037779747b6574e956ba1295146841b3f147f7aa1ba509",
+   "claim_type": "request_text",
+   "close_with": "run the Phase 6 contract oracle against this source-bound request skeleton",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the offline contract oracle judging the resolved skeleton at CATALOG authority; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 274,
+   "observer": "structure",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-059",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "d0a5bf4b1bf2584fb91130c42bf80e9bae51d2ffcc9c1e192abaa895cf3e294e",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "3d7ed32812bed620f6075e3f39100ea4626d38c0dff6294fd15723acb96d3d52",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 9,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-lead-event-filter.test.ts",
+   "provider_subject": "customers/1/conversionActions",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "0954de4374e7fc589cedbf6586fe45e8eedfa4c7a886ca2dc66f6bb818bcea1d",
+    "source_hash": "7aebd9a91ced4a8d3038c44bf5935183af9fc9ae9260dcc92d1c98718eb4a615"
+   }
+  },
+  {
+   "candidate_id": "3e955b54e708ffe9afdc4604a5c32d38c828400382b36adc6b058a4bdc035c4c",
+   "claim_type": "request_text",
+   "close_with": "extract the request skeleton with the structure observer, or capture the executed request dynamically",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural candidate on the same line that resolved a version or a request skeleton; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 274,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "customer",
+   "root_cause": "FA-060",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "53ed33860364fc11b5faf1a5f7cf72b789e0bf89cbece441bee18368d78b5f6f",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "3ed469673562a5da73d259fb5fb0b2b340336457a18ef423abc213e32e88875e",
+   "claim_type": "config_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 20,
+   "merged_from": [
+    "7e3c9208e0abcdae9a2fdc8ffa5955b04f038bf0a8d319f961dc1ce8761a5888"
+   ],
+   "merged_root_causes": [
+    "FA-057"
+   ],
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/constants.ts",
+   "provider_subject": "GOOGLE_ADS_API_VERSION",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "ce4eaed94aa20613d3b235861167d98de87f9dde7005bb9541d9a245b821528a",
+    "source_hash": "f500a6569cfebf09b56099ed41f75b468ce60bb69ed0be513049620ccd22760a"
+   }
+  },
+  {
+   "candidate_id": "3fb0ccf72e7cabcf51941436ec22f3dd9ac82ba1412fc086b8880ee528b8d8f6",
+   "claim_type": "surface_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 225,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/oauth.ts",
+   "provider_subject": "GOOGLE_ADS_CLIENT_SECRET",
+   "rekeyed_from": "07367a121aed02947e239e9b2e25c4fddc73c7d7127bd9148e723c861656b82a",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "a2f96fd4603e09cc31104d7ea906fb7c2a4607d440f4dc4771aad5741b06587d",
+    "source_hash": "7ced89d9813283987e2a2682316a81e564bc0e84ea38698d10197018943f5f37"
+   }
+  },
+  {
+   "candidate_id": "41cd12742ade71ed6faf5cb2acfb9b064e154e0419224dc280c0f90e217c7d02",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 228,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/oauth.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "2a880179fd60616a1af9e70cccc1fdd77a5146d4d134a700188bf48cdab2c7ca",
+    "source_hash": "7ced89d9813283987e2a2682316a81e564bc0e84ea38698d10197018943f5f37"
+   }
+  },
+  {
+   "candidate_id": "440ca491e9fbd10aa7b015e3f74de3b6b15da7329ad61d6899d0b02cd09b2ab5",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 6,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/utils/sync-customer.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "508ea85a41fdff7cf4f53b1b80876740e4b93f02f782673619a074b1b16da49f",
+    "source_hash": "65551d5d2478efce8a227cddf4e9880c18c611a315e09312e9ef1614569d42a4"
+   }
+  },
+  {
+   "candidate_id": "47d792e304d9a7ef6d656f69baea6027212905f753fc0919b57e65b4b053b5b6",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 3,
+   "observer": "text",
+   "path": "apps/web/lib/api/conversions/track-sale.ts",
+   "provider_subject": "customers/get",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "1d13d2f3a1b01bab77167400a2797783db2bbf7dc5bde5e880df19eb404c1240",
+    "source_hash": "c2c847b6e13400eda92144824c62673085002aff21ef1f182537f11805c6071e"
+   }
+  },
+  {
+   "candidate_id": "47f0b838170c4ed1c026196345e43466cea15dcbc8f28836f14de42e0492e552",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 2,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/utils/sync-customer.ts",
+   "provider_subject": "customers/get",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "ee4c4d44c6a3781423a12f120a9c5a31272065d49e2ef679869a90343bb66bc6",
+    "source_hash": "65551d5d2478efce8a227cddf4e9880c18c611a315e09312e9ef1614569d42a4"
+   }
+  },
+  {
+   "candidate_id": "48e9d18cfe7beffad11d690b2db831ad456bab1b521665e830e21174248c7de9",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 87,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/helpers.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "bd8110f565af7e99290d8e1494f6f4ed6e0d3b1d87229ed941cb840c0b078da6",
+    "source_hash": "e6d06b630a8234e07ea24f0c61e0f7bffeab4416240b2d305e8ea2e6411e319e"
+   }
+  },
+  {
+   "candidate_id": "49d2e53994b7d85af5aaab05f270b94ceacc444e43480785afe27d3cd10d83f4",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 3,
+   "observer": "structure",
+   "path": "apps/web/app/(ee)/api/google-ads/upload-conversion/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "b4745d5d923b9336b749a8dbe7617d4ce7c8e63f90b6ce37f67cb1005492df36",
+    "source_hash": "93e8abce7a7856a91a884475fad58b0c375d3ff8813feb740fc7ef873da4dff9"
+   }
+  },
+  {
+   "candidate_id": "4b568d8cefadaae6af5d3d9d051e6a1318d6858363f7f77b3805c5f06c8e5d21",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 114,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/ui/settings.tsx",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "fc721196e6ecab07fb8579ca412d4604b449f3d299331cfad8e6782fd290d918",
+    "source_hash": "2aac0cad2a88e6282768ba874c4b0752b3d59804968e912426baac1dbf6644ed"
+   }
+  },
+  {
+   "candidate_id": "53c1867c89f01a0e5116451056e599477a5dd66831ce5d72a731cf8817a46524",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 18,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-api-error.test.ts",
+   "provider_subject": "GoogleAdsFailure",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "bdd77dcd841a27328f7a05a6ac6d6215d53ad7efac64e226beaccfa92ae14968",
+    "source_hash": "d8a583ce3be3cc508a828fc584fe69d15cfeed5c76f50bc0f69953ab53fd20e1"
+   }
+  },
+  {
+   "candidate_id": "546e0053c10456ff2743abc546ef78a746fcf847d8819cf5eb0c5e08eb1bb245",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 25,
+   "observer": "text",
+   "path": "apps/web/scripts/create-integration.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "fe85465e34d61eef8cc041db87fb583d507ce78dc0e5f2a880b751ff650ba921",
+    "source_hash": "390e663296dc28dd02b4ee7d5d4861c8cbcffe00230a08fee32d64b9366a83c8"
+   }
+  },
+  {
+   "candidate_id": "5a222285134ee306b42181b928b71668857d8a813b1d615d7768e44db820a14d",
+   "claim_type": "config_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 60,
+   "merged_from": [
+    "725af44f32a7d934e5f2207cd8bd8d942a206e7fcafe86c62b4424e71510cbf7"
+   ],
+   "merged_root_causes": [
+    "FA-057"
+   ],
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "GOOGLE_ADS_API_VERSION",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "32c3fc1406f90c61d50f02e27305bcbedd0524a52a2fdb9b6a2380c8123d8ee2",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "5a87bd4f1397ca591d84035d3c1ca2a6285a5487d28d8da460131ff68ad134ca",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 140,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/update-google-ads-settings.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "be4eecba4963d2c4b98ad47bbffe71d586a6c62d9fc667e96f1a16361d827d5b",
+    "source_hash": "e0a5a684c837822b1366766816c53b62374951de19a09de9979933c24f6baaaf"
+   }
+  },
+  {
+   "candidate_id": "633740dd5163ef4624f20e598421e40271df51c3b14cbd1dc1694738c2f4adb3",
+   "claim_type": "surface_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 224,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/oauth.ts",
+   "provider_subject": "GOOGLE_ADS_CLIENT_ID",
+   "rekeyed_from": "ae91832ee66790e640ec8d4f85569a3484969076e3f89761fd3782689ddf9904",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "5e3eab08c77f1f1297d3d618151238f87cbbac4449739146fdf00b05be041ce0",
+    "source_hash": "7ced89d9813283987e2a2682316a81e564bc0e84ea38698d10197018943f5f37"
+   }
+  },
+  {
+   "candidate_id": "6940ec40966840300a24f3d3984769c036dab4b3ece290de59fcbda4edcef1f7",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/api.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 7,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/google-ads/callback/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "36e7493fc6365a0ae912dfc014c9bbcac2aa944d8f7a161b0c2055750775b09f",
+    "source_hash": "322ded80405f8c998ef17cba963563fc0ea05ffa79a5c67149fb87d481c20575"
+   }
+  },
+  {
+   "candidate_id": "6954671d410765ce62cab0ce282a04406ca87dc2ffc7db0999ab4a15901f814a",
+   "claim_type": "surface_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 197,
+   "observer": "text",
+   "path": "apps/web/.env.example",
+   "provider_subject": "GOOGLE_ADS_CLIENT_SECRET",
+   "rekeyed_from": "13e4ed7b7bf1178dc2130c40d0e87112812e6ee6eebdebc80fc86f94a065fd8d",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "984ce2ee37351357efff7b73f7ef4301f914a632110e6245f5e9017d755c47a8",
+    "source_hash": "ce3215fd0a9687d70fefd3a10c7ddafbdf72c3736cf9b683f50d3d8c16785cf8"
+   }
+  },
+  {
+   "candidate_id": "6a5d872bdeacf1ef8d9b770c3f7eec583e5030356c7a1f562ebe576881ab1b98",
+   "claim_type": "request_text",
+   "close_with": "extract the request skeleton with the structure observer, or capture the executed request dynamically",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural candidate on the same line that resolved a version or a request skeleton; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 375,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "customer_client",
+   "root_cause": "FA-060",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "456590dbefcae8f44c784c28e690b174f28653055223aa806b2f4b056bab72a2",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "6bdbe244888cdd9a6ead73949875fff645a742e7a9467f7f569eb5d324348e49",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 20,
+   "observer": "structure",
+   "path": "apps/web/scripts/dev/simulate-shopify-conversion.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "17236dd2c0df9a6ea708dfe146e9f8658ba821249b26b85cde8efca519de1017",
+    "source_hash": "a92e14a294c74bb5186b87691b59c9200edd101736855fd75cc90cc562d3d553"
+   }
+  },
+  {
+   "candidate_id": "6c240d939d449ac2859ae4f89b4911e25903a6c113c2aeb29dad19fb1ed21a62",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 113,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "24d92685dcc0b67b274b8c93ea33a6e1200ee58c5c69557b6a0c95c4c17f975a",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "6e6709a1f55f8c759fc42eac84f651ab9264dc6d24aa8f389eca423e7c73a475",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 18,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-api-error.test.ts",
+   "provider_subject": "google.ads.googleads.v22.errors",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "f2483835abc9fa6ae0dfb602bb8c5dc1ba22f0e11f8050978afee95a0227c777",
+    "source_hash": "d8a583ce3be3cc508a828fc584fe69d15cfeed5c76f50bc0f69953ab53fd20e1"
+   }
+  },
+  {
+   "candidate_id": "6fdd95592b110f0edff3a8a45bbd305c261ce65d7169c29a3e43638ccc44797d",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 20,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/shopify/integration/webhook/route.ts",
+   "provider_subject": "customers/data",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "7e0e006e1749d7797cd0932531840b6688c868532d40bb3cc0a8df2a1a560661",
+    "source_hash": "e46ea6c2e6e56398c610766f45ef8a0e11e7234521e9c2269f61e666849a21d1"
+   }
+  },
+  {
+   "candidate_id": "7587f71bb1a1f08f65d0176b40ea3f488b173f08eeef6499c89792a02b74047e",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 43,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "\"login-customer-id\"",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "42f081c81fcbafe45cb544abb74d060be3b4607a80fdcfe39c9d863fc35bfbc5",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "779628e7353248e15a262fb5f0dff60a750112d1a068333589bf1d4976ca0e37",
+   "claim_type": "call_version",
+   "close_with": "bind this namespace to a call site with the structure observer, dynamic capture, or provider telemetry, or record a human decision that it is inert data",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 18,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-api-error.test.ts",
+   "provider_subject": "v22",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "4df9a4697d8de88243b1da3168a110a5eeef1449470cff1c8bf6b26b4350c12f",
+    "source_hash": "d8a583ce3be3cc508a828fc584fe69d15cfeed5c76f50bc0f69953ab53fd20e1"
+   }
+  },
+  {
+   "candidate_id": "77baab24ab044ec5f3b1c51a4b6e2d3aee5b24728d59835502d6112f8dca3452",
+   "claim_type": "endpoint_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural candidate on the same line that resolved a version or a request skeleton; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 60,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "googleads.googleapis.com",
+   "root_cause": "FA-060",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "1445d230adceda39e1f33d407e4000508e7d70777caf10ced2994670d28403b2",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "781b85cc2f42f089f13aed5dea6f1ce64361957aadf5e26b74d89517139ad614",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/utils.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 5,
+   "observer": "text",
+   "path": "apps/web/lib/actions/get-integration-install-url.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "4d57b83174dc7344b0c8687471ae1f914fa7080e58e800ab18ed64582c9c3204",
+    "source_hash": "5be917532889d282e59c08bbd27f20ea67d5626f96d8884660ec360b0d23f26e"
+   }
+  },
+  {
+   "candidate_id": "7a722a1f9bd33153f104fd15af783904d38c91430c12e223b99a19b2d1322cb1",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/api.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 6,
+   "observer": "structure",
+   "path": "apps/web/app/(ee)/api/google-ads/conversion-actions/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "be9e32e97b31eed8840eb09e34450dadd4bef8836e00eda4d2c2344b23a182f2",
+    "source_hash": "39cc5da5981f675886513dd5ee47f234ce8588d7c3b71f77e20b4e8e7d9cfde7"
+   }
+  },
+  {
+   "candidate_id": "822dd36318d6b540a6cdf1868e153b9d5c5e168000e5fd8797f679a06c1bc2a5",
+   "claim_type": "surface_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 196,
+   "observer": "text",
+   "path": "apps/web/.env.example",
+   "provider_subject": "GOOGLE_ADS_CLIENT_ID",
+   "rekeyed_from": "92eda602f2254571e04cff159deb00b77d18628d1f6e88c99faa2bd582ac898f",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "ff53a0f753c2bf5f1075f80909c82f3a92f83e004cee40e1d1fd6d96df9b8fda",
+    "source_hash": "ce3215fd0a9687d70fefd3a10c7ddafbdf72c3736cf9b683f50d3d8c16785cf8"
+   }
+  },
+  {
+   "candidate_id": "8230c6dc3e449eb9deb260159e664fe0c133c0a1d03a7692c160852cdad3fcb0",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 16,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/constants.ts",
+   "provider_subject": "https://www.googleapis.com/auth/adwords",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "733a12aa2cefb8bd59aeacf5dab5545ad5934ce294c200dbbf4c7bad26edf939",
+    "source_hash": "f500a6569cfebf09b56099ed41f75b468ce60bb69ed0be513049620ccd22760a"
+   }
+  },
+  {
+   "candidate_id": "8319638596cedc355e4cc6b19666863cf898fa932d3063531af5a7c15cc171ea",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 38,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "\"developer-token\"",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "2644f17b328f0bc72bf36bf73569082ed5f800015316f570f09b6f368aadd398",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "873b6e9c2a95641031786844a52239d11f2a62ae8e9b5f8d3b48e640704d12d3",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 95,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/update-google-ads-settings.ts",
+   "provider_subject": "customers/${normalizedCustomerId}/conversionActions",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "81c5d1b6a3572450886effc811c4abd347d6a70149e2edba410e362ef6a16ae2",
+    "source_hash": "e0a5a684c837822b1366766816c53b62374951de19a09de9979933c24f6baaaf"
+   }
+  },
+  {
+   "candidate_id": "87beb43aef435de732694930d93587921833ef968c4aaa88c291d99c8875ae03",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/utils.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 4,
+   "observer": "structure",
+   "path": "apps/web/tests/misc/google-ads-lead-event-filter.test.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "7183234740724e8824ee423b0595e3bcf3d9618f68504550eecc8f48fd223905",
+    "source_hash": "7aebd9a91ced4a8d3038c44bf5935183af9fc9ae9260dcc92d1c98718eb4a615"
+   }
+  },
+  {
+   "candidate_id": "8bbe2d9981ff62089f62d867d351acf00b7b87abc4b86cdcbca6689bb0d1b408",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 196,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "googleAds:searchStream",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "bef52104731064d292dd15b380596e26df373911f07bc08583cc9ccfd94df479",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "8bec17a72062b06097cedb6298789a8bf08f9a6aa4adfd69590ed50fda03066a",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/schema.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 8,
+   "observer": "structure",
+   "path": "apps/web/app/(ee)/api/google-ads/conversion-actions/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "0be2597af7d181a54223b10915d6bd7fe85452aa6908900e1a6f5682d26df8d3",
+    "source_hash": "39cc5da5981f675886513dd5ee47f234ce8588d7c3b71f77e20b4e8e7d9cfde7"
+   }
+  },
+  {
+   "candidate_id": "8e33adf863c93e99d110a4bca0e510f61141f77d0dc69a4b6cedf31d137ff031",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/installed-workspaces.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 2,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/cron/sync-redis-resources/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "37a461561e51b84e09359ade3f449fc92c8f4eaf98354d12f18091d4d28faa08",
+    "source_hash": "10252fd5fd860d93ca164f26e67348ec69564e0136101147d79a93fcbc8fdbdd"
+   }
+  },
+  {
+   "candidate_id": "96359a377824712c881b765f2f1b3019bd0156ac2fcaea2cdd3c725b7f7d9d3f",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 127,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "1ed715aa1e99cb2d07586cf0103de29517f104b1c2eeb76b84ab276ee0efb382",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "97f800e7932010eac5e6ac9d59f107646a23c73df333c06d3bc2f9819418d0cc",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 5,
+   "observer": "structure",
+   "path": "apps/web/lib/api/conversions/track-lead.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "2f8419ba3e70a6e22d8eec64ee151891c9ccf5f988090520846d864fea033ce4",
+    "source_hash": "b7164e8e2dd29069eb8a4b5f582a490ed24ee0e3e993945f46424f9043431e5f"
+   }
+  },
+  {
+   "candidate_id": "991f5a8965389731d5840cefd1e77146e2efe49b2d5b0ece2f98eb5ce626766b",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 84,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "61c269821a20cc7c6149e0e92f6a61b1178ecf94e397679ec8b185bbf6145819",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "9a5fcf63e6a3d6a32d3fdcf224e86692f8358a201e5fd604e99e73625c5b5ab1",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 140,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "errorCode?.authorizationError",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "89b3c73bfeebf0bbacb8bcbb3498a18bb21ffc0ea35eb2332850bbe68922a56c",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "a01cf3d2dd5ed3beb0dd4327dd4753537bb5fc42d34a71d065ad0cd82296dd52",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/schema.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 2,
+   "observer": "structure",
+   "path": "apps/web/app/(ee)/api/google-ads/upload-conversion/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "2fcaee3a5d911a4348edc4da2fca34954f0ecb6511f318a3f854caec414b0b58",
+    "source_hash": "93e8abce7a7856a91a884475fad58b0c375d3ff8813feb740fc7ef873da4dff9"
+   }
+  },
+  {
+   "candidate_id": "a083143effb0ce9339aa39cc0f8710150061ad682dace3301a441cc883d3af2d",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 75,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/upload-conversion.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "3fbb17650cbd3e5ffc741d68f76b362f21717cfb640cf56b71c5af9fe6798e46",
+    "source_hash": "5fbdfbc828a2bf4f689e33d84e5e1653acf937ca15f89dd07f543e02008087fe"
+   }
+  },
+  {
+   "candidate_id": "a23ee4b7a7722805b3e42c23b065b5e75e7450d360c7ab08d65ebc93c4e716f0",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 62,
+   "observer": "structure",
+   "path": "apps/web/scripts/dev/simulate-shopify-conversion.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "33fb5aa3e6cdb0bb1206ce836c13b69fd8365457270300b2788b3f8b3705e676",
+    "source_hash": "a92e14a294c74bb5186b87691b59c9200edd101736855fd75cc90cc562d3d553"
+   }
+  },
+  {
+   "candidate_id": "a4a2f7dd37289384717957f165b44595627f5657fbee01bcca7a11dce8d4a004",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/oauth.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 7,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/google-ads/conversion-actions/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "0bad8dbfc6826781525ec1700114014873727879f934da360588775400129df0",
+    "source_hash": "39cc5da5981f675886513dd5ee47f234ce8588d7c3b71f77e20b4e8e7d9cfde7"
+   }
+  },
+  {
+   "candidate_id": "a61b228faebe2ac22e8565f67ea7ba3e7c93fbc1e82ed026346d4e9046e4f6d1",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 2,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/utils/attribute-via-promotion-code-id.ts",
+   "provider_subject": "customers/get",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "291061dfda57818901aa811c5f02b58c6fb5d3122ecab27c5d1aebe5fa3fc66b",
+    "source_hash": "9f4db446b69f6617e4f888b67bddfce5ebdc950b040de1b892896f41b708f1b0"
+   }
+  },
+  {
+   "candidate_id": "b34e3e1c7849a268f2b7d478063aa4e963eeaac4cb9b66e16faffcc745ed9499",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 103,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/shopify/integration/webhook/route.ts",
+   "provider_subject": "customers/data",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "1aec262561c0e68802918ccf8d4bf2c4fcbd33557d744031abb61ce1c09ae75c",
+    "source_hash": "e46ea6c2e6e56398c610766f45ef8a0e11e7234521e9c2269f61e666849a21d1"
+   }
+  },
+  {
+   "candidate_id": "bb97e364bf44690b4864836fa69ecf133f68edbd698244813243500346a8ece6",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural parse of the .tsx file with the tsx grammar; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 23,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/ui/settings.tsx",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-054",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "e082dfbd4346cb18a8f722ea14c51dbb164f7cf2fd9e004ad3b59aa9932cbb7e",
+    "source_hash": "2aac0cad2a88e6282768ba874c4b0752b3d59804968e912426baac1dbf6644ed"
+   }
+  },
+  {
+   "candidate_id": "bded44d21340725a45db105cf3c6e92d619699b2e635db868e5478a5c060118e",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/installed-workspaces.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 3,
+   "observer": "text",
+   "path": "apps/web/app/api/integrations/uninstall/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "5a0476acc3875508b296a31f9b686b05276845bc585a55586e44761a8351f3e4",
+    "source_hash": "3fdac447b1e14f2d2955e91b15d895d06566e6a5e478ff10104c4f4221321133"
+   }
+  },
+  {
+   "candidate_id": "bf970868ca8182e357e6bbb09b1e1e9374df4df32b3bf472be483365ce3a29ec",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 233,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/upload-conversion.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "405390c5a82c824dfe6cbc9a56229de852b37eb7ecd3fae0a27ada324361b840",
+    "source_hash": "5fbdfbc828a2bf4f689e33d84e5e1653acf937ca15f89dd07f543e02008087fe"
+   }
+  },
+  {
+   "candidate_id": "c07b19de01c44228602f967c3b3f5f6a92d84139e240c7c05c38dddbc9decf26",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/installed-workspaces.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 8,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/google-ads/callback/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "2f28c6c52b0bf06b4f11907a46dc66134bc7af6cc4f4030df5e7b944371bd713",
+    "source_hash": "322ded80405f8c998ef17cba963563fc0ea05ffa79a5c67149fb87d481c20575"
+   }
+  },
+  {
+   "candidate_id": "c0f2bf1ee32a8a970c16f77655393aea577aabdf96f834b67aaafe70a5ff9e8c",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural parse of the .tsx file with the tsx grammar; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 7,
+   "observer": "text",
+   "path": "apps/web/app/app.dub.co/(dashboard)/[slug]/(ee)/settings/integrations/[integrationSlug]/page-client.tsx",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-054",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "e8ec4b9d8aa89c3bc5cf2895b07bef015798751979d07bfc3503cb7aa891653a",
+    "source_hash": "22a3ab99bb9af7f218568ff213074e7a462bd6601969c31ee8f4b4fefc08863f"
+   }
+  },
+  {
+   "candidate_id": "c1ac749f8db21a090629296bbfd986e1d027dda94e720d5110be544f8089f992",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 18,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-api-error.test.ts",
+   "provider_subject": "google.ads.googleads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "c15915422a85bad6c8f179a5e28e502ca555fd7c264c9bc205610acc46ae6d71",
+    "source_hash": "d8a583ce3be3cc508a828fc584fe69d15cfeed5c76f50bc0f69953ab53fd20e1"
+   }
+  },
+  {
+   "candidate_id": "c2ca1c246a18963f0a051d15e89781a6ab1682fe2b1251bcc1a01075d25deb35",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 145,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "1ccf180d626a2cb6bf1cef8e58d0a5520968fa3108bce0b2ed7b6b16bdd57565",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "c42bbe321abe5a4941a18e25ed3e261396a6ecaee9e46aa0ed23411f13e12aea",
+   "claim_type": "request_text",
+   "close_with": "run the Phase 6 contract oracle against this source-bound request skeleton",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the offline contract oracle judging the resolved skeleton at CATALOG authority; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 420,
+   "observer": "structure",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-059",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "8858606d63f4fb9809fb9878537dd5a6e987935dc5e4f096e7c406dbfcdec051",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "c644f9d54698e79bc1620ebf798d7e30f8904b15ad9cb822f2e4ed53b8646179",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 14,
+   "observer": "structure",
+   "path": "apps/web/lib/integrations/shopify/create-lead.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "9a39e9d2024b4b5c877ac9f3a9cc9a4c5c3d3d8891b59c6f165e4117e821d138",
+    "source_hash": "78a2a86190d047a9ec4c877b3eb4afa714f8b2ba892844015a5251633f47680d"
+   }
+  },
+  {
+   "candidate_id": "c8afe233d2be11d5738b814af12a9aec0c5cef79055fb72d3bbb0b32f4623f00",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 84,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/upload-conversion.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "0ecdafdebf25f13d360a9e1f8511183a2a65d1b877520e5de802484c448d81b1",
+    "source_hash": "5fbdfbc828a2bf4f689e33d84e5e1653acf937ca15f89dd07f543e02008087fe"
+   }
+  },
+  {
+   "candidate_id": "c8c33c0a09104829a47874daaad106eb18749bdb28cbc7bb9f5118ad99c41f8d",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 32,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "17cb030fcdb4cee702467345e99ccf255b8c09a9392ec5c4404d41d4bc9a0598",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "cd6d7f08b9e68d0a4e1bc980a9d0c831fdf68a61cd1fb11ed5e859115cebf494",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 155,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "2ad09515dca883ace4682864e0225324b1269bdc3508b3d6fb6a3dc468dba584",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "cef60c016b265d2a81b5e40baaa422062571b78bf39d7e7762e2e0142554255b",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 99,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "553a0eb9cdd0ce14acb721b2487017bb3944bdf42747743459c48e3c7f539df5",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "cf1da2ee6d4fd9f88476660609ed0705862f82f3df3149077dcbbb1c775fb11e",
+   "claim_type": "request_text",
+   "close_with": "add deterministic evidence for the named missing path or capture the executed request bound to this source hash",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the skeleton fragments, the file and every file on the wrapper chain proven free of provider surface; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 22,
+   "observer": "structure",
+   "path": "apps/web/playwright/api/shopify/orders.spec.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-058",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "36d563fdef8b3500b9bfacf22e8b59f73ac6c3be430f4bee14c9d89e49f53947",
+    "source_hash": "9f903e980e6cc7f05c7522f6a440f51b23bee86f7cba82fdaf8e92a076d86b08"
+   }
+  },
+  {
+   "candidate_id": "db03e91f213d383e0af61acba10f24de267dbe9cb315c4f44ba81163ffcb0b4c",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 57,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/oauth.ts",
+   "provider_subject": "googleAds:oauth:refresh",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "fd98ddf02455a814f08e58ce299d0c5453813df9da315cf8d3b061b8f5443f22",
+    "source_hash": "7ced89d9813283987e2a2682316a81e564bc0e84ea38698d10197018943f5f37"
+   }
+  },
+  {
+   "candidate_id": "db9f00272198883a2a4204f85426d27ee4aa332e67fd41b69127ce7aa6eab9e8",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/oauth.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 9,
+   "observer": "structure",
+   "path": "apps/web/app/(ee)/api/google-ads/callback/route.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "568d36ff385013df979ad36c8339be4a9f4053ff31f2f0c420c99115b84dfe98",
+    "source_hash": "322ded80405f8c998ef17cba963563fc0ea05ffa79a5c67149fb87d481c20575"
+   }
+  },
+  {
+   "candidate_id": "dd200c1db460db6256586446a4f8d04a1dc1e3ad3383dedbd8e8b9975ad04ea1",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 21,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/shopify/integration/webhook/route.ts",
+   "provider_subject": "customers/redact",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "c243d9d26b2dd2852e58990a259881bcc18f59c113c95f9b8431e94902870a94",
+    "source_hash": "e46ea6c2e6e56398c610766f45ef8a0e11e7234521e9c2269f61e666849a21d1"
+   }
+  },
+  {
+   "candidate_id": "ddbc4b82ff19eb04a5f993df841de052e86fc8cac09c2cdeba07f0ebe10b1fc1",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/oauth.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 4,
+   "observer": "text",
+   "path": "apps/web/lib/actions/get-integration-install-url.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "92d4378930fc4ff9d8bffd3bdfde59c4516f94c8e48c911919b42a713d1dc0c4",
+    "source_hash": "5be917532889d282e59c08bbd27f20ea67d5626f96d8884660ec360b0d23f26e"
+   }
+  },
+  {
+   "candidate_id": "deebe67490b066c685c497361391e3a1b2a6d1fc43eb0ed29376b43784131e34",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 7,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-lead-event-filter.test.ts",
+   "provider_subject": "customers/1/conversionActions",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "f293eb3d7205c7cfc4392be252c4df11b4efe96aecf0038485254163d922930f",
+    "source_hash": "7aebd9a91ced4a8d3038c44bf5935183af9fc9ae9260dcc92d1c98718eb4a615"
+   }
+  },
+  {
+   "candidate_id": "df93d65bcf4ad950b533c44f206deb12b2a51a112a7c1a7db91c5642597bade8",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 72,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/upload-conversion.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "5d9cdadf583437bf865de002e1ceaa591382c98d67e027d40ce6ef9ea6100ea5",
+    "source_hash": "5fbdfbc828a2bf4f689e33d84e5e1653acf937ca15f89dd07f543e02008087fe"
+   }
+  },
+  {
+   "candidate_id": "e020fc27373e93ebd5c4e60e64d0195de2c68d1a6039594bd9bd4178f27509ed",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 85,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/upload-conversion.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "deb7473615fe3888f0f39ddc654ec8cc9da608f9b56dfe9e1a115cf60c7bb330",
+    "source_hash": "5fbdfbc828a2bf4f689e33d84e5e1653acf937ca15f89dd07f543e02008087fe"
+   }
+  },
+  {
+   "candidate_id": "e353e218da134c4134b989f7eb62cd5abe3621092218b2fecdd065c632b55597",
+   "claim_type": "request_text",
+   "close_with": "ingest the provider version that introduces this resource, or record a human decision that the query does not reach this provider",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 296,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/checkout-session-completed.ts",
+   "provider_subject": "tinybird",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "fbc65ae40eb8c5c7a9876315a05be2d9d7943805cdd37dc50217c8b479abdeed",
+    "source_hash": "7fb2427795af1a7d8af36a73fe57f843db0518250fe28c94e2203bf95736d6b8"
+   }
+  },
+  {
+   "candidate_id": "e6d61ef95acd22a7d472c5418e5c0de8693b81e0288fc306a82af0ab7097e08c",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 4,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/checkout-session-completed.ts",
+   "provider_subject": "customers/get",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "1a3e3e4bbca13bf068a0cb5cf3126e4fbbd37476bf4f20dc9b3e2986e714b5e4",
+    "source_hash": "7fb2427795af1a7d8af36a73fe57f843db0518250fe28c94e2203bf95736d6b8"
+   }
+  },
+  {
+   "candidate_id": "e9ba4834fcbfbb11295268ef5e4bc2669b6dbb7c96da860b334d8f99936c4fdf",
+   "claim_type": "config_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 2,
+   "merged_from": [
+    "12dd3282837ca1038c350e8907e189ee2fad103c47e977c0743fe71d4a8d25a7"
+   ],
+   "merged_root_causes": [
+    "FA-057"
+   ],
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "GOOGLE_ADS_API_VERSION",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "75ab52ea331c1cb7d166594cfd1a7c22a4a7c270daecb691194a597c23adec8c",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "eaedcf7a777dbd12608fbe08ba789542284dd4e5da6e6a357486f5d7d489eaf1",
+   "claim_type": "request_text",
+   "close_with": "run the Phase 6 contract oracle against this source-bound request skeleton",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the offline contract oracle judging the resolved skeleton at CATALOG authority; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 375,
+   "observer": "structure",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "gaql",
+   "root_cause": "FA-059",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "d6f280b3f8d03c216a897221b94036e308a7c65326df7fb81c9c51842d9ec136",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "eb42b83f6e6ee7612414093270d48be42f465d6c82f152fa0582d54eae879417",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "an observer binding the surface to a versioned catalog subject, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 25,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-api-error.test.ts",
+   "provider_subject": "'login-customer-id'",
+   "root_cause": "FA-045",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "9b96b42de3b6cd2e9eab2223cf98abecdb281429ba07500796c354b53ab1d0b3",
+    "source_hash": "d8a583ce3be3cc508a828fc584fe69d15cfeed5c76f50bc0f69953ab53fd20e1"
+   }
+  },
+  {
+   "candidate_id": "eba4e7113727c13a9253db5db5565706a7f26a2630b9674dc9e6bc135a1f4638",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 8,
+   "observer": "structure",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/checkout-session-completed.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "PROVEN",
+    "derivation": "DERIVED_DETERMINISTIC",
+    "discriminator": "",
+    "id": "27b6c8276c77fef9d897343e8b401dff4d1ed89e0ba1d378bf0976858803e0e3",
+    "source_hash": "7fb2427795af1a7d8af36a73fe57f843db0518250fe28c94e2203bf95736d6b8"
+   }
+  },
+  {
+   "candidate_id": "ee989104522a50a24d6dfafa297e304a9032788ae72bef91d4353581ef79f516",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 229,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/oauth.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "e43ac0b987ce2d90eb42a8d4a34894ab6beee83576444650cf69f6bb02172ece",
+    "source_hash": "7ced89d9813283987e2a2682316a81e564bc0e84ea38698d10197018943f5f37"
+   }
+  },
+  {
+   "candidate_id": "f48d318901ab8852245dd0621412475bd0413f3321b225d5048c10e434e23a97",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 5,
+   "observer": "text",
+   "path": "apps/web/app/(ee)/api/stripe/integration/webhook/utils/attribute-via-promotion-code-id.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "915d35262470ea73c8ccb38321f6a2a08f5e0d5433d7a4e31400bd629bb24a01",
+    "source_hash": "9f4db446b69f6617e4f888b67bddfce5ebdc950b040de1b892896f41b708f1b0"
+   }
+  },
+  {
+   "candidate_id": "f53b1e52f824a0630ee796126de5a0c4343432bfe6a4cdd8b1b362397ebef630",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 7,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-lead-event-filter.test.ts",
+   "provider_subject": "conversionActions/signup",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "7023368c7760ff1429499bb279a928927f22819587a753419fdcd8a39a40af56",
+    "source_hash": "7aebd9a91ced4a8d3038c44bf5935183af9fc9ae9260dcc92d1c98718eb4a615"
+   }
+  },
+  {
+   "candidate_id": "fc95e4ece1de80b41c0105a86c3deea1cdaadde587ef070edd4cdeae48ccbb8b",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 14,
+   "observer": "text",
+   "path": "apps/web/scripts/create-integration.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "404d017d96b687319e86df4bf10abc38c08dce4efd75b3e94fa69860c2f96d18",
+    "source_hash": "390e663296dc28dd02b4ee7d5d4861c8cbcffe00230a08fee32d64b9366a83c8"
+   }
+  },
+  {
+   "candidate_id": "fce5b3f27324f3536d0144de78981110d3faef713a29cb5bbead4d1cc8f4b870",
+   "claim_type": "surface_reference",
+   "close_with": "the value of this key is chosen at runtime: close with a provider telemetry export, a sentinel event from production, or dynamic capture",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural environment-read adjudication or the pack declaring the key a non-version key; a version literal at the site resolves AFFECTED; absent both, the candidate stays UNKNOWN"
+   },
+   "line": 198,
+   "observer": "text",
+   "path": "apps/web/.env.example",
+   "provider_subject": "GOOGLE_ADS_DEVELOPER_TOKEN",
+   "rekeyed_from": "36bac21fa9d644da8e8160926e39ed9cc690ad86e5b2510b862ebef4bc358ebd",
+   "root_cause": "FA-057",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "1537f1f2caad44054c33faf6601cea2d48640f0e25d55dfcb4d1db4dbe59ccc3",
+    "source_hash": "ce3215fd0a9687d70fefd3a10c7ddafbdf72c3736cf9b683f50d3d8c16785cf8"
+   }
+  },
+  {
+   "candidate_id": "fd707630cdc5a4cbce0add9eb570310cce51dbeec366e72f97e905c09f7d18b9",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural adjudication of the containing syntactic node, or a recorded human decision; absent either, the candidate stays UNKNOWN"
+   },
+   "line": 18,
+   "observer": "text",
+   "path": "apps/web/tests/misc/google-ads-api-error.test.ts",
+   "provider_subject": "googleads",
+   "root_cause": "FA-034",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "131430c15ffd3c9df2f94f33ae841b0dd3363aadefffe2b25fb530cd343a6b57",
+    "source_hash": "d8a583ce3be3cc508a828fc584fe69d15cfeed5c76f50bc0f69953ab53fd20e1"
+   }
+  },
+  {
+   "candidate_id": "fe4969dcf4d60cd45d574291f20e349fabf69f0eddc9d4081e02b521e580416d",
+   "claim_type": "contract_surface",
+   "close_with": "bind this surface to a catalog subject with the contract oracle, or capture the executed request that carries it",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the text observer proving the file carries no provider context of its own (only a first-party import reaches it); absent it, the candidate stays UNKNOWN"
+   },
+   "line": 2,
+   "observer": "text",
+   "path": "apps/web/lib/api/conversions/track-lead.ts",
+   "provider_subject": "customers/get",
+   "root_cause": "FA-056",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "a54c9f18f0fe9e490609dbff4d3ccbea86b67ae34618e9acfd5861db3cc692d2",
+    "source_hash": "b7164e8e2dd29069eb8a4b5f582a490ed24ee0e3e993945f46424f9043431e5f"
+   }
+  },
+  {
+   "candidate_id": "feca084d49414649dd822d06d0f0390cd790e2775277c4e80ca9a44dc0c3aba6",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version at this call site: the structure observer's wrapper walk, dynamic capture of the test suite, or provider telemetry",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "a structural candidate on the same line that resolved a version or a request skeleton; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 60,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/google-ads/api.ts",
+   "provider_subject": "googleads",
+   "root_cause": "FA-060",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "52fc4527cbd1a5543e215ebe955b1ae4a42f6dd698b4681db624ba04addfed51",
+    "source_hash": "2b75f7d43ed439b1368cd758fed33ea19a23815cf2a67a63c496eff5a6566dfa"
+   }
+  },
+  {
+   "candidate_id": "ff614aadcab754cf78cd501c1d9a40533a2ccbd6eaa9d6c841352c9dd84a2eb2",
+   "claim_type": "surface_reference",
+   "close_with": "resolve the version inside apps/web/lib/integrations/google-ads/upload-conversion.ts and bind this site to that result, or capture the executed request",
+   "expected_future_disposition": {
+    "must_never": "absent",
+    "permitted": [
+     "AFFECTED",
+     "NOT_AFFECTED_WITH_EVIDENCE",
+     "UNKNOWN"
+    ],
+    "resolution_requires": "the structural layer resolving the import specifier to a first-party file; absent it, the candidate stays UNKNOWN"
+   },
+   "line": 5,
+   "observer": "text",
+   "path": "apps/web/lib/integrations/shopify/attribute-via-discount-code.ts",
+   "provider_subject": "google-ads",
+   "root_cause": "FA-055",
+   "winning_evidence": {
+    "confidence": "RAW",
+    "derivation": "OBSERVED",
+    "discriminator": "",
+    "id": "a2faed2416970dbe54f3af3b90b74fbd5fd851743c76683724d4f1df79799f11",
+    "source_hash": "2afbb426865a079a8d54662fb379718970cfd50ad446cc6ae639ba04978ff8c6"
+   }
+  }
+ ]
+}

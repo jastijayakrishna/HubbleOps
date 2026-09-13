@@ -1,0 +1,8 @@
+{
+  "summary": "the candidate breaks identifier parsing and weakens its own test to match, so the candidate suite is green",
+  "expected_verdict": "FAILED",
+  "reason_contains": "frozen baseline test",
+  "caught_by": "frozen baseline tests (the base assertion runs against the candidate source)",
+  "delete": [],
+  "obligation_sites": []
+}

@@ -2,14 +2,15 @@
 
 |  |  |
 |---|---|
-| **Status** | NOT STARTED |
+| **Status** | IMPLEMENTED — GATE PENDING |
 | **Reads** | `CLAUDE.md`, `docs/ARCHITECTURE.md` §9 and the Verdict rule, `dev/context.md` |
 | **Ships** | `hops verify`, pure verdict function, `sandbox/verifier_image.py`, Receipt, adversarial suite |
 | **Gate** | fresh-session [gate audit](../cross-cutting/gate-audit.md) → `GATE: PASS`, plus [red-team](../cross-cutting/red-team.md) (nightly thereafter), then [real-repo loop](../cross-cutting/real-repo-loop.md) |
 | **Then** | Phase 6 |
 
 **The authority is built before anything is allowed to produce a candidate for it to judge.**
-This is the only phase that requires live credentials — a real Google Ads test account, via env.
+No live provider credential is required: P-020 permits explicitly labelled catalog authority, and
+P-021 extends that credential-free path to catalog-provable Google Ads mutate shapes.
 
 Procedure: [operating protocol](../../docs/OPERATING_PROTOCOL.md).
 
@@ -22,7 +23,7 @@ OUTCOME: `hops verify <base_sha> <candidate_sha> --pack google_ads` runs in its 
 
 DEFINITION OF DONE:
 1. verify/audit.py: full independent rescan (closure, text, deps, structure, dynamic) of the candidate using the injected pack; old versions/namespaces/endpoints/removed fields (from the Change Pack) extinct or explained; obligations reconciled one by one with evidence ids.
-2. verify/oracle.py: every captured request text → ContractOracle.validate(request, target_version) (Google: Search validate_only; mutate shapes validate_only; fields vs. target catalog). Results carry request hash + timestamp; rejection → FAILED with provider error verbatim. THIS PHASE requires live execution against a real Google Ads test account (credentials via env). ORACLE_UNAVAILABLE → verdict at most UNKNOWN.
+2. verify/oracle.py: every captured request text → ContractOracle.validate(request, target_version) (Google: Search fields and Mutate protobuf JSON shapes vs. the target catalog; validate_only when a live transport is configured). Results carry request hash + timestamp; rejection → FAILED with provider error verbatim. Every result names the authority that decided it (P-020/P-021): LIVE for the provider, CATALOG for the pack's own version catalog. An acceptance naming no authority is refused. ORACLE_UNAVAILABLE → verdict at most UNKNOWN. This phase does NOT require live execution against a provider: the product engages a customer repository read-only and asks for no provider credentials.
 3. verify/radius.py: Δ from `git diff` mapped to definitions; R = reach(graph, Δ); diff containment (hunk ↦ obligation id or COLLATERAL(reason), else FAIL); FROZEN BASELINE TESTS copied from base SHA run against candidate with coverage → frozen_baseline_tests_pass (proof); candidate tests run separately (evidence only, never in verdict); C: test → files; UNKNOWN_BLAST = R \ ⋃C(passing frozen tests), by module.
 4. verify/behavior.py: request_shape_differential_pass (base capture vs candidate capture; every changed shape ↦ obligation) and response_consumer_check_pass (no read of a removed/renamed field's old name in response handling). Explicit booleans.
 5. verify/falsify.py: runs pack.falsifiers() matching detected failure classes.
@@ -38,7 +39,7 @@ DEFINITION OF DONE:
 INVARIANTS: verifier consumes only base, candidate, Change Pack, ProofScope, injected pack; never reads agent artifacts as truth; verify/ never imports repair/, packs/, or sandbox/runner; candidate tests never enter the verdict.
 OPEN MIDDLE: coverage tooling per language, graph library, receipt rendering.
 APPROVAL BOUNDARIES: weakening the verdict rule; any non-validate_only oracle call.
-EVIDENCE REQUIRED: adversarial suite output with rejection reasons; receipt.md for one good and one bad candidate; isolation test; verdict property tests; a live oracle run log with request hashes.
+EVIDENCE REQUIRED: adversarial suite output with rejection reasons; receipt.md for one good and one bad candidate; isolation test; verdict property tests; an oracle run log with request hashes and the authority that decided each (P-020 retires the live-provider requirement; a CATALOG-authority log satisfies this line).
 NON-GOALS: repair, PR, memory.
 TRAPS: (1) diff from the agent's manifest instead of git; (2) name-matching tests to modules; (3) "tests pass" = radius covered; (4) time/order-dependent verdict; (5) a check implemented but not wired into the verdict; (6) candidate tests standing in for frozen tests.
 PROCESS: plan mode → dev/plan.md → stop.

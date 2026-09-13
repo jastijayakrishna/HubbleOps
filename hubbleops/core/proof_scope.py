@@ -39,6 +39,8 @@ def make_proof_scope(
     rules_hash: str | None = None,
     verifier_version: str | None = None,
     verifier_image_hash: str | None = None,
+    verification_inputs_hash: str | None = None,
+    oracle_context_hash: str | None = None,
 ) -> dict[str, Any]:
     record: dict[str, Any] = {
         "repo_sha": repo_sha,
@@ -51,6 +53,8 @@ def make_proof_scope(
         "scanner_version": scanner_version,
         "verifier_version": verifier_version,
         "verifier_image_hash": verifier_image_hash,
+        "verification_inputs_hash": verification_inputs_hash,
+        "oracle_context_hash": oracle_context_hash,
     }
     return validate("proof_scope", record)
 

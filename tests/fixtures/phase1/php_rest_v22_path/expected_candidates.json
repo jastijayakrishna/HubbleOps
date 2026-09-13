@@ -4,7 +4,7 @@
       "claim_type": "structure_unsupported",
       "location": "composer.json",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "package_reference",
@@ -16,12 +16,6 @@
       "claim_type": "package_reference",
       "location": "composer.json:4",
       "provider_subject": "googleads/google-ads-php",
-      "status": "UNKNOWN"
-    },
-    {
-      "claim_type": "surface_reference",
-      "location": "composer.json:4",
-      "provider_subject": "google-ads",
       "status": "UNKNOWN"
     },
     {
@@ -34,19 +28,19 @@
       "claim_type": "structure_unsupported",
       "location": "composer.lock",
       "provider_subject": null,
-      "status": "UNKNOWN"
+      "status": "UNSUPPORTED"
     },
     {
       "claim_type": "package_reference",
       "location": "composer.lock:6",
       "provider_subject": "google-ads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "package_reference",
       "location": "composer.lock:6",
       "provider_subject": "googleads/google-ads-php",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "sdk_installed",
@@ -57,14 +51,8 @@
     {
       "claim_type": "surface_reference",
       "location": "composer.lock:6",
-      "provider_subject": "google-ads",
-      "status": "UNKNOWN"
-    },
-    {
-      "claim_type": "surface_reference",
-      "location": "composer.lock:6",
       "provider_subject": "googleads",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "call_version",
@@ -76,29 +64,51 @@
       "claim_type": "endpoint_reference",
       "location": "src/Sync.php:9",
       "provider_subject": "googleads.googleapis.com",
-      "status": "UNKNOWN"
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
     },
     {
       "claim_type": "surface_reference",
       "location": "src/Sync.php:9",
       "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "claim_type": "contract_surface",
+      "location": "src/Sync.php:14",
+      "provider_subject": "googleAds:search",
+      "status": "UNKNOWN"
+    },
+    {
+      "claim_type": "contract_surface",
+      "location": "src/Sync.php:15",
+      "provider_subject": "'developer-token'",
       "status": "UNKNOWN"
     },
     {
       "claim_type": "request_text",
       "location": "src/Sync.php:16",
+      "provider_subject": "campaign",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "claim_type": "request_text",
+      "location": "src/Sync.php:16",
       "provider_subject": "gaql",
-      "status": "UNKNOWN"
+      "status": "AFFECTED"
     }
   ],
   "counts": {
-    "affected": 2,
+    "affected": 3,
     "excluded_with_evidence": 0,
+    "human_accepted_risk": 0,
     "human_required": 0,
-    "not_affected_with_evidence": 0,
-    "total": 15,
+    "not_affected_with_evidence": 6,
+    "provider_reference_data": 0,
+    "total": 16,
     "unexplained": 0,
-    "unknown": 13
+    "unknown": 5,
+    "unscanned": 0,
+    "unsupported": 2
   },
   "fixture": "php_rest_v22_path",
   "pack": "google_ads"
