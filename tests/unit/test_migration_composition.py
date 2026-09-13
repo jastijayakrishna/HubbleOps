@@ -91,6 +91,17 @@ def test_composition_is_deterministic_across_input_order() -> None:
     assert first == second
 
 
+def test_a_package_pin_is_never_detected_as_a_version_the_provider_runs() -> None:
+    ledger = Ledger(
+        provider="_mock",
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        evidence=(pinned_package("sdk_installed"), pinned_package("dependency_state"), reader(12)),
+        candidates=(),
+    )
+    assert migration.detected_versions(ledger) == ("v1",)
+
+
 def structural(path: str, line: int, claim_type: str, value: dict[str, Any], subject: str | None):
     return make_evidence(
         run_id=RUN,
@@ -107,6 +118,32 @@ def structural(path: str, line: int, claim_type: str, value: dict[str, Any], sub
         dependency_context_hash=None,
         derivation="OBSERVED",
         confidence="PROVEN",
+    )
+
+
+def pinned_package(claim_type: str) -> dict[str, Any]:
+    return make_evidence(
+        run_id=RUN,
+        proof_scope_hash=SCOPE,
+        claim_type=claim_type,
+        observer="deps",
+        repo_sha=None,
+        path="setup.py",
+        line_start=None,
+        line_end=None,
+        source_hash="a" * 64,
+        value={
+            "state": "PRESENT",
+            "ecosystem": "python",
+            "package": "mockprov-client",
+            "version": "30.1.0",
+            "spec": "==30.1.0",
+            "source_kind": "manifest",
+        },
+        provider_subject="mockprov-client",
+        dependency_context_hash=None,
+        derivation="OBSERVED",
+        confidence="DOCUMENTED",
     )
 
 

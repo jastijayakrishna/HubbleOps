@@ -12,6 +12,7 @@ from hubbleops.app import registry
 from hubbleops.app.verification import InjectedOracle, first_party_sources
 from hubbleops.closure import source_closure
 from hubbleops.core.errors import HubbleOpsError, PackDataError
+from hubbleops.core.evidence import provider_versions
 from hubbleops.core.repair import TransformInput
 from hubbleops.core.subjects import parse_sites
 from hubbleops.core.verification import ChangeSet, SubjectChange
@@ -178,7 +179,7 @@ def _below(version: str, floor: str) -> bool:
 
 def detected_versions(ledger: Ledger) -> tuple[str, ...]:
     return tuple(
-        sorted({version for record in ledger.evidence for version in declared_versions(record)})
+        sorted({version for record in ledger.evidence for version in provider_versions(record)})
     )
 
 

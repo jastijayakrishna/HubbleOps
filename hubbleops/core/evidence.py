@@ -14,6 +14,7 @@ CONFIDENCES = ("RAW", "PROVEN", "DOCUMENTED", "INFERRED")
 
 VERSION_SUBJECT_CLAIMS = ("call_version",)
 VERSION_VALUE_KEYS = ("version", "detected", "target")
+PACKAGE_VERSION_CLAIMS = ("dependency_state", "sdk_installed")
 
 RUN_SCOPED_FIELDS = frozenset({"id", "run_id", "proof_scope_hash", "repo_sha"})
 
@@ -47,6 +48,12 @@ def declared_versions(record: Mapping[str, Any]) -> frozenset[str]:
         if subject:
             found.add(subject.lower())
     return frozenset(found)
+
+
+def provider_versions(record: Mapping[str, Any]) -> frozenset[str]:
+    if str(record.get("claim_type")) in PACKAGE_VERSION_CLAIMS:
+        return frozenset()
+    return declared_versions(record)
 
 
 def evidence_identity(record: Mapping[str, Any]) -> str:
