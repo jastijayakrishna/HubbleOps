@@ -5,6 +5,16 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] **Fixture staging defeated git's stat cache**: `_write_tree` in
+      [tests/phase5_support.py](../tests/phase5_support.py) staged the base and candidate
+      trees with `shutil.copy2`, which preserves the source mtime. Both `client.py` fixtures
+      are 373 bytes, so on a fresh checkout they share an mtime second, `git add --all` read
+      them as unchanged, and the candidate commit reused the base blob — the verifier then
+      correctly reported v1 residue against a tree that really did carry v1. A pristine clone
+      failed 10 of 38 (8 in `test_phase5_verify.py`, 2 adversarial); with `copyfile` the same
+      clone passes 38. Long-lived worktrees hid it because their fixture mtimes had drifted
+      seconds apart. `shutil.copytree` elsewhere in `tests/` has the same property and is not
+      yet known to bite; it wants the same treatment if a staged fixture ever goes quiet.
 - [x] **Tier 3a Q29-Q31** answered by delegation ("do whatever is best for customers") on
       2026-09-13; the choices are in PART EIGHT PROGRESS of [dev/plan.md](plan.md).
 - [x] **W0** `tests/fixtures/real_repo/dub_unknowns_before.json` frozen (100 entries, 3 retired,

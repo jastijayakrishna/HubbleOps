@@ -52,7 +52,7 @@ def _write_tree(destination: Path, source: Path, edits: Mapping[str, str | None]
             continue
         target = destination / item.relative_to(source)
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(item, target)
+        shutil.copyfile(item, target)
     for relative, content in sorted(edits.items()):
         target = destination / relative
         if content is None:
