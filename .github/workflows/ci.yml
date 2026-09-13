@@ -31,8 +31,9 @@ jobs:
 
       - name: Install ast-grep
         run: |
-          curl -fsSL https://github.com/ast-grep/ast-grep/releases/download/0.45.0/app-x86_64-unknown-linux-gnu.zip -o ast-grep.zip
-          unzip -o ast-grep.zip -d "$HOME/.local/bin"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL https://github.com/ast-grep/ast-grep/releases/download/0.45.0/app-x86_64-unknown-linux-gnu.zip -o "$RUNNER_TEMP/ast-grep.zip"
+          unzip -o "$RUNNER_TEMP/ast-grep.zip" -d "$HOME/.local/bin"
           chmod +x "$HOME/.local/bin/ast-grep"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
@@ -43,7 +44,7 @@ jobs:
           ast-grep --version
 
       - name: Sync
-        run: uv sync --frozen
+        run: uv sync --frozen --all-packages
 
       - name: Lint
         run: uv run ruff check hubbleops tests packages
