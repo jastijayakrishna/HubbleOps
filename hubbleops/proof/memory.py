@@ -60,9 +60,17 @@ def prepare(
     proof = as_mapping(document.record["proof_scope"])
     scope_hash = content_id(proof)
     head = _head(root)
-    if head != _text(audit, "candidate_sha"):
+    candidate_sha = _text(audit, "candidate_sha")
+    scope_sha = _scope_sha(proof)
+    if scope_sha != candidate_sha:
         raise MemoryInvalid(
-            f"the receipt is bound to candidate {_text(audit, 'candidate_sha')[:12]} but "
+            f"the receipt's ProofScope is bound to {scope_sha[:12]} but its migration audit "
+            f"names candidate {candidate_sha[:12]}; a receipt that contradicts itself was "
+            "altered after hops verify wrote it; run hops verify again"
+        )
+    if head != candidate_sha:
+        raise MemoryInvalid(
+            f"the receipt is bound to candidate {candidate_sha[:12]} but "
             f"{root} is at {head[:12]}; a new SHA kills the old proof, run hops verify on it"
         )
     provider = _text(audit, "provider")
@@ -230,6 +238,16 @@ def _text(document: Mapping[str, Any], field: str) -> str:
     value = document.get(field)
     if not isinstance(value, str) or not value:
         raise MemoryInvalid(f"receipt migration audit has no {field}")
+    return value
+
+
+def _scope_sha(proof: Mapping[str, Any]) -> str:
+    value = proof.get("repo_sha")
+    if not isinstance(value, str) or not value:
+        raise MemoryInvalid(
+            "the receipt's ProofScope records no repo_sha, so the proof is bound to no tree and "
+            "cannot prepare a pull request; run hops verify on a git repository"
+        )
     return value
 
 

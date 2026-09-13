@@ -251,6 +251,78 @@ def test_pr_materials_preserve_memory_and_bind_actions_to_the_candidate(
     assert "--pack _mock" in workflow_text
 
 
+def test_a_forged_candidate_sha_cannot_present_a_dead_receipt_for_a_new_tree(
+    good_run: VerificationRun,
+    repository: Repository,
+    obligations: Path,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    root = tmp_path / "forged"
+    subprocess.run(
+        ["git", "clone", "--quiet", str(repository.path), str(root)],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(root), "checkout", "--quiet", good_run.candidate_sha],
+        check=True,
+        capture_output=True,
+    )
+    state = root / ".hubbleops"
+    state.mkdir(parents=True)
+    state.joinpath("obligations.json").write_bytes(obligations.read_bytes())
+    document = receipt.build(
+        evaluation=good_run.evaluation,
+        proof_scope=good_run.proof_scope,
+        provider="_mock",
+        changes_hash=good_run.changes_hash,
+        base_sha=good_run.base_sha,
+        candidate_sha=good_run.candidate_sha,
+        from_version=good_run.from_version,
+        to_version=good_run.to_version,
+        retired_patterns=("v1", "campaigns.legacy"),
+    )
+    root.joinpath("reporting.py").write_text("MOVED = 1\n", encoding="utf-8")
+    for arguments in (
+        ["add", "reporting.py"],
+        [
+            "-c",
+            "user.email=fixture@hubbleops.test",
+            "-c",
+            "user.name=HubbleOps Fixture",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--quiet",
+            "-m",
+            "Move the tree on past the one that was verified",
+        ],
+    ):
+        subprocess.run(["git", "-C", str(root), *arguments], check=True, capture_output=True)
+    head = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    forged = json.loads(document.json_bytes())
+    forged["migration_audit"]["candidate_sha"] = head
+    assert forged["proof_scope"]["repo_sha"] == good_run.candidate_sha != head
+    receipt_path = tmp_path / "forged-receipt.json"
+    receipt_path.write_text(json.dumps(forged), encoding="utf-8")
+    body = tmp_path / "forged-body.md"
+
+    assert (
+        cli.main(["prepare-pr", str(receipt_path), "--repo", str(root), "--body", str(body)])
+        != cli.EXIT_OK
+    ), "law L4: a receipt whose ProofScope names another tree cannot prepare a pull request"
+    printed = capsys.readouterr()
+    assert "ProofScope" in printed.out + printed.err
+    assert not body.exists()
+
+
 def test_the_receipt_body_ignores_timestamps(
     good_run: VerificationRun, repository: Repository, obligations: Path
 ) -> None:
