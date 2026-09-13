@@ -53,6 +53,7 @@ def _vendor(root: Path, tag: str, name: str, payload: bytes, sha256: str | None 
     directory.mkdir(parents=True, exist_ok=True)
     binary = directory / name
     binary.write_bytes(payload)
+    binary.chmod(0o755)
     manifest = {
         "platform": tag,
         "tools": {name: {"file": name, "version": "1.0.0", "sha256": sha256 or _digest(payload)}},
