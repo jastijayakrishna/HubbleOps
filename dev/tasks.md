@@ -5,6 +5,26 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [ ] **Gate audit on `0aa558b` — `GATE: FAIL`.** Blockers, in weight order:
+      **(1) a Receipt survives a new SHA.** `prepare-pr` binds only to
+      `migration_audit.candidate_sha`; it computes `content_id(proof_scope)` and never compares it
+      to the tree ([hubbleops/proof/memory.py](../hubbleops/proof/memory.py):61-67), so forging
+      that one string publishes a `VERIFIED_FOR_SCOPE` PR body for a tree nothing verified —
+      reproduced end to end, exit 0, `proof_scope.repo_sha 01cab16` against `HEAD c5b0cba`.
+      Breaks L4 and §17, and it is the product promise inverted.
+      **(2) the injected `ContractOracle` is never called.** `oracle` occurs once in
+      [hubbleops/obligations/engine.py](../hubbleops/obligations/engine.py):42, as a parameter;
+      validation lives in `app/exposure.py` and `hops migrate` never reaches it. DoD 1, TRAP 4.
+      **(3)** DoD 5's `python_pinned_v22` migrate → verify chain has no test; `migrate` appears in
+      `tests/` only under `--pack _mock`.
+      **(4)** `precise_indexes` changes FROZEN §3.2 with no ACCEPTED proposal.
+      **(5)** `GENERIC_LAYERS` in `tests/support.py` omits `repair`, so the leak test this phase
+      names for `repair/` never looks there.
+      27 of 28 Law experiments fail closed. The audit is itself incomplete and must not be re-run
+      as-is: item (a) was never executed by an auditor, L7 was never tested, and 17 of 31
+      ARCHITECTURE sections were never classified. One critic reason did NOT reproduce — `hops
+      migrate` does not write `.hubbleops/decisions.yml`; `app/migration.py` never names it and the
+      writers are `hops decide`, `hops guard` and `hops prepare-pr`.
 - [x] **The checks workflow ran for the first time and is green.** It had never executed
       before 2026-09-13 because nothing had been pushed; all five of its first runs died at
       `Install ast-grep`, since `unzip -d` creates only the final path component and

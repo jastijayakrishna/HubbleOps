@@ -12,6 +12,13 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
 | **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) awaits the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
 
+**Phase 6 gate audit ran on `0aa558b` and returned `GATE: FAIL` (2026-09-13).** PR #1
+(`phase-06-repository-intelligence` → `main`, 45 commits) is green and `mergeable_state: clean`,
+and was NOT merged: CI proves the tests pass, not that the tree conforms. The blocker that matters
+is that a Receipt survives a new SHA — `prepare-pr` never compares the ProofScope it computes to
+the tree, so one forged string publishes a `VERIFIED_FOR_SCOPE` PR body for an unverified tree.
+The five blockers are in [dev/tasks.md](tasks.md). Nothing was merged, tagged or waived.
+
 **Working copy moved off OneDrive (2026-09-13).** The tree lives at `C:\dev\HubbleOps`; the
 OneDrive copy is left untouched as a fallback. Content is identical — same tree hash
 `592ba5b`, `git diff` empty; the only differences were CRLF-vs-LF working-tree bytes and two
