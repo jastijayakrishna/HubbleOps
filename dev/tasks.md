@@ -18,27 +18,32 @@ Updated before every session ends. Phase-level status lives in
       sites · 3 files human`). `setup.py` `install_requires` is read, so the map names
       `google-ads 30.1.0 · v25 python minimum 31.2.0 · below floor`, and migrate now
       discharges 9 rather than calling six already-satisfied obligations human work.
-      FA-073 stays open, narrowed: declared `testpaths` is honoured from five pytest
-      configuration files, but tap-google-ads declares its test command only in
-      `.circleci/config.yml`, so its frozen baseline is still EXECUTION_FAILED — with a
-      reason that now names the collection error. Chain rerun verdict **FAILED** on true
-      reasons: 27 v9 obligations OPEN, the `per_call_version_override` falsifier on the same
-      three `spikes/` files, and that frozen baseline; prepare-pr refused it.
-- [ ] **Read the repository's declared test command from CI configuration (FA-073).** The
-      remaining half of FA-073. `.circleci/config.yml`, `.github/workflows/*.yml` and the
-      like carry `pytest tests/unittests` where no pytest configuration file exists. Until
-      then a repository of that shape can reach UNKNOWN but never VERIFIED_FOR_SCOPE. Needs a
-      generic reader with no repository-specific parsing and a fixture per CI format.
-- [ ] **Freeze a conservation baseline for `singer-io/tap-google-ads` `5b6a201`.** Dub and
-      GLNA have one in `tests/fixtures/real_repo/`, so `test_real_repo_conservation` proved
-      mechanically that engine-v0 changed no candidate identity on them. tap-google-ads has
-      none, so its four identity changes were checked by hand: `setup.py` became a MANIFEST,
-      which moves `google-ads` at lines 5, 16 and 32 from `surface_reference` to
-      `package_reference` — same site, same subject, new claim — and the `dependency_state`
-      `NO_MANIFEST` UNKNOWN was answered by the `sdk_installed` AFFECTED it asked for. Every
-      site is still covered and unexplained is 0, but a hand check is not a guard. Record the
-      baseline with the P-024 `identity_migration` shape (`retired_identities`,
-      `rekeyed_identities`) so the next engine cannot move one silently.
+      FA-073's first half closed after the freeze: the layout honours the test command a
+      repository declares in CI when no pytest configuration file declares one, so
+      tap-google-ads now runs `tests/unittests` and its frozen baseline is **69 PASS / 4
+      FAIL** where it was `EXECUTION_FAILED` 0 / 42. That exposed the second half, which is
+      its own task below. Chain rerun verdict **FAILED** on reasons that are all true of the
+      tree: 27 v9 obligations OPEN, the `per_call_version_override` falsifier on the same
+      three `spikes/` files, and four pre-existing red tests the conjunct cannot yet tell
+      apart from tests the migration broke; prepare-pr refused the receipt.
+- [ ] **Run the frozen suite against the base SHA so a red baseline is not a candidate
+      failure (FA-073, second half).** Now that the CI-declared test command is honoured, the
+      tap-google-ads frozen baseline runs — `tests/unittests`, **69 PASS / 4 FAIL** — and
+      `radius.frozen_report` judges `passed = failed == 0`, so those four report as
+      `frozen_baseline_tests_pass is FAIL` and the verdict is FAILED. The four are
+      date-dependent conversion-window tests that fail on the base SHA identically; the
+      migration broke nothing. The conjunct cannot tell the two apart without running the
+      frozen suite on the base SHA first, which is what closes this. Until then a repository
+      with any pre-existing red test cannot reach VERIFIED_FOR_SCOPE however correct the
+      repair is. `hops verify` already stages the base tree, so the run has an obvious home.
+- [ ] **Triage the 91 tap-google-ads UNKNOWNs into the P-024 baseline shape.**
+      `tests/fixtures/real_repo/tapga_identities_before.json` and
+      `tests/integration/test_tapga_identity_conservation.py` now guard identity —
+      all 647 candidates at `5b6a201`, none may disappear. What they deliberately do not
+      carry is the per-UNKNOWN `root_cause` and `expected_future_disposition` the Dub and
+      GLNA baselines have, because those are triage against named atlas rows and inventing 91
+      of them would freeze a judgement nobody made. Do the triage, then fold this repository
+      into `test_real_repo_conservation` beside the other two.
 - [ ] **Tier 3c (PART TEN of [dev/plan.md](plan.md)) — stopped at Q32.** DoD 1 is designed
       (attestation inside Evidence `value`, no schema change, enforcements E1–E6); no AI call
       path exists and none is written until the owner answers Q32. Unblocked by any answer and
@@ -65,11 +70,30 @@ Updated before every session ends. Phase-level status lives in
       **(2) the injected `ContractOracle` is never called.** `oracle` occurs once in
       [hubbleops/obligations/engine.py](../hubbleops/obligations/engine.py):42, as a parameter;
       validation lives in `app/exposure.py` and `hops migrate` never reaches it. DoD 1, TRAP 4.
+      **CLOSED**: the engine validates every request skeleton against the target through the
+      injected oracle; a rejection is HUMAN work carrying the oracle's reason, and an oracle
+      that cannot decide, raises, or accepts without naming an authority yields
+      PRESERVE_UNKNOWN. `validated_outcome` moved to `core/verification.py` so verify and the
+      engine harden identically, and `static_request` to `core/requests.py` so the engine
+      never imports the layer that judges it. migrate now injects the offline `pack.contract`
+      rather than the live `verification_contract()`: obligations must be reproducible from
+      the tree, and exposure already built them offline.
       **(3)** DoD 5's `python_pinned_v22` migrate → verify chain has no test; `migrate` appears in
       `tests/` only under `--pack _mock`.
+      **CLOSED**: `tests/integration/test_chain.py` runs the fixture migrate → commit →
+      verify under `--pack google_ads`, asserts the v22 call site is rewritten and the
+      obligation carries `version:v22->v25` rather than a repository-wide current version,
+      and asserts the verdict verify wrote — including that a repository shipping no tests
+      never earns VERIFIED_FOR_SCOPE.
       **(4)** `precise_indexes` changes FROZEN §3.2 with no ACCEPTED proposal.
+      **RAISED as P-036, still OPEN**: only the repository owner can accept a change to a
+      frozen surface. P-033's bullet recorded it as a standing deviation, which is not how a
+      frozen surface changes; that bullet now points at the proposal.
       **(5)** `GENERIC_LAYERS` in `tests/support.py` omits `repair`, so the leak test this phase
       names for `repair/` never looks there.
+      **CLOSED**: the scanned set is derived from the tree — every package under `hubbleops/`
+      with an `__init__.py` that is not `app/` or `packs/` — so a layer added tomorrow is
+      inside law L5 the day it lands. `repair/` was clean; nothing had ever checked.
       27 of 28 Law experiments fail closed. The audit is itself incomplete and must not be re-run
       as-is: item (a) was never executed by an auditor, L7 was never tested, and 17 of 31
       ARCHITECTURE sections were never classified. One critic reason did NOT reproduce — `hops
@@ -175,6 +199,16 @@ Updated before every session ends. Phase-level status lives in
       Linux sandbox image so Python repositories get the same layer.
 - [ ] P-034 (vendoring the indexers) awaits the owner; until then precision exists only where
       `scip-typescript` is on PATH, and the map says so.
+- [ ] P-035 (three planes; the WORK plane as a producer/judge agent harness; provider-native
+      specialists pinned in the existing `repair_tools()` slot; the four-arm release gate) awaits
+      the owner. Its `docs/ARCHITECTURE.md` §22 diff is drafted in the proposal and deliberately
+      not applied. Three holes it names are open in the tree today whatever the owner decides:
+      `verify/`'s import guard is two exhaustive-by-name denylists, so a model client or MCP client
+      is importable; no plane is recorded anywhere, so "planes, never mixed" is unfalsifiable; and
+      §8.2's repair tool allowlist has no implementation in product code (`hubbleops/repair/` is
+      `__init__.py` plus `deterministic.py`) — the live `.claude/hooks/guard.py` rule protects the
+      authoring session, not the repair worker, and `docs/HOOKS.md:5-7` is stale in saying the hooks
+      are not active.
 - [ ] Fresh gate audit on the final bytes; nothing merges before it returns `GATE: PASS`.
 - [ ] Owner decisions the audit raised: the store's L10 guard fires only on a status transition
       (a candidate born closed on AI-only evidence is not refused; unreachable while P-009 keeps
