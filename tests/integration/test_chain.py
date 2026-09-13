@@ -162,6 +162,136 @@ def test_migrate_verify_prepare_pr_runs_end_to_end_without_hand_editing(
     assert "a new SHA kills the old proof" in capsys.readouterr().err
 
 
+PINNED_FIXTURE = Path("tests/fixtures/phase1/python_pinned_v22/repo")
+
+
+def _pinned_repository(root: Path) -> tuple[Path, str]:
+    repository = root / "pinned"
+    shutil.copytree(PINNED_FIXTURE, repository)
+    _git(repository, "init", "--quiet", "--initial-branch=main")
+    _git(repository, "config", "user.email", "fixture@hubbleops.test")
+    _git(repository, "config", "user.name", "HubbleOps Fixture")
+    _git(repository, "config", "commit.gpgsign", "false")
+    _git(repository, "config", "core.autocrlf", "false")
+    _git(repository, "add", "--all")
+    _git(repository, "commit", "--quiet", "-m", "The pinned v22 tree before the migration")
+    return repository, _git(repository, "rev-parse", "HEAD").strip()
+
+
+def test_the_pinned_v22_fixture_runs_migrate_to_verify_under_the_real_pack(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    repository, base_sha = _pinned_repository(tmp_path)
+    state = tmp_path / "pinned-state"
+    obligations = state / "obligations.json"
+    receipt = tmp_path / "pinned-receipt.json"
+    source = repository / "src" / "reporting.py"
+    assert 'version="v22"' in source.read_text(encoding="utf-8")
+
+    assert (
+        main(
+            [
+                "migrate",
+                str(repository),
+                "--pack",
+                "google_ads",
+                "--target",
+                "v25",
+                "--state-dir",
+                str(state),
+            ]
+        )
+        == EXIT_OK
+    )
+    capsys.readouterr()
+    assert 'version="v25"' in source.read_text(encoding="utf-8"), (
+        "the one call site pinned to v22 is the deterministic edit this fixture exists for"
+    )
+    written = json.loads(obligations.read_text(encoding="utf-8"))["obligations"]
+    assert "version:v22->v25" in {item["provider_change_id"] for item in written}, (
+        "TRAP 5: the obligation carries this candidate's own effective version, "
+        "not one repository-wide current version"
+    )
+    assert all(item["run_id"] and item["proof_scope_hash"] for item in written)
+
+    _git(repository, "add", "--all")
+    _git(repository, "commit", "--quiet", "-m", "Candidate tree the migration produced")
+    candidate_sha = _git(repository, "rev-parse", "HEAD").strip()
+    assert candidate_sha != base_sha
+
+    main(
+        [
+            "verify",
+            base_sha,
+            candidate_sha,
+            "--pack",
+            "google_ads",
+            "--repo",
+            str(repository),
+            "--from",
+            "v22",
+            "--to",
+            "v25",
+            "--obligations",
+            str(obligations),
+            "--state-dir",
+            str(state),
+            "--receipt",
+            str(receipt),
+        ]
+    )
+    printed = capsys.readouterr().out
+    document = json.loads(receipt.read_text(encoding="utf-8"))
+
+    assert document["verdict"] in ("UNKNOWN", "HUMAN_REQUIRED", "FAILED", "VERIFIED_FOR_SCOPE")
+    assert document["verdict"] in printed, "the verdict a human reads is the one verify wrote"
+    assert document["proof_scope"]["repo_sha"] == candidate_sha
+    assert document["migration_audit"]["candidate_sha"] == candidate_sha
+    assert document["migration_audit"]["provider"] == "google_ads"
+    assert document["obligations"], (
+        "a migration with obligations must reconcile them in the receipt"
+    )
+
+
+def test_the_pinned_v22_fixture_is_never_verified_on_a_repository_with_no_tests(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    repository, base_sha = _pinned_repository(tmp_path)
+    state = tmp_path / "pinned-state"
+    receipt = tmp_path / "pinned-receipt.json"
+    main(["migrate", str(repository), "--pack", "google_ads", "--state-dir", str(state)])
+    _git(repository, "add", "--all")
+    _git(repository, "commit", "--quiet", "-m", "Candidate tree the migration produced")
+    candidate_sha = _git(repository, "rev-parse", "HEAD").strip()
+    capsys.readouterr()
+
+    main(
+        [
+            "verify",
+            base_sha,
+            candidate_sha,
+            "--pack",
+            "google_ads",
+            "--repo",
+            str(repository),
+            "--obligations",
+            str(state / "obligations.json"),
+            "--state-dir",
+            str(state),
+            "--receipt",
+            str(receipt),
+        ]
+    )
+    capsys.readouterr()
+    document = json.loads(receipt.read_text(encoding="utf-8"))
+
+    assert document["verdict"] != "VERIFIED_FOR_SCOPE", (
+        "law L11: frozen base-SHA tests are the proof, and this repository ships none, "
+        "so no amount of correct repair earns VERIFIED_FOR_SCOPE"
+    )
+    assert any("frozen" in reason.lower() for reason in document["reasons"])
+
+
 def test_migrate_refuses_a_working_tree_that_differs_from_head(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
