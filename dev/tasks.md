@@ -5,6 +5,237 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] **Tier 3a Q29-Q31** answered by delegation ("do whatever is best for customers") on
+      2026-09-13; the choices are in PART EIGHT PROGRESS of [dev/plan.md](plan.md).
+- [x] **W0** `tests/fixtures/real_repo/dub_unknowns_before.json` frozen (100 entries, 3 retired,
+      6 re-keyed); baseline test parameterised over both repositories.
+- [x] **W1** four platform wheels with pinned hashes; `scanner_version` binds both binaries'
+      sha256; a swapped vendored binary stops the scan. Posix wheels built on Windows carry
+      0644 on the binaries (NTFS cannot chmod) and fail closed at runtime: release builds of
+      the three posix wheels must run on a posix host.
+- [x] **W2** `hops exposure --install-workflow` (`proof/exposure_workflow.py`).
+- [x] **W3** lattice judgement in the resolver, target judgement on the map's QUERIES block,
+      offline contract everywhere, printed at the end of `hops scan --target`.
+- [x] **W4** all mechanisms (FA-054 … FA-060) plus `.env*` as CONFIG. Dub UNKNOWN 103 → 32,
+      three byte-identical scans, 0 baseline violations; GLNA 358 → 333, 259 AFFECTED kept.
+- [x] **W5** case-preserving namespace transform, non-semver pins stay HUMAN, bound references
+      edit their import line, SATISFIED outcome, decided request sites, P-032 proposed. GLNA:
+      migrate 258/258, verify twice → FAILED with the same body hash, prepare-pr refuses it.
+- [x] **W6** `tests/integration/test_ship_path.py` (35 s on win_amd64).
+- [x] **W7** first gate audit `GATE: FAIL` on three blockers (stale-SHA receipt accepted by
+      prepare-pr, verdict trusted as written, unrecorded GLNA re-key with no real-scan test);
+      all three closed with tests. Re-audit: blockers confirmed closed, `GATE: FAIL` on the
+      prepare-pr → guard seam, now fixed (PR body is run output; textually present patterns are
+      deferred, not retired; mock `version=` default is a carrier; guard uses the vendored rg).
+- [x] **Tier 3b spike** (PART NINE of [dev/plan.md](plan.md)): five indexers measured without
+      installing any repository's dependencies; TypeScript/TSX/JavaScript and Python GO, PHP,
+      Java and .NET recall-only with the enabling sentence on the map.
+- [x] **B1** `core/precise.py`: dependency-free SCIP reader, `SymbolIndex`, descriptor parser;
+      47 unit + property tests, project_root never exposed.
+- [x] **B2** `graph/indexers.py`: `ScipTypescript` (staged copy, derived tsconfig, synthesized
+      manifest, entry-script identity, version-mismatch refusal) and `ScipPython` (Linux only,
+      heap sized, refuses Windows with the reason); 24 + 4 tests with a fake indexer plus one
+      real-tool test that runs when `scip-typescript` is on PATH (it passed here).
+- [x] **B3** graph integration: callers by symbol (a name caller is removed only when its
+      symbol belongs to another definition in the graph), barrel, alias and renamed imports
+      resolved to their definition, identifier bindings by symbol to first-party definitions
+      only; per-caller hop suffix `by symbol`. Six revert checks each fail their test when
+      the mechanism is removed.
+- [x] **B4** `precise` per language and the indexer status sentence on the map and in the
+      export; `scanner_version` carries `;scip-typescript=<version>+sha256:<entry>` when the
+      indexer ran.
+- [x] **B5** ground truth after: GLNA 1143 / 259 / 218 / 333 UNKNOWN / 0 unexplained,
+      javascript precise 873 of 891; Dub 327 / 4 / 73 / 32 / 0, typescript 2,346 of 2,348 and
+      tsx 1,991 of 1,991 precise; candidate ids and statuses identical to before on both.
+- [x] **B6a** held-out `google/ads-api-report-fetcher` `2419122`: first scan found FA-064 (a
+      U+0085 in a minified bundle split ripgrep's JSON stream); every line-delimited JSON
+      stream (ripgrep, capture events, proxy events, coverage report, install attestation)
+      now splits on `\n` only and a corrupt coverage line is a named failed case.
+- [x] **B7** spec-auditor `GATE: FAIL` (2026-09-13) closed: a forced indexer failure now
+      carries `+forced-recall-only` in `scanner_version` so it never shares a ProofScope with
+      a successful run; a package symbol's namespace version is read from the whole symbol
+      and an alias binding that carries a version is never replaced by a versionless one;
+      `PreciseSite` has direct tests and a revert check (six in total); byte offsets are
+      converted to character columns before symbol lookup; forced status text carries no
+      host path; `__all__` complete; P-030 DECIDED, P-033 records the `ObserverContext`
+      field, the "behind a flag" deviation and the §10 listing.
+- [x] **B8** red-team `RED-TEAM: BROKEN` (2026-09-13) closed: FA-065 (ambient `@types` moved a
+      verdict under one ProofScope → external symbols dropped, `typeRoots`/`types` forced
+      empty), FA-066 (interface dispatch deleted a true caller → removal only on another
+      definition's symbol, per-caller `by symbol` provenance), FA-067 (renamed imports →
+      positional lookup); fabricated versions from symbol strings gone with the package
+      branch; `ts_dispatch` fixture; the map's precise line now counts rewritten configs and
+      dropped external occurrences.
+- [x] **B6b** held-out rerun on the final bytes (FA-068): 5,380 candidates, 501 UNKNOWN, 0
+      unexplained, identical with and without the indexer; typescript 62 of 63 precise.
+- [x] **B9** re-audit on the final bytes `GATE: PASS`; its minors closed: dead precedence
+      arm removed, a file whose every occurrence was external no longer counts `precise`, the
+      missing-indexer sentence carries no host path, P-030 status line DECIDED, a non-record
+      or truncated coverage report line is a named failed case.
+- [ ] Recorded, not done: `entry_script` falls back to hashing the launcher when the package
+      entry is absent (append a marker or refuse); SCIP `position_encoding` unread;
+      `verify/runners.py:242` `except … pass` around the junction fallback;
+      `app/migration.py:119` `except Exception` drops a version's diff silently; the second
+      console script `hubbleops` in `pyproject.toml` has no proposal.
+- [ ] Next real-repo-loop input: the 501 held-out UNKNOWNs (not this tier's), the Apps Script
+      bundles the compiler cannot parse (5 of 7 javascript files), and `scip-python` in the
+      Linux sandbox image so Python repositories get the same layer.
+- [ ] P-034 (vendoring the indexers) awaits the owner; until then precision exists only where
+      `scip-typescript` is on PATH, and the map says so.
+- [ ] Fresh gate audit on the final bytes; nothing merges before it returns `GATE: PASS`.
+- [ ] Owner decisions the audit raised: the store's L10 guard fires only on a status transition
+      (a candidate born closed on AI-only evidence is not refused; unreachable while P-009 keeps
+      triage disconnected); the guard hook's frozen-schema bypass keyed to a `| **Status** |
+      ACCEPTED |` line is self-certifying.
+- [ ] Add `vendored_binary_swapped` and `decided_request_site_forged` to the adversarial corpus
+      as directories once the corpus harness accepts a decisions file; both behaviours are
+      locked by unit and CLI tests today.
+- [ ] GLNA closures the Receipt names: builder-skeleton extraction for the first-party GAQL
+      builder (32 request sites never reach the oracle); the response-consumer check's 617
+      "assembles a name from parts this build cannot resolve" sites; dependency provisioning
+      under P-032 so the frozen suite can run.
+- [ ] Publish the wheels (PyPI name `hubbleops` or a release asset) so `uvx --from
+      "hubbleops==0.1.0"` in the generated Action resolves; approval boundary.
+- [x] **Q25-Q28 answered** by the owner's instruction of 2026-09-12 to fix all of PART SEVEN now;
+      recorded in [dev/plan.md](plan.md).
+- [x] **F1** catalog reconciliation (FA-049): one complete source resolves a field; only two
+      present sources that disagree make it unknown. Unresolved v25 fields **1,407 → 140**;
+      v23→v24 CHANGED/UNKNOWN **1,238 → 27**; oracle accepts `SELECT customer.id FROM customer`
+      and metric/segment queries at CATALOG authority. Lattice `5b31c7c8… → 4555e93f…`.
+- [x] **F2** `tests/property/test_contract_diff_invariants.py`: no CHANGED fact across any
+      adjacent pair has equal before/after; replacements are REMOVED facts naming a subject
+      present in the target.
+- [x] **F3** release-notes migration-table projection in `refresh.py` (`Initial state | New
+      state | Change type | Implementation guidance`); two genuine subject-level replacements land
+      (v24 `Campaign.video_brand_safety_suitability → Customer.…`, v25
+      `GenerateCreatorInsightsRequest.search_brand → search_topics`); 22 ambiguous rows are
+      counted as `unresolved_replacement_rows`, never guessed. Docs re-normalized offline from the
+      retained hash-pinned upstream bytes.
+- [x] **F4** `--target` on scan and exposure; MIGRATION FINDINGS (effective version, SDK floor,
+      sunset, required changes grouped by finding); AFFECTED grouped by carrier (FA-050).
+- [x] **F5** P-024 one observation → one candidate (194 double claims gone); DOCUMENTATION,
+      STYLESHEET and lock-file matches resolve by role (Q28); file-level version binding only
+      where the structural layer adjudicated the site as code (P-023 kept); qualified
+      `ads_failure_detail` shape. `google-listings-and-ads`: UNKNOWN **672 → 358**,
+      candidates 1,364 → 1,143, NOT_AFFECTED 110 → 193, unexplained 0 → 0. Baseline re-frozen
+      under the new identity with permitted sets intersected, never widened.
+- [x] **F6** impact/migrate: affected paths are DETERMINISTIC and HUMAN obligations only
+      (474 → 39 on the real repo), findings grouped by change id, carried UNKNOWNs grouped by
+      closing instruction (FA-051).
+- [x] **F7** `phpunit` runner; every declared runner runs and merges into one SuiteRun; a
+      declared-but-missing runner sinks the run (FA-052). PHPUnit without a coverage driver is
+      unverified on this machine and fails closed.
+- [x] **F8** scan → exposure → impact on `google-listings-and-ads` (`b43b322`) and `dubinc/dub`
+      (`b8866f4`): Dub 471 → 326 candidates, UNKNOWN 249 → 103, one deterministic edit at
+      `apps/web/lib/integrations/google-ads/api.ts:60`, effective V22 sunsetting 2026-10.
+      `hops verify` on either repo still needs their dependencies installed in the sandbox
+      (`vendor/`, `node_modules/`); not run here.
+- [ ] Decide P-030 (per-language precise indexers) and P-031 (field service as primary source).
+- [ ] AI-authored edits and triage stay closed under P-009 until the attestation boundary is
+      decided; nothing in this session routed AI output anywhere.
+- [x] Bound-reference obligations: an AFFECTED reference whose version comes from its import
+      binding or its file's single version literal now carries a deterministic `version:`
+      obligation naming the literal's site as the edit site. Real repo: unresolved versions
+      29 → 0, deterministic edits 230 → 259. Final full suite **990 passed**.
+
+- [x] Close the coverage failures the `dubinc/dub` real-repo scan exposed (FA-040 … FA-046,
+      P-026). Seven classes, each with its own eval under `tests/fixtures/coverage/` and
+      `tests/property/test_coverage_invariant.py`; reverting any one fix fails its own eval
+      (7/7 checked). The class that mattered: the text and structural channels held two
+      hand-maintained copies of one GAQL resource list, so §2's observer-independence assumption
+      failed and `FROM conversion_action` produced **no candidate at all**. The resource set is now
+      derived from the catalog that already knew it.
+- [ ] Decide FA-045's residue volume with the owner. Dub's UNKNOWN count moved 111 → 251, of which
+      129 are `CONTRACT_SURFACE_UNRESOLVED`. Every one names a real provider surface and none is a
+      guess, but 129 is a triage load, and P-013 grouping is the lever. This is a presentation
+      decision, not a soundness one — do not "fix" it by dropping candidates.
+- [ ] Reduce the 65 UNKNOWNs that are one token claimed by two surface categories (FA-035). The
+      alias half is now accurate (it names the resolved in-repo file); the `package_names` half
+      still fires on every `@/lib/integrations/google-ads/...` path segment. Needs the recorded
+      decision about claim identity that FA-035 asks for.
+
+- [x] Audit Phase 5 against its DEFINITION OF DONE and fix what it found (PART FIVE of
+      [dev/plan.md](plan.md)). Two defects in the `unknown_conservation_pass` conjunct, both fixed:
+      **D-001** `decision.apply` compared a decision's run and ProofScope against the candidate run
+      instead of the run it was recorded in, so every `hops decide` record was refused and
+      `hops verify --decisions` aborted without a Receipt; **D-002** `conserve.compare` decided "new
+      evidence" by record id, and `evidence_identity` hashes `run_id`, `proof_scope_hash` and
+      `repo_sha`, so every candidate-run record read as new and the conjunct could never fail.
+      Added `core.evidence.observation_identity`, eight tests, and the
+      `request_hidden_from_oracle` corruption. Evidence: full suite **712 passed, 0 failed** in
+      39m55s, adversarial corpus **16 passed**, strict Pyright **0 errors**, Ruff lint and format
+      clean. **Q20** (is a relocated UNKNOWN dropped or conserved?) is raised and undecided
+- [x] Finish and verify P-021's credential-free Google Ads Mutate path
+- [x] Close every finding of the P-021 tree audit, including FA-033: the Receipt and the frozen
+      `receipt.json` description both denied that `CATALOG` authority proves any mutate shape while
+      P-021 granted exactly that. Fixed at the root under P-022 — `proof/` quotes the accepting
+      pack's stated scope instead of asserting one — plus the stale `repair/agent.py` and hosted-App
+      entries in `docs/ARCHITECTURE.md` §8.2/§17 and its repo map, the `merge_group` trigger in
+      `docs/BUILD_ORDER.md` that the shipped Action already satisfies, the missing `prepare-pr` verb
+      and the absent `tests/heldout` in the CLAUDE.md map, and the two misreported counts below.
+      Final measured current-tree evidence: full host suite **751 passed, 0 skipped, 0 failed** in
+      11m15s; adversarial/property gate **106 passed** (16 adversarial over a 13-corruption corpus,
+      90 property); standalone Sentinel **12 passed**; Ruff lint and format clean; strict Pyright
+      **0 errors, 0 warnings**. The superseded record claimed 26 for the adversarial/property gate
+      and 16 corruptions; neither was reproducible, and both are corrected here
+- [x] Turn the ordinary-application loop's 752 UNKNOWNs into a cause-ranked disposition table. The
+      run's output was gone, so the scan was reproduced from a fresh read-only clone of
+      `woocommerce/google-listings-and-ads` at `b43b322` and matched every number exactly (2,061
+      closure entries, 1,315 candidates, 230/1/306/26/752, 0 unexplained) in 2m07s. The 752 group
+      into **eight causes on 488 distinct locations**; 704 of them (93.6%) are one defect — the
+      recall layer emits a candidate per lexical occurrence with no syntactic role — and only **4
+      (0.53%) are genuinely undecidable**. Recorded as FA-034 through FA-038. Group counts reconcile
+      to the ledger and to `hops exposure`'s own closing-instruction grouping (4+19+497+24+208=752)
+- [x] Freeze the 752 before touching anything: `tests/fixtures/real_repo/glna_unknowns_before.json`
+      carries every candidate id, location, claim, winning evidence, closing instruction, root cause
+      and **permitted-disposition set**, enforced by `tests/unit/test_real_repo_baseline.py`.
+      Evidence: **9 passed**; full unit suite **499 passed** in 3m04s; Ruff lint and format clean;
+      strict Pyright **0 errors, 0 warnings**. The baseline's foundation is measured, not assumed —
+      two scans of the same commit gave **byte-identical ledgers** (`sha256 ee807fc0…`), identical
+      ProofScope and candidate ids, all 752 conserved
+- [x] Research the prior art rather than guessing at it (OpenRewrite/Moderne type attribution,
+      Sourcegraph precise-vs-search-based and its silent fallback, CodeQL models-as-data, the
+      Soundiness Manifesto) and write the root-cause programme as PART SIX of
+      [dev/plan.md](plan.md): nine mechanisms M1-M9, the invariant set, mutation testing, held-out
+      repositories, and the gate
+- [x] Raise **P-023** (the structural layer adjudicates the recall layer — no frozen schema change
+      needed), **P-024** (one observation must not become several independent candidates — touches
+      candidate identity, the largest blast radius in the programme), and **P-025** (a request claim
+      and a response read are different claims)
+- [x] Q21-Q24 answered by the owner on 2026-09-11 and recorded in PART SIX and in the decisions
+      section of [dev/context.md](context.md)
+- [x] Implement **P-023** (M1 comment adjudication + M3 import-table symbol binding + the M4
+      handoff): `comment` nodes in the graph, structural adjudication carrying node kind and symbol
+      binding as `PROVEN` evidence, `("structure", "text")` precedence. No frozen schema changed.
+      Measured on the baseline commit: **752 → 624 UNKNOWN** (19 → AFFECTED, 109 → NOT_AFFECTED),
+      1,315 candidates unchanged, unexplained 0, **0 absent, 0 non-permitted, 0 AFFECTED
+      downgraded**, four undecidable sites still UNKNOWN, decided share 17.6% → 27.3%. All 109
+      NOT_AFFECTED audited by an independently written comment detector: **zero false safes**.
+      8 fixture regressions + 6 invariants + 1 strict xfail for P-024. Full suite **774 passed,
+      1 xfailed, 0 failed** in 14m09s; Ruff clean over 225 files; strict Pyright **0 errors**
+- [ ] Finish P-023's remainder: Q22 string-literal reachability (the enclosing definition must be
+      graph-reached before a literal may resolve) and Q21's documentation-drift count on the
+      Exposure Map. 271 recall UNKNOWNs and 97 adjudicated-but-unresolved ones are still open
+- [ ] Implement M4 wrapper following for the 69 first-party bindings (FA-039). They currently carry
+      a closing instruction naming the wrapper; following it to a provider sink, or proving there is
+      none, is what closes them. A first-party binding must never resolve to NOT_AFFECTED on the
+      strength of the binding alone
+- [ ] Implement **P-024** (shape accepted: one candidate, many claims) after the above, and
+      re-freeze `tests/fixtures/real_repo/glna_unknowns_before.json` under the new identity with an
+      explicit old-id to new-id mapping. The strict `xfail` in the invariants file retires itself
+- [ ] Prove transfer on held-out repositories before claiming any mechanism is fixed. GLNA is the
+      development repository; overfitting to it is the named risk of the whole programme
+- [ ] Run the fresh-session [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 5 on the
+      fixed tree — the builder-side audit above is not the gate, and only a spec-auditor session's
+      final `GATE: PASS` counts
+- [x] Finish the compressed Tier 0-2 implementation: accepted P-012/P-015/P-018/P-019; added
+      source-bound `hops decide`, integrity-checking `hops replay`, full-rescan `hops impact`,
+      cumulative `hops guard`, `hops prepare-pr`, Proof Pack PR rendering, repo-resident memory, and
+      read-only exact-SHA Actions; ran the adversarial corpus and the ordinary-application real-repo
+      loop; preserved every explicitly deferred architecture item
+- [x] Verify the finished tree: adversarial/Phase-5 property gate **25 passed** across 12 deliberate
+      corruptions; full suite **700 passed, 0 skipped** in 40m19s; standalone Sentinel **12 passed**;
+      Ruff lint and format clean; strict Pyright **0 errors**; `git diff --check` clean
 - [x] Build the Repository Intelligence Engine's first five pieces on branch
       `phase-06-repository-intelligence`, each with the measurement that justified it (PART THREE of
       [dev/plan.md](plan.md)): `FileRole` classification, one-parse-per-language `query_all`, the
@@ -13,21 +244,21 @@ Updated before every session ends. Phase-level status lives in
 - [x] Raise **P-015** (candidate states) and **P-016** (one scan, many providers) rather than editing
       frozen surfaces in place, and **P-017** (Exposure Map completeness section) which is accepted
       and implemented
-- [ ] **Owner action — confirm P-017's verdict wording** before a `DISCOVERY_INCOMPLETE` line reaches
-      a customer. The section is additive and no existing line changed, but the wording is
-      customer-facing and the owner has not seen it
-- [ ] **Owner action — blocks P-015 exactly as it blocks P-012.** The same
-      `_accepted_proposal_names()` edit to `.claude/hooks/guard.py` unblocks both
-- [ ] Answer **Q14** (does the 20,000-step resolution budget hold?) on a repository large enough to
-      exhaust it. It is no longer load-bearing on this tree and has never been measured on a monorepo
-- [ ] Answer **Q16**: run the real-repo loop next, before §11 cross-language edges, so the edges are
+- [x] Accept P-017's additive customer-facing completeness wording under the owner's instruction to
+      finish the remaining build completely
+- [x] Teach `.claude/hooks/guard.py` to permit a frozen-schema edit only when an ACCEPTED proposal
+      names that exact schema path; P-012 and P-015 no longer bypass or deadlock the approval rule
+- [x] Retire Q14 as a current milestone blocker: the 20,000-step budget produced **0 exhaustions** on
+      the 2,061-entry ordinary application real-repo loop. A larger monorepo measurement remains a
+      future trigger, not proof required by the compressed Tier 0-2 milestone
+- [x] Answer **Q16**: run the real-repo loop before §11 cross-language edges, so the edges are
       aimed at real patterns rather than guessed ones. Four admissible company-owned repos are
       already verified to exist: `airbytehq/airbyte`, `woocommerce/google-listings-and-ads`,
-      `singer-io/tap-google-ads`, plus one more to source
-- [ ] Not started, in order: §8 SCC collapse (measure first — the cache absorbs much of it), §11
-      cross-language edges (`BOUNDARY_NAMES` is eight hard-coded method names), §10 type-based
-      framework models, §3 optional compiler/type frontends, §17/§18 incremental behind an
-      `incremental == clean` gate
+      `singer-io/tap-google-ads`, plus one more to source. Selected and ran
+      `woocommerce/google-listings-and-ads` at `b43b322771071ed88d5a817422dd222acbaa5f33`
+- [x] Preserve the explicit deferral of §8 SCC collapse, §11 cross-language edges, §10 type-based
+      framework models, §3 compiler/type frontends, and §17/§18 incremental work. PART TWO excludes
+      them until their measured triggers fire; no speculative machinery landed
 
 - [x] Plan the compression of Phases 6-10 into three tiers on the owner's instruction, and record it
       as PART TWO of [dev/plan.md](plan.md). Measured what justified it: composed v22->v25 is ~1,577
@@ -47,17 +278,19 @@ Updated before every session ends. Phase-level status lives in
       the ungrouped UNKNOWN count, so grouping can never lose a candidate. Found and fixed a real
       defect on the first run: the budget was checked before adding a group, so a 40-site group
       slipped through expanded
-- [ ] **Owner action — blocks P-012.** `.claude/hooks/guard.py` refuses every write under
-      `hubbleops/core/schemas/` past phase 1 and has no notion of an accepted proposal, so it also
-      blocks the one path CLAUDE.md permits. Add `_accepted_proposal_names()` so a schema write is
-      legal only when a proposal block names the exact filename and carries
-      `| **Status** | ACCEPTED |`. P-012's **Touches** row and status already satisfy that rule. The
-      session tool policy refuses writes to `.claude/hooks/`, so this edit is the owner's
-- [ ] **Owner action — blocks the only green-receipt demo.** Obtain a Google Ads test-account MCC and
-      a developer token at test-account access level. Until then `google_ads` verification reports
-      `ORACLE_UNAVAILABLE` and caps at UNKNOWN by design, so no `VERIFIED_FOR_SCOPE` is reachable for
-      the shipped provider. Longest lead time in the plan and not engineering (plan Q10)
-- [ ] Wire P-012 once the hook allows the schema edit: `verification_inputs_hash` and
+- [x] Close the P-012 guard blocker with `_accepted_proposal_names()` and an exact-path regression;
+      non-proposed frozen schema writes remain denied
+- [x] **Retired by P-020.** The Google Ads test-account MCC and developer token are no longer needed
+      by anyone. A complete version catalog now yields `VALID` under `CATALOG` authority, so a
+      credential-free read-only engagement reaches `VERIFIED_FOR_SCOPE` with the authority stated on
+      the face of the Receipt. Live provider authority stays an opt-in upgrade
+- [x] Build offline `Mutate` shape validation against the catalog's `message` and `proto_field`
+      facts (P-021). Nested protobuf JSON fields, enums, messages and container cardinality are
+      checked recursively; ambiguity and catalog gaps remain UNKNOWN; a configured live transport
+      still outranks catalog authority. Focused verifier/contract evidence: **130 passed**
+- [x] Record the live-transport limitation: it is exercised only against `_mock`, stays opt-in, and
+      no Receipt, prompt or document calls `LIVE` authority provider-proven without a real run
+- [x] Wire P-012: `verification_inputs_hash` and
       `oracle_context_hash` as explicit ProofScope fields, `ContractOracle.context_hash()`, and the
       verifier refusing an obligation, decision, capture or oracle result whose declared scope does
       not match the recomputed manifest
@@ -78,16 +311,16 @@ Updated before every session ends. Phase-level status lives in
       non-empty, protocol-conforming, unique names, every `failure_class` set. `repair/` is now
       exercised by two independent pack implementations, so the abstraction has evidence rather than
       a claim. `repair_tools()` stays `[]` on both and the assertion now names why
-- [ ] `hops migrate` writes to the working tree and does not commit. Deciding whether it should
-      commit to produce the candidate SHA itself is deferred: committing on a user's behalf is
-      hard to reverse, and `hops verify <base> <candidate>` works on any two SHAs the user makes
-- [ ] Tier 0 remainder: `hops decide` (the Exposure Map advertises a verb that does not exist) and
+- [x] Keep `hops migrate` working-tree-only. Automatic candidate commits are deliberately outside
+      scope because committing on a user's behalf is hard to reverse and
+      `hops verify <base> <candidate>` works on any two SHAs the user makes
+- [x] Tier 0 remainder: `hops decide` (the Exposure Map advertises a verb that does not exist) and
       the adversarial-suite artifact rendering FA-019 and its permanent regression
-- [ ] Tier 2: `proof/pr_body.py`, `proof/guard.py` with `.hubbleops/retired.yml`, the `.hubbleops/`
+- [x] Tier 2: `proof/pr_body.py`, `proof/guard.py` with `.hubbleops/retired.yml`, the `.hubbleops/`
       writes, the GitHub Action replacing the hosted App, and `hops impact` over a full rescan
-- [ ] Pick the third real-repo-loop target: an ordinary application repository, not one that is
-      documentation about the API or the client library itself (plan Q11). It decides how much of
-      P-013's collapsed tail is real
+- [x] Pick and run the third real-repo-loop target: ordinary application repository
+      `woocommerce/google-listings-and-ads`, not API documentation or a client library. The scan
+      accounted 2,061 closure entries and 1,315 candidates with zero unexplained candidates
 
 - [x] Merge Phase 4 to `main` and tag `v0.4` on the owner's instruction, recording that the merged
       bytes rest on a green full suite rather than a second gate audit, and that the merge is the
@@ -123,18 +356,25 @@ Updated before every session ends. Phase-level status lives in
       bounded-input, Phase-4 capture-schema, dynamic extinction, nested-shape, language-coverage and
       verifier-marker gaps. Focused Phase 5: 179 passed, 8 Podman skips; full suite: 586 passed,
       40 skips; Ruff, format and strict Pyright clean; all four Law attacks failed closed
-- [ ] Decide and implement **P-012**. Base/version selection, obligations, decisions, captures and
+- [x] Decide and implement **P-012**. Base/version selection, obligations, decisions, captures and
       live oracle context can change the verdict without moving the frozen ProofScope. Until all are
-      bound, Phase 5 cannot make a reusable proof claim and the 2026-09-09 gate result is `GATE: FAIL`
-- [ ] Rerun a fresh independent [gate audit](../prompts/cross-cutting/gate-audit.md) after P-012 and
-      live oracle evidence are closed. The audit must also execute the eight rootless-Podman runtime
-      isolation tests rather than count their environment skips
-- [ ] Run the Phase 5 [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) after the gate.
-      Only a literal `GATE: PASS` permits the merge to `main` and the `v0.5` tag
-- [ ] Phase 5 ships no live Google Ads oracle run: no test-account credentials exist on this machine,
-      so `google_ads` verification reports `ORACLE_UNAVAILABLE` and caps at UNKNOWN by design. The
-      oracle path itself is exercised end to end against the `_mock` pack with real request hashes.
-      Supply credentials via env to close this
+      bound, Phase 5 cannot make a reusable proof claim; all are now manifest-bound and regression
+      tested
+- [ ] Rerun a fresh independent [gate audit](../prompts/cross-cutting/gate-audit.md) for Phase 5.
+      P-012 and P-020 are both closed, so nothing external blocks it. The audit must also execute the
+      eight rootless-Podman runtime isolation tests rather than count their environment skips
+- [ ] Repeat the Phase 5 [real-repo loop](../prompts/cross-cutting/real-repo-loop.md) after the fresh
+      gate. The pre-gate loop is complete and produced FA-026 plus the 2,061-entry corpus, but only a
+      literal `GATE: PASS` permits the merge to `main` and the `v0.5` tag
+- [ ] Build the held-out corpus `docs/ARCHITECTURE.md` §13 names: ugly repositories never used during
+      development. It has never existed — `tests/heldout/` is absent — so the P-021 tree audit removed
+      it from the CLAUDE.md repo map rather than let the map assert a directory that is not there.
+      §13 keeps it as the intended category. It cannot be fabricated from repos already used here;
+      sourcing it is the work. *Trigger:* the Phase 10 pilot, or the first gate that needs evidence
+      the rules generalize beyond the fixtures they were written from
+- [x] Closed by P-020. Phase 5 ships no live Google Ads oracle run and no longer needs one: a
+      complete catalog decides `Search` requests under `CATALOG` authority with no credentials
+      anywhere. The live path remains exercised only against `_mock` and stays opt-in
 
 - [x] Install rootless Podman for Phase 4 — 4.9.3 in Ubuntu WSL, measured rootless, local,
       uid/gid-remapped and seccomp-enabled; the host's rootful Docker Desktop engine is refused
@@ -163,11 +403,8 @@ Updated before every session ends. Phase-level status lives in
       failures persist hash-bound Git/engine/proxy records plus their request and error manifest.
       The final fresh audit on `e408545` returned literal `GATE: PASS`: 430 tests, all 33 runtime
       integrations, standalone package checks, Law attacks, and the repeated real-repo loop passed
-- [ ] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4` locally after the
-      literal `GATE: PASS`; do not push. **Reopened**: this was recorded as done and was not done.
-      `main` is still at `7ff86d1` "Merge Phase 3 wrapper engine" and the newest tag is `v0.3`.
-      It now also needs a fresh gate, because the hardening below changed the bytes the Phase 4
-      gate passed on
+- [x] Merge `phase-04-dynamic-capture-and-sentinel` to `main` and tag `v0.4` locally; repository
+      history verifies both `main` and `v0.4` at `1470ce8`. Nothing was pushed
 
 - [x] Profile the scan and repair what the profile found, not what looked slow. `source_closure`
       was 80% of a scan: it opened, read and SHA-256'd every file under `.venv` and every file of
@@ -212,10 +449,10 @@ Updated before every session ends. Phase-level status lives in
 - [x] Add `.github/workflows/ci.yml` so lint, format, types, tests and the cost budgets run without
       anyone remembering. Inert until the repository is first pushed
 
-- [ ] Consider collapsing the 18 per-language ast-grep invocations into one multi-rule pass. Each
+- [x] Collapse the 18 per-language ast-grep invocations into one multi-rule pass. Each
       invocation reparses every file, so a four-language repository is parsed 73 times. Parallelism
       was measured and rejected: 1.0-1.1x, because ast-grep already saturates the CPU internally.
-      One `scan` over a merged rule file is the real fix and needs a match-equivalence proof first
+      Match-equivalence was proved before the one-parse-per-language implementation landed
 
 - [x] Owner accepted P-008: correct frozen P-006 so Google Ads endpoint versions come from the
       gRPC/REST request target, while `x-goog-api-client` remains metadata and ambiguity emits a
@@ -296,8 +533,9 @@ Updated before every session ends. Phase-level status lives in
 - [x] Phase 4 — dynamic capture + sentinel *(fresh `GATE: PASS` on `e408545`; merged to `main` and
       tagged `v0.4` on 2026-09-08 by the owner's instruction, on a green full suite rather than a
       second audit of the hardening commits)*
-- [ ] Phase 5 — verification authority *(implemented and audit-hardened; blocked on P-012, mandatory
-      live oracle evidence, a fresh passing gate, and the real-repo loop before merge and `v0.5`)*
+- [ ] Phase 5 — verification authority *(implemented and audit-hardened; P-012/P-020/P-021 closed; the
+      2026-09-11 builder-side DoD audit found and fixed D-001 and D-002, so the fresh gate audit and
+      the real-repo loop must run against the fixed tree before merge and `v0.5`)*
 - [ ] Phase 6 — obligations + repair
 - [ ] Phase 7 — proof pack + PR + guard
 - [ ] Phase 8 — incremental system
@@ -315,6 +553,9 @@ loop (from Phase 2).
 
 ## Blocked / parked
 
-- P-012 blocks the Phase 5 gate: verdict-affecting verification inputs are outside ProofScope.
-- The mandatory live Google Ads oracle run needs test-account credentials that are absent here.
 - P-009 remains parked while AI triage is default-off and disconnected.
+- P-016 (one scan, many providers) is PROPOSED and undecided.
+
+Nothing is blocked on a credential. P-012 is implemented, P-020 retired the live-oracle requirement,
+and P-021 covers catalog-provable Mutate shapes. The red-team rerun is green. What Phases 5, 6 and 7
+still need is a fresh gate audit each and separately authorized repository publication.

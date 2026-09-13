@@ -27,7 +27,7 @@ Verdict function.
 Python 3.12+, uv, ruff, pyright strict, pytest + hypothesis. Binaries: ripgrep, ast-grep (YAML rules), git worktree, rootless docker/podman. SQLite WAL. JSON Schema for all records. No new frameworks, databases, or services without dev/proposals.md.
 
 ## Names
-Distribution and import name `hubbleops`; sensor package `hubbleops-sentinel`. Console script is `hops` — every command is `hops <verb>` (scan, exposure, capture, promote, verify, migrate, decide, guard, impact, replay, pack verify). Repo-local state lives in `.hubbleops/`.
+Distribution and import name `hubbleops`; sensor package `hubbleops-sentinel`. Console script is `hops` — every command is `hops <verb>` (scan, exposure, capture, promote, verify, migrate, decide, guard, impact, replay, prepare-pr, pack verify). Repo-local state lives in `.hubbleops/`.
 
 ## No bloat (hard rule — violating it is a defect, not a style opinion)
 - NO COMMENTS in any code file. No headers, no section dividers, no restatement of the line below, no "why" that a name could carry. Rename the thing instead. Only four exceptions: JSON Schema `description` fields (they are data), the `packs/_protocol.py` Protocol docstrings that Phase 2 explicitly requires, a `# noqa`/`# type: ignore` a tool demands, and a non-obvious external constraint that cannot be expressed in code (a provider bug, a spec quirk) — one line, stating the constraint.
@@ -53,4 +53,4 @@ Distribution and import name `hubbleops`; sensor package `hubbleops-sentinel`. C
 - Update dev/context.md and dev/tasks.md before ending a session; a Stop hook blocks completion if you changed anything and did not. Before a phase closes, move every answered OPEN QUESTION from dev/plan.md into the decisions section of dev/context.md — the next phase overwrites dev/plan.md, and a fresh session inherits nothing but these files.
 
 ## Repo map
-app/ (pack registry + cli)  core/  closure/  observe/  graph/  obligations/  sandbox/  repair/  verify/  proof/  store/  packs/{_protocol.py,_mock,google_ads}  packages/hubbleops-sentinel/  tests/{unit,property,fixtures,adversarial,heldout,integration}  docs/  dev/
+app/ (pack registry + cli)  core/  closure/  observe/  graph/  obligations/  sandbox/  repair/  verify/  proof/  store/  packs/{_protocol.py,_mock,google_ads}  packages/hubbleops-sentinel/  tests/{unit,property,fixtures,adversarial,integration}  docs/  dev/

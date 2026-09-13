@@ -258,6 +258,8 @@ validated against the target catalog via the injected oracle here, not in observ
 ### §8.2 Repair Worker (`repair/`, untrusted)
 Order: pack `repair_transforms()` (deterministic, precondition-checked) → pack `repair_tools()` (provider's own assistant) → coding agent (Claude Code) → human. The agent gets obligations + bounded evidence + Change Pack excerpts; tool allowlist excludes push, non-allowlisted network, and `verify/`. Output: **candidate SHA** and artifacts; the agent's change manifest is a HINT, never truth. Loop: repair → verify → failure evidence → one retry → stop. Exit code never encodes a verdict.
 
+**Shipped today:** the deterministic stage only. `repair/deterministic.py` runs pack transforms and writes the working tree; `hops migrate` emits a repair report and never commits, so the candidate SHA stays the user's to create. `repair_tools()` and the coding agent are deferred with a named trigger (`docs/BUILD_ORDER.md`, *Deliberately not built*): the `PROVIDER_TOOL` and `AGENT` repair classes route to `HUMAN`, which the frozen `obligation.json` already permits. Every clause above binds unchanged the moment either stage lands.
+
 ---
 
 ## §9. Verification Authority (`verify/`, own image)
@@ -302,7 +304,7 @@ hubbleops/
   graph/        imports.py radius.py coverage.py
   obligations/  engine.py
   sandbox/      runner.py image.py limits.py network.py mounts.py capture.py verifier_image.py
-  repair/       orchestrator.py deterministic.py agent.py
+  repair/       deterministic.py
   verify/       audit.py oracle.py radius.py behavior.py falsify.py conserve.py verdict.py
   proof/        receipt.py pr_body.py guard.py
   store/        sqlite.py artifacts.py facts.py bindings.py decisions.py reverse_index.py
@@ -422,13 +424,15 @@ VERDICT   VERIFIED_FOR_SCOPE
 
 ---
 
-## §17. PR, GitHub App, merge revalidation
+## §17. PR, status check, merge revalidation
+
+The status check is produced by a repository-owned GitHub Action that `proof/memory.py` generates and the customer commits to their own repository. The hosted GitHub App of the original design is deferred with a named trigger (`docs/BUILD_ORDER.md`, *Deliberately not built*); every clause below binds that Action exactly as it bound the App.
 
 - PR opened only for `VERIFIED_FOR_SCOPE` or `HUMAN_REQUIRED` (labeled, list attached). Body = receipt.md. `receipt.json` attached as a check artifact.
 - Status check keyed to the **exact** candidate SHA. Never green for `HUMAN_REQUIRED`.
 - **Any new commit to the PR branch invalidates the previous Receipt and ProofScope and triggers a full `hops verify <base_sha> <new_candidate_sha>`.** After §14's incremental verification is proven equivalent to clean verification under causal invalidation, the incremental path may be used, but the Receipt is always bound to the new ProofScope.
 - `merge_group` supported; the exact merge-group SHA is verified.
-- Permissions: `contents:read`, `pull_requests:write`, `checks:write` only.
+- Permissions: `contents:read` only while the generated Action publishes nothing. `pull_requests:write` and `checks:write` are the ceiling, not the default, and remain behind the Phase 7 approval boundary.
 
 ---
 
