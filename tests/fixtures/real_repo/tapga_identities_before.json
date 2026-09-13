@@ -1,0 +1,5198 @@
+{
+  "description": "Every candidate identity the engine raised on this repository, recorded so a later engine cannot drop one silently. Statuses are what engine-v0 judged; a later engine may move a status with evidence, but an identity that disappears has to be recorded as a retirement or a rekey (P-024), never lost.",
+  "identities": [
+    {
+      "candidate_id": "ced118c258b3784d1a06e6da2da16a808e833e1d835eb632c85e6f213a3025b3",
+      "claim_type": "structure_unsupported",
+      "location": ".circleci/config.yml",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "80a3ba4b1f5d274f76dc0df8aefa0bf5174b2c2adbefffe06297e1f94271f93a",
+      "claim_type": "surface_reference",
+      "location": ".circleci/config.yml:22",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ba1e289f6be3a26f55867d7be2649b9b64986cfd41dc1e722849eb9c90f1d265",
+      "claim_type": "surface_reference",
+      "location": ".circleci/config.yml:23",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "276a6ea87a3abd0c84c6f7268d2fe621d8565b6c9e0cef3f3d01323698d21915",
+      "claim_type": "surface_reference",
+      "location": ".circleci/config.yml:32",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c64e32ad5c1ac296c9a3d082644b8b21dce595ff8e60bc9754310d843211fa52",
+      "claim_type": "surface_reference",
+      "location": ".circleci/config.yml:43",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ee29222bf2e700e73adc8e9d77e66dfcb60c1d4247aedb556e3ce24fcd559380",
+      "claim_type": "surface_reference",
+      "location": ".circleci/config.yml:48",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5dec49d46b6018c218c9134bdc47ecc0839431e2dfa901ab6745a0e0e990b0c6",
+      "claim_type": "surface_reference",
+      "location": ".circleci/config.yml:61",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5c4c04f0a565ea577bab0c848e03bb9878f36cb3d5d4da4714d7db72d416fd7f",
+      "claim_type": "surface_reference",
+      "location": ".circleci/config.yml:83",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3f6b61a745ec85cca351c5864b600e1436565d2805ad18c9dcf547f5a1e4421e",
+      "claim_type": "surface_reference",
+      "location": ".circleci/config.yml:99",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4887fd68a2039c10aac0ea947e1a6accce404681c55857c419d6108c3a1aa812",
+      "claim_type": "structure_unsupported",
+      "location": ".github/pull_request_template.md",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "46458ff99e3ac615933962f59601072b5964c77a0ea91c51e4c321a41b1bbf5b",
+      "claim_type": "structure_unsupported",
+      "location": "CHANGELOG.md",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "aacba2270c10387bff4d32c8c0d571187fb0e625a79ab6b6e2865f79456bc086",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:4",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "468db502e5bcdd3ca570cc7de4a8eb3893e417e7747abe953daf184cd2d41b2b",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:5",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f1e01f66ad1e7652ec5961e5a9f7e38abaa880d00cc279240d1f123a1daecb93",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:7",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "475a5245463551849c34792d365273d4987f41870863482bb22648ff87d7cb78",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:10",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "193bc7f4c39abe00a7222c938c8fc3abfb93c93fd8d29bfa21036856152e2a76",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:13",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9b78219a5d0c0a5124d343f3694ee41e0ef4282acb9ca574af2a75a7ff97ab2d",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:21",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bd278c9a2ddb43828fea0d34269a2572ce0ccd3314a292947b785841e4afacb2",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:24",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "987e0a39e8211b0fa8cf698a8845000622858f7bbe6a5083b242e65a9c83dad4",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:29",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "eb8d264e17e6e473de6d5d7582cafe5a6f9205bb97fde99ff27d8baf36562a87",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:33",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "651bf5506f58296528982951c3cc06a55d09fdd61322685d19389d4608271d89",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:38",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e9ca5e782719441bfc25ad466fedb928db4764539b8ec7bab96a0bbaadcdefba",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:41",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "77443a871ee5bdaeb80d0ec7289bb1b6f10456a2a0c07582e65b29720d208cd4",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:46",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f6ef2984afaa0e8e883ff4105bb44f2da5da4d6f9a515d2e37651b1e6da48818",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:51",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "574ca98f1d5eac0b37f6ba9a5188047226f28e8a5fb398ec9e99b51f4168d031",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:58",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0ae9bc8fa5d3a32bb0d6dc4ac24915a7a8f1ccfb1518c2f6a90150bf3a909fdc",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:63",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2cf2ab4feb83401e6f0ec0796984916100ef1b9dd2e14c0ae6dd823a29fca310",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:66",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "13eacb44842517da511c8fd1df2e1bef60ae3738d34518ee9ad5967c5a771031",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:70",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "eecc49977393ee6da7349931e081a932bba3d4be84e5720f54d8de44159f727d",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:73",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0676137781183995fb352dbc81d19b9b8162554105ea78da1186cb90b300dc89",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:74",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4e2582cedb461a88dd19639507b04c4ff3064301f15f1165ac94586ce5cfcc3a",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:76",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5f744626b3eecfe8760fff8c379793c8cad27b0322cfe13779a8010b3d2e2fbe",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:82",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f0c0b6a5fea53605f7c03214c69d768367b883ea57edd95d922a67c6d59adabe",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:83",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "12216aa102df6b1a0188248e4ac8832c6d30baaec350f7d8d27df134f241882c",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:86",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "cc01cb522a245f5075480c1ac82b09ffceecf7f00f35e75d8046d3db37d44f21",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:87",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "13a91d5fca9bb7860b06101722801dd94410b4592c66ea038c07f9f9283103c0",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:88",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d373b982c203cf6a885e64defba9c4af5c19d004fd8117aa4f8997809ad5db65",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:92",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f35aee71a39effa3b5ceb038d9de4401dbbe51ef1d13d2c03dfef4ded5662ecb",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:93",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "04e4c634fdeb0c787ec28171eb41c44e1bf197031c2f159e36a534612c7ec986",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:94",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "246356ab89dc10b6b8b9f4f03b3618d617b4b36f23511a484514708a3589c4f5",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:101",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c3e23e2ae393881097c7c86d0e812579a7843e88582a0352344172d188d1ae55",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:102",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "df34a12e5bf0014cd0b27bc0f86ca9e15a278486ec3ec6ce5258a717758034c4",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:103",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7947de1b0b2a9f4456df0ca07cae94ea6358e0d7b500c67d60e1e881b05b2fef",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:105",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a931e2b1d32ec8b834d33d9b424204b12358a003595cee7ce1d66b92e44a8165",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:106",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3fcaf7ccabd971ccd5acc8933b8d30a1fca5f46e30aba46ab5ca4ad91337a276",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:107",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "14d4c762dec07dc391fcbcbbea442c23e9305883e5b3316275c159bbe70cf9ec",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:108",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "403af83bbbe1948de31dfd6da0df18c5b4e36ecd04952dc7d4944496be7fea73",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:110",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d0c72b9f3cd70ce936cff6e31d812582fc83c5094c33db5078c5a6f086f0edad",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:113",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "07dc07ac442845d283d01d6ae687afe7c26d87ce8a04e7f9f0aaa117ba79243a",
+      "claim_type": "surface_reference",
+      "location": "CHANGELOG.md:121",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ce8a6a4f780f1b334cf75387b8597bce430589e95e717a12c57c9ab45b20def8",
+      "claim_type": "structure_unsupported",
+      "location": "LICENSE",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "a5f0b0f6163b0180124c40f347b5998a71a90e1be6d96973d6ce6c28d4cd9e92",
+      "claim_type": "structure_unsupported",
+      "location": "README.md",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "98439e6cf653400af0ff7304fd8ad83d77c1d4b4a9f74ad623bba7b0268f3dc2",
+      "claim_type": "surface_reference",
+      "location": "README.md:1",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ad8c14d16b33e44df292081112d272945c77110ba77b1ad7f2d00d2d94b7b546",
+      "claim_type": "surface_reference",
+      "location": "README.md:9",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "34f833b98bf3dbb315e27b3ecc8ec46bdccfb815f259148f79ceca71739a4a48",
+      "claim_type": "surface_reference",
+      "location": "README.md:11",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4ac959cc51e750ee8682489ee3be5090fc95d3624e8154bef4218258a6d254e1",
+      "claim_type": "surface_reference",
+      "location": "README.md:12",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f4b58d733f055ac4278c658bdbbaf734dea1b558300d0e4e1307ca1aa6fd46a6",
+      "claim_type": "surface_reference",
+      "location": "README.md:13",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3a320058c8bcd4afaf21738670a3a3f9f577c4afec34ca01073d9946cb211c67",
+      "claim_type": "surface_reference",
+      "location": "README.md:14",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "043edb096ba5687186a4def8c09991a06eee28104487a1f8c694275fba7a7e98",
+      "claim_type": "surface_reference",
+      "location": "README.md:15",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bdb230c8d4e61f1e3a9e5935d548b2449e020090119a4b690d64c6eff77ec102",
+      "claim_type": "surface_reference",
+      "location": "README.md:16",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "218144e0781fb3da75214447154ca4f0eab04323bb22da91fb772d4f487cc9a6",
+      "claim_type": "surface_reference",
+      "location": "README.md:17",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "56b988f77b48838114c61848eaba62e945fec108da20e84ae53ed0c331b2f1ea",
+      "claim_type": "surface_reference",
+      "location": "README.md:18",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b79d1f526078b5ef663fe6c03607fb6210bd382c51785bb40153e344a22f0081",
+      "claim_type": "surface_reference",
+      "location": "README.md:19",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "720dfe86da3ec91c8fd16b3b10140f45a440fbf9521963426a4bb972d8f11478",
+      "claim_type": "surface_reference",
+      "location": "README.md:20",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "88d33a3548a970cbb74240f1be64daba6e2aa31482a451121cf0de71a7f52702",
+      "claim_type": "surface_reference",
+      "location": "README.md:21",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "110518f30be199234acafb88f1bbada8acf87101e33fd55f17a46e6bf654f754",
+      "claim_type": "surface_reference",
+      "location": "README.md:22",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1942de4d8f16910e00fb6678ce89896bbf81961ff3b2b5b9378967859075f667",
+      "claim_type": "surface_reference",
+      "location": "README.md:23",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "fda3381204873b895193460d3e8422a8d76a81531581a380888745969447b775",
+      "claim_type": "surface_reference",
+      "location": "README.md:24",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a9e56e0c8712801d68fb566ba880614d22f5c0dabe69ce44f9eaf83f91299f0e",
+      "claim_type": "surface_reference",
+      "location": "README.md:25",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "29431c161f3ffcfc42604ac4abe4c30fb3add64a1a20f7cbadbaae6609fce822",
+      "claim_type": "surface_reference",
+      "location": "README.md:26",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7cb111a80f48f8803f0a7274ead64d800d61c85407d7dadc29471eeb04ad905c",
+      "claim_type": "surface_reference",
+      "location": "README.md:27",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b86a726a0403214094b736455406666ce70e7649421093021ebf6ed2f198cab8",
+      "claim_type": "surface_reference",
+      "location": "README.md:28",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5593a29ce39a05e61d6bd056508031b4946a82d7cc09290972b043ecddaae9c7",
+      "claim_type": "surface_reference",
+      "location": "README.md:29",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4faf74fb7e40da212cc391d703175e8efe6a8d244bf26b23b3bf3d108ae90c35",
+      "claim_type": "surface_reference",
+      "location": "README.md:30",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8665e41910955bd614525128c02fa193d9bfa95f2ca9691c7b0ab638bda5b2d6",
+      "claim_type": "surface_reference",
+      "location": "README.md:31",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "167f260dadeef0addd3930957ad694fec95306b8e5765d32324c5969c7a9fa31",
+      "claim_type": "surface_reference",
+      "location": "README.md:32",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ccfb4396887e1703b350ef2424af71d30af583f04ef9f9323251d265007d5081",
+      "claim_type": "surface_reference",
+      "location": "README.md:33",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "396091b3addb87decb5c02b73fb9dbf56ddd95b90aa82b64f769490d8828e828",
+      "claim_type": "surface_reference",
+      "location": "README.md:34",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4768b2f59324985397353a2fd378f372f89e8b553b6c13875b8d71a97da4b4b1",
+      "claim_type": "surface_reference",
+      "location": "README.md:35",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f6562fed7b089ebe36e144d404488111cd37744e972c1d2015102affe963ce6d",
+      "claim_type": "surface_reference",
+      "location": "README.md:36",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d9980a84963f0fcdf1412a2d35b5effa59706c22d315588e65edf0f0e63e0f94",
+      "claim_type": "surface_reference",
+      "location": "README.md:37",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bfcfb784da0dd549a9301a7942e2de4c468686f20a9edc9a04e0ee110f0b012b",
+      "claim_type": "surface_reference",
+      "location": "README.md:38",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d3de3f20aa4bb90fce76e0b48f9b492bae6f773947c4bb9c07c31a26d4f776c0",
+      "claim_type": "surface_reference",
+      "location": "README.md:39",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4b06aa21f06ade3c32c3923c89bd042cab66d8adb4a90c2965e7ea3b375bb9cc",
+      "claim_type": "surface_reference",
+      "location": "README.md:40",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a5b299b5878771f5a7d1eed57b25e4b23b9d59ce2395d291425f17bece9f9131",
+      "claim_type": "surface_reference",
+      "location": "README.md:41",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7cd0c5cd91b18936f3e0542dff71775a5bdc88af267d3ca7d529f046dbd90bf4",
+      "claim_type": "surface_reference",
+      "location": "README.md:42",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f71f360fcdc52c3e69b6889db9465fd90da54e93228238b864d07b0cd81d8e87",
+      "claim_type": "surface_reference",
+      "location": "README.md:43",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ed197633bcae250e4dd1b558d551d981ede961464a8bbc9c9d7899f2408fcc5e",
+      "claim_type": "surface_reference",
+      "location": "README.md:44",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3ad6702cbb18026ab0c9735dcdf13af40e739032b0f53ca7fda108b6ec8c528b",
+      "claim_type": "surface_reference",
+      "location": "README.md:45",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "993ce6a63d5ac694f83b32e070baaa60dd12b26f3257be89cdef6007f0a3d402",
+      "claim_type": "surface_reference",
+      "location": "README.md:46",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0bb68553b127307d28bf18bd9f355608985e53fc94488fccd64d734a142a402a",
+      "claim_type": "surface_reference",
+      "location": "README.md:47",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "50e451fb5726a2c99b1ee8823f732e210d03f355778a77bf98c5b08ca86d1854",
+      "claim_type": "surface_reference",
+      "location": "README.md:55",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c7b52da649f221272edc20bcc878a55586b6fb8f400898602455ce9f64705eef",
+      "claim_type": "surface_reference",
+      "location": "README.md:57",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c1b20fc2906f3db97f5efc90b0e12e57aa67aa3e68d62ad7bb6df1fc961ef847",
+      "claim_type": "surface_reference",
+      "location": "README.md:60",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "36aef5cda0c47b8490c40551eab18a118d62980fa7c7d23ce2b0a3945cbb4bc1",
+      "claim_type": "surface_reference",
+      "location": "README.md:63",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8c6def79580583d2e7be9ee95e3a2ed7388e246f1974e2cfd8d5ceb18880f402",
+      "claim_type": "surface_reference",
+      "location": "README.md:66",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f10d961401bc7eabee65c7c37a1f81b51b002e0fc9e3445734f8a9722d2450a3",
+      "claim_type": "structure_unsupported",
+      "location": "config.sample.json",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "250c340a75e5804f09b551114ac24f9d02f0758441a09154a75a3ccd615a17c5",
+      "claim_type": "surface_reference",
+      "location": "config.sample.json:3",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0b9c790b8e06808d847f4b3815613ad5f2381bd64c914119a0068a398decb0c5",
+      "claim_type": "surface_reference",
+      "location": "config.sample.json:7",
+      "open": false,
+      "provider_subject": "developer_token",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ff4c58277d8ef37df97e316f81572f0217cc6d7a4aabc0987f0842601f984b04",
+      "claim_type": "package_reference",
+      "location": "setup.py:5",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "22e40317f7a08ea4c75119f7abb22ed0935cd06a3dcb5bef07a6436473d046ed",
+      "claim_type": "surface_reference",
+      "location": "setup.py:11",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "fd03f936d15aac980a953fe20d34aa3a6a96c240c1e54169bd731c8dd1e894b9",
+      "claim_type": "package_reference",
+      "location": "setup.py:16",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "dab1b93931f7a0076c6e3bc8baeffe07a65c136f2c6c3d0cf5285c9f9a1e7b9d",
+      "claim_type": "sdk_installed",
+      "location": "setup.py:16",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "48131cb96eec6f28a52b8fdab3d2a8cf5b23fde4ed170fa1bbfac03934a757a1",
+      "claim_type": "package_reference",
+      "location": "setup.py:32",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9b93ab7e7fc86770f55c1f3c2cb2678075dee949c61de4571ca562a64200a5b6",
+      "claim_type": "surface_reference",
+      "location": "setup.py:32",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "463ef25263ed7ab6c95983f4120fb413f9b6b83f7365540af599209369d0937b",
+      "claim_type": "surface_reference",
+      "location": "setup.py:34",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9bc1b6bde736867320a6ac38f55139df0d06bd683f2138be6b7c17d1ae98e1a7",
+      "claim_type": "structure_unsupported",
+      "location": "spikes/campaigns_schema.json",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "d575e5975c1dc23f0b3b2ab88795504bee80484b34856e22cc3d86343e8f7775",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:14",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "9f69c9878df61d3332130091955cc8d239ab95bba432cabaf70b0256fb389981",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:14",
+      "open": false,
+      "provider_subject": "google.ads.googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "499ba50313311f207092e03a32157e1a208e08b9f3b3f6eeda6da783497a0b86",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:14",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "5f11d6f1b646444aa3c6745d87f8574016ade8d1c9ddd31c1ab392af93989385",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:15",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "27059ef316952993d612640ca062e8d081b4932752586bf23807692ff77f171c",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:15",
+      "open": false,
+      "provider_subject": "google.ads.googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "c11c2df222bad8b61afee1b14d73015a0afdb482011b7ceae79fa9d1b418e453",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:15",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "6c1ec398ada450ee2eff17d7eb8e4889a49f0d6dac2a8d707572c14753a7f62d",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:19",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5721e6126f30d952876322d50b99726ebda02b3061aec4338dc6452b4ef47a7a",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:23",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c5ad4f86f3b7ebb391a44d3dd44f5dadd1ebfb26b668680bae2a1b079f469fa6",
+      "claim_type": "request_text",
+      "location": "spikes/get_campaigns.py:24",
+      "open": true,
+      "provider_subject": "the",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "4ad22dc7a9eb10106d6f7ea53c52851ddbe52207502f28491f07d750a3794372",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:28",
+      "open": false,
+      "provider_subject": "GoogleAdsService",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1eeb776ebfd7988568e89d9094ad32bfcfd2a996270a5708038628f5434f6eaa",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:29",
+      "open": false,
+      "provider_subject": "GoogleAdsService",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "732189bb65232ea347e92987709219ab62074ed6c294983adfd9a8ae226b61dc",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:29",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "80f48c37a2735c9d1f38821c11006c485e7c9535da56ed512fd11a3b1139e1d2",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:36",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2314dcd6fd8e05c4ac2344e766dc0a7d8e30afefcd98cda7d4bb2c9ce396d03d",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:38",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e63ca1e60c51cdb61a92d84f781c43a825b9a98cc34c7294ef2eba8b98f8c290",
+      "claim_type": "request_text",
+      "location": "spikes/get_campaigns.py:43",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "c8afe64eb82f376195b75d6e5e9c647f482c5028b86835f121a16cecce142732",
+      "claim_type": "request_text",
+      "location": "spikes/get_campaigns.py:46",
+      "open": true,
+      "provider_subject": "campaign",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "0f0292eed0ded726a48662902ac5661f39b0cf4d8d2a68f927f77377d6dbf313",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:58",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "16dfb5475c8526070ba1daf9ac863207b114e17328caeae61f06831d541ab0b5",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:64",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1dbe1e2f70d736f670b22416e5a44bf44f318dc9f2e03ca84ed11c0bc3b59ad6",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:65",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5887b46818a0838b9d98c11c3beb0fe26894296dddb3c646f0015b5cf1ebdbd4",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:74",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5cf3f19ad95b1eea5ad617343f47b735ea853f7a468a31a04e2f46bb72c0289b",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:74",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e277797fdd4c5801377dd67ddb48b4d197de355783d01fec99ab9f5999f6da14",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:74",
+      "open": false,
+      "provider_subject": "google-ads.yaml",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a9de7feb34cde70279d7cdbd59f37666dace80e971d04959e62607e68158e4f0",
+      "claim_type": "call_version",
+      "location": "spikes/get_campaigns.py:76",
+      "open": false,
+      "provider_subject": "v9",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "6fb18f5db40fc5494b2fa71f527df61f5d358dff4cc8a434b019033b38e5a18a",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:76",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "d157adb9587f8efd95b9d28873776b9eca9be3d8ff335c580793a4c74cbaef91",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:76",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8be13c5c884d2ccf85170861c9011d4ef922d70d0059bd78c540fd2eac066cd5",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:85",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b25bd79f610542bcc9be197d6710919d961f81db389f53211170725d3632fa34",
+      "claim_type": "request_text",
+      "location": "spikes/get_campaigns.py:91",
+      "open": true,
+      "provider_subject": "the",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "3c6473047edc4cbaa778e25021e59257965b9139ad5d88cae25545bfb1d8f27d",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:96",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5f137cd27f49142f25db9962ba879c2ab43cf2967adcfb69dd8f9b77e192d4d0",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:96",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "db1a04c75d0932054470ede60b49d1ee1c9cdb8bafdfa259914ba17406e8699f",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_campaigns.py:97",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "c67e063fe0004d273428a28650f0a755e9250a7c6f65def5890590d0f7cea51b",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:13",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "963268cb4638e9973b72186e55265500e4179d30e3d4eb27bf037223a891ca55",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:13",
+      "open": false,
+      "provider_subject": "google.ads.googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "1b928b10a5b2a7bad630bd1a34a8a92361cf15e7da0eb35f0517760061368aab",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:13",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "909c6b73242ff8b1fcf6135f61c716f4d299e51637fa2de68507bb7cf1d83c48",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:14",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "eb412fe9643b83602c0a54f969ddc04f8246d27463eb023f04b84bed0329a329",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:14",
+      "open": false,
+      "provider_subject": "google.ads.googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "fcf22f9a6e9e4cd659bf96caa9a8957bb9fa1502b21dbd8f3491da9d52e914b3",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:14",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "e63c647eed45b71c6c8b86faa5c3dd5bfe487d4ccc9b62cc34741df92bf512ad",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:17",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ccba4fe9825becd21cff3ace1478cd55be824417ecda9131698f46dbc4137706",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:21",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "fc8302a6fae52a33e9b21551e1494580a0e49bc48208387917d15ef1fb3c4633",
+      "claim_type": "request_text",
+      "location": "spikes/get_hierarchy.py:22",
+      "open": true,
+      "provider_subject": "the",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "8adc937450a3057ed403114759613145682667592050177ed3b6865fc795b546",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:26",
+      "open": false,
+      "provider_subject": "GoogleAdsService",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "624f2794a0c03da6d824f3dcb28dc4242a3702197aa6ce44f58f5c13f6ef9039",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:27",
+      "open": false,
+      "provider_subject": "GoogleAdsService",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a4ebe439cabecf54a52932d52b8b14006ce1a1c366490c378a21712ed07fe953",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:27",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1abdb67b9979377bf79e43790ad459450710a9383d8d207a09ea3fdb2b734da9",
+      "claim_type": "request_text",
+      "location": "spikes/get_hierarchy.py:35",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "f130f29f76326e430118de4bd466284f4ede974985fd6de71f476ea289cb5736",
+      "claim_type": "request_text",
+      "location": "spikes/get_hierarchy.py:44",
+      "open": true,
+      "provider_subject": "customer_client",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "178683421fcdf28186ffc8a54affa561d873926b85bbb877604324821fd62fd8",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:50",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1aae0950d87a5084c7c4424157e64af65cf8ac53fe130013900f08d22128da2d",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:51",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9df7249cae17dccba86919ba9064abbfb3592af40cd76d46b269182e5fbac9b4",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:79",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "52cbf2fd1d2bdcdc35c1b86c07a33ce226669927a9f11acb24884007b599bf6c",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:85",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d38444d7657a0b449c209c0ac763eca1bb27d5fa19d70315494b17daa88873db",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:86",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a40b8d53d7cd36454de46f36477e053078f6d5c926b3806ee273f1cca39d2dd3",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:126",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1d6cb473c697a495063997a15e763efaa25499d41d7aa974c9a027733f0d6b34",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:164",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ab8d4033885d1667d6969f0bbcafa6363294c378c6e0dc4932e24f0d4e23809d",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:164",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d1671ddb737283a0d9b7c7459d670654ef4737883638f46082ca4eb2c47b0df1",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:164",
+      "open": false,
+      "provider_subject": "google-ads.yaml",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7cb81ad942637bf27fe046d2c0985ae5b1f004dd74f3f763f2b4e95f0cd3aad4",
+      "claim_type": "call_version",
+      "location": "spikes/get_hierarchy.py:166",
+      "open": false,
+      "provider_subject": "v9",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "39b4dba3d2671c307a8b4b1be21d6293cce3a4fc209df2b6b709d3e021dbd461",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:166",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "588267a5da0e6023db772e42c4caa70d06acf7cf7646854a0f59ea822b87033a",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:166",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "44c969a5b4fb0bfeba5c3a98783ce31255759dbddc3a564aee588d265f9ea9ee",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:175",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c89b3764b57043f28e4bb5b54e0b337b34e0d684788734b733d15d99ddd95dad",
+      "claim_type": "request_text",
+      "location": "spikes/get_hierarchy.py:181",
+      "open": true,
+      "provider_subject": "the",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "ab425cf5fa9a70637a869f897eb4f750b86df013cdc207175128026f80571d69",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:186",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "93035c04ef8143409cfa4a0c53951fcdb203d949dd087a6f855ad60fd6357eba",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:186",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8565db1309843d8cb1d7cf52840129d51c3e20fab1b09a33bfd0bdcf12c40b11",
+      "claim_type": "surface_reference",
+      "location": "spikes/get_hierarchy.py:187",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "59832474278944678be14665ffd5a4b59fe218e4192424f23f3f690eb93b47bb",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:20",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "29e0984785ab776fac614958ae6e47f91fdf9fc13bd8c155f83ebd2c383861cc",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:26",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "253fe9acbec98f63a79fc3aff5055ed54c138cea56dc8289437044e2f69c8427",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:26",
+      "open": false,
+      "provider_subject": "google.ads.googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "42e99bd1fb83a714342934258c3b0ec7646390216a59a71fb316380b20c6803a",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:26",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "a1c9c0076a72437de7a00f8e6baf3ba99a2a56f3541cbe0b82c7ae2823d68548",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:27",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "acd4d3f6c450b3a5502518bd9f004c9b666b574f3cfec27f7a1dae9fe447264b",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:27",
+      "open": false,
+      "provider_subject": "google.ads.googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "1e3891483e14b9f177d1d0dde6de9dd93fd9bf347f21dfdb0f80fdf933a68b76",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:27",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "3f53e2d2a704aba4c0be710986dd7ba95948ba48487e761b024418c403377820",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:45",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6e576aeb39ac03637a82eba23355f3f3daf884539c96358307bc874562060d65",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:45",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "36216561b8b411f13bf64344fcf83bc033dbd1f5fe5def205aaeae99e56562d8",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:45",
+      "open": false,
+      "provider_subject": "google-ads.yaml",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "60c65196c9399a9d43b82bc7d235b65670fde88490222dec11de7110a92cc015",
+      "claim_type": "call_version",
+      "location": "spikes/list_accessible_customers.py:47",
+      "open": false,
+      "provider_subject": "v9",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "2b4261720ef84dae0f03f0bd0006df18f7e26b9e91eddf2aa61f4a35abbd8f7b",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:47",
+      "open": false,
+      "provider_subject": "GoogleAdsClient",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "e2a1a25aab16f56836436350e734b018d3ddb58558d63ce36b859a9163027e3e",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:47",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3394350a84cfc74533e4cfc56b7999201a5b7662f7116419af552dff7919fddb",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:50",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5c23789a5b318196322f7a72189fb919dfafd330fb6613702f4cc16074f25079",
+      "claim_type": "surface_reference",
+      "location": "spikes/list_accessible_customers.py:51",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "c00e4b69e0bc833e2287529cf73a6df18474d8a38b161b8ba6f243b2e0bbca5e",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/__init__.py:5",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "c4d684b20e05d4ac9cc5b5c55d15a50138443b57d42e28039ce1bfd1fa72948b",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/__init__.py:6",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "4f2c7584d288681c1038f82101900d0ff70bca6de54c1116d23b94f067137c0b",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/__init__.py:7",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "5d22aff38b277f453099abe73baf5fc2c12be3ad40d7bef278b5842381031fc5",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/__init__.py:19",
+      "open": false,
+      "provider_subject": "developer_token",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f6796f2a95f6b841bc864c8e14a6b0720d50b7290273d67debd014dc098024d7",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/client.py:1",
+      "open": true,
+      "provider_subject": "GoogleAdsClient",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "f98447f340193e5032eedd3bcac8bb2cb134897d216e8e6e7cee291d92b4d6d5",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/client.py:1",
+      "open": true,
+      "provider_subject": "google.ads.googleads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "de95d30be2e69f585314064249750da3db921768aed23987689fac2ed5c7e8f7",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/client.py:1",
+      "open": true,
+      "provider_subject": "googleads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "68de4a515e57b1843934e61b7bf0885dc491daeb0a13a55e9142e31715b1ffd7",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/client.py:4",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6930fc8abbd180a3816bfcff3150ca7506316a839398d58db57b4276dafecfeb",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/client.py:7",
+      "open": false,
+      "provider_subject": "developer_token",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "adf3d9fd1b0052e99e22162846363923fb8545dc0ab1866ff252466b1d14fefa",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/client.py:13",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "746894d69e12ff0f25237c85424281d412215d5f16625e99560cc9d074846f4a",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/client.py:14",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1b66bf213d3668e7226abda73656e119840b19944dbd8b6d9942d751935ea4af",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/client.py:16",
+      "open": true,
+      "provider_subject": "GoogleAdsClient",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "501b20c1c4bf5828e3f73b3c43eed22f1b038e454a642086bb41be1cb3e7f3e8",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/discover.py:6",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "606570c4a0e3242dcca8d878567f656b238cc2309c97753a93d2b0c4529d9fab",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/discover.py:7",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "eafe259a966d2bd8f78d8ba75526e1727190fa99f3eb16855d1227ed1c58adcd",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/discover.py:8",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "08e336217c7035e960d70a5936f365a4664cf01008f8776fab80dda8c4341948",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/discover.py:65",
+      "open": false,
+      "provider_subject": "GoogleAdsFieldService",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "fa7e964c97ea5885fed3006c650aa856cc8ba84d833aa9dfed6b7b7c439ad6f8",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/discover.py:69",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6c4c479b2db6d0d6505ea56d3fef911e31e5d465489883626b951074e9802213",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:50",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "08e3251f5bdf28406cca4de9e4e18ee497f5ed2bcfaf308ddef4836700a46dd2",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:54",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3b969ff4ac8e8c34a1da36664f05dc9072b307c6d011745b87d640c53232158c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:55",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "dc929f88b030fa3835081b536745bcba3cbcac60956e7ffa0ad4dc74b9f60465",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:56",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6fa4491911344d58928f645876d10a5ef6c0ac0cad6b24dce9312323a4e60b30",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:57",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "21b7b4a79b83b1f0189391244fa451e8011d9508b25e104dd7f952dd87bc5f75",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:64",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "cff29c511af7edcb2e05f0c8bddbd69d86f8bfb810f0f650dbe597f8dda4526b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:85",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "58d0a8a1a57528c5912d657d74d9f222ae5010654b72867969afc9d856360756",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:86",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1edd314c13853577501672eaaf3dff0532fcda46f4d2dab0b033e962f077dbb3",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:87",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "73796c938e3173a87a1d5c3c5d28a85aa5a4810fecf6f4cdd8c32e1a50b37f86",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:91",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2ed2c3ee71450a6981958261df393e8b9000003195349c48e6e8468278cf5786",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:93",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "e28cdbdc6ca513d718ac27661ede581f8fe49c9fe2618e1231540a0850925861",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:155",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2bd0630008b4399d082f5fadbad5c183d070a76551a9a78d2b2bebf9a4ff14eb",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:158",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "392993fc6ed5ddebf3b2ea5b66eb9970394d27c062df05f418730958413fe7f9",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:159",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "17bdb1d1315c10d9c0cece89115613c2ee35fab687bc7371ae104a3c83d86ee0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:160",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "31516f82904be5c595267eb221cb6c9d98c03f34ac785cfbf5212e77bed27c58",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:161",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4d9121ad888c48f6d3b086a8ee93beaadaf3fea3056792542cddb1af4333d772",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:174",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "49a06ff3b23a3831a68333c50b8ff9dc421761b917059889baad27d937d972bd",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:209",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4c66ea4181d30b18a1ed334b283de7006cd085891e555a9a9963ef578b51fd22",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:210",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "58bd0fad01a670667e2520e3a5ddf7bbdd78ba4c9777a6d6e599e6bd5efda41c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:211",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c415d9cbd9e8e49b2ba16ebb6801be3348ce36e767f57470a09a9f30df9b9a54",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:215",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d5a696c7aae0590b8b75c72a6ca3e0695b4042cc55088f7e4671290ed9821e97",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:217",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "b89b7e10f0b57f74df910c53989ba4f6a45b2cf382eb1497e7d8f64c84e083f6",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/report_definitions.py:232",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "eaf6944b0285c6aa96054c9f6f194d5e3afb0cefcdd81f5929f7d7869d5a0bf2",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:335",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "83599087624d60f318fc23f9fa3330e716edf5ebf75785648ea6834da101a4cf",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:336",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "71c38764da0331ae5ac88d27759960f17e8844411e9a216d0c5ac5cc952acfd5",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:337",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7d82d279cd32230b408c01dc814ae9f2d169465f5a970b9623d93f02fb5cd7f3",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:338",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "389b94a6354958f3722f2ee89ed08974195c53884b99c55bdf6724b3583f5700",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:339",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "39986ad80427d6ffd2737b66d27cff76064cbf25065a6f8897e57dacbf5501ce",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:352",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6d207a8aef0940b033f0b61f56bc896cda571a95f7be52204f2808cbf8faaa18",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:374",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "77d3bedc2b074f6feae4bd933ccf0270dd60b7a26a49a4ae18eed0989a2e4d14",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:375",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c2da45ee4e9b5817b4c463d33b51613ef58697d1e4a37c7d544ef2ce6c30f6cb",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:376",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c5c54fd130e3aa64c63d2c2c544f903b881cf194a569954b0bc9493c7159fc25",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:380",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "217a8bc3749ca0d4045ec84f65232e0cdd171abcaaee7c92efadcd246f9fe905",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:382",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "ffc22e45313c4b1cda385c96d2e1bce18d7f012b4fd4e12dd8a196e7c359ef0b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:438",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f21ab1d4295fe9092ea1663a81aaf7cb08fe7b3d2754393848a84963cd58d5f8",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:439",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "933d8a681119af2ebbfd9efdd9898e3e5b6cf993a9d9731cfb2ca8d204950ab8",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:440",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8a42818a8ed21242aeb9ca942b1e774b727f2ff4ffe6e6ff5c59500606e38384",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:441",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "874826b049fc24e4cd0d67bc241cc634f1b808465a906e5e087f6bab2440bc34",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:442",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "48ddcb07a503507b8eb97e06ccd33bba7a99f0f2f0c924170b8b6feefb9fe5c3",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:452",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "984150be52f58d8ea98574c8eb5f5e5d2cc740abc26203083b7e8f1b348f6ee4",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:467",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ceb9860b44ccf3dd120cbf5d1b4ab6c203094a7a1e9f47daa9418dc12367ca42",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:468",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1829fdfc350e67adb9138f2430f4b41a63fb7d0b670de3d9108444a4aa3dc151",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:469",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "acb33942d1e9bdfbd29934f7e33d725b9fdb38e942f8670086a19a89d0f89d2e",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:470",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c82607a7b2a93e986381caf8184b7ffc50ac918859895d7f869a47d978ed9ded",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:472",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "44db8ddcacead2ae0893eecb182915449b9b76113b2424e05fd7b3703717f18a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:524",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8bf18a898c2053218c0f7baf75109f290e994b7c41855ea89228ab97b3e38d46",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:525",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "420a12732850f2da9aad64b9b3836675f892bbef9bb6f3277d3fdc90907e588b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:526",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "189ac98d8ca6f2a02fab8c4ab96ac660f80067bd7bfcc4783dac4ab4b3cdee4b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:527",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "de5420bfb6e9e64ea48f80c5664d13027d9f3cb8b92f1ba6bd0b888d3e7ae995",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:528",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4a27d54e90bd53a8b1e03e376a1c42354117398185cae6b331cfe4f29529ec7b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:538",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "533d5550f405a53d7cd261d0fde8d950a11e9b5898b27b0568adf2288487674e",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:553",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c984c15230150a28f24e21dbfa1306fb8cafbd63abfdde5e66fe7506a8737067",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:554",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b13b27049f85ec794ffb169cc0147a8a55b76070e0da3cc1843b85151ee634c8",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:555",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9ba4fa260a0c36d86ab85f200accb6c7b1333916dcfd66c289b025536c91e424",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:556",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b1953d9a22d31a6c57c8c6d4210e4f6c1d2fa657ca1641cf2c5804c268424398",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:558",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "03ccfd91f6caabd096cd0386c37737ff7f6aa82d4731718ba6592c3df8fa432a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:599",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "baa721bb762c3d7f020a11dca1878a2e64410b22d49998b3bbc4c0dcd28d3d29",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:600",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "968edcbef73185083d7ccf3c8aeb2f7d5c84eeab720dfddf4b115381c26bdca2",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:601",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "df7a43065b5f8f81a809db01fb0b707db05514dce6c4c97a1b511cebfbf87971",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:602",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "33817efbcfa14369394c2004dfa30fff47f84a13434544b859943578375bc5b0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:603",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3fae481e91e3ff88c5827ea34c4737daa12a8a5d468f80fd5ed200cab1ee2881",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:613",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "40a692bc4a7cc5973c0a79cc197c53327624543a3b9037fe43bdb4f527391f36",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:628",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0d2d4cdad53907ccab6651949c17a5999666f30825cb99f273cf765f613ff308",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:629",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7a74307099ec378ff13a67c177da3f40e84d6319666a7fa1e16b120aba80a307",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:630",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ac5b8cd610f9f44c2feaaa0f9ba10877bbc99e0e078bd316e4814c2d3668ef72",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:631",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "924b171dc6029a16ad3be3b4d261fa3ec1823cbda65d4bb8a0b9981430df39a1",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:633",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "28e1612126012ece3cf8fccec45c1cb506c06cda2566ecca72b4cffeb3f42f83",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:697",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "09ac78aa9132f23cd83abc3d11354393248cb052202ddcb159950eb0bb653614",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:698",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f3e627f4b4d2cb25548674baca72c5baf46732e4dcf5772ebb3d2ec622841adb",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:702",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c44bd93242432af5ce32057b673351396e1acf8f3b812724e45b9da439df2e1a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:703",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "efc6cc059d09924c9d1eb49f5a4cad18d7b6a83dbd5f90d7d4b42c8de4b53b80",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:704",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "116f3ea64e8144b3d7d8eca39e4befc887d320c36069ec5ee191d3c9ae069c5f",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:705",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3ad1c9ae9bf13b5867bb4e4440021188485d850cd76601204d6024cacbb6490c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:706",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4a6eec79958beb86e275ba008d1b34d3369f1a051eb5f214d7679ab3b97776a8",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:719",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "04275a7c2cb242e7eb6976146e3852813279fb95364907e97abe1f575c7d38a7",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:720",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a8068405d3b26aa8a6befdbbe05e3fe0c1d2a11bf2132476b5ec568fbbc5df41",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:761",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "307cf95ffd0d6f6d30959f354de5d51636040ce90ef61a1355b3d7a5014f5181",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:762",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a48bd43d49260b3d66ce8037f13a61d172afd6a5cd9bfae9e08785a1f1a8636b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:763",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "80444607d3f8085d3e7cdc1661e44ca3fc3413e6d19a776d27d0bef4e7b4d8e5",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:768",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "55eb29f97dfdcb3cfc4a309895ea0ce444240222ac439566e2c262a5de0cec05",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:770",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "dbfac7c56891a167fec9fafd968de562a9638a1cc8e126a7e9de0076e9d5a839",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:808",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "420b6e88d68b87be30e6407f064cc55d986aed5fbf7bbf657faba45edcf0fb93",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:811",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2faf2f0a33912d1abf58cbf9d334c37bd1bc48cca2ce90442ff06cf1ad04dcc8",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:812",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "67af0ad7ee02be15df9c0aae10bc1f5ebe2011b6c4b407462b54a9e98a0d1e34",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:864",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b1766ab0ce24c6057d65b34f1ade5cf9da2306b8b394f87f31c3b194738ee637",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:865",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "589c097c48131a184ebf76f0b97d0b6323063e4ad679aa0a94542e4e86bfce00",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:866",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1287fcd3314aaa3b5f2676de2eecfa26caab9208b2cb6348a4b7760b70b05465",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:867",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9f13b610b08e578f9dbf9882b60a209cb22350c905a314e426cc8844afc6993e",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:868",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "da05e5ec5f9dc5e19784acdbafe05aa64002b6f2032e83bd79a76fe547aab0cb",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:878",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1bb8e44b6e8e67d2f8944b2c3771527f6cdb2bcf9207e4eb0086c6419d9997e3",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:893",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a199a73f52fded94aba2d6e090312cbbe19f203ec46c9ff9fda646617894beea",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:894",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8999b012715d73b8463a5bf1e9d81d8c8da774026d8f47cdf14f73e627e7b170",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:895",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ce9c05920834d2761645398fa7c853ab2d14ba2e18222869908aa23628e6bacd",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:896",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "92bc7b51a97e7e96cd08a5cae3cb18973a0d1752c5740a3ab5086b742095d68a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:898",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "da4cc4feeff00a5ec6ff212bc23b9282ddc50947b73ca4970ab04c738b8df237",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:954",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4344a61a174e3dc20bfbd56677e46193c2e8725b0ec7d9e6977ccd7aa87d22ef",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:955",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "21035c092c82f235f7627cff773909ba1832feec4e3143674e86a08868b578e5",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:956",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8bb0353a797f1859af0070f9a35281c8c267b211cdadb6bf767dac3cb4868fd5",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:957",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d083cc131663e0c6acee3d59813ab647531ec0b9a65cad0f937376e230948224",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:958",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "af47ce22e0fc7106931e2cd0825acc0883f001788dc3f0717ca97dd725873022",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:968",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "31445c412a5b3ce06e65a5846cd07ee592283099ce851a43948784af4966c511",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:983",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "19e4feed013f3ab2f6c08c710baa2374f11939280ba7ac6cc813309cfbac1a71",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:984",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "85f91be10cd14b3ab3dc678fe54f8a39269a9b4c06071d4ca44c4df0820c4019",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:985",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ed13c91dda11aa3e8a0a90574d7a74792ad8bd4ebded7311cbece14df133e3dc",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:986",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "793c29076ba2cafa1bac816fa6b817635e60512f9b9255a8e755e00255740d09",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:988",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "e3756b12f4f770a7b975f4f7fd10ba9af7fd85447a9582e3467d805cd2cadd3d",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1019",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "21994f5b07e168a2f5180f8bf35315eb0de5df18fb7f54dce35871103aceaf77",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1020",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b8be2a7cb862721987e4e5f252aee76c80392fef0c75690b6ad8765fb669c5c6",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1021",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "27f05d58cd3949bf50a5747c6d7b5cf8753a2ab3e9b4c93d963ce49e86e32b17",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1022",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "832a703f3536fb963e0ae0e36cfd38c7e504a2e48c69c59f1bde52c992398bce",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1023",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8525fef6e5135072c777fe74682f993d26dfe4961d9624ee4aa9458b4016f466",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1029",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "37dc992d72fd49b17b046f113ef810b2253af788a2ba71f60e3d769b820a70cb",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1041",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1a1cef2d8cc1e6a870d3941d320649c575d8f9d233023ec3b53fa2375c3f7c0b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1043",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "100a7fc6d350e242bfb8e4992071ad682455730a3aadb8ebb713f15c27b12f77",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1098",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "67e4913426d7fb5ef7cd6bec77bf2e716d24eabe6a986dbbb214086ebf5a682f",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1099",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1e6a85748b1c873e7c6df740f19ac19e310f5e02df2b1666d5881860ba541cfc",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1100",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9d0915c4c81cae9a8d21ad937a26df3fe9051dc29b6acccb58bd92ecbc70cd93",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1101",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6564720baaeedcd52b72d32ba5918f8075c198afb2c7edbb9315942a9ded815a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1102",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8b63a2d2cf4592b71b1d5ef0e621584a4cc6fabe39131a5f4d4363ebe0d1f949",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1112",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5ef9cbe35a0f8f33795404e409f21068c4286377de5dd9192df869b37f37236b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1127",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "052ff03d419a400809d54889a8ab3e4132b70979bb00f36efc5bcba224d1467f",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1128",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "cea5d88004a0d3c0f2ec7af75fa2f4facbd867da2a0e168ac2d9be95176632ed",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1129",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b3704dd3a8c52e99c859aa117cb8a894b88056939141338e1e289792d04edb0a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1130",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3c3f1bb90842b863e0ff6963aa71d3daedda04880671cb1d402fc2d970c47776",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1132",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "9f5c1118792133411f188c583ba8d9966b817eafc4a32b805f2ef4c609532720",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1164",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8691cb25b5c891917f9ab94030ccb4e583540c9bc00cdd2271d942a471003851",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1165",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7a1fc2d6e87702c5d7c73a51a0b6889eb7652795e242b9978d3ffa7e61703906",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1166",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f2c4f021917662af17122191f50721bdd904ae6ef692a9c140991184d66114fc",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1167",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f68ee407ea3aa191c2e38d1caa5b4d3e12ab18792d3902f8b999c404fe278fc0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1168",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0d384fee55a76802759a0f1165478ff78ddca1ca8c66341b5480fe623639dad9",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1169",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bd3b8d82b9e8935ac49ec86fe7b83b5a16154e296fe5d33efe4d842c80c988f0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1170",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3385ed5546b86969a66a673bdfaa8089b183162242244211358a768efb1dc71d",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1177",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3c7d83a35726181f8bf0287525deff96661fbdeb1f0fc1ad54084848757c565c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1189",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a749e53f0ffd19cfb417713fc69bba4d24b9f04e0534315e663dc3645c632dc0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1190",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7698dc364f2b2f66b26b3ac392f4b13c85b28bcd271a6515883acee6fc0a71d8",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1191",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "180d1c90755712191ac79f6ce3de042f9a37ed1dc8145144006db20eae0608f6",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1192",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0b5f65c6faee6b12337e7f4a035091dc84f6f4bec1f27ce698c984a0f403b340",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1194",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "61917df9c654ecfbc63426e9011bcff08a8444f347086df26929e1cf1c452939",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1228",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8588b9ae05c28f72652842307ea1a933ca4243ede34318649222c2b03ccb07ac",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1229",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3a04e85d2d7f003e251d6ab2746da082b00ea87ba49a9143fb24b89908851b68",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1230",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "65fd04108d6416b67ce3c4aa285e21143597568702545c566683be61a9678c8c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1231",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5e986b75b2b2015d25890406910ac8d8c707b3ec2658c9d725e366a4ebd4959a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1232",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "41c7514a8a6e9fb870b464a88a243f11ab78af66c5008a9286582b79e188e846",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1237",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "66fd245efac4be05ec5c86caf5a9011b689b1696ae4af1f6485b5486a13f5ee0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1240",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a80c00ecd0ed3ad2cf545c92c8adb81c0781beb8877ad23921854f601e21a0a0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1241",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "77ebc63279c53025864bb770223e22c9944b539f4aadac808e88603fdc332c5e",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1242",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7be2ec7c00f8ce89628beaa2d24e650e8af8eb7ce61fe2161e8d3acdb8f212af",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1243",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "079fca42e793eb9cbeca14ead146b28eb059c0c05dc511580b9a404fbfab205c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1316",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e66ac5116d80bb079be7addaab04c1c0e8eca9d07d6919e5fcdb6d0d94c1d093",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1317",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0a900eb007e07b74893a4085c9732a275780760fd3ca652934cce0245e971bde",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1318",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f408c12380aaafc75d995ed80fe87712168f003f6652746c0598ac30c83b08f7",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1319",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b6991949828b22ca03b497939c30766bcfdd736c065a4568a441cb2e6ba393c2",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1320",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9e39240b3bbfb3826392c9c53fcd23b4ce81a73900fe77815bd2589f90a7e277",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1337",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c28c2970e96d67bcd1d560c3d9c64db9c07a1a057205dec2ae6118154aec1fce",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1364",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e1adb71f47f15712d74bd48b38b085150e70ad754a739f2b201c475f09c5d992",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1365",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ce21184f2b562e327ce5d2fcaaf72f6db65ad8e7632500767f5a97ec0166c8fc",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1366",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8ed1f5d3acdc7d0b4b6666b7b11513f1369d9b20d98bb081ffb617d882c0333f",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1370",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "beef6bca00aa2a717e775b6f9440af0ba6fb34eabf10deaa815e2048d2338c0c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1372",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "29323bb1fc39ac3568cd5571e2285a38899d4627b899ac08cb7f97ee089be2b0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1404",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "182e95f6e269bbc2bd36320d7420df3a0551f7badb7f6dfdb6bff5312778dafe",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1405",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ca65089e9d346656785f86302a0126bf3d79a43b059ba0e2d5a015edf08c6c92",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1406",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d110559ff6aedf93156ac61adf5252aedb7d505bbbfa2e091123006f2b573984",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1407",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "fb0b320dbfd4e0713d5e775a4c854d541df86b8276838efed663c53b5eef6a7b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1408",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a30a9eee0015fdfc38684b118eabbd953a159af04030e3a733b060c502ab8f9c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1414",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "98c838c4c54fd9495436ab1185449a7ec2566198eec04d9b19fd041c55a9a66b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1426",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "24cb68dbc860d060530e6f5d996f07f09ded8a58d7a2e16b33b5b57847a4bc72",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1428",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "8139c5db8d316167ce3ecfe657eee1f471b4dcd407eac0ffd3fafe05893fed09",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1484",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4f01cb5cfa5d7572406e21959f515de86946ae915b9eff707d40bbd57bb22508",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1485",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c1e6aea49f8f3fcb97cd20a57bb5f4080581d25f746d789095403ad1dbbdf124",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1486",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0a5513e134fce2c53c31bfa4035a4989b4bf07e16fbdc9a57f2d7293f14b8b0d",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1487",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5b4170246d871444ed691230c16cab7e422f2177c195fc90a9510f8b1e930221",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1497",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2c400131eed62ed477b367f3cba9cd95ffee0f444d44531303b49cc123542c39",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1512",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "44394ff268b1616ce6fe24c56f3ca147bc3ba63a85e235e5d8015170a62f4fd6",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1513",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "00c479f7d8fe9747af4a83d436d1cee98cc5ad1e64e120e97931d29c6338b0c7",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1514",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "deb77ff15a3b58ac04a42662bebc4258048dcf294e46a829546fbe7d23d62685",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1515",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f3f32682a8d6cfd1a85d2cdb63a231b50622e754e258f208c4931c5522148ef3",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1517",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "0a48db489b63778a873d3cb84b44d39d99e7d25c56dde190485679224b153a6d",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1550",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "790cbfc411cedb707a276cc6d3b20f8926c4f3a45acc3b04ac768b5fd0547150",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1551",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4abd9c591a8d54582aac7f877c2531493881a0e09423250539108bab25956a6d",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1552",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "af592429b088ef8017c45616b340cd46d74eb6187ed2a35ee4c51148d81d373c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1553",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "01926057be5fe7f3e2ba13e4fcef697e0d930a72f94d03d44554820b1da2e2f0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1554",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2edffce892e5ccb63a07adce7a69110fc0071bea782bcdf27ec250f6126e2d89",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1561",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d11b4f2f7df2e50c96a09c0cfbaf916dbd73c32fa4c184f7bb8deb86a282211e",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1578",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4f9b36b1823dcb731a25dad315dc7e3b6bd7a3b6b016ea88215d08fda1e8649d",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1579",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b3384129d35a65897eb0ee2a14abeaaa17bb23d54116ab54b530031d9a769651",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1580",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "908f16400a771c4f699086e377da090fae163be3c610b14140111c3677b306c7",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1581",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "059a4c014fcf18e7ac919607f96719ff2631c43b49fd953244984a74b7055769",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1583",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "28a01d0902ca358c67c152a64c85856144a0cc883ff7a6bebc51dd3a8a016f51",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1610",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9ea1818f7295e2b9c5feac4776d317189b2d5ede71c45c79bdaf330418824359",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1611",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c79a22e0183f37512d023fe4645161306f3e95a66a1f7dbcd18ba6dd791f8de0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1612",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7bdea9f2dbe3124f37c7c0787ed8009c85679462febf795002add10ede711df9",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1613",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "33baba53815d4ae6ab46d5e0a8b45d637e190e05855b8b7aef820645534dcb3c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1614",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7b2a8997703b0d7865fbc3459eea10430a1a33abba191c01b9a1a5fbd1edcd57",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1615",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2ff37079ee364e871ce7a751b0adae9ca45f237f3713c1d07f8a9413f3724c04",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1616",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "297b0bf5b03963c09a723696cce9f2e5b8b56d26dfe0744d8f5519da3fe33aea",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1621",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "84305a4d19b312f024242d4ba50dec3df91e23051d4d4553f9b9335e376cc4c6",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1635",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bd5c9f7b7438ba07b7d21cc77b896929e92a34981cc7cca38d091a63729b982a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1636",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "55743228a0b68cf6bdd553dcfafa9c3c2e34f09be47d68514aec423eedffd23c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1637",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6f45d3bcee0e9df9ebfa746857f440595c94672609259a4381b5be0941679fd1",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1639",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f3061d635f6542314bb4df13d2b69fd6f7b47a4dee37e0bc67573d850458b468",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1641",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "f7fb9b9363f01a3b82ec2f8537a0f9e456da3f69f0e1211b64e0f1f3d07c05d7",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1696",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f71119f42f760075705b74da2b213557430845c18aaf1830984bd8a0f769296f",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1697",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a6f2721908f896fd55be7a87566e9d74127ce4192466e871762899e81d420ac8",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1698",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4650b84718340cde30e01e31de527aceaf14b65a945008006a63d5dce46eeec6",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1699",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c712998c74a41102445f0a164ff57eb42e1f8107cc20c568a9c53c278f93a592",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1700",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5242d39192409eb5babb2ab4aedd9b789faf30e278e14703fbe3f4b9a5447837",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1701",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "fe67a77fd01bd775d1ce1eaeb5650c9be5eea0781147da227102f9473d82e7d5",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1702",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "44a6f36f57974ef4ae8dcd2a73c7b2c5e449172d55209f03932b7181a968d311",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1709",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b1d7d0c46ed70dd89a4b1489ce34f47d4e23a48d10f9af1375b71405604328e0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1721",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "71ee32b978d99d6b5fa346f59b51fa979f78298b4413ea41a5bca409f1cd3e4b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1722",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2c326b0ee1414c4fcbf9df4aecd0cbf3a83ea8852c9ad8dc39cbfe3f592bbce4",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1723",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "052fa245ce4f6db38c6e58be9c72dccd2f95ec8d5b770afe69197059154d988b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1724",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4188e37618cb027567d21747d1ec455addb9d9795eaabdc63e098a69a8974f71",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1726",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "4f9f577e0dc2e2ad47c87673c6d2e89815097ff677e7b8c98265d56f2c49b511",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1762",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e544f5fe750fb1c4af48f95db0f69c0224f5fd3b1fc277757eb4b4cd850890ac",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1763",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "70b50a612e9bb8555fcf91db865597c830d20551f0b64752b4c6261e3b11f95c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1764",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "743de11ad504508fcfd5a7f2deda509fbfb8c988a9174b070fa85503614fe65c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1765",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ddc8c36d8d6fa73c81eff36feebc2313c9b6fb5d526ffa258b77dae91708b20a",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1772",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9a7ecd9e618d5b6cf451b24ea4f807c52971656f1b3124b73d19cb9bf474e6bc",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1787",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f667d70d31cef6b145fe799becf7d6a9284c566585b0ae3884042e53b8f9d85b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1788",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4e64a9546663043bd20a5e4bcd4d11a5720dec715f32e8bf057bc61529e8bf70",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1789",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7c83c084b069f06fc72fe7e9e4c27b65b51228734dc2b302726fe6bedbedc007",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1790",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "064b18c6b691d1bc2b5416a0d76eeb7cee06ac468f99b0882ff5542f2c827f26",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/report_definitions.py:1792",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "21f0771d99e9af5162423f94601400839152dbe2c3c8166d42430d1797e9c28f",
+      "claim_type": "structure_unsupported",
+      "location": "tap_google_ads/schemas/accounts.json",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "027bdd273efe244e98fc1b0e150097514a9d12c17331cf90e29f2182c77dd26d",
+      "claim_type": "structure_unsupported",
+      "location": "tap_google_ads/schemas/ad_groups.json",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "eb30e91c02e2fe499f18d85e16011b16ef14efb07301f14fff5c7ac5366dcde7",
+      "claim_type": "structure_unsupported",
+      "location": "tap_google_ads/schemas/ads.json",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "72f6e8388937b57bab971f81db63d3d5a030d4a999ddc770d8a5083257685ef6",
+      "claim_type": "structure_unsupported",
+      "location": "tap_google_ads/schemas/campaigns.json",
+      "open": true,
+      "provider_subject": null,
+      "status": "UNSUPPORTED"
+    },
+    {
+      "candidate_id": "414265fd639ff6140f1654509d1e942f3b3f2f77425e03c372039146a391b3f1",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:9",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "5281c9530e3fc00a59b9bec918b12216a46259041ace1bc86fe28e465d4b722b",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:9",
+      "open": false,
+      "provider_subject": "google.ads.googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "aaef875614a45254dadf1a2433cf4e89d0b614fbdd652c95c9f35bb5dd4b904a",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:9",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "c135f5c85c5fe2d46b9c19d468e64fc2ed16ae2929bc364817049edf163ac9b4",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:40",
+      "open": true,
+      "provider_subject": "err",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "6d08a329384d16f20e391c74c3b0bc94d7e65e3a374da62f3e902657baeeefac",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:89",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d813d620b30551f4db822efb37419fb05a30aba46d7f76612ea827470a068198",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:163",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d5cfe30f966f24cb2b0b7bedd81d5e38f0179b347b403835dc2981fcd3f798db",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:211",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "94225abc138975c6682c0dbe5e83add073f6c24604819c50c5e890d4e4484694",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:212",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "cfd999c18f2f6f2cd6cb2da701a4dbbe2efcec4a02c675aa891edfa753c8c1b3",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:213",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1b5aeb6a887c7df311c47f4bd5798ea5e820ea1fe52dcab09507425c492224d1",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:214",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "897820bade8919f1cb62330b351085bd7b5a854747fa3bacc992ea727b09359c",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:231",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "2bdc3893315a10c9bd5c301d12f1451e315fc04c669e1c8894758bad4b08e356",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:274",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "cf0262e255a7bde69a13dd7ff22dcc35bc92538a6751e77ab1ec93637a9fa8e8",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:276",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f194d0f93492833148f351e1d612ec68ef5eb31345c9330be9f58d55302aec8e",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:294",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9321c9b59a4491e956c2073657a347ca5b78553d72af25ca2ed55f2075458ecd",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:312",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "656764f88084366624d0b2ae597e8f3d8fc2609ad9d0e8f5dcdb565be1b82f2e",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:313",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c907afe33fc659298c85a89a1e19001d4bed47224a30b81056d206b817b57284",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:318",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4de2843b8201bf641e3be8a1c6c3f71c98f1bcae56c4d94add642da4e105a6da",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:319",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "43377d8cb018d07c29eb76a663c2668af75cd7e523478183afba021541980cb7",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:336",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "94b8822378ddf0344dfc105c77c73b55ada6deab4e462e895fdc7ad2b5f159c9",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:387",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "49cbcb2663d35dcf946d7c98e41164c265d75be54f91b24780f5607f7d8389f6",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:388",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f0fc3b1eb3ed32d784e4a0b34a855d2a01291ed5d096476a9795a03a56eeab68",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:391",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "23996162796f663527d90f598d776cedae3a77432dac43dbb43ebca43539707f",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:404",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4b7945af3dd0f079c84ead242d2e71997272e29473868a92405d9f8576ea8f46",
+      "claim_type": "call_version",
+      "location": "tap_google_ads/streams.py:425",
+      "open": false,
+      "provider_subject": "v24",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "aee21a6388cdffee1f19e4970509534881d6ab68b4485ae0cd1f01a63cc0e799",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:425",
+      "open": false,
+      "provider_subject": "GoogleAdsService",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9f3d4de8a28ec54a272a33f3a7f90607d5ef3b83b79b3ddc16923c04466d44c9",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:426",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "38bb442487d544c95c4502da921655beb56a73c997c90b660cae08039095b1eb",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:426",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2127a6e3acd67ffa3b3100d36406ad12197476b89c9468c2ac141217df452aa0",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:429",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "67b0385c837f4bbf9d7f8813ba569f206dcfd80dc98b48f5c72003c2a053406d",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:430",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "7d783e7fa607d6109383916d3787295fcb055255c5bd1e1176fad7987dacb2ee",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:434",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "a4e92b7b2e7b67e1ac337aef0d32a25aadcc5817cd5a3b43d2181dc1602a9208",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:439",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "64f618b2b76dd8236c9030c0409ce386c81cfe323747a8cd7770cb4a889fdd31",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:453",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "bd54eb7e0059ea16824b09fa659e8a75ec27ab71b585254a01ae0893e8bd8678",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:458",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "7ef9e85ed6955d2b3cce9d4ca8c9d9f268028d7d09a210d83a887203191b392c",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:464",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "b7b8d7b193fe990a3fd35e882fa5f19efc4915379e175f776f0f7e6435b41577",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:467",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "9f3442f84550ee85ca14cc286112d38db8af37564f3c5be904e951ff67c55e7b",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:561",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b1ee1ecd416388c81de8f13b3a1afee51c544588310a45b42c4aa31a6948fd82",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:562",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "426fb015c6efb9680e3310339c73cdf4300233ad0e5a54a8decc7d1a6ec05264",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:565",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "308f7cf425f526d8974bb385fb8b1856da4f4d271342769d426f4382b11d4824",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:576",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d000ca8a8c34639f16a7062e7431eb07731826e2732e2cab7edb37d9f8570c3d",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:588",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e608780dbcb4f35f92a900df76c19ab2ad668cf0252aefef1932c92269d90466",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:589",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "de491adcdb0b0881e98b55ef8e7b51769bb92de676a1f931d9f7561383e8dc90",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:670",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7c241d0e20e447485b9d1d293cc1123108ca464c5483b28a4a0a6e45c2b86044",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:671",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "cf62aab70aaff61dcc59b613cd21de2f918c44b9a1d764e1a12afc63fd6b4f6d",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:673",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e92a00d5d3714a7d4fc6dc003fa056fcfe7b12c0ba5e90cbd171f71df2dc8fff",
+      "claim_type": "call_version",
+      "location": "tap_google_ads/streams.py:699",
+      "open": false,
+      "provider_subject": "v24",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "791d27905a827298e3164e36b9d191c8a1fa4a395e702fc88e5740ac37037515",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:699",
+      "open": false,
+      "provider_subject": "GoogleAdsService",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "eb991ef2c769cd72f00e2ce0f5efc4f3b73f35b218634e57a2242557e1a08d3f",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:700",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "7f12991fd1ac36554e3cb643502a18fee14b27e6e71aa5b671dc74889e0a192d",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:700",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "662051b49372f5568ece5495bc7c11d7126a317de295e8d8514f8e77e0e5056b",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:703",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "139c811a3202a7e30561c45465ad8470e8a5c8b42ebcb152330773f9242ec659",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:727",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "40d6aab586c59d908a36026cbdd6b0ceae63a731cb5d414f8b6b8734904d0fed",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:730",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "f672e1214ab2667ff04203f0f15046e80c99b6f694b13fa35930410bb8f1faea",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:731",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "60ebd2a17c5619b4f1d3b83130c613a66c50611e5a934e606220fcbad223dd67",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:735",
+      "open": false,
+      "provider_subject": "gaql",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bf7e6cae8f253d9a6193926c30e7738a848632165f9a6838cf9ad2b93ad1b23e",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:739",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "6f6dff31f0ceb127d647608f78b1ef66d636d6080d55d70be06e556c7b9f055b",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/streams.py:744",
+      "open": false,
+      "provider_subject": "GoogleAdsException",
+      "status": "AFFECTED"
+    },
+    {
+      "candidate_id": "38dfc38ee818fadf408de5de0d3dcfeca7c0b635028b6980acd363a6f4726af2",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/streams.py:747",
+      "open": true,
+      "provider_subject": "none",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "d4071e3d28d14170856083c8e5ef3687ec7a95d67861bb5a51d1d6f5342d16e7",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/sync.py:3",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "339e829faa0a089df5f7494af1cad6f8b4010e6819f76b5078fb2e059231901d",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/sync.py:4",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "a45ecbc58f66d2ea8c544eb1deb5f00726f9a8b23a9911a79848dd9a8861d5ca",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/sync.py:76",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5d9e62eff547c01e871bcf309b943cf6d67ab7ad3737c06bc21dc141773dfb27",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/sync.py:78",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "fa496711e196d6d591bd10961a67e1ee24195fe54d9326b431c45305eefba593",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/sync.py:129",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "f67dd3a0df6a57e970c65ab969919dc60bd06276d9ac3d92ecb9951cc31a9a2c",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/tests/base.py:36",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f44cc0033dab5fbe05b70657a194d160764a58aef673583c450b9865370ad5c5",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/tests/base.py:41",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "39e236db63d924499c2b2cca61a755035765c02586122bede8aa8c3ef45721fd",
+      "claim_type": "surface_reference",
+      "location": "tap_google_ads/tests/base.py:53",
+      "open": false,
+      "provider_subject": "developer_token",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0455c6cc877448816ef419ee0f96c16887e42a374cf29b9b1c1f03c5e1c90e18",
+      "claim_type": "request_text",
+      "location": "tap_google_ads/tests/base.py:304",
+      "open": true,
+      "provider_subject": "all",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "5c45367065a8bb984cc880a8920ed529ae6a8900005365a654c9220742401b2e",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:38",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f3b9d1e9606dd4d33d7a284472d508da1e99cdf990f949c69ff59ea4005469f5",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:43",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "97f72cb7a03fcbd2d9b12608e6e37f9193c031a230de09b5ecf2e99b119d92c9",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:47",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f71a48aac59fa5583df6232587332862ee66a7d36f60e88cda5ef545c220d691",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:48",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ed275048e1ad87d78e791c35990c2eec05b7e424e562d89d30883252228ec579",
+      "claim_type": "request_text",
+      "location": "tests/base.py:56",
+      "open": true,
+      "provider_subject": "adwords",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "1ec1a0968efeee4fc5ac5f5bcf19e1c90698f7189c0bb27e97b52dce6ebda3f8",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:60",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "14d7a84d05db059ee2229149aa69bc63ddddb58e0df144e6d79870584a2d9df9",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:60",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d0f30d30fb047c7623881d7172e64c1224f981a3d1d5c01e25146a31c871aeb5",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:61",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1642f65cd8ab8e9511e4dd3c96e6be1eecad41c0b557fb702b9cefd125f1e6cb",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:71",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_DEVELOPER_TOKEN",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6e4a0e7d2b07c50e45999f254b9b40197a14ed69ac73b421d5bcf9317c3866fe",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:71",
+      "open": false,
+      "provider_subject": "developer_token",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1a5f98887a913bee5bcf464ff24229cc764f07e08b3eafa2f99e5e3eb215368d",
+      "claim_type": "surface_reference",
+      "location": "tests/base.py:74",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_REFRESH_TOKEN",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ad45db72202f9d08df234b73ad330d14a2463da31d6e3a1982102617f7bd1c91",
+      "claim_type": "request_text",
+      "location": "tests/base.py:851",
+      "open": true,
+      "provider_subject": "err",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "7ab0e85a9f2344c8ec7829e577b58602f325d779cf976b1fe92493b43ce1031f",
+      "claim_type": "request_text",
+      "location": "tests/base_google_ads_field_exclusion.py:38",
+      "open": true,
+      "provider_subject": "remaining",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "fee2ff32565bf35d2f27441ccf86dd6952a47c573f4fa61a1a6f6970ddec86dc",
+      "claim_type": "surface_reference",
+      "location": "tests/base_google_ads_field_exclusion.py:56",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c550c1c36268624975a26bfabcdd2b107b69d77b5859a878114f13cd61125b13",
+      "claim_type": "request_text",
+      "location": "tests/base_google_ads_field_exclusion.py:62",
+      "open": true,
+      "provider_subject": "default",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "c19cba81e088c58b4ea3f0f28e5a00c2c03d52731ae47175a1fdc80517ecd30d",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_automatic_fields.py:17",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "428c406b227bee925acc5e4165a49d3e697c7d03580e2490516e4bf6a491d521",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_automatic_fields.py:23",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "99741b1de4c04a9f582925d765c5ed4f82e202a2eca75eee4d8b1b8e5aa68759",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_automatic_fields.py:74",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5c0a3f876b6409f0f30f57aa6a1b266e82aef480e8a337ce3cdc1554e4a03e97",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_bookmarks.py:17",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3b100c691ca1f804f54eec426fd802489079179eaee3d4a1385086a7015b639a",
+      "claim_type": "request_text",
+      "location": "tests/test_google_ads_bookmarks.py:29",
+      "open": true,
+      "provider_subject": "err",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "2fafb57754981a66dc193968185883797092026c91837cdc9a8039ccdaf28cdc",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_bookmarks.py:43",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "eb9c337af08659cdf6d7ffa3d81b1d489a3baaf649355438de801638b5d97edd",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_bookmarks.py:108",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "99c27dfb85a1297e28b91073ced06dedb8605ecdbab2a865cca5e823b3b6b9b9",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window.py:29",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c0b2978e5fdea192fb05f2169174b36702f8df53d903898469bbd68425a36d44",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window.py:38",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "207011cae19fec073c82b352fb0f612ecd41b68be77750e3b9ed7a4d26be7af1",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window.py:38",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "cdc70ba9198b15c0a90f59f47678daba15c554789e0fdb5e6d8153cf8fb9be0f",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window.py:39",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "0b84c9522494fe6c0e5129778f26c3aa63a94506dd0f241e40f5b6949dbb60a2",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window.py:75",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f06bfcfd97392e14bfadf3220fabcf8162005199f234000c1b5af094154abafd",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window_invalid.py:30",
+      "open": false,
+      "provider_subject": "googleads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c6527b3ee2b87037cf37f99348cc543a43daf2ff0d0a42976df62e8416a98df2",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window_invalid.py:39",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d65c893c81fa18c3dbbc78818c01cdeb7489f1130412ed220f50321ff769656d",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window_invalid.py:39",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bc784a8331c669729a9b30b65e66ee0b7ecddf4b071d9a8ed64478b472600310",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window_invalid.py:40",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "64d4dc57f6dbff8b1b05a12772c74e6c990a87b6ad730ff42c05f1d9d74557d8",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_conversion_window_invalid.py:80",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f43134a5575d948450b7a6991eec10e19fce9f44fb55e7e09fa16a0599f162b5",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_discovery.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2f109bdb9e1c7bd0de82e26aa038123c9a394100cfd1d8605b2acfec1acaac13",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_discovery.py:34",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "72ae0b9eaddd5f866ab2b86024b5c09f524fcf80ae8ce8a6ad8287737c566daf",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_1.py:8",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e73c45a7cd237335ddfe756126e2704b4e73a109e7b4644268040f7685a50fd0",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_1.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "dbd71179c61af552e8f7a9988cdac885d6fb831b4ff476e2e1320dc951b33bf0",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_2.py:8",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f5b475af6a762bdc55f19ea2a4eb9636b843a7a9d63acdc6fdcbbafdea3a6a6c",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_2.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9886ff2d5e3bf4d399c6738767caa4fbb75f35fa535c84ddb342ef72baea9b10",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_3.py:8",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3a3cecff7377c70d23f8054ded4d0bcd835a830db5d58462a66ebaf877c24be2",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_3.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c9ce54ee5661cb51baaada232622c1deb236ec8b0c47a93286805285c9710600",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_4.py:8",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "60a68606d5b0fc8029fb64e4e781e536473e101cb95147df39e3a9f5ce0dfce3",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_4.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d830bc34434cb9601586bb4a2db4179599f6b1cd1218ae3effe87ebe07a5cc49",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_coverage.py:1",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d467b0bbbfd4e9ee6a786b98194b285261ed3a7e894939b950f45419d24c029e",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_coverage.py:10",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7b689e219485e3660c9a1a09ef5f2d68812b587e8639e7e252ee72b301fb9390",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_coverage.py:22",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5d75d61413897755aa30a296d1fbc1fb8c93868e9359934a57e07890810c8637",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_coverage.py:23",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "40bf50af2165674cc3dd2eca27e79de6a567dfee62e3cf5e72eeff0ace5f1fa9",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_coverage.py:24",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6bdde7e148b01f953ab242b475ccbe63f8383c1bf9753b7b92021e01c6b033e2",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_coverage.py:25",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "541108a6a82af253362d93e950cefe688664ecac1384eedd7b7d3e464e22f066",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_invalid.py:22",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4f92c98b24a54736dcc68073f0675b9b5e45a53c2306701e102a1a7f51321f71",
+      "claim_type": "request_text",
+      "location": "tests/test_google_ads_field_exclusion_invalid.py:44",
+      "open": true,
+      "provider_subject": "remaining",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "7657a90794b90a381d032753888e08b5f3b143cf92a0107555b5510454898683",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_field_exclusion_invalid.py:81",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bee300f434f92ce60c99a52d81b0fa6f202eb67155e6ddd3cb4c2472bb0f9d6b",
+      "claim_type": "request_text",
+      "location": "tests/test_google_ads_field_exclusion_invalid.py:94",
+      "open": true,
+      "provider_subject": "default",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "9d53ffe6a5e91f326313c347df3b19788271abad3b9b896ea3422e9f49a2d64f",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "19eac67c51f889844594b30c2953e9c7ff57fe296a3fd800375d9253c7c6891f",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync.py:23",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "713813edeba5cd664668f6b1680ea8b9e8024df1719129e860603f732654929c",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync.py:23",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c65d910ad4c6fc3a24caa55546f5c0030769a4f80c8410ba593e41ebb1067692",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync.py:24",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "04aa665892edf7141cab5f6e65e11b130848a4601b9ce44a11bc1ef157ff5de9",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync.py:59",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "16065fe01bfaaaae2bb6404d83051c6821c181b0da818de651122224e7daecce",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_add_stream.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3d937a05a761152d91d2484979f186919e006e16b7ccd46ce37e5fab5860c2fb",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_add_stream.py:23",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5546ee16586d8127438dda709c5032800ecc0f7f5f769d0bd8864d18ed5910e4",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_add_stream.py:23",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6dc21b604853f5bb4fc10710082d76615cadf404c3e73994f6e120384240647c",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_add_stream.py:24",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1486981763e0bf7325bd5850f388e69d51f42120c18eb14917191247a4fb632e",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_add_stream.py:52",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5f158de7cd8bf34c616f73ef66d14f79aa85f296a1fa55938c729eb51568aff0",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_full_table.py:14",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "8a6824a4d75afec18352c7c92d8c98b39ac6ee6382c80e7293430e46e3bfd546",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_currently_syncing.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "31c19f6abb098b459da00f95d603f4745bc73db3045a20db71f7334de1964825",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_currently_syncing.py:23",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ee733968836943a82ac1d63aed69896a2312bad5290310177a9ba7f5290cf4c7",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_currently_syncing.py:23",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "85b1511f3b6e104f21564fbc0f8672fb0c92b54161a7210d1bdc60daa748fe99",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_currently_syncing.py:24",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1e59a2367877d5d8f43fb2abf8de42bf805dd8d6a34d60966775353529d23cbf",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_currently_syncing.py:51",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3b42609ca932017f2c7c0bf2a0456162ff8d85bfc09a84ce706492171d41bfd3",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_stream.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "271e67b4cf341a15a264d0f0cc69425e061fa80b50f21e12abe997fe084c8e73",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_stream.py:23",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "52026ed59921d7d11a878eaa1a05fc7b8f58e2d88f49310e516c35b00d87744d",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_stream.py:23",
+      "open": false,
+      "provider_subject": "login_customer_id",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9839c9a25a4df40d73af6512c9a240fa1d72ea2d10f995c5bc46e73dd04b0432",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_stream.py:24",
+      "open": false,
+      "provider_subject": "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4b63594b8a0aea2d47e4648896cf1b21767bbd509e4c33e173a9a70cf42d05c8",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_interrupted_sync_remove_stream.py:51",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2d45feab28ebf2c76f77339756485040f8e97e1399ca8506bb2da8b105c67aca",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_no_selection.py:11",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f3236b085073c04ff7241ae530cdf15a13f652bb8526d4de6ca8e5efa868f469",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_no_selection.py:25",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "05eaadd6510db6b814605196b2b682d2a49b01a8f2d1225028e7a8730f924a75",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_page_limit.py:13",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c4014f72c7add38447fdaa7940091713947dc18299c193739378bc397b75dcc8",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_start_date.py:173",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "49509aa89dc2f2aa47413d39a86415abae0e153177ef6b0838732e81ee1512d8",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_start_date_2.py:8",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9214d170a58d7bd8a38205f219e03805b2bab24f30beff195219996c816220b9",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_start_date_2.py:14",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "6d9cf1012bf1fb3e1430747959e2ef47a75f1ed8a60e301cac40107191c42282",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_sync_canary.py:18",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "890727c14d6b01aaf343dee050ee64602581eb2a8ffc89443c4815e7d5fbf2c7",
+      "claim_type": "surface_reference",
+      "location": "tests/test_google_ads_sync_canary.py:71",
+      "open": false,
+      "provider_subject": "google-ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "62373f3bf0c62504432d35c0f007526ce7f6bd754250f58838b86e53c027e38a",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:3",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "747799782b94519123051099cf61076e1635c66ac88d8203b6e81c24fa555376",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_backoff.py:14",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "7c412a79d9fabd39d483f62799602cabfe7e5d564533001238a485c6b054f3ca",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:14",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "5b991bd399362ce889eacf6213bae45ec4558952b27e43180c1e1adfb3c3ff4f",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:15",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "df40c9b96b688d87478b3e3828ee2aa6b2b68f2d23059bbd88bc146e6fa2fb3e",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:18",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e7adefef52b8587167aca436a067768f3340d51a25417967ad6acbdb5bd6435c",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:23",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "f6262ff8931889f8d3bf7ffaddac6653fb3c474deb187bb2a78174db5d2483ec",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_backoff.py:29",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "19d2351c64b533e0d69e9a9497768791c9e64603a3fb7eefecf71c354bb017e7",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:29",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "dc7b942fe203853341b6c8b237bacf65d9d266489074030d180486824578c88b",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:30",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "9cde47ce6d1315ecf095fcd45737b94ae038eca73d26a2fcca986a1b62556a12",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:33",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "434a2abc9ab343568933c24d06d3d208a3b3bbd721868c02769df8530f5a3196",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:38",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ce7fd6d0f264d3b0a10181a8ac1cc984fc467c1618701058af76b09420139179",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_backoff.py:44",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "a7d8d83c01186f02830c5ca3c8ac754529fef901ab784fa335e4171342245ce9",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:44",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "3ad11b2378003bd023936de46cddad3e9b41048d6461b1cb9b19139fafe4be76",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:45",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "d3affc344529399433474fac2e288a243e29c1bdeecb6dc3de73de2d111c8e31",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:48",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "84d8ce1e63273634426753968c2dc38bc17334c3563561fc6635faa9c6b19aaa",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:53",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b3c08f615b037d4da574b8eec9b670d126e3f9aee263648d2652597485bce175",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_backoff.py:59",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "0d357ff5540ec807db6584e7a16fd4fddfed0989ed42039c3a7574936997fe5d",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:59",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "bde37421cd1417f7b983c749ee4a0ea255cddb7a8f997433911a1cbd622f9e64",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:60",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7c64b09a2c8b4fe058084d101238c2794c06a8da085ab7ddc2c28e90dfa42016",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:63",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1d34d654382522f9e416900c455a3e5228683ddddd4f3a00a61872d85f6580d7",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:68",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "4b7bf6a4048876ed724ded60bc9c6e923010b33caf2150e5d967fee2803b1935",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_backoff.py:74",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "2c64d2ebb3932219f5e4dfc3f5b9a3e67dd159a09aec23d049c177e2f4e1403f",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:74",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "906e83a40b5a6e9ed013214db780d632a4ef20020d6f74c3d45c3fd460194b3e",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:75",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "18512205f5e7606f8e922e498698ea3a147dbaf521bccc1c0f0162bb3e4bfe13",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:78",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e639218dc1dcdaad1d6b9154d319c0042edc7eee88d7b22c9704b72303e2e4a8",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:83",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7c6ac16b4490b5fdaccb448389d02856be25689cabe85eacbf6829b041e3bcda",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_backoff.py:89",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "caacd4e83a44e190074daa7c86e24adc390db833c581c184fdd183227a85d522",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:89",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e8922445addf98ab5a95edfdb12d287139817c3f5528f854fddf6a4f7be8c142",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:90",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a626da089ea160dc680b9440585df0128a04bb57fa715bc969042611f84c39dc",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:93",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1e81bfb269958c8b9e80719fc9a536d84e57023c94371b731bbfd73ed91d6e28",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:98",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "653e2d12301ba33d893d9b0bdd46557b09700335b18f593ee2bb70aff1ecda03",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_backoff.py:104",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "d8491cddd130359e1a1d863eb5c07c305fa728ee11136e04d7522a629a011042",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:104",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "84592bd3ac9d631eb8b90a94e7797df487a43336ce17a2a843bcad956ce4b1de",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:105",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "7638231c33d65835266dc14c12050fdd02901bdfa6d8c7047c066f5d07fbc77e",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:108",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "35f74710dc7dd48bf50e749c4b943df374659341fe8bf1af3ee5c5fdfafb2977",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_backoff.py:113",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a1ca64fb14f976915ed34ae158f59c5ccb1cbd2d200efad97fd6849d09898ba3",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:8",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "401ede2ac652ef5bb80057f00730ef91e3dc3a4025a47e2a635b450db1996487",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:9",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "a37c03421f6637e6a5aa7d416966f606d8b5d872434e93923bb95b1844c4e8ea",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:10",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "47555ef499e20e68737bdb4b5c5823c82afb9ad40868c765f4e525154b9ec32a",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:22",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1df4d8ae3c2b0badb347d688f92e94b09d0b0724b03bb0fcd6701e8804cd0cb1",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:27",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "afabaf8e6568500f64c980c1239ed6c826d70e31895a905b0a4d53c47aee548c",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:32",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b9cc59246b69b73be2c6a592788d9e2182b55684a52111305e7eabef336e490c",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:57",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "2f40c2880c370d580a151e72759f77c1a7c8482e368d3bbd275214ab5fee6d57",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_conversion_window.py:63",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "42b3211c7045109b2c56979453165359cff700215cd9b109f4303cd083a56b51",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:92",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "70f4a1c666d4375481ea64c9ff95c882376ce7955c66825c08ec6e05864a4737",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:97",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a7e158e81b7019d9e272c8f3278bc9974e080a594ead7b84b5d5fe5f22701675",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:102",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "c3572f8a783119bba41be3deb5ad40fb4196e6229360958fc722c3f93e362694",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:107",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "b1fcbf8722fad6287ae1800cdc21a9d25e2bcc26316bef6dee891d766babbdc4",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:132",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "18bc9af9c86b73c194c31a8652a2162097cc3b1feae0cf54652142f4767a7e8f",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_conversion_window.py:138",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "a32b7ca418101a8b3b35624323e0003eb3cfac0fdb0abd226e97c603ab0025a1",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:167",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "65d901089d7f4e01049a0f997ae31cbe92138708bd0fe7f79858ab6e3b3f37f8",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:172",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "fc681dab4a23f88bb9b62d6d2941550e7c7cac16afbb9ec30a3308be50c896a4",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:177",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "eb0b13dd376a5095ca08552f6518b193537e2e009b12431b5a20d03a67ac4b9a",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:182",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "ee32dbef5fac0f42cc1f883efd1bf64d9790f705c3b2ef61e76f9b7eef69ed19",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_conversion_window.py:203",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "e95ffeb823cfc6bd0a6743cc03753f4d2ae9bd671f0387ea5d306b179ad8f294",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_conversion_window.py:209",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "1ec1820dcb41beb518e6ac577133c4df5ba04b4fdd6b7fababbecddd561e9f9e",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_core_stream_query_building.py:2",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "2c261fa70504218518cd0ea67951580c9f07696d9a6a0b1c334474bdd7f09971",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_query_limit_param.py:2",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "169ce307ae2bd44d0f80249209e7c2830f7d2c29a2449ee9364c6524e6644dbb",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_request_timeout.py:2",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "f9ae26537325f1eb81511bd0fc9b82dcbd881888baf1cdc8df37672ec6e34c53",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_resource_schema.py:3",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "5c8c39fe7af33bbfbe1cfe3355a6e60e0d377ef261a9dd3ea9af089059412837",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_resource_schema.py:4",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "f24e799af7b5a7ab7d25cd8521fab85cd5572e8d9b65991aa9993a9100c549a3",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_sync.py:7",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "44f8964dd2d0cb56e893b560642f72a0fda07decc90c6c512e1c620b948077ea",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_sync.py:8",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "a8877377cd2b5703f04cbd5bd9026a4ea3f8e0e28607b36b736ad4ab784f25fd",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_sync.py:34",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "08d7e736ff942aa635d1334ef32a32d4e368ca54525769e8d417b79de9325378",
+      "claim_type": "request_text",
+      "location": "tests/unittests/test_sync.py:46",
+      "open": true,
+      "provider_subject": "gaql",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "15ce0551edfa06ca0c5fa7cc3a2f4dcda328b9c33f871a6e89fdc1d67e79d0a7",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_sync.py:59",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "28cb17628d7d7cdb2cc9e1731dedf1bdd51bcb561f5e26b8c89c7d4696ca205d",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_sync.py:104",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "1b52ecc3824b7f92278fca0d3d6cc7ce32828d617c0bf183505e43fb9279da13",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_sync.py:123",
+      "open": false,
+      "provider_subject": "google_ads",
+      "status": "NOT_AFFECTED_WITH_EVIDENCE"
+    },
+    {
+      "candidate_id": "a545acce259563ab247a17c9916a3da551b4a2b307595607bbd42283ec3b24dc",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_utils.py:2",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "a00754a6d59f320371bd221c405c210f025390ba224a8be4a86d9919700bcde3",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_utils.py:3",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "ddb7dd69545d7317e2edda8686edae1d7d90d7f3b2e00b8164ddf3b3f337ca8a",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_utils.py:4",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "eb64a5cd998b9beff126a6f7e24926c06302c70e60a2e0a9529d48f7837cc971",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_utils.py:5",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "712ae775dbd6fcd05769c85ab19ea4cec7d0bbaa946c5e8ce2970e3df6b40618",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_utils.py:6",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    },
+    {
+      "candidate_id": "e33f44f5aaca93024f754d3cdf8d13ed0cfbbbdae23453741313e6fb6fe3cde9",
+      "claim_type": "surface_reference",
+      "location": "tests/unittests/test_utils.py:7",
+      "open": true,
+      "provider_subject": "google_ads",
+      "status": "UNKNOWN"
+    }
+  ],
+  "ledger_counts": {
+    "affected": 38,
+    "excluded_with_evidence": 0,
+    "human_accepted_risk": 0,
+    "human_required": 0,
+    "not_affected_with_evidence": 507,
+    "provider_reference_data": 0,
+    "total": 647,
+    "unexplained": 0,
+    "unknown": 91,
+    "unscanned": 0,
+    "unsupported": 11
+  },
+  "proof_scope_hash": "b8d85f24e5e35ce41e94c4df504769158abb092ec595aee7dfe6f6ae203727ac",
+  "provider": "google_ads",
+  "repo_sha": "5b6a201558875a2859caa04fc992adf892fd30c7",
+  "repository": "singer-io/tap-google-ads"
+}
