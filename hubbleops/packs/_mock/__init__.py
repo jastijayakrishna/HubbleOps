@@ -12,6 +12,7 @@ import yaml
 
 from hubbleops.core.canonical import blob_hash, canonical_text, content_id
 from hubbleops.core.errors import PackDataError
+from hubbleops.core.records import as_mapping
 from hubbleops.core.repair import TransformInput, TransformOutput
 from hubbleops.core.surface import SurfaceSpec
 from hubbleops.core.verification import FalsifierInput, FalsifierOutcome, request_text_of
@@ -87,30 +88,91 @@ class MockVersionLiteral:
     def _pattern(self, version: str) -> re.Pattern[str]:
         return re.compile(rf"\b{re.escape(version)}\b")
 
+    def _span(self, text: str, line: int | None) -> tuple[str, str, str]:
+        lines = text.splitlines(keepends=True)
+        if line is None or line < 1 or line > len(lines):
+            return "", "", ""
+        return "".join(lines[: line - 1]), lines[line - 1], "".join(lines[line:])
+
     def precondition(self, subject: TransformInput) -> bool:
         if subject.claim_type != self.failure_class:
             return False
         if subject.from_version == subject.to_version:
             return False
-        return self._pattern(subject.from_version).search(subject.text) is not None
+        _, target, _ = self._span(subject.text, subject.line)
+        return self._pattern(subject.from_version).search(target) is not None
 
     def apply(self, subject: TransformInput) -> TransformOutput:
+        head, target, tail = self._span(subject.text, subject.line)
+        rewritten = self._pattern(subject.from_version).sub(subject.to_version, target)
         return TransformOutput(
             source=subject,
             result="APPLIED",
-            text=self._pattern(subject.from_version).sub(subject.to_version, subject.text),
-            reason=f"rewrote {subject.from_version} to {subject.to_version} at {subject.path}",
-            sites=(subject.path,),
+            text=f"{head}{rewritten}{tail}",
+            reason=(
+                f"rewrote {subject.from_version} to {subject.to_version} at "
+                f"{subject.path}:{subject.line}"
+            ),
+            sites=(f"{subject.path}:{subject.line}",),
         )
 
     def postcondition(self, subject: TransformOutput) -> bool:
         source = subject.source
-        if self._pattern(source.from_version).search(subject.text) is not None:
+        _, target, _ = self._span(subject.text, source.line)
+        if self._pattern(source.from_version).search(target) is not None:
             return False
-        return self._pattern(source.to_version).search(subject.text) is not None
+        return self._pattern(source.to_version).search(target) is not None
 
 
 MOCK_TRANSFORM: Transform = MockVersionLiteral()
+
+
+@dataclass(slots=True)
+class MockSubjectRename:
+    name: str = "mock-subject-rename"
+    failure_class: str = "request_text"
+
+    def _pattern(self, subject: str) -> re.Pattern[str]:
+        return re.compile(rf"(?<![\w.]){re.escape(subject)}(?![\w])")
+
+    def _span(self, text: str, line: int | None) -> tuple[str, str, str]:
+        lines = text.splitlines(keepends=True)
+        if line is None or line < 1 or line > len(lines):
+            return "", "", ""
+        return "".join(lines[: line - 1]), lines[line - 1], "".join(lines[line:])
+
+    def precondition(self, subject: TransformInput) -> bool:
+        if subject.subject is None or subject.replacement is None:
+            return False
+        if subject.subject == subject.replacement:
+            return False
+        _, target, _ = self._span(subject.text, subject.line)
+        return self._pattern(subject.subject).search(target) is not None
+
+    def apply(self, subject: TransformInput) -> TransformOutput:
+        name = subject.subject or ""
+        replacement = subject.replacement or ""
+        head, target, tail = self._span(subject.text, subject.line)
+        rewritten = self._pattern(name).sub(replacement, target)
+        return TransformOutput(
+            source=subject,
+            result="APPLIED",
+            text=f"{head}{rewritten}{tail}",
+            reason=f"renamed {name} to {replacement} at {subject.path}:{subject.line}",
+            sites=(f"{subject.path}:{subject.line}",),
+        )
+
+    def postcondition(self, subject: TransformOutput) -> bool:
+        source = subject.source
+        name = source.subject or ""
+        replacement = source.replacement or ""
+        _, target, _ = self._span(subject.text, source.line)
+        if self._pattern(name).search(target) is not None:
+            return False
+        return replacement in target
+
+
+MOCK_RENAME: Transform = MockSubjectRename()
 
 
 def _fact(subject: str, kind: str, attributes: Mapping[str, Any]) -> CatalogFact:
@@ -173,6 +235,15 @@ class MockChanges:
 
 
 class MockContract:
+    def context_hash(self) -> str:
+        return content_id(
+            {
+                "authority": "fixture",
+                "implementation_sha256": blob_hash(Path(__file__).read_bytes()),
+                "transport": "in_process",
+            }
+        )
+
     def catalog(self, version: str) -> Catalog:
         if version not in FACTS:
             raise PackDataError(f"unsupported mock version {version!r}")
@@ -210,9 +281,10 @@ class MockContract:
 
     def validate(self, request: Mapping[str, Any], version: str) -> ValidationResult:
         self.catalog(version)
-        if request.get("bad") is True:
+        body = as_mapping(request.get("request"))
+        if request.get("bad") is True or body.get("bad") is True:
             return ValidationResult(code="INVALID", reason="mock known-bad request")
-        return ValidationResult(code="VALID", reason="mock request accepted")
+        return ValidationResult(code="VALID", reason="mock request accepted", authority="CATALOG")
 
 
 class MockWireSignature:
@@ -274,7 +346,7 @@ class MockPack:
         return EmptyBundle(normalized, (path,) if normalized == "python" else ())
 
     def repair_transforms(self) -> list[Transform]:
-        return [MOCK_TRANSFORM]
+        return [MOCK_RENAME, MOCK_TRANSFORM]
 
     def repair_tools(self) -> list[ToolSpec]:
         return []

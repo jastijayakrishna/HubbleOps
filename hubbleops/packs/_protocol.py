@@ -12,7 +12,7 @@ from hubbleops.core.surface import (
     SurfaceSpec,
     VersionCarrier,
 )
-from hubbleops.core.verification import FalsifierInput, FalsifierOutcome
+from hubbleops.core.verification import FalsifierInput, FalsifierOutcome, OracleAuthority
 
 Confidence = Literal["PROVEN", "DOCUMENTED"]
 ContractCode = Literal[
@@ -111,6 +111,7 @@ class ValidationResult:
     code: ContractCode
     reason: str
     response: Mapping[str, Any] | None = None
+    authority: OracleAuthority | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -176,6 +177,8 @@ class Transport(Protocol):
 @runtime_checkable
 class ContractOracle(Protocol):
     """Provider contract catalogs, computed diffs, and validation-only oracle access."""
+
+    def context_hash(self) -> str: ...
 
     def catalog(self, version: str) -> Catalog: ...
 

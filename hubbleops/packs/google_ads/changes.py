@@ -345,17 +345,21 @@ class GoogleAdsChanges:
         proto_fields: Sequence[dict[str, Any]],
         field_records: Sequence[dict[str, Any]],
     ) -> CatalogFact:
-        if len(proto_fields) != 1 or len(field_records) != 1:
-            record = (proto_fields or field_records)[0]
-            attributes = {
-                **dict(as_mapping(record["attributes"])),
-                "conflict": "field applicability requires exactly one proto and one field fact",
-            }
-            return self._fact(
-                {**record, "attributes": attributes},
-                "DOCUMENTED",
-                (),
-                "UNKNOWN_PROVIDER_CONTRACT",
+        if len(proto_fields) > 1 or len(field_records) > 1:
+            return self._unresolved_field(
+                (proto_fields or field_records)[0],
+                "a source family reports the field more than once",
+            )
+        if not proto_fields:
+            field = field_records[0]
+            if as_mapping(field["attributes"]).get("source_conflicts"):
+                return self._unresolved_field(
+                    field, "Query Builder sources disagree about the field"
+                )
+            return self._fact(field, "DOCUMENTED", (), "RESOLVED")
+        if not field_records:
+            return self._unresolved_field(
+                proto_fields[0], "proto field has no Query Builder counterpart"
             )
         proto = proto_fields[0]
         field = field_records[0]
@@ -388,6 +392,15 @@ class GoogleAdsChanges:
             "PROVEN",
             (self._source_ref(field),),
             "RESOLVED",
+        )
+
+    def _unresolved_field(self, record: Mapping[str, Any], conflict: str) -> CatalogFact:
+        attributes = {**dict(as_mapping(record["attributes"])), "conflict": conflict}
+        return self._fact(
+            {**record, "attributes": attributes},
+            "DOCUMENTED",
+            (),
+            "UNKNOWN_PROVIDER_CONTRACT",
         )
 
     def _fact(

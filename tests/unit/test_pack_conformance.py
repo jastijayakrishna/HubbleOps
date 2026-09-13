@@ -23,6 +23,7 @@ def test_full_provider_contract(name: str, tmp_path: Path) -> None:
     assert isinstance(pack.implementation, ProviderPack)
     assert isinstance(pack.changes, ChangeCompiler)
     assert isinstance(pack.contract, ContractOracle)
+    assert len(pack.contract.context_hash()) == 64
     assert isinstance(pack.telemetry, TelemetryAdapter)
     assert isinstance(pack.wire_signature, WireSignature)
     assert isinstance(pack.rules("python"), RuleSet)

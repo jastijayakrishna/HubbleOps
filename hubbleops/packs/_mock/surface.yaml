@@ -20,8 +20,13 @@ version_carriers:
     regex: 'api\.mockprov\.test/(?P<version>v[0-9]+)'
     slot: per_call
     languages: [any]
+    scope: wire
   - name: client_version_argument
     regex: 'MockProvClient\([^)]*version\s*=\s*["''](?P<version>v[0-9]+)["'']'
+    slot: client_init
+    languages: [python]
+  - name: client_version_default
+    regex: 'def __init__\([^)]*version\s*=\s*["''](?P<version>v[0-9]+)["'']'
     slot: client_init
     languages: [python]
   - name: namespace_version
@@ -31,9 +36,14 @@ version_carriers:
 
 request_languages:
   - name: keyvalue
+    shapes:
+      - 'resource=(?P<resource>[a-z][a-z0-9_]*)'
+    resource_group: resource
+    known_resources:
+      - campaigns
+      - accounts
     anchors:
       - 'mockprov_query\s*=\s*"[a-z_]+=[a-z_]+"'
-      - 'resource=(campaigns|accounts)\b'
 
 sink_argument_positions:
   - sink: MockProvClient
@@ -46,3 +56,19 @@ sink_argument_positions:
 config_env_keys:
   - MOCKPROV_API_VERSION
   - MOCKPROV_TOKEN
+
+adjacent_contracts:
+  - name: mockprov_billing
+    hosts:
+      - billing.mockprov.test
+    reason: >-
+      the billing host carries its own version lattice and is not part of the provider contract
+      under migration
+
+contract_surfaces:
+  - kind: protocol_header
+    name: mockprov_header
+    shape: '["\x27](mockprov-token)["\x27]'
+  - kind: resource_name
+    name: mockprov_resource_name
+    shape: 'accounts/[^"\x27`\s]*/(campaigns|reports)'

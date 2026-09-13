@@ -10,6 +10,7 @@ from hubbleops.packs._protocol import CatalogFact
 
 VERSION_TOKEN = re.compile(r"^v\d+$")
 SEMVER = re.compile(r"\d+\.\d+\.\d+")
+PINNED_SEMVER = re.compile(r"(?<![A-Za-z0-9.+-])v?(\d+\.\d+\.\d+)")
 
 MANIFEST_LANGUAGES = {
     "requirements.txt": "python",
@@ -38,7 +39,16 @@ def _line_span(text: str, line: int | None) -> tuple[str, str, str]:
 
 
 def _token_pattern(version: str) -> re.Pattern[str]:
-    return re.compile(rf"\b{re.escape(version)}\b")
+    digits = re.escape(version[1:])
+    return re.compile(rf"(?<![A-Za-z0-9_])[vV]{digits}(?![A-Za-z0-9_])")
+
+
+def _matching_case(match: re.Match[str], version: str) -> str:
+    letter = "V" if match.group(0)[0] == "V" else "v"
+    return f"{letter}{version[1:]}"
+
+
+VERSION_LITERAL_CLAIMS = ("call_version", "surface_reference")
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,7 +57,7 @@ class VersionLiteralTransform:
     failure_class: str = "call_version"
 
     def precondition(self, subject: TransformInput) -> bool:
-        if subject.claim_type != self.failure_class:
+        if subject.claim_type not in VERSION_LITERAL_CLAIMS:
             return False
         if subject.from_version == subject.to_version:
             return False
@@ -58,14 +68,16 @@ class VersionLiteralTransform:
 
     def apply(self, subject: TransformInput) -> TransformOutput:
         head, target, tail = _line_span(subject.text, subject.line)
-        rewritten = _token_pattern(subject.from_version).sub(subject.to_version, target)
+        rewritten = _token_pattern(subject.from_version).sub(
+            lambda match: _matching_case(match, subject.to_version), target
+        )
         return TransformOutput(
             source=subject,
             result="APPLIED",
             text=f"{head}{rewritten}{tail}",
             reason=(
                 f"rewrote the {subject.from_version} version literal to {subject.to_version} "
-                f"at {subject.path}"
+                f"at {subject.path}, preserving the case the carrier uses"
             ),
             sites=(f"{subject.path}:{subject.line}" if subject.line else subject.path,),
         )
@@ -175,13 +187,15 @@ class SdkPinTransform:
         if floor is None:
             return False
         _, target, _ = _line_span(subject.text, subject.line)
-        found = SEMVER.search(target)
-        return found is not None and _below(found.group(0), floor)
+        found = PINNED_SEMVER.search(target)
+        return found is not None and _below(found.group(1), floor)
 
     def apply(self, subject: TransformInput) -> TransformOutput:
         floor = self._minimum(subject) or ""
         head, target, tail = _line_span(subject.text, subject.line)
-        rewritten = SEMVER.sub(floor, target, count=1)
+        rewritten = PINNED_SEMVER.sub(
+            lambda match: match.group(0)[: -len(match.group(1))] + floor, target, count=1
+        )
         return TransformOutput(
             source=subject,
             result="APPLIED",
@@ -198,8 +212,8 @@ class SdkPinTransform:
         if floor is None:
             return False
         _, target, _ = _line_span(subject.text, subject.source.line)
-        found = SEMVER.search(target)
-        return found is not None and not _below(found.group(0), floor)
+        found = PINNED_SEMVER.search(target)
+        return found is not None and not _below(found.group(1), floor)
 
 
 def _below(found: str, floor: str) -> bool:

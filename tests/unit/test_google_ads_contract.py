@@ -32,6 +32,23 @@ class RecordingTransport:
         return self.response
 
 
+def test_oracle_context_binds_account_identity_without_binding_credentials() -> None:
+    def contract(customer_id: str, secret: str) -> GoogleAdsContract:
+        credentials = GoogleAdsCredentials(
+            client_id="client",
+            client_secret=secret,
+            refresh_token=f"refresh-{secret}",
+            developer_token=f"developer-{secret}",
+            customer_id=customer_id,
+            login_customer_id="999",
+        )
+        return GoogleAdsContract(transport=GoogleAdsRestTransport(credentials))
+
+    first = contract("111", "first").context_hash()
+    assert contract("111", "second").context_hash() == first
+    assert contract("222", "first").context_hash() != first
+
+
 @pytest.mark.parametrize("method", ["Search", "SearchStream", "Mutate"])
 @pytest.mark.parametrize("requested_flag", [True, False, None, "false", 0])
 def test_no_call_can_disable_validation(method: str, requested_flag: Any) -> None:
@@ -52,7 +69,7 @@ def test_no_call_can_disable_validation(method: str, requested_flag: Any) -> Non
     assert body["validate_only"] == requested_flag
 
 
-def test_default_transport_never_passes() -> None:
+def test_default_transport_never_claims_provider_authority() -> None:
     result = GoogleAdsContract().validate(
         {
             "service": "GoogleAdsService",
@@ -61,7 +78,162 @@ def test_default_transport_never_passes() -> None:
         },
         "v25",
     )
+    assert result.code == "VALID"
+    assert result.authority == "CATALOG"
+
+
+def test_a_mutate_without_a_transport_has_no_catalog_path() -> None:
+    result = GoogleAdsContract().validate(
+        {"service": "GoogleAdsService", "method": "Mutate", "request": {"operations": []}},
+        "v25",
+    )
     assert result.code == "ORACLE_UNAVAILABLE"
+    assert result.authority is None
+
+
+@pytest.mark.parametrize("operations_key", ["mutateOperations", "mutate_operations", "operations"])
+@pytest.mark.parametrize("version", ["v19", "v20", "v21", "v22", "v23", "v24", "v25"])
+def test_catalog_validates_nested_mutate_shapes_without_credentials(
+    operations_key: str,
+    version: str,
+) -> None:
+    result = GoogleAdsContract().validate(
+        {
+            "service": "GoogleAdsService",
+            "method": "Mutate",
+            "request": {
+                operations_key: [
+                    {
+                        "campaignOperation": {
+                            "create": {
+                                "name": "catalog-validated",
+                                "status": "ENABLED",
+                            }
+                        }
+                    }
+                ]
+            },
+        },
+        version,
+    )
+    assert result.code == "VALID"
+    assert result.authority == "CATALOG"
+    assert "protobuf JSON shape only" in result.reason
+    assert "business rules" in result.reason
+
+
+def test_live_authority_outranks_a_catalog_valid_mutate_shape() -> None:
+    transport = RecordingTransport()
+    result = GoogleAdsContract(transport=transport).validate(
+        {
+            "service": "GoogleAdsService",
+            "method": "Mutate",
+            "request": {
+                "mutateOperations": [{"campaignOperation": {"remove": "customers/1/campaigns/2"}}]
+            },
+        },
+        "v25",
+    )
+    assert result.code == "VALID"
+    assert result.authority == "LIVE"
+    assert len(transport.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "body,code,reason",
+    [
+        (
+            {"mutateOperations": cast(dict[str, Any], {})},
+            "INVALID",
+            "mutate_operations must be a repeated field",
+        ),
+        (
+            {"mutateOperations": [{"campaignOperation": "not-an-object"}]},
+            "INVALID",
+            "must be an object",
+        ),
+        (
+            {"mutateOperations": [{"campaignOperation": {"remove": {"id": "wrong"}}}]},
+            "INVALID",
+            "does not match protobuf JSON scalar string",
+        ),
+        (
+            {
+                "partialFailure": "false",
+                "mutateOperations": [{"campaignOperation": {"remove": "customers/1/campaigns/2"}}],
+            },
+            "INVALID",
+            "does not match protobuf JSON scalar bool",
+        ),
+        (
+            {"mutateOperations": [{"campaignOperation": {"create": {"name": 7}}}]},
+            "INVALID",
+            "does not match protobuf JSON scalar string",
+        ),
+        (
+            {"mutateOperations": [{"campaignOperation": {"create": {"status": True}}}]},
+            "INVALID",
+            "protobuf enum",
+        ),
+        (
+            {"mutateOperations": [{"notRealOperation": {"create": cast(dict[str, Any], {})}}]},
+            "UNKNOWN_PROVIDER_CONTRACT",
+            "not_real_operation is absent from the message catalog",
+        ),
+        (
+            {"mutateOperations": [{"campaignOperation": {"create": {"notARealField": "wrong"}}}]},
+            "UNKNOWN_PROVIDER_CONTRACT",
+            "not_a_real_field is absent from the message catalog",
+        ),
+        (
+            {"mutateOperations": [cast(dict[str, Any], {})]},
+            "UNKNOWN_PROVIDER_CONTRACT",
+            "has no catalog-provable operation shape",
+        ),
+        (
+            {
+                "mutateOperations": [
+                    {
+                        "campaignOperation": {"remove": "customers/1/campaigns/2"},
+                        "adGroupOperation": {"remove": "customers/1/adGroups/3"},
+                    }
+                ]
+            },
+            "UNKNOWN_PROVIDER_CONTRACT",
+            "selects 2 operation messages",
+        ),
+        (
+            {
+                "operations": cast(list[Any], []),
+                "mutateOperations": cast(list[Any], []),
+            },
+            "UNKNOWN_PROVIDER_CONTRACT",
+            "more than one spelling of mutate_operations",
+        ),
+    ],
+)
+def test_catalog_mutate_validation_fails_closed(
+    body: Mapping[str, Any], code: str, reason: str
+) -> None:
+    result = GoogleAdsContract().validate(
+        {"service": "GoogleAdsService", "method": "Mutate", "request": body}, "v25"
+    )
+    assert result.code == code
+    assert result.authority is None
+    assert reason in result.reason
+
+
+def test_an_unknown_field_is_still_refused_without_a_transport() -> None:
+    result = GoogleAdsContract().validate(
+        {
+            "service": "GoogleAdsService",
+            "method": "Search",
+            "query": "SELECT campaign.not_a_real_field FROM campaign",
+        },
+        "v25",
+    )
+    assert result.code == "INVALID"
+    assert result.authority is None
 
 
 @pytest.mark.parametrize(
@@ -127,6 +299,10 @@ def test_documented_replacement_is_attached_to_computed_diff() -> None:
     facts = {fact.subject: fact for fact in GoogleAdsContract().diff("v19", "v20").facts}
     assert facts[old].replacement == new
     assert facts[old].result == "VALID"
+    assert facts[old].change == "REMOVED"
+    assert facts[old].after is None
+    assert new in facts
+    assert facts[new].change == "ADDED"
 
 
 def test_catalog_and_diff_caches_are_isolated_from_callers() -> None:

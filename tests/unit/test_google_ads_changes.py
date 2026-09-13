@@ -38,7 +38,9 @@ def test_crosscheck_keeps_agreement_documentation_and_disagreement_distinct() ->
     ]:
         conflicting = CHANGES.compile_version("v25", [proto, {**field, "attributes": other}])[0]
         assert conflicting.resolution == "UNKNOWN_PROVIDER_CONTRACT"
-    assert CHANGES.compile_version("v25", [field])[0].resolution == "UNKNOWN_PROVIDER_CONTRACT"
+    documented_only = CHANGES.compile_version("v25", [field])[0]
+    assert (documented_only.resolution, documented_only.confidence) == ("RESOLVED", "DOCUMENTED")
+    assert CHANGES.compile_version("v25", [proto])[0].resolution == "UNKNOWN_PROVIDER_CONTRACT"
     documented = CHANGES.compile_version(
         "v25", [source("docs", "documented_claim", {"claim": "Removed"})]
     )[0]

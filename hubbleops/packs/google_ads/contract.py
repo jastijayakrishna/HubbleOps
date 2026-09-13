@@ -5,11 +5,11 @@ import re
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from hubbleops.core.canonical import blob_hash, content_id
 from hubbleops.core.errors import PackDataError
-from hubbleops.core.records import as_mapping, as_sequence, as_text
+from hubbleops.core.records import as_mapping, as_sequence, as_text, is_list, is_mapping
 from hubbleops.packs._protocol import (
     Catalog,
     CatalogFact,
@@ -24,6 +24,69 @@ from hubbleops.packs.google_ads.composition import compose
 
 FIELD = re.compile(r"\b(?:[a-z][a-z0-9_]*\.)+[a-z][a-z0-9_]*\b")
 SEARCH_METHODS = frozenset({"Search", "SearchStream"})
+GAQL_SHAPE = re.compile(r"(?is)\bSELECT\b.+\bFROM\s+[a-z][a-z0-9_]*")
+
+
+def _looks_like_gaql(request: Mapping[str, Any]) -> bool:
+    query = as_text(as_mapping(request.get("request")).get("query")) or as_text(
+        request.get("query")
+    )
+    return query is not None and GAQL_SHAPE.search(query) is not None
+
+
+GOOGLE_ADS_SERVICE = "GoogleAdsService"
+SINK_METHODS = {"search": "Search", "search_stream": "SearchStream", "mutate": "Mutate"}
+MUTATE_REQUEST = "services.google_ads_service.MutateGoogleAdsRequest"
+PROTO_SCALARS = frozenset(
+    {
+        "bool",
+        "bytes",
+        "double",
+        "fixed32",
+        "fixed64",
+        "float",
+        "int32",
+        "int64",
+        "sfixed32",
+        "sfixed64",
+        "sint32",
+        "sint64",
+        "string",
+        "uint32",
+        "uint64",
+    }
+)
+PROTO_BOOL = frozenset({"bool", "google.protobuf.BoolValue"})
+PROTO_STRING = frozenset(
+    {
+        "bytes",
+        "string",
+        "google.protobuf.BytesValue",
+        "google.protobuf.Duration",
+        "google.protobuf.FieldMask",
+        "google.protobuf.StringValue",
+        "google.protobuf.Timestamp",
+    }
+)
+PROTO_FLOAT = frozenset(
+    {"double", "float", "google.protobuf.DoubleValue", "google.protobuf.FloatValue"}
+)
+PROTO_SIGNED_32 = frozenset({"int32", "sfixed32", "sint32", "google.protobuf.Int32Value"})
+PROTO_SIGNED_64 = frozenset({"int64", "sfixed64", "sint64", "google.protobuf.Int64Value"})
+PROTO_UNSIGNED_32 = frozenset({"fixed32", "uint32", "google.protobuf.UInt32Value"})
+PROTO_UNSIGNED_64 = frozenset({"fixed64", "uint64", "google.protobuf.UInt64Value"})
+WELL_KNOWN_JSON_SCALARS: frozenset[str] = (
+    PROTO_BOOL
+    | PROTO_STRING
+    | PROTO_FLOAT
+    | PROTO_SIGNED_32
+    | PROTO_SIGNED_64
+    | PROTO_UNSIGNED_32
+    | PROTO_UNSIGNED_64
+) - PROTO_SCALARS
+WELL_KNOWN_JSON_ANY = frozenset({"google.protobuf.NullValue", "google.protobuf.Value"})
+WELL_KNOWN_JSON_OBJECTS = frozenset({"google.protobuf.Any", "google.protobuf.Struct"})
+WELL_KNOWN_JSON_ARRAYS = frozenset({"google.protobuf.ListValue"})
 
 
 class UnavailableTransport:
@@ -53,6 +116,34 @@ class GoogleAdsContract:
         self.transport = transport or UnavailableTransport()
         self._catalogs: dict[str, Catalog] = {}
         self._diffs: dict[str, ContractDiff] = {}
+        self._shape_indexes: dict[
+            str,
+            tuple[
+                frozenset[str],
+                frozenset[str],
+                dict[str, dict[str, CatalogFact]],
+            ],
+        ] = {}
+
+    def context_hash(self) -> str:
+        credentials = getattr(self.transport, "credentials", None)
+        authority = {
+            "customer_id": getattr(credentials, "customer_id", None),
+            "login_customer_id": getattr(credentials, "login_customer_id", None),
+        }
+        return content_id(
+            {
+                "authority": authority,
+                "available": self.transport.available,
+                "contract_implementation_sha256": blob_hash(Path(__file__).read_bytes()),
+                "transport": (
+                    f"{type(self.transport).__module__}.{type(self.transport).__qualname__}"
+                ),
+                "transport_implementation_sha256": blob_hash(
+                    Path(__file__).with_name("transport.py").read_bytes()
+                ),
+            }
+        )
 
     def catalog(self, version: str) -> Catalog:
         normalized = self._version(version)
@@ -143,14 +234,26 @@ class GoogleAdsContract:
         self._diffs[cache_key] = deepcopy(result)
         return result
 
+    def _target(self, request: Mapping[str, Any]) -> tuple[str | None, str | None]:
+        service = as_text(request.get("service"))
+        method = as_text(request.get("method"))
+        if service and method:
+            return service, method
+        sink = as_text(as_mapping(request.get("sink")).get("name"))
+        resolved = SINK_METHODS.get(sink.rsplit(".", 1)[-1]) if sink is not None else None
+        if resolved is None and _looks_like_gaql(request):
+            resolved = "Search"
+        if resolved is None:
+            return service, method
+        return service or GOOGLE_ADS_SERVICE, method or resolved
+
     def validate(self, request: Mapping[str, Any], version: str) -> ValidationResult:
         try:
             normalized = self._version(version)
             catalog = self.catalog(normalized)
         except PackDataError as error:
             return ValidationResult(code="UNKNOWN_PROVIDER_CONTRACT", reason=str(error))
-        service = as_text(request.get("service"))
-        method = as_text(request.get("method"))
+        service, method = self._target(request)
         body = dict(as_mapping(request.get("request")))
         body.pop("validateOnly", None)
         if service != "GoogleAdsService" or not method:
@@ -166,12 +269,15 @@ class GoogleAdsContract:
                     reason="Search validation requires a literal GAQL query",
                 )
             local = self._validate_fields(query, catalog)
-            if local is not None:
+            if local is not None and (local.code != "VALID" or not self.transport.available):
                 return local
             body["query"] = query
             body["validate_only"] = True
             method = "Search"
         elif method == "Mutate":
+            local = self._validate_mutate(body, catalog)
+            if local is not None and (local.code != "VALID" or not self.transport.available):
+                return local
             body["validate_only"] = True
         else:
             return ValidationResult(
@@ -195,7 +301,10 @@ class GoogleAdsContract:
         valid = response.get("valid")
         if valid is True:
             return ValidationResult(
-                code="VALID", reason="provider validation accepted", response=response
+                code="VALID",
+                reason="provider validation accepted",
+                response=response,
+                authority="LIVE",
             )
         if valid is False:
             provider_error = as_text(response.get("provider_error"))
@@ -228,7 +337,7 @@ class GoogleAdsContract:
                 left is not None
                 and right is not None
                 and left.attributes == right.attributes
-                and left.resolution == right.resolution == "RESOLVED"
+                and subject not in docs
             ):
                 continue
             documented = docs.get(subject, ())
@@ -284,13 +393,13 @@ class GoogleAdsContract:
         unquoted = re.sub(r"'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"", " ", query)
         fields = {match.group(0) for match in FIELD.finditer(unquoted)}
         available = {fact.subject: fact for fact in catalog.facts if fact.kind == "field"}
+        complete = any(
+            item.kind == "field_inventory" and item.attributes.get("complete") is True
+            for item in catalog.facts
+        )
         for field in sorted(fields):
             fact = available.get(field)
             if fact is None:
-                complete = any(
-                    item.kind == "field_inventory" and item.attributes.get("complete") is True
-                    for item in catalog.facts
-                )
                 return ValidationResult(
                     code="INVALID" if complete else "UNKNOWN_PROVIDER_CONTRACT",
                     reason=f"field {field} is absent from catalog",
@@ -300,7 +409,277 @@ class GoogleAdsContract:
                     code="UNKNOWN_PROVIDER_CONTRACT",
                     reason=f"field {field} has conflicting provider sources",
                 )
+        if not fields or not complete:
+            return None
+        return ValidationResult(
+            code="VALID",
+            reason=(
+                f"every field resolves against the complete {catalog.version} field inventory; "
+                "catalog authority does not cover selectability, filterability, segmentation or "
+                "resource pairing"
+            ),
+            authority="CATALOG",
+        )
+
+    def _validate_mutate(
+        self, body: Mapping[str, Any], catalog: Catalog
+    ) -> ValidationResult | None:
+        normalized, conflict = self._normalized_fields(body, {"operations": "mutate_operations"})
+        if conflict is not None:
+            return ValidationResult(code="UNKNOWN_PROVIDER_CONTRACT", reason=conflict)
+        operations = normalized.get("mutate_operations")
+        if operations is None or not is_list(operations) or not operations:
+            if operations is not None and not is_list(operations):
+                return ValidationResult(
+                    code="INVALID",
+                    reason="MutateGoogleAdsRequest.mutate_operations must be a repeated field",
+                )
+            return None
+        checked = self._validate_message(
+            body,
+            MUTATE_REQUEST,
+            catalog,
+            aliases={"operations": "mutate_operations"},
+            depth=0,
+        )
+        if checked is not None:
+            return checked
+        for number, operation in enumerate(operations, start=1):
+            if not is_mapping(operation) or not operation:
+                return ValidationResult(
+                    code="UNKNOWN_PROVIDER_CONTRACT",
+                    reason=f"mutate operation {number} has no catalog-provable operation shape",
+                )
+            selectors, selector_conflict = self._normalized_fields(as_mapping(operation), {})
+            if selector_conflict is not None:
+                return ValidationResult(code="UNKNOWN_PROVIDER_CONTRACT", reason=selector_conflict)
+            if len(selectors) != 1:
+                return ValidationResult(
+                    code="UNKNOWN_PROVIDER_CONTRACT",
+                    reason=(
+                        f"mutate operation {number} selects {len(selectors)} operation messages; "
+                        "the catalog does not encode oneof semantics"
+                    ),
+                )
+        return ValidationResult(
+            code="VALID",
+            reason=(
+                f"every supplied mutate field resolves through the {catalog.version} message and "
+                "proto-field catalog; catalog authority proves protobuf JSON shape only and does "
+                "not cover required fields, oneof semantics, resource constraints or provider "
+                "business rules"
+            ),
+            authority="CATALOG",
+        )
+
+    def _validate_message(
+        self,
+        value: Mapping[str, Any],
+        owner: str,
+        catalog: Catalog,
+        *,
+        aliases: Mapping[str, str],
+        depth: int,
+    ) -> ValidationResult | None:
+        if depth >= 64:
+            return ValidationResult(
+                code="UNKNOWN_PROVIDER_CONTRACT",
+                reason="mutate request exceeds the 64-message validation depth",
+            )
+        messages, enums, fields_by_owner = self._shape_index(catalog)
+        fields = fields_by_owner.get(owner)
+        if owner not in messages or fields is None:
+            return ValidationResult(
+                code="UNKNOWN_PROVIDER_CONTRACT",
+                reason=f"message {owner} is absent from the catalog",
+            )
+        normalized, conflict = self._normalized_fields(value, aliases)
+        if conflict is not None:
+            return ValidationResult(code="UNKNOWN_PROVIDER_CONTRACT", reason=conflict)
+        for name, field_value in sorted(normalized.items()):
+            fact = fields.get(name)
+            if fact is None:
+                return ValidationResult(
+                    code="UNKNOWN_PROVIDER_CONTRACT",
+                    reason=f"field {owner}.{name} is absent from the message catalog",
+                )
+            if fact.resolution != "RESOLVED":
+                return ValidationResult(
+                    code="UNKNOWN_PROVIDER_CONTRACT",
+                    reason=f"field {owner}.{name} has conflicting provider sources",
+                )
+            repeated = fact.attributes.get("repeated") is True
+            if repeated != is_list(field_value):
+                expected = "a repeated field" if repeated else "a singular field"
+                return ValidationResult(code="INVALID", reason=f"{owner}.{name} must be {expected}")
+            values = as_sequence(field_value) if repeated else (field_value,)
+            proto_type = as_text(fact.attributes.get("proto_type"))
+            if proto_type is None:
+                return ValidationResult(
+                    code="UNKNOWN_PROVIDER_CONTRACT",
+                    reason=f"field {owner}.{name} has no cataloged protobuf type",
+                )
+            for item in values:
+                result = self._validate_typed_value(
+                    item,
+                    proto_type,
+                    owner,
+                    catalog,
+                    enums,
+                    messages,
+                    depth + 1,
+                )
+                if result is not None:
+                    return result
         return None
+
+    def _validate_typed_value(
+        self,
+        value: Any,
+        proto_type: str,
+        owner: str,
+        catalog: Catalog,
+        enums: frozenset[str],
+        messages: frozenset[str],
+        depth: int,
+    ) -> ValidationResult | None:
+        normalized_type = proto_type.removeprefix(".")
+        if value is None:
+            return None
+        if normalized_type in WELL_KNOWN_JSON_ANY:
+            return None
+        if normalized_type in WELL_KNOWN_JSON_OBJECTS:
+            if not is_mapping(value):
+                return ValidationResult(
+                    code="INVALID", reason=f"protobuf message {normalized_type} must be an object"
+                )
+            return None
+        if normalized_type in WELL_KNOWN_JSON_ARRAYS:
+            if not is_list(value):
+                return ValidationResult(
+                    code="INVALID", reason=f"protobuf message {normalized_type} must be an array"
+                )
+            return None
+        if normalized_type in PROTO_SCALARS or normalized_type in WELL_KNOWN_JSON_SCALARS:
+            if not self._valid_scalar(normalized_type, value):
+                return ValidationResult(
+                    code="INVALID",
+                    reason=f"value does not match protobuf JSON scalar {normalized_type}",
+                )
+            return None
+        message = self._resolve_type(normalized_type, owner, messages)
+        if message is not None:
+            if not is_mapping(value):
+                return ValidationResult(
+                    code="INVALID", reason=f"protobuf message {message} must be an object"
+                )
+            return self._validate_message(
+                as_mapping(value), message, catalog, aliases={}, depth=depth
+            )
+        if self._resolve_type(normalized_type, owner, enums) is not None:
+            if not isinstance(value, str | int) or isinstance(value, bool):
+                return ValidationResult(
+                    code="INVALID", reason=f"protobuf enum {normalized_type} must be a scalar"
+                )
+            return None
+        return ValidationResult(
+            code="UNKNOWN_PROVIDER_CONTRACT",
+            reason=f"protobuf type {normalized_type} cannot be resolved from the catalog",
+        )
+
+    def _valid_scalar(self, proto_type: str, value: Any) -> bool:
+        if proto_type in PROTO_BOOL:
+            return isinstance(value, bool)
+        if proto_type in PROTO_STRING:
+            return isinstance(value, str)
+        if proto_type in PROTO_FLOAT:
+            return (isinstance(value, int | float) and not isinstance(value, bool)) or value in (
+                "NaN",
+                "Infinity",
+                "-Infinity",
+            )
+        if proto_type in PROTO_SIGNED_32:
+            return self._bounded_integer(value, -(2**31), 2**31 - 1)
+        if proto_type in PROTO_SIGNED_64:
+            return self._bounded_integer(value, -(2**63), 2**63 - 1)
+        if proto_type in PROTO_UNSIGNED_32:
+            return self._bounded_integer(value, 0, 2**32 - 1)
+        if proto_type in PROTO_UNSIGNED_64:
+            return self._bounded_integer(value, 0, 2**64 - 1)
+        return False
+
+    def _bounded_integer(self, value: Any, minimum: int, maximum: int) -> bool:
+        if isinstance(value, bool):
+            return False
+        if isinstance(value, int):
+            parsed = value
+        elif isinstance(value, str) and re.fullmatch(r"-?(?:0|[1-9][0-9]*)", value):
+            parsed = int(value)
+        else:
+            return False
+        return minimum <= parsed <= maximum
+
+    def _shape_index(
+        self, catalog: Catalog
+    ) -> tuple[
+        frozenset[str],
+        frozenset[str],
+        dict[str, dict[str, CatalogFact]],
+    ]:
+        cached = self._shape_indexes.get(catalog.sha256)
+        if cached is not None:
+            return cached
+        messages = frozenset(
+            fact.subject.removeprefix("message.")
+            for fact in catalog.facts
+            if fact.kind == "message"
+        )
+        enums = frozenset(
+            fact.subject.removeprefix("enum.") for fact in catalog.facts if fact.kind == "enum"
+        )
+        fields_by_owner: dict[str, dict[str, CatalogFact]] = {}
+        for fact in catalog.facts:
+            if fact.kind != "proto_field":
+                continue
+            owner, separator, name = fact.subject.removeprefix("proto_field.").rpartition(".")
+            if separator:
+                fields_by_owner.setdefault(owner, {})[name] = fact
+        result = messages, enums, fields_by_owner
+        self._shape_indexes[catalog.sha256] = result
+        return result
+
+    def _resolve_type(self, proto_type: str, owner: str, available: frozenset[str]) -> str | None:
+        type_path = proto_type.removeprefix("google.ads.googleads.VERSION.")
+        owner_module = owner.rsplit(".", 1)[0]
+        exact = f"{owner_module}.{type_path}"
+        if exact in available:
+            return exact
+        family, separator, remainder = type_path.partition(".")
+        candidates = sorted(
+            item
+            for item in available
+            if item.endswith(f".{type_path}")
+            or (separator and item.startswith(f"{family}.") and item.endswith(f".{remainder}"))
+            or (not separator and item.endswith(f".{type_path}"))
+        )
+        return candidates[0] if len(candidates) == 1 else None
+
+    def _normalized_fields(
+        self, value: Mapping[str, Any], aliases: Mapping[str, str]
+    ) -> tuple[dict[str, Any], str | None]:
+        result: dict[str, Any] = {}
+        for raw_name, field_value in cast(Mapping[object, Any], value).items():
+            if not isinstance(raw_name, str) or not raw_name:
+                return {}, "mutate request field names must be non-empty strings"
+            name = aliases.get(self._snake_case(raw_name), self._snake_case(raw_name))
+            if name in result:
+                return {}, f"mutate request supplies more than one spelling of {name}"
+            result[name] = field_value
+        return result, None
+
+    def _snake_case(self, value: str) -> str:
+        leading = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", value)
+        return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", leading).lower()
 
     def _documented_changes(self, catalog: Catalog) -> dict[str, tuple[CatalogFact, ...]]:
         result: dict[str, list[CatalogFact]] = {}
@@ -335,3 +714,33 @@ class GoogleAdsContract:
 
 
 CONTRACT = GoogleAdsContract()
+
+
+def query_resources(data_root: Path = DATA_ROOT) -> tuple[str, ...]:
+    resources: set[str] = set()
+    for path in sorted(data_root.glob("catalog_v*.jsonl")):
+        with path.open(encoding="utf-8") as handle:
+            for number, line in enumerate(handle, start=1):
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                record: object
+                try:
+                    record = json.loads(stripped)
+                except json.JSONDecodeError as error:
+                    raise PackDataError(
+                        f"{path.name}:{number} is not valid JSON: {error}"
+                    ) from error
+                fact = as_mapping(record)
+                if fact.get("kind") != "field":
+                    continue
+                subject = as_text(fact.get("subject"))
+                if not subject:
+                    raise PackDataError(f"{path.name}:{number} is a field fact without a subject")
+                resources.add(subject.split(".", 1)[0].lower())
+    if not resources:
+        raise PackDataError(
+            f"no field facts under {data_root}; the query-language resource set is derived from "
+            "the catalog and an empty set would silently disable resource classification"
+        )
+    return tuple(sorted(resources))
