@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ast
+import configparser
 import json
 import re
 import tomllib
@@ -43,6 +45,7 @@ EXACT_FILENAMES: dict[str, tuple[str, str]] = {
     "poetry.lock": ("python", LOCK),
     "pyproject.toml": ("python", MANIFEST),
     "setup.cfg": ("python", MANIFEST),
+    "setup.py": ("python", MANIFEST),
     "uv.lock": ("python", LOCK),
     "yarn.lock": ("javascript", LOCK),
 }
@@ -414,6 +417,8 @@ def _parse(path: str, ecosystem: str, source_kind: str, text: str) -> list[RawDe
         return _parse_pipfile(text)
     if filename == "setup.cfg":
         return _parse_setup_cfg(text)
+    if filename == "setup.py":
+        return _parse_setup_py(text)
     if ecosystem == "python" and lowered.endswith(".txt"):
         return _parse_requirements(text)
     if filename == "package.json":
@@ -608,23 +613,56 @@ def _parse_pipfile(text: str) -> list[RawDependency]:
 
 
 def _parse_setup_cfg(text: str) -> list[RawDependency]:
+    parser = configparser.ConfigParser(interpolation=None)
+    try:
+        parser.read_string(text)
+    except configparser.Error as error:
+        raise ManifestParseError(f"setup.cfg parse failure: {error}") from error
+    blocks: list[str] = []
+    if parser.has_option("options", "install_requires"):
+        blocks.append(parser.get("options", "install_requires"))
+    if parser.has_section("options.extras_require"):
+        blocks.extend(parser["options.extras_require"].values())
     found: list[RawDependency] = []
-    inside = False
-    for number, line in enumerate(text.splitlines(), start=1):
-        stripped = line.strip()
-        if stripped.startswith("[") and stripped.endswith("]"):
-            inside = False
-            continue
-        if stripped.startswith("install_requires"):
-            inside = True
-            continue
-        if inside and (not line.startswith((" ", "\t")) or not stripped):
-            inside = False
-            continue
-        if inside:
-            item = _requirement(stripped, number)
+    for block in blocks:
+        for line in block.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            item = _requirement(stripped, _line_of(text, stripped))
             if item is not None:
                 found.append(item)
+    return found
+
+
+def _parse_setup_py(text: str) -> list[RawDependency]:
+    try:
+        module = ast.parse(text)
+    except (SyntaxError, ValueError) as error:
+        raise ManifestParseError(f"setup.py parse failure: {error}") from error
+    found: list[RawDependency] = []
+    for node in ast.walk(module):
+        if not isinstance(node, ast.Call):
+            continue
+        for keyword in node.keywords:
+            if keyword.arg == "install_requires":
+                found.extend(_literal_requirements(keyword.value))
+            elif keyword.arg == "extras_require" and isinstance(keyword.value, ast.Dict):
+                for group in keyword.value.values:
+                    found.extend(_literal_requirements(group))
+    return found
+
+
+def _literal_requirements(node: ast.expr) -> list[RawDependency]:
+    if not isinstance(node, (ast.List, ast.Tuple)):
+        return []
+    found: list[RawDependency] = []
+    for element in node.elts:
+        if not isinstance(element, ast.Constant) or not isinstance(element.value, str):
+            continue
+        item = _requirement(element.value, element.lineno)
+        if item is not None:
+            found.append(item)
     return found
 
 

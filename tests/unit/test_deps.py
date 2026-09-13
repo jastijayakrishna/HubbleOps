@@ -250,3 +250,122 @@ def test_manifest_recognition_covers_every_declared_ecosystem() -> None:
     assert deps.is_manifest("requirements-dev.txt")
     assert deps.is_manifest("src/App.csproj")
     assert not deps.is_manifest("src/app.py")
+
+
+SETUP_PY_LITERAL = (
+    "from setuptools import setup\n"
+    "\n"
+    "setup(name='tap',\n"
+    "      version='2.1.0',\n"
+    "      install_requires=[\n"
+    "          'requests==2.34.2',\n"
+    "          'probe-sdk==30.1.0',\n"
+    "          'backoff>=2; python_version < \"3.8\"',\n"
+    "      ],\n"
+    "      extras_require={'dev': ['pylint']},\n"
+    "      packages=['tap'])\n"
+)
+
+
+def test_setup_py_install_requires_literal_list_binds_the_pin(tmp_path: Path) -> None:
+    closure = write(tmp_path, {"setup.py": SETUP_PY_LITERAL})
+    resolution = deps.resolve(closure)
+
+    assert [(item.ecosystem, item.source_kind, item.error) for item in resolution.files] == [
+        ("python", "manifest", None)
+    ]
+    assert {item.name: item.version for item in resolution.dependencies} == {
+        "backoff": None,
+        "probe-sdk": "30.1.0",
+        "pylint": None,
+        "requests": "2.34.2",
+    }
+    pinned = next(item for item in resolution.dependencies if item.name == "probe-sdk")
+    assert pinned.line == 7
+
+    matched = [record for record in claims(closure) if record["provider_subject"] == "probe-sdk"]
+    assert [(record["path"], record["line_start"], record["confidence"]) for record in matched] == [
+        ("setup.py", 7, "DOCUMENTED")
+    ]
+    assert matched[0]["value"]["state"] == "PRESENT"
+    assert matched[0]["value"]["version"] == "30.1.0"
+
+
+def test_setup_py_with_a_computed_install_requires_yields_nothing_and_no_error(
+    tmp_path: Path,
+) -> None:
+    closure = write(
+        tmp_path,
+        {
+            "setup.py": (
+                "from setuptools import setup\n"
+                "\n"
+                "def read_reqs():\n"
+                "    return ['probe-sdk==30.1.0']\n"
+                "\n"
+                "setup(name='tap', install_requires=read_reqs(), extras_require=dict(dev=[]))\n"
+            )
+        },
+    )
+    resolution = deps.resolve(closure)
+
+    assert [item.error for item in resolution.files] == [None]
+    assert resolution.dependencies == ()
+    assert {record["value"]["state"] for record in claims(closure)} == {"UNRESOLVED_ECOSYSTEM"}
+
+
+def test_setup_py_is_parsed_never_executed(tmp_path: Path) -> None:
+    marker = tmp_path / "executed.txt"
+    closure = write(
+        tmp_path,
+        {
+            "setup.py": (
+                "from pathlib import Path\n"
+                f"Path({str(marker)!r}).write_text('ran')\n"
+                "from setuptools import setup\n"
+                "setup(name='tap', install_requires=['probe-sdk==30.1.0'])\n"
+            )
+        },
+    )
+
+    found = {item.name: item.version for item in deps.resolve(closure).dependencies}
+
+    assert found == {"probe-sdk": "30.1.0"}
+    assert not marker.exists()
+
+
+def test_setup_py_that_does_not_parse_is_recorded_not_dropped(tmp_path: Path) -> None:
+    closure = write(tmp_path, {"setup.py": "setup(name='tap', install_requires=[\n"})
+    resolution = deps.resolve(closure)
+
+    assert resolution.dependencies == ()
+    assert "parse failure" in (resolution.files[0].error or "")
+    assert claims(closure)[0]["value"]["state"] == "UNPARSABLE"
+
+
+def test_setup_cfg_install_requires_on_one_line_and_on_many(tmp_path: Path) -> None:
+    multi = resolved(
+        tmp_path / "a",
+        {
+            "setup.cfg": (
+                "[metadata]\nname = tap\n\n[options]\ninstall_requires =\n"
+                "    probe-sdk==30.1.0\n"
+                '    requests>=2; python_version < "3.8"\n'
+                "\n[options.extras_require]\ndev =\n    pylint\n"
+            )
+        },
+    )
+    assert multi == {"probe-sdk": "30.1.0", "pylint": None, "requests": None}
+
+    single = resolved(
+        tmp_path / "b", {"setup.cfg": "[options]\ninstall_requires = probe-sdk==30.1.0\n"}
+    )
+    assert single == {"probe-sdk": "30.1.0"}
+
+
+def test_setup_cfg_that_does_not_parse_is_recorded_not_dropped(tmp_path: Path) -> None:
+    closure = write(tmp_path, {"setup.cfg": "install_requires = probe-sdk==30.1.0\n"})
+    resolution = deps.resolve(closure)
+
+    assert resolution.dependencies == ()
+    assert "parse failure" in (resolution.files[0].error or "")
