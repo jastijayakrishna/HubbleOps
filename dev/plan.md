@@ -1037,3 +1037,311 @@ occurrences), fixed in the two test files only and rerun: `test_ship_path.py` 1 
 32 · 0, GLNA 1143 · 259 · 218 · 333 · 0; `uv run pyright hubbleops tests` 0 errors; `ruff check`
 and `ruff format --check` clean over 219 files; `hops pack verify google_ads` OK, lattice
 unchanged.
+
+## PART ELEVEN — the resolver asks the wrong question (2026-09-13, supersedes PART TEN's order)
+
+### What the three repositories say, measured
+
+Every UNKNOWN on every repository was classified against the pack's own catalogs
+(`catalog_v19 … v25.jsonl`) with one script, no tuning:
+
+| Repository | UNKNOWN | decidable today from the lattice alone | what is left |
+|---|---|---|---|
+| tap-google-ads `5b6a201` | 479 | 225 GAQL field lines whose field is identical in every lattice version · 211 provider identifiers/config keys that carry no version · 1 dependency state (setup.py not read) | 26 non-request skeleton junk · 16 anchors absent from every catalog |
+| google-listings-and-ads `b43b322` | 333 | 272 surface identifiers · 31 package names · 13 stable fields | 10 contract surfaces · 4 absent anchors · 3 versioned call sites |
+| dub `b8866f4` | 32 | 17 surface identifiers · 2 config keys | 11 contract surfaces · 2 request/call sites |
+
+### The root cause, in one sentence
+
+Every claim handler in `observe/resolver.py` answers "which version runs at this site?", and
+returns UNKNOWN when no version is visible; the migration question is "does any version in this
+pack's lattice change this subject?", which the pack can answer for 90% of those sites without
+knowing the site's version at all. A field that exists with the same shape in v19 … v25 cannot
+be affected by any migration this pack can perform; an SDK class name, package name, host or
+credential key carries no version and no change set names it. Calling these UNKNOWN is not
+conservatism, it is a wrong claim table, and it is why every repository reads 30–75% UNKNOWN.
+
+Three smaller defects compound it, all found by the same run (FA-069 … FA-074):
+`change_sets_for` swallows a diff the pack cannot compose (`except Exception: continue`), so a
+version below the lattice floor (v9) yields no obligation at all; the audit's `absent:` check
+counts a CHANGELOG line; the consumer check flags any leaf name a removed subject shares.
+
+### The mechanism (generic; pack data in, no provider names in generic code)
+
+- **Lattice stability, computed once per scan by `app/stability.py` from the injected pack:**
+  for every catalog subject, `STABLE` when present in every lattice version with equal breaking
+  attributes (kind, data type, selectable/filterable, category), `CHANGES_AT:<versions>` when
+  it appears, disappears or changes at some boundary, `UNDECIDED` when any version records it
+  `UNKNOWN_PROVIDER_CONTRACT`. Surface identifiers (identifiers, hosts, package names, config
+  keys that are not version carriers) are `STABLE` unless a documented-change or diff subject
+  names them. Passed into `ResolutionContext.stability`; the ledger and ProofScope stay
+  target-free because the lattice is already in the changes hash.
+- **Disposition rule, applied only when a handler returns UNKNOWN:** every subject the claim
+  names is `STABLE` → `NOT_AFFECTED_WITH_EVIDENCE`, reason "carries no version and is stable
+  across v19…v25; no migration inside this pack's lattice changes it" (request anchors, surface
+  references, package references, non-carrier config keys, contract surfaces that map to a
+  catalog subject). Any subject `CHANGES_AT` → stays UNKNOWN with the closing instruction naming
+  the boundary version, which is the honest residue. `ABSENT`/`UNDECIDED` → unchanged. Version
+  carriers, call sites, holes, dependency state and generic sinks are untouched.
+- **Below the floor:** a version the pack cannot compose a diff from is recorded, never skipped;
+  the engine emits a HUMAN obligation ("v9 is below this pack's lattice floor; migrate by hand
+  or delete") so AFFECTED never has zero obligations and the map's Required changes names it.
+- **Audit absence by role;** consumer check binds a leaf to its parent name in the same file
+  (P-027 minimal); suite layout honours declared `testpaths`.
+- **Closure:** GENERATED directories are enumerated and classified, `.git` is excluded as file
+  or directory; `setup.py`/`setup.cfg` `install_requires` are manifests.
+
+Expected on the ground truth, stated before the change: tap-google-ads UNKNOWN 479 → ≈ 42,
+GLNA 333 → ≈ 17, Dub 32 → ≈ 13; AFFECTED unchanged on all three; 0 unexplained; every frozen
+baseline id present with a permitted status (NOT_AFFECTED_WITH_EVIDENCE is permitted for
+surface_reference). Verify on tap-google-ads: audit and consumer conjuncts no longer fail on
+noise; the true reason (v9 spikes) becomes a HUMAN obligation.
+
+### Ordered work (disjoint ownership; coordinator wires `app/cli.py` and runs the suite once)
+
+- **R1** `app/stability.py` + `resolver.py` disposition + `ledger.py` context; tests.
+- **R2** `migration.py` fail-closed composition + engine HUMAN obligation below floor +
+  satisfied-obligation accounting in migrate; tests.
+- **R3** closure GENERATED enumeration and `.git` file; deps `setup.py`/`setup.cfg`; tests.
+- **R4** audit absence by role; consumer leaf binding; runners `testpaths`; tests.
+- **R5** full suite, three repositories before/after, three byte-identical scans, revert checks,
+  atlas rows closed, context/tasks.
+
+### RESULT — integrated and frozen as `engine-v0` (2026-09-13)
+
+Done, with the measured numbers in `dev/context.md`. The forecast above was optimistic on two of
+three: tap-google-ads 479 → **91** (not ≈42), GLNA 333 → **94** (not ≈17), Dub 32 → **15** (≈13).
+The gap is honest residue the forecast did not price — `segments.device` changes at v20, so every
+anchor naming it keeps its UNKNOWN and gains the boundary in its closing instruction, which is the
+rule working, not failing. AFFECTED is unchanged on all three and every baseline AFFECTED id
+survives; 0 unexplained everywhere; `test_real_repo_conservation` green with both checkouts.
+tap-google-ads gains one AFFECTED — the `google-ads==30.1.0` pin in `setup.py`, invisible before.
+On verify the audit residue is `none` and the consumer check **PASSes**; the v9 spikes are 27 HUMAN
+obligations and the verdict is FAILED on them, on their falsifier, and on the frozen baseline
+(FA-073, which needs CI configuration read and is still open).
+
+## PART TEN — Tier 3c: AI with attestation, sunset calendar, Sentinel in one line (2026-09-13)
+
+### Outcome
+
+AI contributes only where a mechanical judge decides; every AI artefact is attested inside the
+proof with no schema change; a connected repository learns about a new Google Ads version the
+day the pack that carries it ships; production evidence is one command away. Default-off stays
+the shipped default. Nothing in this part touches `verify/verdict.py`, `core/schemas/`, or the
+ProviderPack protocol.
+
+### Tree state before this part
+
+Uncommitted from the Phase 6 gate blocker (1), not Tier 3c work, kept as is:
+`hubbleops/proof/memory.py` (prepare-pr refuses a Receipt whose ProofScope `repo_sha` is not the
+audit's `candidate_sha`) and its test in `tests/integration/test_phase5_verify.py`. The
+ground-truth checkouts were absent from `C:\dev\HubbleOps` after the move off OneDrive; both
+were re-cloned at their pinned SHAs (`b43b322771071ed88d5a817422dd222acbaa5f33`,
+`b8866f413cec065438d6e5faabbd9dac7d1ceea5`) under `.hubbleops/artifacts/phase7-real-repos/`.
+`scip-typescript` is not on PATH on this machine; PHP and composer do not exist; node, pnpm and
+rootless podman do.
+
+### Ground truth before any change (quiet tree, no indexer on PATH)
+
+The default state file `.hubbleops/hubbleops.sqlite` (2026-09-09) is store schema v1 and this
+build refuses it (`STORE_SCHEMA_MISMATCH`); it is run output, left in place, and every
+measurement below uses a fresh `--state-dir` in the session scratchpad.
+
+```
+uv run hops scan .hubbleops/artifacts/phase7-real-repos/dub --pack google_ads --state-dir <scratch>/state --export <scratch>/before/dub.json
+real 2m10.650s   Candidates found 327 · UNKNOWN 32 · Unexplained 0
+counts: affected 4 · not_affected_with_evidence 73 · unknown 32 · unsupported 207 · unscanned 8 · excluded_with_evidence 3 · unexplained 0
+uv run hops scan .hubbleops/artifacts/phase7-real-repos/google-listings-and-ads --pack google_ads --state-dir <scratch>/state --export <scratch>/before/google-listings-and-ads.json
+real 1m14.219s   Candidates found 1143 · UNKNOWN 333 · Unexplained 0
+counts: affected 259 · not_affected_with_evidence 218 · unknown 333 · unsupported 306 · unscanned 26 · excluded_with_evidence 1 · unexplained 0
+php recall-only: precise indexing needs PHP 8.1+, composer and the repository's composer install (scip-php)
+```
+
+Identical to the Tier 3b baseline (Dub 327 · 4 · 73 · 32 · 0; GLNA 1143 · 259 · 218 · 333 · 0).
+Neither run has a dynamic or sentinel observer in its ProofScope, so there are zero
+`UNKNOWN_DYNAMIC` sites today; DoD 4's closing is measured against a capture run, not these
+scans.
+
+```
+uv run hops impact .hubbleops/artifacts/phase7-real-repos/google-listings-and-ads --pack google_ads --target v25
+  deterministic 259 · human 0 · preserve_unknown 665 · unresolved version 0 · affected paths 39
+uv run hops impact .hubbleops/artifacts/phase7-real-repos/dub --pack google_ads --target v25
+  deterministic 2 · human 0 · preserve_unknown 247 · unresolved version 0 · affected paths 2
+```
+
+The obligation engine classes **zero** obligations HUMAN on either repository. The one item
+`hops migrate` leaves for a human on GLNA (the `dev-legacy-v32.1.0` composer pin) is a
+DETERMINISTIC obligation whose transform refused its precondition, not a HUMAN class. So use
+(a)'s input is defined as *what `hops migrate` leaves undone*: HUMAN-class obligations plus
+DETERMINISTIC obligations whose transform refused, each with the refusal reason as input.
+Measured on this ground truth the producer has exactly one input, and its judge is
+`TOOLING_MISSING` here; the count is stated as such, never padded.
+
+### DoD 1 — the attestation record (P-009, no schema change)
+
+One AI artefact is one Evidence record. `derivation` is `DERIVED_AI_EVIDENCE`, `confidence` is
+`INFERRED`, `claim_type` is `ai_attestation`, `observer` is `structure` (the reading `ai_triage`
+already uses: §6.4 places the AI residue filter inside Observer C; the closed observer set is
+frozen and gains nothing). `path`/`source_hash` name the first input file, as today. The record
+is written once, after the judge has run, and is never mutated. `value` carries:
+
+```
+value:
+  attestation:
+    version: 1
+    use: repair_draft | rule_draft | mapping_proposal | evidence_recipe
+    model_requested: <configured model id>
+    model_id: <exact id the provider returned for this completion>
+    prompt_template_id: <use>@<n>
+    prompt_template_hash: sha256 of the template bytes shipped in hubbleops/ai/prompts/
+    prompt_hash: sha256 of the rendered prompt
+    input_hashes: {label: sha256}      sorted; obligation/candidate/row id, file blobs,
+                                       change-set hash, catalog hashes the judge will read
+    output_hash: sha256 of the canonical model output
+    judge:
+      kind: repair_judge@1 | rule_judge@1 | mapping_judge@1 | recipe_judge@1
+      outcome: ACCEPTED | REJECTED | UNJUDGED
+      reasons: [sorted strings]
+      evidence_ids: [ids of the deterministic records the judge produced or consumed]
+  subject: {use-specific ids: obligation_id, candidate_id, row_id}
+```
+
+Not carried: the prompt text and, for REJECTED, the output bytes (hash only; the draft is
+discarded). ACCEPTED output lives where its judge put it (the tree, `.hubbleops/surface.yml`,
+the pack's decided-mappings file, the run's artifacts) and the ledger binds it by hash.
+
+Enforced mechanically, each with a test that fails when reverted:
+- **E1** `derivation == DERIVED_AI_EVIDENCE` ⇔ `value.attestation` present and valid. The store
+  refuses an attestation under any other derivation (a downgrade to OBSERVED) and an AI
+  derivation without one (unattested). Shape validation lives in `hubbleops/ai/attest.py`, not
+  in `core/schemas/`.
+- **E2** an attestation whose `judge.outcome` is not ACCEPTED appears in no obligation's and no
+  candidate's `evidence_ids`; an ACCEPTED one appears only next to the judge's own
+  deterministic records, so L10's existing "AI alone never closes" check keeps its meaning.
+- **E3** the resolver has no claim-table row for `ai_attestation`; an attestation never
+  participates in status resolution. `ai_triage` moves onto the same attestation path.
+- **E4** import direction: `hubbleops/ai/` imports `core/` only and no pack; `verify/`,
+  `observe/`, `obligations/`, `proof/`, `store/` never import `hubbleops.ai`; only `app/`
+  constructs a model client, and only under an explicit `--ai` flag. `tests/unit/test_imports.py`
+  and `test_no_provider_leak.py` cover the new layer.
+- **E5** `hops scan` and `hops verify` cannot reach the client: neither code path imports it, and
+  the ship-path test asserts no network from either verb.
+- **E6** the Receipt is untouched (its schema is closed and frozen). "Attested in the proof"
+  means: the ledger the ProofScope binds carries the records, and an obligation an ACCEPTED
+  draft discharged lists the attestation id in its `evidence_ids`, which the Receipt's
+  obligations section already prints. `hops migrate` output lists every draft with its outcome
+  and attestation id.
+
+What this does and does not do against P-009. It makes every AI record self-describing and
+store-checkable, and puts the only client behind one module and one flag. It does not
+cryptographically stop an in-process caller from relabelling model output as OBSERVED; that
+part of P-009 (producer signing, a key boundary) stays OPEN and is not needed for DoD 1.
+P-009 is updated to record this subset as the accepted design once the owner says yes.
+
+**STOP here.** No AI call path exists until the owner answers Q32 below. Everything after this
+point in the plan is contingent on that yes.
+
+### DoD 2 — the four uses, each with its judge (contingent on Q32)
+
+| Use | Verb | Producer input | Judge (deterministic; the only thing that can say ACCEPTED) |
+|---|---|---|---|
+| (a) repair draft for a HUMAN obligation | `hops migrate --ai` | obligation record, the bytes of its edit-site files, the change set | `repair_judge@1`: draft applied on top of the deterministic migration in a worktree; refused before judging if any hunk lies outside the obligation's paths (diff containment, §9.C); then the obligation's `required_state` holds, every request skeleton in the touched files passes the injected oracle, the frozen base-SHA suite runs and passes, the pack falsifiers pass. Any stage unresolved (`TOOLING_MISSING`, `ORACLE_UNAVAILABLE`) → UNJUDGED, never applied |
+| (b) rule + fixture draft for a NEW_PATTERN UNKNOWN | `hops draft-rule <candidate_id> --ai` | the candidate, ≤2 files of context, the pack's rule format | `rule_judge@1`: the drafted ast-grep rule parses, matches the UNKNOWN site, matches every must-match and no must-not-match snippet the draft itself supplies, and re-scanning both frozen baselines with the rule active moves no AFFECTED candidate and closes nothing (a rule may only add evidence). ACCEPTED → `.hubbleops/surface.yml` entry `state: drafted` with the attestation id; a human promotes it. The red-team subagent attacks every drafted rule before a human sees it |
+| (c) mapping proposal for an ambiguous release-notes row | `hops pack propose-mappings --ai` | the row's cells, the before/after catalog subject lists | `mapping_judge@1`: the proposed `change_subject` exists in the source catalog and the proposed `replacement` in the target catalog and they differ. ACCEPTED means well-formed, never true: `hops decide --pack-row <row_id> --replacement <subject> --by <who>` is the only thing that records the mapping, in pack data with the attestation id, changing the lattice hash |
+| (d) the test or capture that would produce an UNKNOWN's missing evidence | `hops recipe <unknown_id> --ai` | the candidate, its closing instruction, ≤2 files | `recipe_judge@1`: the recipe names the candidate's file and site, parses in the repository's language, and when the capture toolchain for that language exists here it runs under `hops capture` and must produce evidence that maps to the candidate; otherwise UNJUDGED. The recipe never decides; the capture it describes does |
+
+The 22 ambiguous rows are today only a count (`migration_table_changes` increments
+`unresolved`). They gain identity first: the refresh emits `documented_change` records with
+`change_kind: UNRESOLVED` carrying the cells and the digest, re-normalised offline from the
+snapshotted raw pages, so the lattice hash moves once and `hops pack verify` still passes.
+
+Measured and pasted: on `google-listings-and-ads`, how many HUMAN obligations the judges
+accepted from AI drafts and how many they rejected or could not judge. Prediction, stated now
+so it cannot be tuned later: the frozen suite there is `TOOLING_MISSING` (no PHP), so every
+repair draft is UNJUDGED and zero are applied; the value shown is that the product says so.
+
+Prompt templates (open middle, decided): plain text under `hubbleops/ai/prompts/`, generic,
+provider names arrive through slots filled from pack data; hashed into the attestation.
+Client (open middle, for Q32): a `Model` protocol with one method; the real one behind the
+optional extra `hubbleops[ai]`, key from the environment only, default model id pinned in
+`hubbleops/ai/client.py`, never chosen at run time.
+
+### DoD 3 — sunset calendar and the scheduled impact
+
+- The schedule is already carried as facts: `compatibility_vNN.jsonl` holds `sunset_at` per
+  version with the sunset page's URL and digest, and `lattice.json` mirrors it. A test asserts
+  the two agree for every version (a lattice date without a sourced fact fails `pack verify`).
+- The map's sunset block gains days-to-sunset. The date is an explicit input, never the clock:
+  `hops exposure --as-of YYYY-MM-DD` (default today, printed on the map's first line), so the
+  ledger and ProofScope stay date-free and byte-identical scans stay byte-identical.
+- `hops impact --release <vNN | latest>`: the release is a lattice version; an id the pack does
+  not carry fails closed ("this pack does not carry v26; a newer hubbleops carries it"). The
+  report gains a RELEASE block (release id, released_at, every effective version's sunset and
+  days left as of `--as-of`) and `--sunset-within DAYS` makes the exit code non-zero when an
+  effective version is inside the window or already past it, so a scheduled job turns red.
+- `hops impact --install-workflow` writes `.github/workflows/hubbleops-impact.yml`: `schedule`
+  daily plus `workflow_dispatch`, `contents: read`, runs `hops impact . --pack <p> --release
+  latest --sunset-within 90` and uploads the report. Cadence (open middle, decided): daily; the
+  run costs about two minutes and a version lands at most once a month. The Action installs
+  `hubbleops` with a floor and no ceiling inside the current major, because a pinned version
+  carries a pinned lattice and would never learn a new release; every report names the
+  hubbleops version and lattice hash it was produced by, so it is scoped, not floating.
+
+### DoD 4 — Sentinel in one line
+
+- Proxy mode gains a plain-text input: any log stream whose lines carry a request target the
+  pack's wire signature parses (`Method: /google.ads.googleads.vNN.services.X/Y` as every
+  official client library logs it, or a versioned REST URL). The timestamp is read from the
+  line; a line without one is an issue `TIMESTAMP_MISSING` in the manifest and no event, so the
+  customer sees exactly what to fix. NDJSON input keeps working unchanged.
+- One command: `uv tool install hubbleops-sentinel` (or pipx). One config line: the client
+  library's own request logging pointed at a file; `hubbleops-sentinel --help` prints the line
+  per language. Then `hubbleops-sentinel proxy --input <log> --output events.jsonl`.
+- `hops promote --from-sentinel <capture_run>`: an UNKNOWN_DYNAMIC site whose (service, method,
+  version) the stream observed, and which no other static site claims, gains a
+  `production_binding` in `.hubbleops/bindings.json` (run id, evidence ids, event key) and
+  resolves in one hop on the next scan; an ambiguous key stays UNKNOWN with the competing sites
+  named in the closing instruction. A stream carries no stack, so it promotes bindings, never
+  wrapper rules.
+- Proof on a ground-truth test suite: attempt Dub (node and pnpm exist) with its Google Ads
+  calls logged; if its suite cannot run here without services it needs, the blocker is pasted
+  and the proof runs on the fixture suite instead, said plainly as not the ground truth.
+
+### Ordered work (each item lands with a test that fails when its mechanism is reverted)
+
+- **C0** `hubbleops/ai/attest.py` (build + validate), store guards E1/E2, `ai_triage` on the
+  attestation path, layer rules E4/E5, unit + property tests. No client. This is DoD 1 and
+  lands before the STOP is lifted, since it contains no call path.
+- **C1** the 22 rows gain identity (`UNRESOLVED` records, offline re-normalisation); `hops
+  decide --pack-row`; lattice re-hashed; `pack verify` green.
+- **C2** sunset: lattice/fact consistency test, `--as-of`, days-to-sunset, `hops impact
+  --release/--sunset-within/--install-workflow`.
+- **C3** sentinel log-line proxy input + help text + `hops promote --from-sentinel`; fixture
+  suite proof; Dub attempt.
+- **C4** (after Q32 = yes) `hubbleops/ai/client.py` + prompts + the four producers and judges,
+  each verb default-off behind `--ai`.
+- **C5** measurement on both repositories (before/after counts, three byte-identical scans,
+  revert check per mechanism), red team with three new corruptions on the AI path (forged
+  attestation under OBSERVED; an ACCEPTED outcome written without the judge's evidence ids; a
+  draft that edits a frozen test to make the suite pass), spec audit, atlas rows, `dev/context.md`
+  and `dev/tasks.md`.
+
+Subagent ownership (disjoint): C0 → `hubbleops/ai/attest.py`, `hubbleops/store/sqlite.py`,
+`hubbleops/observe/ai_triage.py`, `tests/unit/test_attestation.py`, `tests/support.py`;
+C1 → `hubbleops/packs/google_ads/refresh.py`, `changes.py`, `hubbleops/app/decision.py`, their
+tests; C2 → `hubbleops/app/impact.py`, `exposure.py`, `proof/impact_workflow.py`, their tests;
+C3 → `packages/hubbleops-sentinel/**`, `hubbleops/app/promotion.py`, their tests. `app/cli.py`
+is coordinator-only. The coordinator integrates and runs the suite once on the final bytes.
+
+### OPEN QUESTIONS
+
+- **Q32 (the STOP required by DoD 1).** May an AI call path exist in this tree at all, and if
+  yes: the `anthropic` SDK as the optional extra `hubbleops[ai]` with a pinned default model id,
+  or a different client? Two readings produce materially different work: "no" ends Tier 3c at
+  C0–C3 with the four verbs absent; "yes" adds C4 and the measured acceptance counts. Nothing in
+  C4 is written before this answer.
+
+Decisions taken rather than asked (override in the answer if wrong): confirmed mappings live in
+pack data, not the repository's `decisions.yml`, because a provider fact applies to every
+repository and must move the lattice hash; rejected drafts survive only as a hash; the scheduled
+Action floats within the major so it can learn a release; the sunset date is an explicit input.

@@ -54,3 +54,19 @@ Distribution and import name `hubbleops`; sensor package `hubbleops-sentinel`. C
 
 ## Repo map
 app/ (pack registry + cli)  core/  closure/  observe/  graph/  obligations/  sandbox/  repair/  verify/  proof/  store/  packs/{_protocol.py,_mock,google_ads}  packages/hubbleops-sentinel/  tests/{unit,property,fixtures,adversarial,integration}  docs/  dev/
+
+## How every session runs
+- One brief: goal, constraints, acceptance. Auto mode, no plan mode. Ambiguity that changes the work: stop, one line.
+- Subagents own disjoint files in worktrees; the coordinator integrates and runs the suite once on a quiet tree.
+- No claim without the pasted command and output. Generators never grade their own work; a separate check or agent does.
+- Every correction made in chat becomes a rule here before the session ends.
+- Planes, never mixed: SCAN (no network, no credentials) · WORK (sandbox, allow-listed network, scoped credentials, agents allowed) · VERIFY (own image, controlled inputs, no agent authority). Only verify/ writes VERIFIED_FOR_SCOPE.
+- Evidence classes: a tool result the harness executed = DERIVED_DETERMINISTIC; a live provider result with request hash, account, API version and timestamp = provider evidence at LIVE authority, scoped to the operation tested; anything a model or provider specialist says or writes = DERIVED_AI_EVIDENCE, attested, never closes an UNKNOWN alone.
+- Provider-native specialists (Google Ads MCP server, Developer Assistant plugin) are pinned repair_tools in the WORK plane with validation-only credentials by default; they never touch the ledger, the store, or verifier inputs.
+- Agents get better by the loop, not by the spec: run the corpus, read the failures, change one tool or one instruction, rerun, paste the delta. One change per commit, delta in the message.
+- Unknown reduction is a diagnostic, never an acceptance criterion. The acceptance criterion is complete, correct handling of unfamiliar eligible repositories with bounded human effort, measured on labeled families the engine was never tuned on.
+
+## Engine baseline
+- `engine-v0` is the frozen engine; its scope is `dev/engine-v0.json` (tag, tree, lattice, tool hashes, `uv.lock`, verifier image, Python, harness commands). A change that could move a real-repo count is measured `engine-v0` → new on Dub, GLNA and tap-google-ads before it is believed, and every baseline AFFECTED must survive.
+- A scan runs on a quiet tree. Never scan a tree a build, install or generator is writing into: once the closure's evidence set and the searcher's set describe different trees, every count is a count of two trees, and stopping is the only correct answer.
+- A test that asserts a candidate's *status* is asserting a claim table, which is allowed to change. Assert the law the test guards — no adjudication record, no borrowed version, the fail-closed candidate still present — and name what moved the candidate. Never relax a resolver to keep a status assertion alive.

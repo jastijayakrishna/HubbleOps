@@ -10,7 +10,79 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Current phase** | Compressed Tiers 0-2 are implemented through Phase 7 on top of an unmerged Phase 5. Phase 4 is merged to `main` and tagged `v0.4` |
 | **Branch** | `phase-06-repository-intelligence`, cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
+| **Engine baseline** | `engine-v0`, frozen 2026-09-13. Its scope is `dev/engine-v0.json`: lattice `4555e93f…`, ripgrep and ast-grep sha256, `uv.lock` hash, verifier image, Python 3.12.14, and the exact harness commands. Any change that moves a real-repo count is measured `engine-v0` → new before it is believed |
 | **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) awaits the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
+
+**ENGINE v0 — PART ELEVEN integrated and frozen (2026-09-13), tags `engine-v0-pre` … `engine-v0`.**
+The four PART ELEVEN mechanisms were wired into their consumers and the result tagged. `engine-v0-pre`
+is `e5e1237`, the tree before any of it. Eleven commits, one per mechanism. The seams that were
+missing: `observe/text.py` now takes `closure.search_exclusion_globs()` and passes the globs to
+ripgrep unmodified; `verify/suites.py` records `runners.execution_failure(...)` as the
+EXECUTION_FAILED reason; `app/exposure.py` consumes `migration.Composition` and passes
+`uncomposable` into `ObligationInputs`; and `detected_versions` draws only from claims that name a
+version the provider runs, so a `google-ads==30.1.0` pin never reaches version composition — the
+distinction is the claim type (`dependency_state`, `sdk_installed`), never a version-string pattern.
+
+Measured on three real repositories, same SHAs, same machine, `engine-v0-pre` → `engine-v0`
+(candidates · AFFECTED · NOT_AFFECTED · UNKNOWN · unexplained):
+
+| Repository | before | after |
+|---|---|---|
+| `dubinc/dub` `b8866f4` | 327 · 4 · 73 · 32 · 0 | 327 · 4 · 90 · 15 · 0 |
+| `woocommerce/google-listings-and-ads` `b43b322` | 1143 · 259 · 218 · 333 · 0 | 1143 · 259 · 457 · 94 · 0 |
+| `singer-io/tap-google-ads` `5b6a201` | 647 · 37 · 120 · 479 · 0 | 647 · 38 · 507 · 91 · 0 |
+
+Every baseline AFFECTED candidate id is still AFFECTED on all three (0 of 4, 0 of 259, 0 of 37
+lost), `test_real_repo_conservation` is green with both frozen checkouts present, and unexplained
+stays 0. Candidate identity is unchanged on Dub and GLNA. On tap-google-ads four ids changed and
+all four are accounted for: `setup.py` is now a manifest, so `google-ads` at lines 5, 16 and 32
+moves from `surface_reference` to `package_reference` — same site, same subject, new claim — and
+the `dependency_state` `NO_MANIFEST` UNKNOWN is answered by the `sdk_installed` AFFECTED it was
+asking for (`google-ads 30.1.0`, below the v25 python minimum 31.2.0). That one AFFECTED is the
+whole 37 → 38. The PART ELEVEN forecast (tap-google-ads ≈ 42, GLNA ≈ 17, Dub ≈ 13) was optimistic:
+the real residue is roughly twice that on two of the three, and it is honest residue — `segments.device`
+changes at v20, so every anchor naming it stays UNKNOWN with the boundary in its closing instruction.
+
+Three consecutive scans of tap-google-ads export byte-identical ledgers
+(`4563c613c534fa29…`); the only textual difference between the three summaries is the
+`--state-dir` path passed on the command line.
+
+**End-to-end on a real company repository (2026-09-13) — FA-069 … FA-075.** On the owner's
+instruction, `singer-io/tap-google-ads` `5b6a201` (Stitch; Python; `API_VERSION = "v24"`) was
+taken through scan → exposure → migrate → local commit → verify → prepare-pr, with its
+dependencies in a scratch venv via `HOPS_VERIFY_PYTHON`; no PR was raised. Two fail-closed
+stops before any judgement: a background `pip install .` wrote `build/` into the tree after the
+closure had walked it, so ripgrep matched a path the closure had never enumerated (FA-069 — a
+race against a moving tree, not a closure defect; the closure does enumerate generated
+directories), and the verifier's worktree `.git` pointer file carries the checkout path
+`tap-google-ads`, which matches the surface (FA-070; worked around by renaming the directory).
+Then: 647 candidates · 37 AFFECTED · 479 UNKNOWN (74%) · 0 unexplained; migrate made the one
+correct edit and mis-reported six satisfied obligations as human work; verify returned
+**FAILED** in 26 s with one true reason (nine `version="v9"` spike scripts, caught only by the
+falsifier because no obligation exists for a version below the lattice floor, FA-074) and three
+product defects: the `absent:v24` audit counts a CHANGELOG line (FA-071), the consumer check
+flags `customer_id`, `campaign`, `update` … as removed-field reads (FA-072, P-027), and the
+frozen suite runs the whole `tests/` tree instead of CI's `tests/unittests`, exiting 2 at
+collection (FA-073; run directly the unit suite is 69 passed / 4 failed on base, date-dependent).
+prepare-pr refused the FAILED receipt. Conclusion recorded in FA-075: the chain runs to an honest
+Receipt in under a minute, and no real repository can reach VERIFIED_FOR_SCOPE until FA-071 …
+FA-074 close. Nothing outside `dev/` and `docs/FAILURE_ATLAS.md` changed; the checkout lives at
+`.hubbleops/artifacts/e2e/tapga` on local branch `hubbleops-v25`.
+
+**Tier 3c planned and stopped at the P-009 boundary (2026-09-13) — PART TEN of `dev/plan.md`.**
+The attestation record for AI artefacts is designed as fields inside Evidence `value` under
+`derivation: DERIVED_AI_EVIDENCE` (model id, prompt hash, input hashes, output hash, judge kind
+and outcome), with no schema change and six mechanical enforcements (E1–E6) the store and the
+import tests carry. No AI call path exists; Q32 asks the owner whether one may (and with which
+client) before C4 is written. The four uses each have a named deterministic judge; the sunset
+calendar, `hops impact --release` with a daily read-only Action, and the log-line proxy mode of
+the sentinel plus `hops promote --from-sentinel` are designed and need no answer. Ground truth
+re-measured on the new tree with a fresh state directory (the default `.hubbleops/hubbleops.sqlite`
+is store schema v1 and this build refuses it): Dub 327 · 4 · 73 · 32 · 0 and GLNA 1143 · 259 ·
+218 · 333 · 0, identical to the Tier 3b baseline. The ground-truth checkouts were absent from
+`C:\dev\HubbleOps` after the move and were re-cloned at their pinned SHAs under
+`.hubbleops/artifacts/phase7-real-repos/`. Nothing outside `dev/` changed; the uncommitted
+prepare-pr ProofScope fix from the gate blocker (1) is still in the tree, untouched.
 
 **Phase 6 gate audit ran on `0aa558b` and returned `GATE: FAIL` (2026-09-13).** PR #1
 (`phase-06-repository-intelligence` → `main`, 45 commits) is green and `mergeable_state: clean`,
@@ -943,6 +1015,32 @@ unscannable `rg` hit is preserved as evidence.
 ## Decisions that carry forward
 
 *(record here anything a later phase must not re-litigate — with the phase it was decided in)*
+
+**Engine-v0 decisions (2026-09-13).**
+- **The resolver's question is "does any version in this pack's lattice change this subject?", not
+  "which version runs at this site?"** A subject present in every lattice version with equal
+  breaking attributes cannot be affected by a migration this pack can perform, so a recall match
+  naming only such subjects is NOT_AFFECTED_WITH_EVIDENCE with the lattice as its evidence. This
+  is a corrected claim table, not a relaxation: the rule fires only where a handler already
+  returned UNKNOWN, only for subjects the pack itself names, and a subject that changes at any
+  boundary keeps its UNKNOWN and gains the boundary version in its closing instruction. Do not
+  re-derive it as an "unknown reduction" — unknown count is a diagnostic, never a target.
+- **The lattice is a third mover of a candidate**, beside a structural parse and a source-closure
+  role. Tests that assert a recall match "stays UNKNOWN" are asserting the old table; assert the
+  law each one guards instead (no adjudication record, no borrowed file version, the parse failure
+  still its own UNSCANNED candidate).
+- **A package version is not a provider API version, and the difference is the claim type.**
+  `dependency_state` and `sdk_installed` describe an installed package, so `provider_versions`
+  returns nothing for them. Never separate the two with a version-string pattern in generic code:
+  a provider whose API versions look like package versions must still work.
+- **A version the pack cannot compose a diff from is recorded with a reason, never skipped**, and
+  becomes a HUMAN obligation, so an AFFECTED site never carries zero obligations. `change_sets_for`
+  catches `PackDataError` only; anything else propagates.
+- **The closure owns the search set.** It emits the globs themselves and every searcher passes them
+  through unmodified. A caller that reformats an exclusion is how `.git`-as-a-file was searched.
+- **A scan runs on a quiet tree.** FA-069 was a background `pip install .` writing into the tree
+  between the closure walk and the ripgrep run, not a closure defect. Stopping is correct: once the
+  evidence set and the search set describe different trees, every count is a count of two trees.
 
 **Phase-5 decisions (2026-09-08).**
 - **P-011 ACCEPTED.** `Falsifier` gains `failure_class` and `check(FalsifierInput) ->

@@ -5,6 +5,41 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] **FA-069 … FA-072, FA-074 closed; FA-073 narrowed. Engine frozen as `engine-v0`
+      (2026-09-13).** PART ELEVEN's four mechanisms integrated into their consumers; eleven
+      commits from `engine-v0-pre` (`e5e1237`). FA-069 was misdiagnosed: a background
+      `pip install .` moved the tree under a running scan, and the closure does enumerate
+      generated directories — the row and every `dev/` sentence repeating it are corrected.
+      FA-070 closed (the closure emits the globs, the text observer passes them through).
+      FA-071 closed (absence judged over the sites the scan left open). FA-072 closed (a bare
+      leaf is watched only when unambiguous and hits only where the removed subject's parent
+      is referenced) — the consumer check now **PASSes** on tap-google-ads. FA-074 closed (an
+      uncomposable version becomes a HUMAN obligation; the map names `version:v9->v25 12
+      sites · 3 files human`). `setup.py` `install_requires` is read, so the map names
+      `google-ads 30.1.0 · v25 python minimum 31.2.0 · below floor`, and migrate now
+      discharges 9 rather than calling six already-satisfied obligations human work.
+      FA-073 stays open, narrowed: declared `testpaths` is honoured from five pytest
+      configuration files, but tap-google-ads declares its test command only in
+      `.circleci/config.yml`, so its frozen baseline is still EXECUTION_FAILED — with a
+      reason that now names the collection error. Chain rerun verdict **FAILED** on true
+      reasons: 27 v9 obligations OPEN, the `per_call_version_override` falsifier on the same
+      three `spikes/` files, and that frozen baseline; prepare-pr refused it.
+- [ ] **Read the repository's declared test command from CI configuration (FA-073).** The
+      remaining half of FA-073. `.circleci/config.yml`, `.github/workflows/*.yml` and the
+      like carry `pytest tests/unittests` where no pytest configuration file exists. Until
+      then a repository of that shape can reach UNKNOWN but never VERIFIED_FOR_SCOPE. Needs a
+      generic reader with no repository-specific parsing and a fixture per CI format.
+- [ ] **Tier 3c (PART TEN of [dev/plan.md](plan.md)) — stopped at Q32.** DoD 1 is designed
+      (attestation inside Evidence `value`, no schema change, enforcements E1–E6); no AI call
+      path exists and none is written until the owner answers Q32. Unblocked by any answer and
+      next to build: C0 (attestation + store guards + layer rules), C1 (the 22 ambiguous rows
+      gain identity; `hops decide --pack-row`), C2 (sunset: `--as-of`, days-to-sunset,
+      `hops impact --release/--sunset-within/--install-workflow`), C3 (sentinel log-line proxy
+      input, `hops promote --from-sentinel`). Contingent on a yes: C4 (client, prompts, four
+      producers and judges). Then C5: measurement, red team with three AI-path corruptions,
+      spec audit. Ground truth before: Dub 327 · 4 · 73 · 32 · 0, GLNA 1143 · 259 · 218 · 333
+      · 0, measured on a fresh `--state-dir`; the default state file is store schema v1 and is
+      refused by this build.
 - [ ] **Gate audit on `0aa558b` — `GATE: FAIL`.** Blockers, in weight order:
       **(1) a Receipt survives a new SHA.** `prepare-pr` binds only to
       `migration_audit.candidate_sha`; it computes `content_id(proof_scope)` and never compares it
@@ -12,6 +47,11 @@ Updated before every session ends. Phase-level status lives in
       that one string publishes a `VERIFIED_FOR_SCOPE` PR body for a tree nothing verified —
       reproduced end to end, exit 0, `proof_scope.repo_sha 01cab16` against `HEAD c5b0cba`.
       Breaks L4 and §17, and it is the product promise inverted.
+      **CLOSED on engine-v0**: the ProofScope's `repo_sha` and the audit's `candidate_sha` are
+      compared to each other before either is compared to HEAD, a receipt recording no
+      `repo_sha` is refused rather than treated as unbound, and
+      `tests/integration/test_phase5_verify.py` (`…forged_candidate_sha…`) forges the field
+      against a moved tree and asserts prepare-pr exits non-zero and writes no body.
       **(2) the injected `ContractOracle` is never called.** `oracle` occurs once in
       [hubbleops/obligations/engine.py](../hubbleops/obligations/engine.py):42, as a parameter;
       validation lives in `app/exposure.py` and `hops migrate` never reaches it. DoD 1, TRAP 4.
