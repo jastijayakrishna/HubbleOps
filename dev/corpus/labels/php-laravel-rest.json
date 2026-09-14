@@ -1,0 +1,3143 @@
+{
+  "adjudicated_files": [
+    {
+      "adjudicated": true,
+      "path": "README.md",
+      "reason_if_not": "",
+      "sources": [
+        "S2"
+      ]
+    },
+    {
+      "adjudicated": true,
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "reason_if_not": "",
+      "sources": [
+        "S2"
+      ]
+    }
+  ],
+  "coverage_note": "S2 adjudicates only files this repository has itself migrated before, found by mining its own history for a commit that replaced one Google Ads version with another. Silence elsewhere is not cleanliness. Sites are detected with a provider-neutral version token rather than the pack's own carriers, so a site the pack cannot see still counts against the arm. A version token in a comment, a docstring, a documentation file or a documentation URL is CLEAN, not actionable: prose is not a call site, and an arm that flags it is over-reporting. A version token in a documentation file is UNSETTLED rather than clean: whether a migration must also update a README or a changelog is a judgement for the owner, not for S2. A line naming the Google Ads surface with no version token at all is UNSETTLED.",
+  "eligible_files": 6,
+  "family_id": "php-laravel-rest",
+  "kind": "natural",
+  "labels": [
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:23 = return $request->url() === 'https://googleads.googleapis.com/v19/customers/1234567890/googleAds:searchStream'",
+      "id": "S2C-0001",
+      "kind": "natural",
+      "line": 23,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "CLEAN"
+    },
+    {
+      "evidence": "README.md:50 = GOOGLE_ADS_API_VERSION=v19",
+      "id": "S2D-0001",
+      "kind": "natural",
+      "line": 50,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:65 = 'version' => env('GOOGLE_ADS_API_VERSION', 'v19'),",
+      "id": "S2D-0002",
+      "kind": "natural",
+      "line": 65,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:1 = <div class=\"filament-hidden\">",
+      "id": "S2U-0001",
+      "kind": "natural",
+      "line": 1,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:3 = ![Laravel Google Ads](https://raw.githubusercontent.com/jeffersongoncalves/laravel-google-ads/main/banners/laravel-google-ads.png)",
+      "id": "S2U-0002",
+      "kind": "natural",
+      "line": 3,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:5 = </div>",
+      "id": "S2U-0003",
+      "kind": "natural",
+      "line": 5,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:7 = # Laravel Google Ads",
+      "id": "S2U-0004",
+      "kind": "natural",
+      "line": 7,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:9 = [![Tests](https://github.com/jeffersongoncalves/laravel-google-ads/actions/workflows/run-tests.yml/badge.svg)](https://github.com/jeffersongoncalves/laravel-google-ads/actions/work",
+      "id": "S2U-0005",
+      "kind": "natural",
+      "line": 9,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:10 = [![PHPStan](https://github.com/jeffersongoncalves/laravel-google-ads/actions/workflows/phpstan.yml/badge.svg)](https://github.com/jeffersongoncalves/laravel-google-ads/actions/work",
+      "id": "S2U-0006",
+      "kind": "natural",
+      "line": 10,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:11 = [![Code Style](https://github.com/jeffersongoncalves/laravel-google-ads/actions/workflows/fix-php-code-style-issues.yml/badge.svg)](https://github.com/jeffersongoncalves/laravel-go",
+      "id": "S2U-0007",
+      "kind": "natural",
+      "line": 11,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:12 = [![Latest Version on Packagist](https://img.shields.io/packagist/v/jeffersongoncalves/laravel-google-ads.svg?style=flat-square)](https://packagist.org/packages/jeffersongoncalves/l",
+      "id": "S2U-0008",
+      "kind": "natural",
+      "line": 12,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:13 = [![Total Downloads](https://img.shields.io/packagist/dt/jeffersongoncalves/laravel-google-ads.svg?style=flat-square)](https://packagist.org/packages/jeffersongoncalves/laravel-goog",
+      "id": "S2U-0009",
+      "kind": "natural",
+      "line": 13,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:14 = [![License](https://img.shields.io/packagist/l/jeffersongoncalves/laravel-google-ads.svg?style=flat-square)](LICENSE.md)",
+      "id": "S2U-0010",
+      "kind": "natural",
+      "line": 14,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:16 = A lightweight Google Ads API client for Laravel. It wraps GAQL search (`googleAds:searchStream`), campaign and budget mutate calls behind a small static client, threads your OAuth ",
+      "id": "S2U-0011",
+      "kind": "natural",
+      "line": 16,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:18 = ## Features",
+      "id": "S2U-0012",
+      "kind": "natural",
+      "line": 18,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:20 = - **`search()`** \u2014 run a raw GAQL query, flattened from the streamed response chunks into a single list of rows",
+      "id": "S2U-0013",
+      "kind": "natural",
+      "line": 20,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:21 = - **`accountInfo()`** \u2014 fetch the customer id and descriptive name",
+      "id": "S2U-0014",
+      "kind": "natural",
+      "line": 21,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:22 = - **`campaigns()`** \u2014 list campaigns with id, name, status, and budget",
+      "id": "S2U-0015",
+      "kind": "natural",
+      "line": 22,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:23 = - **`campaignsPerformance()`** \u2014 impressions, clicks, cost, and conversions per campaign over a date range",
+      "id": "S2U-0016",
+      "kind": "natural",
+      "line": 23,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:24 = - **`pauseCampaign()` / `enableCampaign()`** \u2014 toggle a campaign's status",
+      "id": "S2U-0017",
+      "kind": "natural",
+      "line": 24,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:25 = - **`adGroupsPerformance()`** \u2014 impressions, clicks, and conversions per ad group",
+      "id": "S2U-0018",
+      "kind": "natural",
+      "line": 25,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:26 = - **`keywordsPerformance()`** \u2014 impressions, clicks, and average CPC per keyword, ranked by clicks",
+      "id": "S2U-0019",
+      "kind": "natural",
+      "line": 26,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:27 = - **`updateBudget()`** \u2014 update a campaign budget, converting dollars to micros",
+      "id": "S2U-0020",
+      "kind": "natural",
+      "line": 27,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:29 = ## Installation",
+      "id": "S2U-0021",
+      "kind": "natural",
+      "line": 29,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:31 = ```bash",
+      "id": "S2U-0022",
+      "kind": "natural",
+      "line": 31,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:32 = composer require jeffersongoncalves/laravel-google-ads",
+      "id": "S2U-0023",
+      "kind": "natural",
+      "line": 32,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:33 = ```",
+      "id": "S2U-0024",
+      "kind": "natural",
+      "line": 33,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:35 = Optionally publish the config file:",
+      "id": "S2U-0025",
+      "kind": "natural",
+      "line": 35,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:37 = ```bash",
+      "id": "S2U-0026",
+      "kind": "natural",
+      "line": 37,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:38 = php artisan vendor:publish --tag=\"google-ads-config\"",
+      "id": "S2U-0027",
+      "kind": "natural",
+      "line": 38,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:39 = ```",
+      "id": "S2U-0028",
+      "kind": "natural",
+      "line": 39,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:41 = ## Configuration",
+      "id": "S2U-0029",
+      "kind": "natural",
+      "line": 41,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:43 = Add to your `.env`:",
+      "id": "S2U-0030",
+      "kind": "natural",
+      "line": 43,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:45 = ```env",
+      "id": "S2U-0031",
+      "kind": "natural",
+      "line": 45,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:46 = GOOGLE_ADS_ACCESS_TOKEN=ya29.xxxxxxxxxxxxxxxxxxxx",
+      "id": "S2U-0032",
+      "kind": "natural",
+      "line": 46,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:47 = GOOGLE_ADS_DEVELOPER_TOKEN=xxxxxxxxxxxxxxxxxxxxxx",
+      "id": "S2U-0033",
+      "kind": "natural",
+      "line": 47,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:48 = GOOGLE_ADS_CUSTOMER_ID=1234567890",
+      "id": "S2U-0034",
+      "kind": "natural",
+      "line": 48,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:49 = GOOGLE_ADS_LOGIN_CUSTOMER_ID=",
+      "id": "S2U-0035",
+      "kind": "natural",
+      "line": 49,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:51 = GOOGLE_ADS_TIMEOUT=8",
+      "id": "S2U-0036",
+      "kind": "natural",
+      "line": 51,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:52 = ```",
+      "id": "S2U-0037",
+      "kind": "natural",
+      "line": 52,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:54 = `GOOGLE_ADS_ACCESS_TOKEN` is the OAuth bearer token \u2014 see the [OAuth guide](https://developers.google.com/google-ads/api/docs/oauth/overview). `GOOGLE_ADS_DEVELOPER_TOKEN` identifi",
+      "id": "S2U-0038",
+      "kind": "natural",
+      "line": 54,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:56 = ### Config Options",
+      "id": "S2U-0039",
+      "kind": "natural",
+      "line": 56,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:58 = ```php",
+      "id": "S2U-0040",
+      "kind": "natural",
+      "line": 58,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:59 = // config/google-ads.php",
+      "id": "S2U-0041",
+      "kind": "natural",
+      "line": 59,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:60 = return [",
+      "id": "S2U-0042",
+      "kind": "natural",
+      "line": 60,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:61 = 'access_token' => env('GOOGLE_ADS_ACCESS_TOKEN'),",
+      "id": "S2U-0043",
+      "kind": "natural",
+      "line": 61,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:62 = 'developer_token' => env('GOOGLE_ADS_DEVELOPER_TOKEN'),",
+      "id": "S2U-0044",
+      "kind": "natural",
+      "line": 62,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:63 = 'customer_id' => env('GOOGLE_ADS_CUSTOMER_ID'),",
+      "id": "S2U-0045",
+      "kind": "natural",
+      "line": 63,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:64 = 'login_customer_id' => env('GOOGLE_ADS_LOGIN_CUSTOMER_ID'),",
+      "id": "S2U-0046",
+      "kind": "natural",
+      "line": 64,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:66 = 'timeout' => (int) env('GOOGLE_ADS_TIMEOUT', 8),",
+      "id": "S2U-0047",
+      "kind": "natural",
+      "line": 66,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:67 = ];",
+      "id": "S2U-0048",
+      "kind": "natural",
+      "line": 67,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:68 = ```",
+      "id": "S2U-0049",
+      "kind": "natural",
+      "line": 68,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:70 = ## Usage",
+      "id": "S2U-0050",
+      "kind": "natural",
+      "line": 70,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:72 = ```php",
+      "id": "S2U-0051",
+      "kind": "natural",
+      "line": 72,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:73 = use JeffersonGoncalves\\GoogleAds\\GoogleAdsClient;",
+      "id": "S2U-0052",
+      "kind": "natural",
+      "line": 73,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:75 = // Run any GAQL query \u2014 customer id defaults to config('google-ads.customer_id')",
+      "id": "S2U-0053",
+      "kind": "natural",
+      "line": 75,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:76 = $rows = GoogleAdsClient::search('SELECT campaign.id, campaign.name FROM campaign');",
+      "id": "S2U-0054",
+      "kind": "natural",
+      "line": 76,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:78 = // Account info",
+      "id": "S2U-0055",
+      "kind": "natural",
+      "line": 78,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:79 = $account = GoogleAdsClient::accountInfo();",
+      "id": "S2U-0056",
+      "kind": "natural",
+      "line": 79,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:81 = // Campaigns",
+      "id": "S2U-0057",
+      "kind": "natural",
+      "line": 81,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:82 = $campaigns = GoogleAdsClient::campaigns();",
+      "id": "S2U-0058",
+      "kind": "natural",
+      "line": 82,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:83 = $performance = GoogleAdsClient::campaignsPerformance(days: 7);",
+      "id": "S2U-0059",
+      "kind": "natural",
+      "line": 83,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:85 = // Toggle a campaign",
+      "id": "S2U-0060",
+      "kind": "natural",
+      "line": 85,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:86 = GoogleAdsClient::pauseCampaign('111');",
+      "id": "S2U-0061",
+      "kind": "natural",
+      "line": 86,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:87 = GoogleAdsClient::enableCampaign('111');",
+      "id": "S2U-0062",
+      "kind": "natural",
+      "line": 87,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:89 = // Ad groups and keywords",
+      "id": "S2U-0063",
+      "kind": "natural",
+      "line": 89,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:90 = $adGroups = GoogleAdsClient::adGroupsPerformance(days: 30, limit: 10);",
+      "id": "S2U-0064",
+      "kind": "natural",
+      "line": 90,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:91 = $keywords = GoogleAdsClient::keywordsPerformance(days: 30, limit: 50);",
+      "id": "S2U-0065",
+      "kind": "natural",
+      "line": 91,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:93 = // Update a budget (amount in dollars, converted to micros)",
+      "id": "S2U-0066",
+      "kind": "natural",
+      "line": 93,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:94 = GoogleAdsClient::updateBudget('222', 25.00);",
+      "id": "S2U-0067",
+      "kind": "natural",
+      "line": 94,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:96 = // Target a different account than the configured default",
+      "id": "S2U-0068",
+      "kind": "natural",
+      "line": 96,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:97 = $rows = GoogleAdsClient::campaigns(customerId: '987-654-3210');",
+      "id": "S2U-0069",
+      "kind": "natural",
+      "line": 97,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:98 = ```",
+      "id": "S2U-0070",
+      "kind": "natural",
+      "line": 98,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:100 = ## Testing",
+      "id": "S2U-0071",
+      "kind": "natural",
+      "line": 100,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:102 = ```bash",
+      "id": "S2U-0072",
+      "kind": "natural",
+      "line": 102,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:103 = composer test",
+      "id": "S2U-0073",
+      "kind": "natural",
+      "line": 103,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:104 = ```",
+      "id": "S2U-0074",
+      "kind": "natural",
+      "line": 104,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:106 = ## Static Analysis",
+      "id": "S2U-0075",
+      "kind": "natural",
+      "line": 106,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:108 = ```bash",
+      "id": "S2U-0076",
+      "kind": "natural",
+      "line": 108,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:109 = composer analyse",
+      "id": "S2U-0077",
+      "kind": "natural",
+      "line": 109,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:110 = ```",
+      "id": "S2U-0078",
+      "kind": "natural",
+      "line": 110,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:112 = ## Code Formatting",
+      "id": "S2U-0079",
+      "kind": "natural",
+      "line": 112,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:114 = ```bash",
+      "id": "S2U-0080",
+      "kind": "natural",
+      "line": 114,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:115 = composer format",
+      "id": "S2U-0081",
+      "kind": "natural",
+      "line": 115,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:116 = ```",
+      "id": "S2U-0082",
+      "kind": "natural",
+      "line": 116,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:118 = ## Changelog",
+      "id": "S2U-0083",
+      "kind": "natural",
+      "line": 118,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:120 = Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.",
+      "id": "S2U-0084",
+      "kind": "natural",
+      "line": 120,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:122 = ## License",
+      "id": "S2U-0085",
+      "kind": "natural",
+      "line": 122,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "README.md:124 = The MIT License (MIT). Please see [License File](LICENSE.md) for more information.",
+      "id": "S2U-0086",
+      "kind": "natural",
+      "line": 124,
+      "mechanism": "version_literal",
+      "path": "README.md",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:1 = <?php",
+      "id": "S2U-0087",
+      "kind": "natural",
+      "line": 1,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:3 = use Illuminate\\Http\\Client\\Request;",
+      "id": "S2U-0088",
+      "kind": "natural",
+      "line": 3,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:4 = use Illuminate\\Support\\Facades\\Http;",
+      "id": "S2U-0089",
+      "kind": "natural",
+      "line": 4,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:5 = use JeffersonGoncalves\\GoogleAds\\GoogleAdsClient;",
+      "id": "S2U-0090",
+      "kind": "natural",
+      "line": 5,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:7 = it('runs a GAQL search and flattens the streamed chunks', function () {",
+      "id": "S2U-0091",
+      "kind": "natural",
+      "line": 7,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:8 = Http::fake([",
+      "id": "S2U-0092",
+      "kind": "natural",
+      "line": 8,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:9 = 'googleads.googleapis.com/*' => Http::response([",
+      "id": "S2U-0093",
+      "kind": "natural",
+      "line": 9,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:10 = ['results' => [['campaign' => ['id' => '1', 'name' => 'Campaign A']]]],",
+      "id": "S2U-0094",
+      "kind": "natural",
+      "line": 10,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:11 = ['results' => [['campaign' => ['id' => '2', 'name' => 'Campaign B']]]],",
+      "id": "S2U-0095",
+      "kind": "natural",
+      "line": 11,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:12 = ], 200),",
+      "id": "S2U-0096",
+      "kind": "natural",
+      "line": 12,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:13 = ]);",
+      "id": "S2U-0097",
+      "kind": "natural",
+      "line": 13,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:15 = $rows = GoogleAdsClient::search('SELECT campaign.id, campaign.name FROM campaign');",
+      "id": "S2U-0098",
+      "kind": "natural",
+      "line": 15,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:17 = expect($rows)->toBe([",
+      "id": "S2U-0099",
+      "kind": "natural",
+      "line": 17,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:18 = ['campaign' => ['id' => '1', 'name' => 'Campaign A']],",
+      "id": "S2U-0100",
+      "kind": "natural",
+      "line": 18,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:19 = ['campaign' => ['id' => '2', 'name' => 'Campaign B']],",
+      "id": "S2U-0101",
+      "kind": "natural",
+      "line": 19,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:20 = ]);",
+      "id": "S2U-0102",
+      "kind": "natural",
+      "line": 20,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:22 = Http::assertSent(function (Request $request) {",
+      "id": "S2U-0103",
+      "kind": "natural",
+      "line": 22,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:24 = && $request->hasHeader('Authorization', 'Bearer fake-access-token')",
+      "id": "S2U-0104",
+      "kind": "natural",
+      "line": 24,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:25 = && $request->hasHeader('developer-token', 'fake-developer-token')",
+      "id": "S2U-0105",
+      "kind": "natural",
+      "line": 25,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:26 = && $request['query'] === 'SELECT campaign.id, campaign.name FROM campaign';",
+      "id": "S2U-0106",
+      "kind": "natural",
+      "line": 26,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:27 = });",
+      "id": "S2U-0107",
+      "kind": "natural",
+      "line": 27,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:28 = });",
+      "id": "S2U-0108",
+      "kind": "natural",
+      "line": 28,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:30 = it('returns an empty array when search fails', function () {",
+      "id": "S2U-0109",
+      "kind": "natural",
+      "line": 30,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:31 = Http::fake([",
+      "id": "S2U-0110",
+      "kind": "natural",
+      "line": 31,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:32 = 'googleads.googleapis.com/*' => Http::response('', 403),",
+      "id": "S2U-0111",
+      "kind": "natural",
+      "line": 32,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:33 = ]);",
+      "id": "S2U-0112",
+      "kind": "natural",
+      "line": 33,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:35 = expect(GoogleAdsClient::search('SELECT campaign.id FROM campaign'))->toBe([]);",
+      "id": "S2U-0113",
+      "kind": "natural",
+      "line": 35,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:36 = });",
+      "id": "S2U-0114",
+      "kind": "natural",
+      "line": 36,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:38 = it('sends the login-customer-id header when configured', function () {",
+      "id": "S2U-0115",
+      "kind": "natural",
+      "line": 38,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:39 = config()->set('google-ads.login_customer_id', '9876543210');",
+      "id": "S2U-0116",
+      "kind": "natural",
+      "line": 39,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:41 = Http::fake([",
+      "id": "S2U-0117",
+      "kind": "natural",
+      "line": 41,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:42 = 'googleads.googleapis.com/*' => Http::response([], 200),",
+      "id": "S2U-0118",
+      "kind": "natural",
+      "line": 42,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:43 = ]);",
+      "id": "S2U-0119",
+      "kind": "natural",
+      "line": 43,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:45 = GoogleAdsClient::search('SELECT campaign.id FROM campaign');",
+      "id": "S2U-0120",
+      "kind": "natural",
+      "line": 45,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:47 = Http::assertSent(fn (Request $request) => $request->hasHeader('login-customer-id', '9876543210'));",
+      "id": "S2U-0121",
+      "kind": "natural",
+      "line": 47,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:48 = });",
+      "id": "S2U-0122",
+      "kind": "natural",
+      "line": 48,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:50 = it('fetches account info from the first result row', function () {",
+      "id": "S2U-0123",
+      "kind": "natural",
+      "line": 50,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:51 = Http::fake([",
+      "id": "S2U-0124",
+      "kind": "natural",
+      "line": 51,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:52 = 'googleads.googleapis.com/*' => Http::response([",
+      "id": "S2U-0125",
+      "kind": "natural",
+      "line": 52,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:53 = ['results' => [['customer' => ['id' => '1234567890', 'descriptiveName' => 'Acme']]]],",
+      "id": "S2U-0126",
+      "kind": "natural",
+      "line": 53,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:54 = ], 200),",
+      "id": "S2U-0127",
+      "kind": "natural",
+      "line": 54,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:55 = ]);",
+      "id": "S2U-0128",
+      "kind": "natural",
+      "line": 55,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:57 = expect(GoogleAdsClient::accountInfo())->toBe(['customer' => ['id' => '1234567890', 'descriptiveName' => 'Acme']]);",
+      "id": "S2U-0129",
+      "kind": "natural",
+      "line": 57,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:58 = });",
+      "id": "S2U-0130",
+      "kind": "natural",
+      "line": 58,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:60 = it('returns null for account info when there are no rows', function () {",
+      "id": "S2U-0131",
+      "kind": "natural",
+      "line": 60,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:61 = Http::fake([",
+      "id": "S2U-0132",
+      "kind": "natural",
+      "line": 61,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:62 = 'googleads.googleapis.com/*' => Http::response([], 200),",
+      "id": "S2U-0133",
+      "kind": "natural",
+      "line": 62,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:63 = ]);",
+      "id": "S2U-0134",
+      "kind": "natural",
+      "line": 63,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:65 = expect(GoogleAdsClient::accountInfo())->toBeNull();",
+      "id": "S2U-0135",
+      "kind": "natural",
+      "line": 65,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:66 = });",
+      "id": "S2U-0136",
+      "kind": "natural",
+      "line": 66,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:68 = it('lists campaigns', function () {",
+      "id": "S2U-0137",
+      "kind": "natural",
+      "line": 68,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:69 = Http::fake([",
+      "id": "S2U-0138",
+      "kind": "natural",
+      "line": 69,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:70 = 'googleads.googleapis.com/*' => Http::response([",
+      "id": "S2U-0139",
+      "kind": "natural",
+      "line": 70,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:71 = ['results' => [['campaign' => ['id' => '1', 'name' => 'Campaign A', 'status' => 'ENABLED']]]],",
+      "id": "S2U-0140",
+      "kind": "natural",
+      "line": 71,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:72 = ], 200),",
+      "id": "S2U-0141",
+      "kind": "natural",
+      "line": 72,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:73 = ]);",
+      "id": "S2U-0142",
+      "kind": "natural",
+      "line": 73,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:75 = expect(GoogleAdsClient::campaigns())->toHaveCount(1);",
+      "id": "S2U-0143",
+      "kind": "natural",
+      "line": 75,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:77 = Http::assertSent(fn (Request $request) => str_contains((string) $request['query'], 'FROM campaign ORDER BY campaign.id'));",
+      "id": "S2U-0144",
+      "kind": "natural",
+      "line": 77,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:78 = });",
+      "id": "S2U-0145",
+      "kind": "natural",
+      "line": 78,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:80 = it('builds the campaigns performance query with the requested date range', function () {",
+      "id": "S2U-0146",
+      "kind": "natural",
+      "line": 80,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:81 = Http::fake([",
+      "id": "S2U-0147",
+      "kind": "natural",
+      "line": 81,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:82 = 'googleads.googleapis.com/*' => Http::response([], 200),",
+      "id": "S2U-0148",
+      "kind": "natural",
+      "line": 82,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:83 = ]);",
+      "id": "S2U-0149",
+      "kind": "natural",
+      "line": 83,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:85 = GoogleAdsClient::campaignsPerformance(7);",
+      "id": "S2U-0150",
+      "kind": "natural",
+      "line": 85,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:87 = Http::assertSent(fn (Request $request) => str_contains((string) $request['query'], 'DURING LAST_7_DAYS'));",
+      "id": "S2U-0151",
+      "kind": "natural",
+      "line": 87,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:88 = });",
+      "id": "S2U-0152",
+      "kind": "natural",
+      "line": 88,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:90 = it('defaults the performance date range to 30 days', function () {",
+      "id": "S2U-0153",
+      "kind": "natural",
+      "line": 90,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:91 = Http::fake([",
+      "id": "S2U-0154",
+      "kind": "natural",
+      "line": 91,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:92 = 'googleads.googleapis.com/*' => Http::response([], 200),",
+      "id": "S2U-0155",
+      "kind": "natural",
+      "line": 92,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:93 = ]);",
+      "id": "S2U-0156",
+      "kind": "natural",
+      "line": 93,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:95 = GoogleAdsClient::campaignsPerformance();",
+      "id": "S2U-0157",
+      "kind": "natural",
+      "line": 95,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:97 = Http::assertSent(fn (Request $request) => str_contains((string) $request['query'], 'DURING LAST_30_DAYS'));",
+      "id": "S2U-0158",
+      "kind": "natural",
+      "line": 97,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:98 = });",
+      "id": "S2U-0159",
+      "kind": "natural",
+      "line": 98,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:100 = it('pauses a campaign', function () {",
+      "id": "S2U-0160",
+      "kind": "natural",
+      "line": 100,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:101 = Http::fake([",
+      "id": "S2U-0161",
+      "kind": "natural",
+      "line": 101,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:102 = 'googleads.googleapis.com/*' => Http::response(['results' => [['resourceName' => 'customers/1234567890/campaigns/111']]], 200),",
+      "id": "S2U-0162",
+      "kind": "natural",
+      "line": 102,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:103 = ]);",
+      "id": "S2U-0163",
+      "kind": "natural",
+      "line": 103,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:105 = $result = GoogleAdsClient::pauseCampaign('111');",
+      "id": "S2U-0164",
+      "kind": "natural",
+      "line": 105,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:107 = expect($result)->toBe(['results' => [['resourceName' => 'customers/1234567890/campaigns/111']]]);",
+      "id": "S2U-0165",
+      "kind": "natural",
+      "line": 107,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:109 = Http::assertSent(function (Request $request) {",
+      "id": "S2U-0166",
+      "kind": "natural",
+      "line": 109,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:110 = return str_contains($request->url(), 'campaigns:mutate')",
+      "id": "S2U-0167",
+      "kind": "natural",
+      "line": 110,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:111 = && $request['operations'][0]['update']['status'] === 'PAUSED'",
+      "id": "S2U-0168",
+      "kind": "natural",
+      "line": 111,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:112 = && $request['operations'][0]['update']['resourceName'] === 'customers/1234567890/campaigns/111';",
+      "id": "S2U-0169",
+      "kind": "natural",
+      "line": 112,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:113 = });",
+      "id": "S2U-0170",
+      "kind": "natural",
+      "line": 113,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:114 = });",
+      "id": "S2U-0171",
+      "kind": "natural",
+      "line": 114,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:116 = it('enables a campaign', function () {",
+      "id": "S2U-0172",
+      "kind": "natural",
+      "line": 116,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:117 = Http::fake([",
+      "id": "S2U-0173",
+      "kind": "natural",
+      "line": 117,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:118 = 'googleads.googleapis.com/*' => Http::response(['results' => []], 200),",
+      "id": "S2U-0174",
+      "kind": "natural",
+      "line": 118,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:119 = ]);",
+      "id": "S2U-0175",
+      "kind": "natural",
+      "line": 119,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:121 = GoogleAdsClient::enableCampaign('111');",
+      "id": "S2U-0176",
+      "kind": "natural",
+      "line": 121,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:123 = Http::assertSent(fn (Request $request) => $request['operations'][0]['update']['status'] === 'ENABLED');",
+      "id": "S2U-0177",
+      "kind": "natural",
+      "line": 123,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:124 = });",
+      "id": "S2U-0178",
+      "kind": "natural",
+      "line": 124,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:126 = it('builds the ad groups performance query with a limit clause', function () {",
+      "id": "S2U-0179",
+      "kind": "natural",
+      "line": 126,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:127 = Http::fake([",
+      "id": "S2U-0180",
+      "kind": "natural",
+      "line": 127,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:128 = 'googleads.googleapis.com/*' => Http::response([], 200),",
+      "id": "S2U-0181",
+      "kind": "natural",
+      "line": 128,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:129 = ]);",
+      "id": "S2U-0182",
+      "kind": "natural",
+      "line": 129,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:131 = GoogleAdsClient::adGroupsPerformance(14, 10);",
+      "id": "S2U-0183",
+      "kind": "natural",
+      "line": 131,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:133 = Http::assertSent(fn (Request $request) => str_contains((string) $request['query'], 'DURING LAST_14_DAYS LIMIT 10'));",
+      "id": "S2U-0184",
+      "kind": "natural",
+      "line": 133,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:134 = });",
+      "id": "S2U-0185",
+      "kind": "natural",
+      "line": 134,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:136 = it('builds the keywords performance query with the default limit', function () {",
+      "id": "S2U-0186",
+      "kind": "natural",
+      "line": 136,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:137 = Http::fake([",
+      "id": "S2U-0187",
+      "kind": "natural",
+      "line": 137,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:138 = 'googleads.googleapis.com/*' => Http::response([], 200),",
+      "id": "S2U-0188",
+      "kind": "natural",
+      "line": 138,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:139 = ]);",
+      "id": "S2U-0189",
+      "kind": "natural",
+      "line": 139,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:141 = GoogleAdsClient::keywordsPerformance();",
+      "id": "S2U-0190",
+      "kind": "natural",
+      "line": 141,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:143 = Http::assertSent(fn (Request $request) => str_contains((string) $request['query'], 'LIMIT 50'));",
+      "id": "S2U-0191",
+      "kind": "natural",
+      "line": 143,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:144 = });",
+      "id": "S2U-0192",
+      "kind": "natural",
+      "line": 144,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:146 = it('updates a budget converting dollars to micros', function () {",
+      "id": "S2U-0193",
+      "kind": "natural",
+      "line": 146,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:147 = Http::fake([",
+      "id": "S2U-0194",
+      "kind": "natural",
+      "line": 147,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:148 = 'googleads.googleapis.com/*' => Http::response(['results' => []], 200),",
+      "id": "S2U-0195",
+      "kind": "natural",
+      "line": 148,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:149 = ]);",
+      "id": "S2U-0196",
+      "kind": "natural",
+      "line": 149,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:151 = GoogleAdsClient::updateBudget('222', 12.5);",
+      "id": "S2U-0197",
+      "kind": "natural",
+      "line": 151,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:153 = Http::assertSent(function (Request $request) {",
+      "id": "S2U-0198",
+      "kind": "natural",
+      "line": 153,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:154 = return str_contains($request->url(), 'campaignBudgets:mutate')",
+      "id": "S2U-0199",
+      "kind": "natural",
+      "line": 154,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:155 = && $request['operations'][0]['update']['amount_micros'] === '12500000'",
+      "id": "S2U-0200",
+      "kind": "natural",
+      "line": 155,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:156 = && $request['operations'][0]['update']['resourceName'] === 'customers/1234567890/campaignBudgets/222';",
+      "id": "S2U-0201",
+      "kind": "natural",
+      "line": 156,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:157 = });",
+      "id": "S2U-0202",
+      "kind": "natural",
+      "line": 157,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:158 = });",
+      "id": "S2U-0203",
+      "kind": "natural",
+      "line": 158,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:160 = it('normalizes a dashed customer id', function () {",
+      "id": "S2U-0204",
+      "kind": "natural",
+      "line": 160,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:161 = Http::fake([",
+      "id": "S2U-0205",
+      "kind": "natural",
+      "line": 161,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:162 = 'googleads.googleapis.com/*' => Http::response([], 200),",
+      "id": "S2U-0206",
+      "kind": "natural",
+      "line": 162,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:163 = ]);",
+      "id": "S2U-0207",
+      "kind": "natural",
+      "line": 163,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:165 = GoogleAdsClient::search('SELECT campaign.id FROM campaign', '123-456-7890');",
+      "id": "S2U-0208",
+      "kind": "natural",
+      "line": 165,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:167 = Http::assertSent(fn (Request $request) => str_contains($request->url(), '/customers/1234567890/'));",
+      "id": "S2U-0209",
+      "kind": "natural",
+      "line": 167,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:168 = });",
+      "id": "S2U-0210",
+      "kind": "natural",
+      "line": 168,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:170 = it('rejects an invalid customer id', function () {",
+      "id": "S2U-0211",
+      "kind": "natural",
+      "line": 170,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:171 = expect(fn () => GoogleAdsClient::search('SELECT campaign.id FROM campaign', 'not-an-id'))",
+      "id": "S2U-0212",
+      "kind": "natural",
+      "line": 171,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:172 = ->toThrow(InvalidArgumentException::class);",
+      "id": "S2U-0213",
+      "kind": "natural",
+      "line": 172,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:173 = });",
+      "id": "S2U-0214",
+      "kind": "natural",
+      "line": 173,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:175 = it('rejects an empty customer id', function () {",
+      "id": "S2U-0215",
+      "kind": "natural",
+      "line": 175,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:176 = config()->set('google-ads.customer_id', null);",
+      "id": "S2U-0216",
+      "kind": "natural",
+      "line": 176,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:178 = expect(fn () => GoogleAdsClient::search('SELECT campaign.id FROM campaign'))",
+      "id": "S2U-0217",
+      "kind": "natural",
+      "line": 178,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:179 = ->toThrow(InvalidArgumentException::class);",
+      "id": "S2U-0218",
+      "kind": "natural",
+      "line": 179,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "tests/Feature/GoogleAdsClientTest.php:180 = });",
+      "id": "S2U-0219",
+      "kind": "natural",
+      "line": 180,
+      "mechanism": "version_literal",
+      "path": "tests/Feature/GoogleAdsClientTest.php",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    }
+  ],
+  "notes": [
+    "219 line(s) in adjudicated files carry no version token S2 can read; S2 rules only on version tokens, so every other line is UNSETTLED and scores neither way, whatever reason an arm gives for flagging it"
+  ],
+  "repo": "jeffersongoncalves/laravel-google-ads",
+  "schema": "hubbleops.corpus.labels/1",
+  "sha": "0ad5b52eed04a3360170539e4f81c30bf9c58612",
+  "signed": false,
+  "signer": "",
+  "source": "S2"
+}

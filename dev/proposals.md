@@ -1644,7 +1644,7 @@ keeps saying it.
 | | |
 |---|---|
 | **Raised** | 2026-09-13, Phase 6 |
-| **Touches** | `docs/ARCHITECTURE.md` §3, §8 and a new §22; the Phase 10 release gate; `tests/unit/test_pack_conformance.py`. **No frozen schema change and no frozen protocol change** — specialists ride the existing `repair_tools()` slot |
+| **Touches** | `docs/ARCHITECTURE.md` §8, a new §22, and the FROZEN §3.1 slot table (its Google Ads cell, and the meaning of the `repair_tools()` slot); the Phase 10 release gate; `tests/unit/test_pack_conformance.py`. **No frozen schema change and no frozen protocol change** — specialists ride the existing `repair_tools()` slot |
 | **Status** | OPEN |
 
 **What forced this.** `CLAUDE.md` gained two operating lines — the three planes (`CLAUDE.md:63`) and
@@ -1653,20 +1653,28 @@ credentials by default" (`CLAUDE.md:65`) — that nothing else in the repository
 `grep -c -i plane docs/ARCHITECTURE.md` returns `0`. No schema field, no test, and no runtime check
 names a plane. That was tolerable while the WORK plane was empty. It is about to stop being empty
 three ways at once: PART TEN's C4 stage puts four AI producers behind `--ai` contingent on Q32;
-`docs/BUILD_ORDER.md:36-40` defers `pack.repair_tools()` and the coding agent with a named trigger;
+`docs/BUILD_ORDER.md:37-40` defers `pack.repair_tools()` and the coding agent with a named trigger;
 and both provider-native tools `CLAUDE.md:65` names now exist as fetchable, versioned artifacts.
 
 Three holes are open in the tree today, and each is one careless import away from mattering:
 
 1. **`verify/` has no deny-by-default import rule.** Both guards are denylists —
    `tests/unit/test_imports.py:39-43` forbids `sandbox.runner`, `store.facts`, `store.bindings`;
-   `tests/unit/test_isolation.py:22-36` lists repair paths. A model client, an agent SDK, an MCP
-   client, or `hubbleops/ai` is importable by the verifier right now and no test says otherwise.
-2. **`tests/support.py:11-21` `GENERIC_LAYERS` is a hardcoded tuple.** A new top-level package is
-   exempt from both the pack-import law and the provider-leak law until someone edits that tuple.
-3. **§8.2's tool allowlist has no implementation and no test.** The one clause ("excludes push,
-   non-allowlisted network, and `verify/`") is prose; the nearest mechanical relative,
-   `docs/HOOKS.md:44`, is itself inactive (`docs/HOOKS.md:5-7`).
+   `tests/unit/test_isolation.py:22-36` is a fourteen-entry list covering `repair`, `packs`, `app`,
+   `proof` and six `sandbox` submodules. Both are exhaustive by name, so a model client, an agent
+   SDK, an MCP client, or `hubbleops/ai` is importable by the verifier right now, and no test says
+   otherwise. A denylist cannot name a vendor SDK that does not exist yet.
+2. **No plane is recorded anywhere.** Nothing computes, stamps, or asserts which plane an operation
+   ran in. "Planes, never mixed" is currently unfalsifiable: there is no field to read, no test to
+   fail, and no way for a Receipt to show that its inputs never crossed.
+3. **§8.2's tool allowlist has no implementation in product code.** The one clause ("excludes push,
+   non-allowlisted network, and `verify/`") is prose, and `hubbleops/repair/` is `__init__.py` plus
+   `deterministic.py`. The only live mechanical relative governs this repository's own sessions, not
+   the product: `.claude/hooks/guard.py:29-33,160-166` blocks the `repair` role from editing
+   `hubbleops/verify/`, `sandbox/verifier_image.py` and `.hubbleops/decisions.yml`, and it is wired
+   through an existing `.claude/settings.json` — so `docs/HOOKS.md:5-7` ("Not active yet. No
+   `.claude/settings.json` exists") is stale prose, and the rule it specifies protects the authoring
+   session rather than the repair worker §8.2 describes.
 
 And every law in §2 was written for deterministic code. None of them says what it means when the
 actor is a model that can write plausible text into any field it is allowed to touch.
@@ -1695,9 +1703,11 @@ Four findings change the design, and none of them is guessable:
 - **It is pinned to one API version.** `ads_mcp/utils.py` imports `google.ads.googleads.v25` and
   `ads_mcp/resources/discovery.py` hardcodes `$discovery/rest?version=v25`. The version is not
   runtime-configurable, so it can say nothing about a v22 site.
-- **It is not reproducible over time.** Two of its four MCP resources fetch `fields/latest` doc
-  pages and `release-notes` fetches the live page. Same input, different bytes next month. That
-  alone disqualifies it as a proof input, independently of any trust argument.
+- **It is not reproducible over time.** All four of its MCP resources fetch remote content per
+  call: `metrics` and `segments` read `fields/latest` documentation pages, `release-notes` reads the
+  live release-notes page, and `discovery-document` reads the live discovery endpoint. Same input,
+  different bytes next month. That alone disqualifies it as a proof input, independently of any
+  trust argument.
 - **The Developer Assistant does no version migration.** No primary source describes a
   version-to-version transform. What exists is dynamic current-version resolution, an explicit
   `api_version` argument, one hardcoded deprecated-field lint, and a client-library bump script.
@@ -1705,10 +1715,11 @@ Four findings change the design, and none of them is guessable:
 
 Two further facts, on the protocol and on credentials:
 
-- **MCP carries no integrity metadata.** The specification states `serverInfo` "is self-reported by
-  the server and is not verified by the protocol" and that clients "SHOULD NOT rely on it for
-  security decisions"; `DiscoverResult` has no hash, digest or signature field. Pinning must come
-  from outside the protocol. The in-ecosystem precedent is the MCP registry's `server.json`:
+- **MCP carries no integrity metadata.** The 2026-07-28 specification revision states `serverInfo`
+  "is self-reported by the server and is not verified by the protocol" and that clients "SHOULD NOT
+  rely on it for security decisions"; `DiscoverResult` has no hash, digest or signature field, and
+  the legacy `InitializeResult` it replaced carried none either. Pinning must come from outside the
+  protocol. The in-ecosystem precedent is the MCP registry's `server.json`:
   `version` "Must be a specific version. Version ranges are rejected", plus `fileSha256` — "MCP
   clients must validate the downloaded file matches the hash before running packages".
 - **Google offers no read-only credential.** There is exactly one OAuth scope,
@@ -1730,17 +1741,19 @@ reasoning behind those ten lines; it does not enter the document.
 |---|---|---|---|---|
 | SCAN | none | none | none | ledger, Exposure Map |
 | WORK | sandbox (§8.1), default-deny egress, provider host allow-listed | scoped so no granted operation mutates | producers and instruments | working tree, drafts, attestations, repair report |
-| VERIFY | verifier image (§9), `network: "none"` | oracle credentials only, injected | none | Receipt, and only `verify/` writes `VERIFIED_FOR_SCOPE` |
+| VERIFY | the verifier image itself is `network: "none"` (`sandbox/verifier_image.py:44`); the live oracle transport runs outside it, in the customer's own CI, per P-020 | oracle credentials only, injected, never held by an agent | none | Receipt, and only `verify/` writes `VERIFIED_FOR_SCOPE` |
 
-**The WORK plane as an agent harness: two roles, never one actor.** A **producer** proposes; a
-**judge** decides. A producer never grades its own output; a judge never authors one. The frontier
-coding agent and the Developer Assistant are producers. HubbleOps' deterministic checks — the
-obligation's `required_state`, diff containment, the injected oracle, the frozen base-SHA suite, the
-pack falsifiers — are judges, and PART TEN already names four of them (`repair_judge@1`,
-`rule_judge@1`, `mapping_judge@1`, `recipe_judge@1`). The MCP server is a third thing, an
-**instrument**: not a producer, because it does not reason; not a judge, because a metadata lookup
-does not accept a patch. It answers a bounded question about the live provider, and its answer is an
-input a judge may read.
+**The WORK plane as an agent harness: three roles, never one actor.** A **producer** proposes; a
+**judge** decides; an **instrument** answers. A producer never grades its own output; a judge never
+authors one; an instrument does neither. The frontier coding agent and the Developer Assistant are
+producers. HubbleOps' deterministic checks — the obligation's `required_state`, diff containment,
+the injected oracle, the frozen base-SHA suite, the pack falsifiers — are judges, and PART TEN
+already names four of them (`repair_judge@1`, `rule_judge@1`, `mapping_judge@1`, `recipe_judge@1`).
+The MCP server is neither: not a producer, because it does not reason; not a judge, because a
+metadata lookup accepts no patch and decides nothing. It answers a bounded question about the live
+provider, and its answer is an input a judge may read. The distinction is not pedantry — a judge's
+verdict is the thing that lets a draft be applied, and granting that to a self-reported, unpinnable,
+non-reproducible tool is exactly the failure the four findings above describe.
 
 **Evidence classes, and who may mint each.** `CLAUDE.md:64` blends two orthogonal schema axes into
 one sentence; §22 must not repeat that. `derivation` is an Evidence field
@@ -1753,7 +1766,7 @@ proposal does not add one.
 | `OBSERVED` | `Evidence.derivation` | a deterministic observer in SCAN | carry a status | be minted by anything an agent drove |
 | `DERIVED_DETERMINISTIC` | `Evidence.derivation` | a deterministic derivation over observed records | carry a status | be minted from model output |
 | `DERIVED_AI_EVIDENCE` | `Evidence.derivation` | the harness, on behalf of a producer, attested per PART TEN DoD 1 | record that a draft existed and what its judge said | change a status or close an UNKNOWN, alone or at all (L10) |
-| `LIVE` | `Receipt.oracle_authority` | the injected `ContractOracle` running in VERIFY | accept an oracle result | be claimed for anything a WORK-plane tool returned |
+| `LIVE` | `Receipt.oracle_authority` | the injected `ContractOracle`, invoked in the VERIFY plane with the customer's own credentials outside the network-less verifier image (P-020) | accept an oracle result | be claimed for anything a WORK-plane tool returned |
 | `CATALOG` | `Receipt.oracle_authority` | the pack's catalog, per P-020 and P-022 | accept an oracle result | be widened by a specialist's opinion |
 | specialist result | none — not a record | nothing; it is a judge input, held in the run's artifacts and bound by hash into an attestation's `input_hashes` | inform a judge, and be reproduced by naming the tool digest and the exact call | enter the ledger, the store, `.hubbleops/`, or ProofScope |
 
@@ -1768,12 +1781,15 @@ non-deterministic input inside the proof key.
 proposal does not widen it by one item: base SHA, candidate SHA (read-only), Change Pack, ProofScope,
 injected pack. What §22 adds is the negative statement the boundary has never had in prose — the §3
 diagram labels it and nothing defines it. The verifier reads no agent log, no manifest, no
-confidence, no specialist transcript, no attestation body, and no `.hubbleops/` file a WORK-plane
-actor wrote. It re-derives. Mechanically: the verifier's import rule becomes **deny-by-default** (an
-allowlist of permitted prefixes) instead of the two denylists it has today, because a denylist
-cannot anticipate the name of a vendor SDK that does not exist yet. And no WORK-plane identity
-enters ProofScope: swapping the agent, the model, or a specialist version neither kills a Receipt
-nor creates one, because the proof is a function of the tree, not of who typed it (Axiom 1).
+confidence, no specialist transcript and no attestation body, and it re-derives everything else. It
+does read obligations and `.hubbleops/decisions.yml`, and that is not an exception: P-012 is
+accepted and shipped, so both arrive normalized and hashed into `verification_inputs_hash`, and a
+decision is a recorded *human* record — the one thing produced in the WORK plane that is not a
+producer's output. Mechanically: the verifier's import rule becomes **deny-by-default** (an
+allowlist of permitted prefixes) instead of the two exhaustive-by-name denylists it has today. And
+no WORK-plane identity enters ProofScope: swapping the agent, the model, or a specialist version
+neither kills a Receipt nor creates one, because the proof is a function of the tree, not of who
+typed it (Axiom 1).
 
 **Why `repair_tools()` suffices, with nothing frozen moved.** The slot is already on the frozen
 ProviderPack (`packs/_protocol.py:285`), both packs implement it (`packs/google_ads/__init__.py:87`,
@@ -1799,8 +1815,16 @@ Reading those fields is `app/`'s job, which already imports `packs/`. `repair/` 
 P-011 established for `Falsifier` → `FalsifierView` in `core/verification.py`. This proposal's one
 genuinely new artifact is that neutral view: `core/tools.py:ToolView`, provider-free, carrying the
 five fields above. `core/` is not a frozen surface, and adding a neutral vocabulary module there is
-the precedent P-003 and P-011 both set. The owner should see it stated plainly rather than buried:
-**no frozen surface moves, but a new neutral core module is created.**
+the precedent P-003 and P-011 both set.
+
+Stated plainly rather than buried, because "no frozen change" is easy to overclaim: **the frozen
+contract does not move; the frozen document does.** `packs/_protocol.py`, `core/schemas/` and the
+verdict function are untouched, and that is the whole of the "no schema, no protocol" claim. Two
+things do move and are the reason this is a proposal rather than an edit: the §3.1 slot table's
+Google Ads cell changes, and that table sits under a heading marked `(FROZEN)`; and the slot's
+meaning widens, because §3.1 today glosses `repair_tools()` as "provider's own dev-assistant plugin"
+and §8.2 orders it as a repair stage, whereas §22 also makes it carry a read-only instrument that
+repairs nothing. A new neutral core module, `core/tools.py`, is created.
 
 `app/` refuses a tool that does not satisfy `ToolView`, whose digest does not match, or whose
 transport is not on the WORK-plane allowlist — `TOOLING_MISSING`, per L9. Pinning is concrete for
@@ -1825,13 +1849,17 @@ independent controls, ordered by how much HubbleOps can prove about each:
 3. **`READ_ONLY` Google Ads user role**, with `login-customer-id` selecting it — the provider's only
    read-only mechanism, since the scope is not one.
 4. **Tool surface** — the MCP server mounts no mutate tool. Recorded, never relied on: the
-   credential in that process still carries the full read/write `adwords` scope, and `readOnlyHint`
-   is an MCP annotation the specification itself designates untrusted.
+   credential in that process still carries the full read/write `adwords` scope, and the MCP
+   specification tells clients they "MUST consider tool annotations to be untrusted unless they come
+   from trusted servers", which makes `readOnlyHint` a restatement of the trust decision rather than
+   a control that establishes it.
 
 Two prohibitions follow. HubbleOps never writes that `validate_only` guarantees no mutation:
 Google's language is descriptive ("the final execution is skipped"), never a security boundary, and
-`validate_only` is not universal — `SearchGoogleAdsStreamRequest` and `MutateBatchJobRequest` in the
-v25 generated types carry no such field, contradicting the testing guide's own list. And any
+`validate_only` is not universal — in the v25 generated types `SearchGoogleAdsStreamRequest` carries
+no such field, flatly contradicting the testing guide's own sentence, and `MutateBatchJobRequest`
+carries none either, which is the guide's unquantified "most mutate requests" doing real work. Per
+method, per version, verified — never assumed. And any
 obligation whose discharge requires a mutate call is `HUMAN`, never `AGENT` and never
 `PROVIDER_TOOL`.
 
@@ -1855,11 +1883,11 @@ which is PART TEN's E6 unchanged.
 | Law | What it means when the actor is a model |
 |---|---|
 | L1 `UNEXPLAINED = 0` | a producer has no write path to the ledger. It cannot delete, merge, or re-key a candidate; it can only propose something a judge then accepts or discards |
-| L2 UNKNOWN ≠ UNEXPLAINED | no agent is ever asked to reduce UNKNOWN. A draft that closes an UNKNOWN without new evidence is refused by its judge, not caught in review |
-| L3 UNKNOWN conservation | an instrument's live result is new evidence only when the harness minted the record with request hash, account, API version and timestamp. The agent's choice of what to ask is not evidence |
-| L4 ProofScope | no agent, model id, or tool digest enters ProofScope. Changing any of them neither kills a Receipt nor creates one |
+| L2 UNKNOWN ≠ UNEXPLAINED | gates target UNEXPLAINED = 0, never UNKNOWN = 0, so no agent is ever asked to reduce UNKNOWN. An UNKNOWN a producer leaves standing with a precise closing instruction is a correct agent outcome |
+| L3 UNKNOWN conservation | an UNKNOWN closes on a deterministic record or a recorded human decision, never on an instrument's answer directly. What closes it is the record the judge wrote, naming the tool digest, the exact call, and the request hash, account, API version and timestamp behind it. The agent's choice of what to ask is not evidence |
+| L4 ProofScope | no WORK-plane identity — agent, model id, or specialist digest — enters ProofScope, and changing one neither kills a Receipt nor creates one. Scan and verifier tool identity already does enter it, through `scanner_version` and `verifier_version`; who wrote a patch does not |
 | L5 Dependency direction | specialists ride `repair_tools()`; `app/` converts them to `core/tools.py:ToolView`. No generic layer learns a tool name, a host, or a model id |
-| L6 `verify/` never imports what it judges | extended: no model client, agent SDK, MCP client, or `hubbleops/ai`, enforced by an allowlist rather than today's denylists |
+| L6 `verify/` never imports what it judges | `repair/`, `packs/` and `sandbox/runner` as today, extended with: no model client, no agent SDK, no MCP client, no `hubbleops/ai` — and enforced by an allowlist of permitted prefixes, because the current fourteen-name denylist cannot exclude what it cannot name |
 | L7 Memory reduces work, never proof | an agent may read memory to draft faster. Nothing an agent read is ever a reason a check was skipped |
 | L8 Verdicts | no agent, tool, or specialist emits a verdict token. An exit code and a transcript are not verdicts (§8.2, already) |
 | L9 Fail closed | a specialist that is absent, unpinned, digest-mismatched, unauthenticated or rate-limited is `TOOLING_MISSING`; a judge that cannot run leaves the draft UNJUDGED and unapplied; a timeout is UNKNOWN with a reason. A draft is never applied on a judge's absence |
@@ -1898,25 +1926,34 @@ Release criteria for `v1.0`:
   precise closing instruction passes.
 
 This gate cannot run yet, and saying so is part of the proposal. The held-out corpus §13 names does
-not exist — `tests/heldout/` is absent, `dev/tasks.md:452-457` carries it as a standing task, and
-GLNA and Dub are development repositories, so scoring on them would measure tuning. Accepting P-035
+not exist — `tests/heldout/` is absent, `dev/tasks.md:469` carries it as a standing task, and GLNA
+and Dub are development repositories, so scoring on them would measure tuning. Accepting P-035
 converts that standing task into a release blocker.
 
-**Blast radius.** `docs/ARCHITECTURE.md` gains §22 and two edited lines; §22 joins the FROZEN list in
-§21, so later changes to it come back here. `core/tools.py` is new and neutral;
-`tests/unit/test_imports.py` and `test_no_provider_leak.py` cover it, and `GENERIC_LAYERS` in
-`tests/support.py` must stop being a hardcoded tuple. `tests/unit/test_imports.py` gains the
-verifier allowlist, which is the only change to an existing guarantee.
+**Blast radius.** `docs/ARCHITECTURE.md` gains §22 and two edited lines. Three consequential edits
+sit *outside* the ten lines and are acceptance chores, named here so they are not discovered later:
+§21's FROZEN list must gain §22; `CLAUDE.md`'s Frozen block and this file's own frozen-surface list
+(`dev/proposals.md:8-12`) must gain it too, or three documents will disagree about what is frozen;
+and `docs/HOOKS.md:5-7` should stop saying the hooks are not active. `core/tools.py` is new and
+neutral, covered by `tests/unit/test_imports.py` and `test_no_provider_leak.py` — which since
+`61e8db8` derive the layer set from the tree, so a new `core` module is in scope automatically.
+`tests/unit/test_imports.py` gains the verifier allowlist, the only change to an existing guarantee.
 `tests/unit/test_pack_conformance.py:33` (`assert pack.repair_tools() == []`) is the one existing
 assertion this invalidates, and only when the first tool actually ships.
 `prompts/phases/10-pilot-hardening.md` gains the four-arm benchmark in its **Gate** row.
+
+This proposal leans on PART TEN for the attestation record, the four judges, E6 and Q32, and PART
+TEN lives in `dev/plan.md`, which `CLAUDE.md` says the next phase overwrites. Acceptance must
+therefore move those definitions into the decisions section of `dev/context.md` in the same pass, or
+§22 will reference vocabulary that no longer exists anywhere. §22 does not depend on Q32 being yes:
+with Q32 = no there is no producer, and §22 governs an empty producer role and a populated
+instrument one.
 
 Nothing persisted moves. No frozen schema, no `packs/_protocol.py` edit, no verdict-function change,
 no Receipt change, no ProofScope field — so **every existing Receipt survives**, which is unusual for
 a proposal here and is the direct consequence of keeping WORK-plane identity out of the proof key.
 Re-run for acceptance: the import and leak suites, `test_pack_conformance.py`, and the adversarial
-corpus. P-035 does not decide Q32 and does not unblock it: with Q32 = no, §22 still binds and simply
-has no producer to govern.
+corpus.
 
 **Alternatives rejected, and why.** *Leave the planes in `CLAUDE.md`* — a session convention cannot
 constrain a shipped artifact, and the three holes above are already open. *Widen `ToolSpec` with the
@@ -1950,7 +1987,7 @@ we do not ship are what make G1 and G2 mean anything.
 +
 +## §22. Planes, and the WORK plane as an agent harness (FROZEN)
 +
-+**Three planes, never mixed.** **SCAN** — no network, no credentials, deterministic observers only. **WORK** — the sandbox of §8.1: default-deny egress with the provider host allow-listed, credentials scoped so that no granted operation mutates, agents and provider-native specialists allowed. **VERIFY** — §9's own image, controlled inputs, no agent authority; only `verify/` writes `VERIFIED_FOR_SCOPE`, and its import rule is deny-by-default. **The WORK plane is an agent harness with two roles.** A *producer* (frontier coding agent, provider Developer Assistant) proposes; a *judge* (a HubbleOps deterministic check, or a read-only provider instrument such as the Google Ads MCP server) decides. A producer never grades its own output and has no write path to the ledger, the store, `.hubbleops/`, or a verifier input; producer output is `DERIVED_AI_EVIDENCE` (L10), attested, and closes nothing alone; an instrument's live provider result is minted by the harness, bound to request hash, account, API version and timestamp, scoped to the operation it tested, and is a judge input rather than a record. Specialists are carried as `repair_tools()` `ToolSpec` entries pinned by version and content digest — a missing, unpinned or mismatched tool is `TOOLING_MISSING`, and a judge that cannot run leaves its draft UNJUDGED and unapplied (L9). No WORK-plane identity enters ProofScope: the proof is over the tree, not over who wrote it. What reaches the customer is only a **decision** (recorded, attributable, reversible) or an **operation** (re-runnable, bound to an obligation id, judged before it is offered); prose and confidence reach nobody. The release gate is the four-arm benchmark — the same held-out repositories and one blind verifier over candidates produced deterministically, by an agent alone, by the provider's own toolchain, and by the full harness — with zero FALSE_VERIFIED in every arm, and the UNKNOWN count never a criterion.
++**Three planes, never mixed.** **SCAN** — no network, no credentials, deterministic observers only. **WORK** — the sandbox of §8.1: default-deny egress with the provider host allow-listed, credentials scoped so that no granted operation mutates, agents and provider-native specialists allowed. **VERIFY** — §9's own image, controlled inputs, no agent authority; only `verify/` writes `VERIFIED_FOR_SCOPE`, and its import rule is an allowlist. **The WORK plane is an agent harness with three roles.** A *producer* (a coding agent, a provider's developer assistant) proposes; a *judge* (a deterministic HubbleOps check) decides; an *instrument* (a pinned, read-only provider tool) answers one bounded question a judge may read. A producer never grades its own output and has no write path to the ledger, the store, `.hubbleops/`, or a verifier input; its output is `DERIVED_AI_EVIDENCE` (L10), attested, and closes nothing alone. An instrument's answer is a judge input, never a record: what closes an UNKNOWN is the deterministic record the judge wrote, naming the tool digest and the exact call behind the answer. Specialists are carried as `repair_tools()` `ToolSpec` entries pinned by version and content digest — a missing, unpinned or mismatched tool is `TOOLING_MISSING`, and a judge that cannot run leaves its draft UNJUDGED and unapplied (L9). No WORK-plane identity enters ProofScope: the proof is over the tree, not over who wrote it. What reaches the customer is only a **decision** (recorded, attributable, reversible) or an **operation** (re-runnable, bound to an obligation id, judged before it is offered); prose and confidence reach nobody. The release gate is the four-arm benchmark — the same held-out repositories and one blind verifier over candidates produced deterministically, by an agent alone, by the provider's own toolchain, and by the full harness — with zero FALSE_VERIFIED in every arm, and the UNKNOWN count never a criterion.
 ```
 
 **Decision.** Pending repository-owner decision. Until accepted, the planes remain a session
@@ -1998,5 +2035,47 @@ audit failed, and it leaves the frozen document describing a contract the code d
 **Decision.** Pending repository-owner ruling. If rejected, the field comes out and `app/` passes
 the index by another route the owner names; the capability itself is P-030's, already DECIDED, and
 is not reopened here.
+
+---
+
+## P-037 — `hops corpus` as a verb, or the corpus harness stays outside the engine
+
+| | |
+|---|---|
+| **Raised** | 2026-09-14, first-signal corpus |
+| **Touches** | `CLAUDE.md` **Names** (the enumerated verb list), `hubbleops/app/cli.py` (one subparser and one dispatch line). **No frozen schema, no frozen protocol, no verdict change** |
+| **Status** | OPEN — recorded as a finding, not acted on |
+
+**What forced this.** The first-signal brief names the harness command literally:
+`hops corpus run --arm {A,C} --engine dev/engine-v0.json --families dev/corpus/families.json`.
+The same brief opens with "the engine, pack and tools are read-only; a needed engine change is a
+finding." Those two sentences cannot both be satisfied, because `hops` is the engine's console
+script (`pyproject.toml` `[project.scripts] hops = "hubbleops.app.cli:main"`) and `CLAUDE.md`
+**Names** enumerates every verb it may carry: scan, exposure, capture, promote, verify, migrate,
+decide, guard, impact, replay, prepare-pr, pack verify. `corpus` is not among them, and adding it
+moves `engine_tree` away from the `d78cc87c…` that `dev/engine-v0.json` pins — which is exactly the
+hash arm A checks before it agrees to run.
+
+**What was done instead.** The harness lives at `tests/corpus/` and is invoked as
+`uv run python -m tests.corpus <verb>`, carrying the brief's flag surface unchanged
+(`run --arm --engine --families`, plus `score`, `label`, `challenge`, `decision-report`, `check`).
+It shells out to the engine in a `git worktree` pinned at the `engine-v0` commit and refuses to run
+when `HEAD:hubbleops`, `HEAD:hubbleops/packs/google_ads`, `uv.lock` or either tool binary's sha256
+does not match `dev/engine-v0.json`. Nothing under `hubbleops/` was read except as data.
+
+**The change, if the owner wants the literal command.** Three lines in `hubbleops/app/cli.py`: a
+`corpus` subparser with `run`/`score`/`label`/`challenge`/`decision-report`, and a dispatch that
+imports `tests.corpus.run` lazily. Two objections to weigh first. It puts a test-tree import in the
+shipped CLI, so either `tests/corpus/` moves under `hubbleops/` (and then the corpus harness is
+inside the thing it measures) or the wheel carries a verb that fails on an installed copy. And a
+benchmark verb inside the engine is a verb whose own changes re-scope every proof, because
+`scanner_version` is derived from the engine tree.
+
+**Recommendation.** Leave it outside. The measurement of an engine should not ship inside that
+engine, and `engine-v0` stays byte-stable while the corpus grows. If the owner wants
+`hops corpus run` for ergonomics, add it after the corpus stops changing, and freeze a new engine
+tag in the same commit.
+
+**Decision.** Pending repository-owner ruling.
 
 ---

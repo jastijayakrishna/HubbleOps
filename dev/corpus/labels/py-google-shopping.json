@@ -1,0 +1,5152 @@
+{
+  "adjudicated_files": [
+    {
+      "adjudicated": true,
+      "path": "acit/acit.py",
+      "reason_if_not": "",
+      "sources": [
+        "S2"
+      ]
+    }
+  ],
+  "coverage_note": "S2 adjudicates only files this repository has itself migrated before, found by mining its own history for a commit that replaced one Google Ads version with another. Silence elsewhere is not cleanliness. Sites are detected with a provider-neutral version token rather than the pack's own carriers, so a site the pack cannot see still counts against the arm. A version token in a comment, a docstring, a documentation file or a documentation URL is CLEAN, not actionable: prose is not a call site, and an arm that flags it is over-reporting. A version token in a documentation file is UNSETTLED rather than clean: whether a migration must also update a README or a changelog is a judgement for the owner, not for S2. A line naming the Google Ads surface with no version token at all is UNSETTLED.",
+  "eligible_files": 10,
+  "family_id": "py-google-shopping",
+  "kind": "natural",
+  "labels": [
+    {
+      "evidence": "acit/acit.py:39 = ADS_API_VERSION = 'v22'",
+      "id": "S2-0001",
+      "kind": "natural",
+      "line": 39,
+      "mechanism": "config_version",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "ACTIONABLE"
+    },
+    {
+      "evidence": "acit/acit.py:1 = # Copyright 2023 Google LLC",
+      "id": "S2U-0001",
+      "kind": "natural",
+      "line": 1,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:2 = #",
+      "id": "S2U-0002",
+      "kind": "natural",
+      "line": 2,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:3 = # Licensed under the Apache License, Version 2.0 (the \"License\");",
+      "id": "S2U-0003",
+      "kind": "natural",
+      "line": 3,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:4 = # you may not use this file except in compliance with the License.",
+      "id": "S2U-0004",
+      "kind": "natural",
+      "line": 4,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:5 = # You may obtain a copy of the License at",
+      "id": "S2U-0005",
+      "kind": "natural",
+      "line": 5,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:6 = #",
+      "id": "S2U-0006",
+      "kind": "natural",
+      "line": 6,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:7 = #     http://www.apache.org/licenses/LICENSE-2.0",
+      "id": "S2U-0007",
+      "kind": "natural",
+      "line": 7,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:8 = #",
+      "id": "S2U-0008",
+      "kind": "natural",
+      "line": 8,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:9 = # Unless required by applicable law or agreed to in writing, software",
+      "id": "S2U-0009",
+      "kind": "natural",
+      "line": 9,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:10 = # distributed under the License is distributed on an \"AS IS\" BASIS,",
+      "id": "S2U-0010",
+      "kind": "natural",
+      "line": 10,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:11 = # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.",
+      "id": "S2U-0011",
+      "kind": "natural",
+      "line": 11,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:12 = # See the License for the specific language governing permissions and",
+      "id": "S2U-0012",
+      "kind": "natural",
+      "line": 12,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:13 = # limitations under the License.",
+      "id": "S2U-0013",
+      "kind": "natural",
+      "line": 13,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:14 = \"\"\"Main ACIT data downloader.\"\"\"",
+      "id": "S2U-0014",
+      "kind": "natural",
+      "line": 14,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:16 = import os",
+      "id": "S2U-0015",
+      "kind": "natural",
+      "line": 16,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:17 = import sys",
+      "id": "S2U-0016",
+      "kind": "natural",
+      "line": 17,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:18 = from typing import Set",
+      "id": "S2U-0017",
+      "kind": "natural",
+      "line": 18,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:20 = from absl import app",
+      "id": "S2U-0018",
+      "kind": "natural",
+      "line": 20,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:21 = from absl import flags",
+      "id": "S2U-0019",
+      "kind": "natural",
+      "line": 21,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:22 = from absl import logging",
+      "id": "S2U-0020",
+      "kind": "natural",
+      "line": 22,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:23 = from acit import gaql",
+      "id": "S2U-0021",
+      "kind": "natural",
+      "line": 23,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:24 = from acit import merchant_accounts",
+      "id": "S2U-0022",
+      "kind": "natural",
+      "line": 24,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:25 = from acit import merchant_lia",
+      "id": "S2U-0023",
+      "kind": "natural",
+      "line": 25,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:26 = from acit import merchant_products",
+      "id": "S2U-0024",
+      "kind": "natural",
+      "line": 26,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:27 = from acit import merchant_shipping",
+      "id": "S2U-0025",
+      "kind": "natural",
+      "line": 27,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:28 = from etils import epath",
+      "id": "S2U-0026",
+      "kind": "natural",
+      "line": 28,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:29 = from google import auth",
+      "id": "S2U-0027",
+      "kind": "natural",
+      "line": 29,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:30 = from google.ads.googleads import client",
+      "id": "S2U-0028",
+      "kind": "natural",
+      "line": 30,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:31 = from google.auth import credentials",
+      "id": "S2U-0029",
+      "kind": "natural",
+      "line": 31,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:32 = from google.oauth2 import credentials as oauth_credentials",
+      "id": "S2U-0030",
+      "kind": "natural",
+      "line": 32,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:35 = if sys.version_info < (3, 9, 0):",
+      "id": "S2U-0031",
+      "kind": "natural",
+      "line": 35,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:36 = # Required for union operators",
+      "id": "S2U-0032",
+      "kind": "natural",
+      "line": 36,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:37 = raise RuntimeError('Python 3.9 or greater required.')",
+      "id": "S2U-0033",
+      "kind": "natural",
+      "line": 37,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:41 = _OAUTH_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'",
+      "id": "S2U-0034",
+      "kind": "natural",
+      "line": 41,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:43 = _CUSTOMER_IDS = flags.DEFINE_multi_string(",
+      "id": "S2U-0035",
+      "kind": "natural",
+      "line": 43,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:44 = 'customer_id',",
+      "id": "S2U-0036",
+      "kind": "natural",
+      "line": 44,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:45 = '',",
+      "id": "S2U-0037",
+      "kind": "natural",
+      "line": 45,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:46 = (",
+      "id": "S2U-0038",
+      "kind": "natural",
+      "line": 46,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:47 = 'The customer ID to query. May be specified multiple times. Expands'",
+      "id": "S2U-0039",
+      "kind": "natural",
+      "line": 47,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:48 = ' MCCs. Accepts \"login_customer_id:customer_id\" if a separate login'",
+      "id": "S2U-0040",
+      "kind": "natural",
+      "line": 48,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:49 = ' customer ID is required.'",
+      "id": "S2U-0041",
+      "kind": "natural",
+      "line": 49,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:50 = ),",
+      "id": "S2U-0042",
+      "kind": "natural",
+      "line": 50,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:51 = )",
+      "id": "S2U-0043",
+      "kind": "natural",
+      "line": 51,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:53 = _MERCHANT_CENTER_IDS = flags.DEFINE_multi_string(",
+      "id": "S2U-0044",
+      "kind": "natural",
+      "line": 53,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:54 = 'merchant_id',",
+      "id": "S2U-0045",
+      "kind": "natural",
+      "line": 54,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:55 = '',",
+      "id": "S2U-0046",
+      "kind": "natural",
+      "line": 55,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:56 = 'The Merchant account ID. Expands Multi-client accounts.',",
+      "id": "S2U-0047",
+      "kind": "natural",
+      "line": 56,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:57 = )",
+      "id": "S2U-0048",
+      "kind": "natural",
+      "line": 57,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:59 = _OUTPUT_DIR = epath.DEFINE_path(",
+      "id": "S2U-0049",
+      "kind": "natural",
+      "line": 59,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:60 = 'output',",
+      "id": "S2U-0050",
+      "kind": "natural",
+      "line": 60,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:61 = '/tmp/acit',",
+      "id": "S2U-0051",
+      "kind": "natural",
+      "line": 61,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:62 = 'The output directory for this data',",
+      "id": "S2U-0052",
+      "kind": "natural",
+      "line": 62,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:63 = )",
+      "id": "S2U-0053",
+      "kind": "natural",
+      "line": 63,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:65 = _ADMIN_RIGHTS = flags.DEFINE_boolean(",
+      "id": "S2U-0054",
+      "kind": "natural",
+      "line": 65,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:66 = 'admin',",
+      "id": "S2U-0055",
+      "kind": "natural",
+      "line": 66,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:67 = True,",
+      "id": "S2U-0056",
+      "kind": "natural",
+      "line": 67,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:68 = 'Whether to run against Merchant Center with admin privileges.',",
+      "id": "S2U-0057",
+      "kind": "natural",
+      "line": 68,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:69 = )",
+      "id": "S2U-0058",
+      "kind": "natural",
+      "line": 69,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:71 = _VALIDATE_ONLY = flags.DEFINE_boolean(",
+      "id": "S2U-0059",
+      "kind": "natural",
+      "line": 71,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:72 = 'validate_only', False, 'Whether to validate GAQL queries only.'",
+      "id": "S2U-0060",
+      "kind": "natural",
+      "line": 72,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:73 = )",
+      "id": "S2U-0061",
+      "kind": "natural",
+      "line": 73,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:75 = _MC_MAX_WORKERS = flags.DEFINE_integer(",
+      "id": "S2U-0062",
+      "kind": "natural",
+      "line": 75,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:76 = 'mc_max_workers',",
+      "id": "S2U-0063",
+      "kind": "natural",
+      "line": 76,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:77 = 8,",
+      "id": "S2U-0064",
+      "kind": "natural",
+      "line": 77,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:78 = (",
+      "id": "S2U-0065",
+      "kind": "natural",
+      "line": 78,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:79 = 'Max concurrent worker threads used by each Merchant API v1 '",
+      "id": "S2U-0066",
+      "kind": "natural",
+      "line": 79,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:80 = 'ingestion stage (accounts, products, LIA, shipping). Passed '",
+      "id": "S2U-0067",
+      "kind": "natural",
+      "line": 80,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:81 = 'explicitly to every stage so they stay consistent with each other.'",
+      "id": "S2U-0068",
+      "kind": "natural",
+      "line": 81,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:82 = ),",
+      "id": "S2U-0069",
+      "kind": "natural",
+      "line": 82,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:83 = )",
+      "id": "S2U-0070",
+      "kind": "natural",
+      "line": 83,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:85 = # NOTE: Always add customer.id to a query for uniqueness.",
+      "id": "S2U-0071",
+      "kind": "natural",
+      "line": 85,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:87 = # NOTE: Merchant Center FK has the form of channel:language:feed_label:item_id",
+      "id": "S2U-0072",
+      "kind": "natural",
+      "line": 87,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:88 = # NOTE: Impressions will always be > 0 because this data is historical",
+      "id": "S2U-0073",
+      "kind": "natural",
+      "line": 88,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:89 = _GAQL_SHOPPING_PERFORMANCE_VIEW = \"\"\"",
+      "id": "S2U-0074",
+      "kind": "natural",
+      "line": 89,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:90 = SELECT",
+      "id": "S2U-0075",
+      "kind": "natural",
+      "line": 90,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:91 = customer.id,",
+      "id": "S2U-0076",
+      "kind": "natural",
+      "line": 91,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:92 = campaign.id,",
+      "id": "S2U-0077",
+      "kind": "natural",
+      "line": 92,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:93 = segments.product_merchant_id,",
+      "id": "S2U-0078",
+      "kind": "natural",
+      "line": 93,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:94 = segments.product_channel,",
+      "id": "S2U-0079",
+      "kind": "natural",
+      "line": 94,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:95 = segments.product_language,",
+      "id": "S2U-0080",
+      "kind": "natural",
+      "line": 95,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:96 = segments.product_feed_label,",
+      "id": "S2U-0081",
+      "kind": "natural",
+      "line": 96,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:97 = segments.product_item_id,",
+      "id": "S2U-0082",
+      "kind": "natural",
+      "line": 97,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:98 = metrics.impressions,",
+      "id": "S2U-0083",
+      "kind": "natural",
+      "line": 98,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:99 = metrics.clicks,",
+      "id": "S2U-0084",
+      "kind": "natural",
+      "line": 99,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:100 = metrics.cost_micros,",
+      "id": "S2U-0085",
+      "kind": "natural",
+      "line": 100,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:101 = metrics.conversions,",
+      "id": "S2U-0086",
+      "kind": "natural",
+      "line": 101,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:102 = metrics.conversions_value",
+      "id": "S2U-0087",
+      "kind": "natural",
+      "line": 102,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:103 = FROM shopping_performance_view",
+      "id": "S2U-0088",
+      "kind": "natural",
+      "line": 103,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:104 = WHERE",
+      "id": "S2U-0089",
+      "kind": "natural",
+      "line": 104,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:105 = segments.date DURING LAST_30_DAYS",
+      "id": "S2U-0090",
+      "kind": "natural",
+      "line": 105,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:106 = \"\"\"",
+      "id": "S2U-0091",
+      "kind": "natural",
+      "line": 106,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:108 = # WIP: need to query for each campaign type",
+      "id": "S2U-0092",
+      "kind": "natural",
+      "line": 108,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:109 = # If feed label is not set, then shopping campaigns",
+      "id": "S2U-0093",
+      "kind": "natural",
+      "line": 109,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:110 = # target all feeds from an account.",
+      "id": "S2U-0094",
+      "kind": "natural",
+      "line": 110,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:111 = # TODO: Check local result for PMax (default enabled)",
+      "id": "S2U-0095",
+      "kind": "natural",
+      "line": 111,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:112 = _GAQL_CAMPAIGN_SETTINGS = \"\"\"",
+      "id": "S2U-0096",
+      "kind": "natural",
+      "line": 112,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:113 = SELECT",
+      "id": "S2U-0097",
+      "kind": "natural",
+      "line": 113,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:114 = customer.id,",
+      "id": "S2U-0098",
+      "kind": "natural",
+      "line": 114,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:115 = campaign.id,",
+      "id": "S2U-0099",
+      "kind": "natural",
+      "line": 115,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:116 = campaign.status,",
+      "id": "S2U-0100",
+      "kind": "natural",
+      "line": 116,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:117 = campaign.shopping_setting.campaign_priority,",
+      "id": "S2U-0101",
+      "kind": "natural",
+      "line": 117,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:118 = campaign.shopping_setting.enable_local,",
+      "id": "S2U-0102",
+      "kind": "natural",
+      "line": 118,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:119 = campaign.shopping_setting.feed_label,",
+      "id": "S2U-0103",
+      "kind": "natural",
+      "line": 119,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:120 = campaign.shopping_setting.merchant_id,",
+      "id": "S2U-0104",
+      "kind": "natural",
+      "line": 120,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:121 = campaign.status,",
+      "id": "S2U-0105",
+      "kind": "natural",
+      "line": 121,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:122 = campaign.advertising_channel_type,",
+      "id": "S2U-0106",
+      "kind": "natural",
+      "line": 122,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:123 = campaign.advertising_channel_sub_type",
+      "id": "S2U-0107",
+      "kind": "natural",
+      "line": 123,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:124 = FROM campaign",
+      "id": "S2U-0108",
+      "kind": "natural",
+      "line": 124,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:125 = WHERE",
+      "id": "S2U-0109",
+      "kind": "natural",
+      "line": 125,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:126 = campaign.status = 'ENABLED'",
+      "id": "S2U-0110",
+      "kind": "natural",
+      "line": 126,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:127 = \"\"\"",
+      "id": "S2U-0111",
+      "kind": "natural",
+      "line": 127,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:129 = # Non-PMax",
+      "id": "S2U-0112",
+      "kind": "natural",
+      "line": 129,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:131 = # \"Inventory Filters\"",
+      "id": "S2U-0113",
+      "kind": "natural",
+      "line": 131,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:132 = _GAQL_CAMPAIGN_CRITERIA = \"\"\"",
+      "id": "S2U-0114",
+      "kind": "natural",
+      "line": 132,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:133 = SELECT",
+      "id": "S2U-0115",
+      "kind": "natural",
+      "line": 133,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:134 = customer.id,",
+      "id": "S2U-0116",
+      "kind": "natural",
+      "line": 134,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:135 = campaign.id,",
+      "id": "S2U-0117",
+      "kind": "natural",
+      "line": 135,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:136 = campaign.status,",
+      "id": "S2U-0118",
+      "kind": "natural",
+      "line": 136,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:137 = campaign_criterion.status,",
+      "id": "S2U-0119",
+      "kind": "natural",
+      "line": 137,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:138 = campaign_criterion.type,",
+      "id": "S2U-0120",
+      "kind": "natural",
+      "line": 138,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:139 = campaign_criterion.listing_scope.dimensions,",
+      "id": "S2U-0121",
+      "kind": "natural",
+      "line": 139,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:140 = campaign_criterion.language.language_constant,",
+      "id": "S2U-0122",
+      "kind": "natural",
+      "line": 140,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:141 = campaign_criterion.negative",
+      "id": "S2U-0123",
+      "kind": "natural",
+      "line": 141,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:142 = FROM campaign_criterion",
+      "id": "S2U-0124",
+      "kind": "natural",
+      "line": 142,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:143 = WHERE",
+      "id": "S2U-0125",
+      "kind": "natural",
+      "line": 143,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:144 = campaign_criterion.status = 'ENABLED'",
+      "id": "S2U-0126",
+      "kind": "natural",
+      "line": 144,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:145 = AND campaign.status = 'ENABLED'",
+      "id": "S2U-0127",
+      "kind": "natural",
+      "line": 145,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:146 = AND campaign_criterion.type IN ('LISTING_SCOPE', 'LANGUAGE')",
+      "id": "S2U-0128",
+      "kind": "natural",
+      "line": 146,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:147 = \"\"\"",
+      "id": "S2U-0129",
+      "kind": "natural",
+      "line": 147,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:149 = _GAQL_AD_GROUP_CRITERIA = \"\"\"",
+      "id": "S2U-0130",
+      "kind": "natural",
+      "line": 149,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:150 = SELECT",
+      "id": "S2U-0131",
+      "kind": "natural",
+      "line": 150,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:151 = customer.id,",
+      "id": "S2U-0132",
+      "kind": "natural",
+      "line": 151,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:152 = campaign.id,",
+      "id": "S2U-0133",
+      "kind": "natural",
+      "line": 152,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:153 = ad_group.id,",
+      "id": "S2U-0134",
+      "kind": "natural",
+      "line": 153,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:154 = ad_group_criterion.criterion_id,",
+      "id": "S2U-0135",
+      "kind": "natural",
+      "line": 154,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:155 = ad_group_criterion.negative,",
+      "id": "S2U-0136",
+      "kind": "natural",
+      "line": 155,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:156 = ad_group_criterion.status,",
+      "id": "S2U-0137",
+      "kind": "natural",
+      "line": 156,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:157 = ad_group_criterion.display_name,",
+      "id": "S2U-0138",
+      "kind": "natural",
+      "line": 157,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:158 = ad_group_criterion.type,",
+      "id": "S2U-0139",
+      "kind": "natural",
+      "line": 158,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:159 = ad_group_criterion.listing_group.path,",
+      "id": "S2U-0140",
+      "kind": "natural",
+      "line": 159,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:160 = ad_group_criterion.listing_group.type",
+      "id": "S2U-0141",
+      "kind": "natural",
+      "line": 160,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:161 = FROM ad_group_criterion",
+      "id": "S2U-0142",
+      "kind": "natural",
+      "line": 161,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:162 = WHERE",
+      "id": "S2U-0143",
+      "kind": "natural",
+      "line": 162,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:163 = ad_group_criterion.status = 'ENABLED'",
+      "id": "S2U-0144",
+      "kind": "natural",
+      "line": 163,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:164 = AND campaign.status = 'ENABLED'",
+      "id": "S2U-0145",
+      "kind": "natural",
+      "line": 164,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:165 = AND ad_group.status = 'ENABLED'",
+      "id": "S2U-0146",
+      "kind": "natural",
+      "line": 165,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:166 = AND ad_group_criterion.type IN ('LISTING_GROUP')",
+      "id": "S2U-0147",
+      "kind": "natural",
+      "line": 166,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:167 = AND ad_group_criterion.listing_group.type = 'UNIT'",
+      "id": "S2U-0148",
+      "kind": "natural",
+      "line": 167,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:168 = \"\"\"",
+      "id": "S2U-0149",
+      "kind": "natural",
+      "line": 168,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:170 = # Asset group - PMax only",
+      "id": "S2U-0150",
+      "kind": "natural",
+      "line": 170,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:171 = _GAQL_ASSET_GROUP_LISTING_FILTER = \"\"\"",
+      "id": "S2U-0151",
+      "kind": "natural",
+      "line": 171,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:172 = SELECT",
+      "id": "S2U-0152",
+      "kind": "natural",
+      "line": 172,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:173 = customer.id,",
+      "id": "S2U-0153",
+      "kind": "natural",
+      "line": 173,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:174 = campaign.id,",
+      "id": "S2U-0154",
+      "kind": "natural",
+      "line": 174,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:175 = asset_group.id,",
+      "id": "S2U-0155",
+      "kind": "natural",
+      "line": 175,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:176 = asset_group_listing_group_filter.id,",
+      "id": "S2U-0156",
+      "kind": "natural",
+      "line": 176,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:177 = asset_group_listing_group_filter.parent_listing_group_filter,",
+      "id": "S2U-0157",
+      "kind": "natural",
+      "line": 177,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:178 = asset_group_listing_group_filter.type,",
+      "id": "S2U-0158",
+      "kind": "natural",
+      "line": 178,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:179 = asset_group_listing_group_filter.path",
+      "id": "S2U-0159",
+      "kind": "natural",
+      "line": 179,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:180 = FROM asset_group_listing_group_filter",
+      "id": "S2U-0160",
+      "kind": "natural",
+      "line": 180,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:181 = WHERE",
+      "id": "S2U-0161",
+      "kind": "natural",
+      "line": 181,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:182 = asset_group.status = 'ENABLED'",
+      "id": "S2U-0162",
+      "kind": "natural",
+      "line": 182,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:183 = AND campaign.status = 'ENABLED'",
+      "id": "S2U-0163",
+      "kind": "natural",
+      "line": 183,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:184 = AND asset_group_listing_group_filter.type IN ('UNIT_INCLUDED', 'UNIT_EXCLUDED')",
+      "id": "S2U-0164",
+      "kind": "natural",
+      "line": 184,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:185 = \"\"\"",
+      "id": "S2U-0165",
+      "kind": "natural",
+      "line": 185,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:187 = _GAQL_LANGUAGE_CONSTANTS = \"\"\"",
+      "id": "S2U-0166",
+      "kind": "natural",
+      "line": 187,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:188 = SELECT",
+      "id": "S2U-0167",
+      "kind": "natural",
+      "line": 188,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:189 = language_constant.code,",
+      "id": "S2U-0168",
+      "kind": "natural",
+      "line": 189,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:190 = language_constant.name,",
+      "id": "S2U-0169",
+      "kind": "natural",
+      "line": 190,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:191 = language_constant.resource_name",
+      "id": "S2U-0170",
+      "kind": "natural",
+      "line": 191,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:192 = FROM language_constant",
+      "id": "S2U-0171",
+      "kind": "natural",
+      "line": 192,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:193 = WHERE",
+      "id": "S2U-0172",
+      "kind": "natural",
+      "line": 193,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:194 = language_constant.targetable = TRUE",
+      "id": "S2U-0173",
+      "kind": "natural",
+      "line": 194,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:195 = \"\"\"",
+      "id": "S2U-0174",
+      "kind": "natural",
+      "line": 195,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:197 = _GAQL_PRODUCT_CATEGORIES = \"\"\"",
+      "id": "S2U-0175",
+      "kind": "natural",
+      "line": 197,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:198 = SELECT",
+      "id": "S2U-0176",
+      "kind": "natural",
+      "line": 198,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:199 = product_category_constant.category_id,",
+      "id": "S2U-0177",
+      "kind": "natural",
+      "line": 199,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:200 = product_category_constant.localizations",
+      "id": "S2U-0178",
+      "kind": "natural",
+      "line": 200,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:201 = FROM product_category_constant",
+      "id": "S2U-0179",
+      "kind": "natural",
+      "line": 201,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:202 = WHERE",
+      "id": "S2U-0180",
+      "kind": "natural",
+      "line": 202,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:203 = product_category_constant.state = 'ENABLED'",
+      "id": "S2U-0181",
+      "kind": "natural",
+      "line": 203,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:204 = \"\"\"",
+      "id": "S2U-0182",
+      "kind": "natural",
+      "line": 204,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:206 = _ALL_GAQL = [",
+      "id": "S2U-0183",
+      "kind": "natural",
+      "line": 206,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:207 = ('campaign', _GAQL_CAMPAIGN_SETTINGS, gaql.QueryMode.LEAVES),",
+      "id": "S2U-0184",
+      "kind": "natural",
+      "line": 207,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:208 = ('campaign_criterion', _GAQL_CAMPAIGN_CRITERIA, gaql.QueryMode.LEAVES),",
+      "id": "S2U-0185",
+      "kind": "natural",
+      "line": 208,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:209 = ('ad_group_criterion', _GAQL_AD_GROUP_CRITERIA, gaql.QueryMode.LEAVES),",
+      "id": "S2U-0186",
+      "kind": "natural",
+      "line": 209,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:210 = (",
+      "id": "S2U-0187",
+      "kind": "natural",
+      "line": 210,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:211 = 'asset_group_listing_filter',",
+      "id": "S2U-0188",
+      "kind": "natural",
+      "line": 211,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:212 = _GAQL_ASSET_GROUP_LISTING_FILTER,",
+      "id": "S2U-0189",
+      "kind": "natural",
+      "line": 212,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:213 = gaql.QueryMode.LEAVES,",
+      "id": "S2U-0190",
+      "kind": "natural",
+      "line": 213,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:214 = ),",
+      "id": "S2U-0191",
+      "kind": "natural",
+      "line": 214,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:215 = (",
+      "id": "S2U-0192",
+      "kind": "natural",
+      "line": 215,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:216 = 'shopping_performance_view',",
+      "id": "S2U-0193",
+      "kind": "natural",
+      "line": 216,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:217 = _GAQL_SHOPPING_PERFORMANCE_VIEW,",
+      "id": "S2U-0194",
+      "kind": "natural",
+      "line": 217,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:218 = gaql.QueryMode.LEAVES,",
+      "id": "S2U-0195",
+      "kind": "natural",
+      "line": 218,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:219 = ),",
+      "id": "S2U-0196",
+      "kind": "natural",
+      "line": 219,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:220 = (",
+      "id": "S2U-0197",
+      "kind": "natural",
+      "line": 220,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:221 = 'language_constant',",
+      "id": "S2U-0198",
+      "kind": "natural",
+      "line": 221,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:222 = _GAQL_LANGUAGE_CONSTANTS,",
+      "id": "S2U-0199",
+      "kind": "natural",
+      "line": 222,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:223 = gaql.QueryMode.SINGLE,",
+      "id": "S2U-0200",
+      "kind": "natural",
+      "line": 223,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:224 = ),",
+      "id": "S2U-0201",
+      "kind": "natural",
+      "line": 224,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:225 = (",
+      "id": "S2U-0202",
+      "kind": "natural",
+      "line": 225,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:226 = 'product_category',",
+      "id": "S2U-0203",
+      "kind": "natural",
+      "line": 226,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:227 = _GAQL_PRODUCT_CATEGORIES,",
+      "id": "S2U-0204",
+      "kind": "natural",
+      "line": 227,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:228 = gaql.QueryMode.SINGLE,",
+      "id": "S2U-0205",
+      "kind": "natural",
+      "line": 228,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:229 = ),",
+      "id": "S2U-0206",
+      "kind": "natural",
+      "line": 229,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:230 = ]",
+      "id": "S2U-0207",
+      "kind": "natural",
+      "line": 230,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:232 = _ACIT_ADS_OUTPUT_DIR = flags.DEFINE_string(",
+      "id": "S2U-0208",
+      "kind": "natural",
+      "line": 232,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:233 = 'ads_output_dir',",
+      "id": "S2U-0209",
+      "kind": "natural",
+      "line": 233,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:234 = 'ads',",
+      "id": "S2U-0210",
+      "kind": "natural",
+      "line": 234,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:235 = 'The subdirectory in the output directory for Ads data.',",
+      "id": "S2U-0211",
+      "kind": "natural",
+      "line": 235,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:236 = )",
+      "id": "S2U-0212",
+      "kind": "natural",
+      "line": 236,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:238 = _ACIT_MC_OUTPUT_DIR = flags.DEFINE_string(",
+      "id": "S2U-0213",
+      "kind": "natural",
+      "line": 238,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:239 = 'mc_output_dir',",
+      "id": "S2U-0214",
+      "kind": "natural",
+      "line": 239,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:240 = 'merchant_center',",
+      "id": "S2U-0215",
+      "kind": "natural",
+      "line": 240,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:241 = 'The subdirectory in the output directory for Merchant Center data.',",
+      "id": "S2U-0216",
+      "kind": "natural",
+      "line": 241,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:242 = )",
+      "id": "S2U-0217",
+      "kind": "natural",
+      "line": 242,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:244 = # NOTE: All Merchant Center resources are pulled from the",
+      "id": "S2U-0218",
+      "kind": "natural",
+      "line": 244,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:245 = # Merchant API (stable v1). We query sub-accounts and standalone",
+      "id": "S2U-0219",
+      "kind": "natural",
+      "line": 245,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:246 = # accounts directly using the native v1 shape.",
+      "id": "S2U-0220",
+      "kind": "natural",
+      "line": 246,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:247 = # Accounts and shipping setting requests are admin-gated",
+      "id": "S2U-0221",
+      "kind": "natural",
+      "line": 247,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:248 = # matching existing permissions.",
+      "id": "S2U-0222",
+      "kind": "natural",
+      "line": 248,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:251 = def _get_credentials() -> credentials.Credentials:",
+      "id": "S2U-0223",
+      "kind": "natural",
+      "line": 251,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:252 = refresh_token = os.environ.get('GOOGLE_ADS_REFRESH_TOKEN', '').strip()",
+      "id": "S2U-0224",
+      "kind": "natural",
+      "line": 252,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:253 = client_id = os.environ.get('GOOGLE_ADS_CLIENT_ID', '').strip()",
+      "id": "S2U-0225",
+      "kind": "natural",
+      "line": 253,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:254 = client_secret = os.environ.get('GOOGLE_ADS_CLIENT_SECRET', '').strip()",
+      "id": "S2U-0226",
+      "kind": "natural",
+      "line": 254,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:255 = if not (refresh_token and client_id and client_secret):",
+      "id": "S2U-0227",
+      "kind": "natural",
+      "line": 255,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:256 = logging.info('Using application default credentials')",
+      "id": "S2U-0228",
+      "kind": "natural",
+      "line": 256,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:257 = creds, _ = auth.default()",
+      "id": "S2U-0229",
+      "kind": "natural",
+      "line": 257,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:258 = assert isinstance(creds, credentials.Credentials)",
+      "id": "S2U-0230",
+      "kind": "natural",
+      "line": 258,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:259 = return creds",
+      "id": "S2U-0231",
+      "kind": "natural",
+      "line": 259,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:260 = else:",
+      "id": "S2U-0232",
+      "kind": "natural",
+      "line": 260,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:261 = logging.info('Using oauth credentials')",
+      "id": "S2U-0233",
+      "kind": "natural",
+      "line": 261,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:262 = return oauth_credentials.Credentials(",
+      "id": "S2U-0234",
+      "kind": "natural",
+      "line": 262,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:263 = token=None,",
+      "id": "S2U-0235",
+      "kind": "natural",
+      "line": 263,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:264 = refresh_token=refresh_token,",
+      "id": "S2U-0236",
+      "kind": "natural",
+      "line": 264,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:265 = token_uri=_OAUTH_TOKEN_ENDPOINT,",
+      "id": "S2U-0237",
+      "kind": "natural",
+      "line": 265,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:266 = client_id=client_id,",
+      "id": "S2U-0238",
+      "kind": "natural",
+      "line": 266,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:267 = client_secret=client_secret,",
+      "id": "S2U-0239",
+      "kind": "natural",
+      "line": 267,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:268 = )",
+      "id": "S2U-0240",
+      "kind": "natural",
+      "line": 268,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:271 = def _parse_login_customer_ids(customer_ids: list[str]) -> list[tuple[str, str]]:",
+      "id": "S2U-0241",
+      "kind": "natural",
+      "line": 271,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:272 = \"\"\"Extracts login_customer_id:customer_id pairs from input.",
+      "id": "S2U-0242",
+      "kind": "natural",
+      "line": 272,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:274 = If no `:` delimiter is given, assume the customer ID is a login customer ID.",
+      "id": "S2U-0243",
+      "kind": "natural",
+      "line": 274,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:276 = Args:",
+      "id": "S2U-0244",
+      "kind": "natural",
+      "line": 276,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:277 = customer_ids: The input list of customers to fetch, and how to do so.",
+      "id": "S2U-0245",
+      "kind": "natural",
+      "line": 277,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:279 = Returns:",
+      "id": "S2U-0246",
+      "kind": "natural",
+      "line": 279,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:280 = A login customer ID, customer ID tuple. May be identical if no login",
+      "id": "S2U-0247",
+      "kind": "natural",
+      "line": 280,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:281 = Customer ID given.",
+      "id": "S2U-0248",
+      "kind": "natural",
+      "line": 281,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:282 = \"\"\"",
+      "id": "S2U-0249",
+      "kind": "natural",
+      "line": 282,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:283 = login_cid_pairs = []",
+      "id": "S2U-0250",
+      "kind": "natural",
+      "line": 283,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:284 = for customer_id in customer_ids:",
+      "id": "S2U-0251",
+      "kind": "natural",
+      "line": 284,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:285 = login_cid, *rest = customer_id.split(':')",
+      "id": "S2U-0252",
+      "kind": "natural",
+      "line": 285,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:286 = customer_id = rest[0] if rest else login_cid",
+      "id": "S2U-0253",
+      "kind": "natural",
+      "line": 286,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:287 = login_cid_pairs.append((login_cid, customer_id))",
+      "id": "S2U-0254",
+      "kind": "natural",
+      "line": 287,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:288 = return login_cid_pairs",
+      "id": "S2U-0255",
+      "kind": "natural",
+      "line": 288,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:291 = def main(_):",
+      "id": "S2U-0256",
+      "kind": "natural",
+      "line": 291,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:292 = creds = _get_credentials()",
+      "id": "S2U-0257",
+      "kind": "natural",
+      "line": 292,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:293 = developer_token = os.environ.get('GOOGLE_ADS_DEVELOPER_TOKEN')",
+      "id": "S2U-0258",
+      "kind": "natural",
+      "line": 293,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:294 = if _VALIDATE_ONLY.value:",
+      "id": "S2U-0259",
+      "kind": "natural",
+      "line": 294,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:295 = ads_client = client.GoogleAdsClient(",
+      "id": "S2U-0260",
+      "kind": "natural",
+      "line": 295,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:296 = credentials=creds,",
+      "id": "S2U-0261",
+      "kind": "natural",
+      "line": 296,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:297 = developer_token=developer_token,",
+      "id": "S2U-0262",
+      "kind": "natural",
+      "line": 297,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:298 = version=ADS_API_VERSION,",
+      "id": "S2U-0263",
+      "kind": "natural",
+      "line": 298,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:299 = )",
+      "id": "S2U-0264",
+      "kind": "natural",
+      "line": 299,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:300 = login_customer_id, customer_id = next(",
+      "id": "S2U-0265",
+      "kind": "natural",
+      "line": 300,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:301 = iter(_parse_login_customer_ids(_CUSTOMER_IDS.value))",
+      "id": "S2U-0266",
+      "kind": "natural",
+      "line": 301,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:302 = )",
+      "id": "S2U-0267",
+      "kind": "natural",
+      "line": 302,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:303 = ads_client.login_customer_id = login_customer_id",
+      "id": "S2U-0268",
+      "kind": "natural",
+      "line": 303,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:304 = for resource, query, mode in _ALL_GAQL:",
+      "id": "S2U-0269",
+      "kind": "natural",
+      "line": 304,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:305 = gaql.run_query(",
+      "id": "S2U-0270",
+      "kind": "natural",
+      "line": 305,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:306 = query=query,",
+      "id": "S2U-0271",
+      "kind": "natural",
+      "line": 306,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:307 = ads_client=ads_client,",
+      "id": "S2U-0272",
+      "kind": "natural",
+      "line": 307,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:308 = customer_id=customer_id,",
+      "id": "S2U-0273",
+      "kind": "natural",
+      "line": 308,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:309 = validate_only=True,",
+      "id": "S2U-0274",
+      "kind": "natural",
+      "line": 309,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:310 = use_test_accounts=gaql.USE_TEST_ACCOUNTS.value,",
+      "id": "S2U-0275",
+      "kind": "natural",
+      "line": 310,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:311 = )",
+      "id": "S2U-0276",
+      "kind": "natural",
+      "line": 311,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:312 = return",
+      "id": "S2U-0277",
+      "kind": "natural",
+      "line": 312,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:314 = acit_output_dir = _OUTPUT_DIR.value",
+      "id": "S2U-0278",
+      "kind": "natural",
+      "line": 314,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:316 = # Clear path",
+      "id": "S2U-0279",
+      "kind": "natural",
+      "line": 316,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:317 = acit_output_dir.rmtree(missing_ok=True)",
+      "id": "S2U-0280",
+      "kind": "natural",
+      "line": 317,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:318 = acit_output_dir.mkdir(parents=True)",
+      "id": "S2U-0281",
+      "kind": "natural",
+      "line": 318,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:320 = ads_path = acit_output_dir / _ACIT_ADS_OUTPUT_DIR.value",
+      "id": "S2U-0282",
+      "kind": "natural",
+      "line": 320,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:321 = mc_path = acit_output_dir / _ACIT_MC_OUTPUT_DIR.value",
+      "id": "S2U-0283",
+      "kind": "natural",
+      "line": 321,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:323 = # Make sure paths exist",
+      "id": "S2U-0284",
+      "kind": "natural",
+      "line": 323,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:324 = ads_path.mkdir()",
+      "id": "S2U-0285",
+      "kind": "natural",
+      "line": 324,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:325 = mc_path.mkdir()",
+      "id": "S2U-0286",
+      "kind": "natural",
+      "line": 325,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:327 = # Download ads data",
+      "id": "S2U-0287",
+      "kind": "natural",
+      "line": 327,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:328 = logging.info(",
+      "id": "S2U-0288",
+      "kind": "natural",
+      "line": 328,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:329 = 'Ads YAML: %s',",
+      "id": "S2U-0289",
+      "kind": "natural",
+      "line": 329,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:330 = os.getenv('GOOGLE_ADS_CONFIGURATION_FILE_PATH', 'Not set'),",
+      "id": "S2U-0290",
+      "kind": "natural",
+      "line": 330,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:331 = )",
+      "id": "S2U-0291",
+      "kind": "natural",
+      "line": 331,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:332 = logging.info('Loading Ads data...')",
+      "id": "S2U-0292",
+      "kind": "natural",
+      "line": 332,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:333 = # Only load constants once",
+      "id": "S2U-0293",
+      "kind": "natural",
+      "line": 333,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:334 = constants_gaql = iter(",
+      "id": "S2U-0294",
+      "kind": "natural",
+      "line": 334,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:335 = [query for query in _ALL_GAQL if query[2] == gaql.QueryMode.SINGLE]",
+      "id": "S2U-0295",
+      "kind": "natural",
+      "line": 335,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:336 = )",
+      "id": "S2U-0296",
+      "kind": "natural",
+      "line": 336,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:337 = accounts_gaql = [",
+      "id": "S2U-0297",
+      "kind": "natural",
+      "line": 337,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:338 = query for query in _ALL_GAQL if query[2] != gaql.QueryMode.SINGLE",
+      "id": "S2U-0298",
+      "kind": "natural",
+      "line": 338,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:339 = ]",
+      "id": "S2U-0299",
+      "kind": "natural",
+      "line": 339,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:340 = for login_customer_id, customer_id in _parse_login_customer_ids(",
+      "id": "S2U-0300",
+      "kind": "natural",
+      "line": 340,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:341 = _CUSTOMER_IDS.value",
+      "id": "S2U-0301",
+      "kind": "natural",
+      "line": 341,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:342 = ):",
+      "id": "S2U-0302",
+      "kind": "natural",
+      "line": 342,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:343 = logging.info('Processing Customer ID %s', customer_id)",
+      "id": "S2U-0303",
+      "kind": "natural",
+      "line": 343,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:344 = ads_client = client.GoogleAdsClient(",
+      "id": "S2U-0304",
+      "kind": "natural",
+      "line": 344,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:345 = credentials=creds,",
+      "id": "S2U-0305",
+      "kind": "natural",
+      "line": 345,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:346 = developer_token=developer_token,",
+      "id": "S2U-0306",
+      "kind": "natural",
+      "line": 346,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:347 = version=ADS_API_VERSION,",
+      "id": "S2U-0307",
+      "kind": "natural",
+      "line": 347,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:348 = )",
+      "id": "S2U-0308",
+      "kind": "natural",
+      "line": 348,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:349 = ads_client.login_customer_id = login_customer_id",
+      "id": "S2U-0309",
+      "kind": "natural",
+      "line": 349,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:350 = # constants_gaql will be empty on subsequent invocations",
+      "id": "S2U-0310",
+      "kind": "natural",
+      "line": 350,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:351 = for resource, query, mode in accounts_gaql + [g for g in constants_gaql]:",
+      "id": "S2U-0311",
+      "kind": "natural",
+      "line": 351,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:352 = logging.info('...pulling resource %s...', resource)",
+      "id": "S2U-0312",
+      "kind": "natural",
+      "line": 352,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:353 = # NOTE: These directories were previously sharded on login account ID.",
+      "id": "S2U-0313",
+      "kind": "natural",
+      "line": 353,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:354 = #",
+      "id": "S2U-0314",
+      "kind": "natural",
+      "line": 354,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:355 = # Since BQ load only supports a single wildcard, we can't use directory",
+      "id": "S2U-0315",
+      "kind": "natural",
+      "line": 355,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:356 = # sharding on the MCC here. Login accounts are run sequentially. But if",
+      "id": "S2U-0316",
+      "kind": "natural",
+      "line": 356,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:357 = # this is ever changed, there is a possibility that two login accounts",
+      "id": "S2U-0317",
+      "kind": "natural",
+      "line": 357,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:358 = # could write to the same child account, causing a race condition.",
+      "id": "S2U-0318",
+      "kind": "natural",
+      "line": 358,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:359 = output_dir = ads_path / 'all' / resource",
+      "id": "S2U-0319",
+      "kind": "natural",
+      "line": 359,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:360 = output_dir.mkdir(parents=True, exist_ok=True)",
+      "id": "S2U-0320",
+      "kind": "natural",
+      "line": 360,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:361 = gaql.run_query(",
+      "id": "S2U-0321",
+      "kind": "natural",
+      "line": 361,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:362 = query=query,",
+      "id": "S2U-0322",
+      "kind": "natural",
+      "line": 362,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:363 = ads_client=ads_client,",
+      "id": "S2U-0323",
+      "kind": "natural",
+      "line": 363,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:364 = customer_id=customer_id,",
+      "id": "S2U-0324",
+      "kind": "natural",
+      "line": 364,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:365 = output_dir=str(output_dir),",
+      "id": "S2U-0325",
+      "kind": "natural",
+      "line": 365,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:366 = query_mode=mode,",
+      "id": "S2U-0326",
+      "kind": "natural",
+      "line": 366,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:367 = use_simple_filename=True,",
+      "id": "S2U-0327",
+      "kind": "natural",
+      "line": 367,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:368 = use_test_accounts=gaql.USE_TEST_ACCOUNTS.value,",
+      "id": "S2U-0328",
+      "kind": "natural",
+      "line": 368,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:369 = )",
+      "id": "S2U-0329",
+      "kind": "natural",
+      "line": 369,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:370 = logging.info('Done loading Ads data.')",
+      "id": "S2U-0330",
+      "kind": "natural",
+      "line": 370,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:372 = # TODO: break out Merchant Center logic into its own file",
+      "id": "S2U-0331",
+      "kind": "natural",
+      "line": 372,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:373 = logging.info('Loading Merchant Center data...')",
+      "id": "S2U-0332",
+      "kind": "natural",
+      "line": 373,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:375 = # Before we can do anything, we need to know what type of accounts we're",
+      "id": "S2U-0333",
+      "kind": "natural",
+      "line": 375,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:376 = # dealing with.",
+      "id": "S2U-0334",
+      "kind": "natural",
+      "line": 376,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:378 = input_ids = set(_MERCHANT_CENTER_IDS.value)",
+      "id": "S2U-0335",
+      "kind": "natural",
+      "line": 378,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:380 = # Fetch account topology (aggregation structure and standalone accounts) via",
+      "id": "S2U-0336",
+      "kind": "natural",
+      "line": 380,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:381 = # Merchant API v1 Accounts service.",
+      "id": "S2U-0337",
+      "kind": "natural",
+      "line": 381,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:382 = aggregator_ids, standalone_ids, leaf_to_parent = (",
+      "id": "S2U-0338",
+      "kind": "natural",
+      "line": 382,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:383 = merchant_accounts.download_accounts(",
+      "id": "S2U-0339",
+      "kind": "natural",
+      "line": 383,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:384 = creds, input_ids, mc_path, max_workers=_MC_MAX_WORKERS.value)",
+      "id": "S2U-0340",
+      "kind": "natural",
+      "line": 384,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:385 = )",
+      "id": "S2U-0341",
+      "kind": "natural",
+      "line": 385,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:386 = # All leaf (sub-) accounts we will actually process for product-level data.",
+      "id": "S2U-0342",
+      "kind": "natural",
+      "line": 386,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:387 = leaf_ids: Set[str] = set(leaf_to_parent)",
+      "id": "S2U-0343",
+      "kind": "natural",
+      "line": 387,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:389 = product_account_ids = leaf_ids | (standalone_ids & input_ids)",
+      "id": "S2U-0344",
+      "kind": "natural",
+      "line": 389,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:391 = # Download products data for all accessible leaf and standalone accounts.",
+      "id": "S2U-0345",
+      "kind": "natural",
+      "line": 391,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:392 = merchant_products.download_products(",
+      "id": "S2U-0346",
+      "kind": "natural",
+      "line": 392,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:393 = creds, product_account_ids, mc_path, max_workers=_MC_MAX_WORKERS.value)",
+      "id": "S2U-0347",
+      "kind": "natural",
+      "line": 393,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:395 = # Fetch LIA / omnichannel settings directly for each sub-account",
+      "id": "S2U-0348",
+      "kind": "natural",
+      "line": 395,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:397 = if _ADMIN_RIGHTS.value:",
+      "id": "S2U-0349",
+      "kind": "natural",
+      "line": 397,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:398 = merchant_lia.download_omnichannel_settings(",
+      "id": "S2U-0350",
+      "kind": "natural",
+      "line": 398,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:399 = creds, product_account_ids, mc_path, max_workers=_MC_MAX_WORKERS.value)",
+      "id": "S2U-0351",
+      "kind": "natural",
+      "line": 399,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:401 = # Fetch shipping settings directly for each sub-account (admin-gated).",
+      "id": "S2U-0352",
+      "kind": "natural",
+      "line": 401,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:402 = if _ADMIN_RIGHTS.value:",
+      "id": "S2U-0353",
+      "kind": "natural",
+      "line": 402,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:403 = merchant_shipping.download_shipping_settings(",
+      "id": "S2U-0354",
+      "kind": "natural",
+      "line": 403,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:404 = creds, product_account_ids, mc_path, max_workers=_MC_MAX_WORKERS.value)",
+      "id": "S2U-0355",
+      "kind": "natural",
+      "line": 404,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:406 = unprocessed = input_ids - (leaf_ids | standalone_ids | aggregator_ids)",
+      "id": "S2U-0356",
+      "kind": "natural",
+      "line": 406,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:407 = if unprocessed:",
+      "id": "S2U-0357",
+      "kind": "natural",
+      "line": 407,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:408 = logging.warn(",
+      "id": "S2U-0358",
+      "kind": "natural",
+      "line": 408,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:409 = 'This credential does not have direct access to the following '",
+      "id": "S2U-0359",
+      "kind": "natural",
+      "line": 409,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:410 = 'input account(s): %s. Some data may be missing. ',",
+      "id": "S2U-0360",
+      "kind": "natural",
+      "line": 410,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:411 = ','.join(unprocessed),",
+      "id": "S2U-0361",
+      "kind": "natural",
+      "line": 411,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:412 = )",
+      "id": "S2U-0362",
+      "kind": "natural",
+      "line": 412,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:413 = logging.info('Done loading Merchant Center data.')",
+      "id": "S2U-0363",
+      "kind": "natural",
+      "line": 413,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:416 = if __name__ == '__main__':",
+      "id": "S2U-0364",
+      "kind": "natural",
+      "line": 416,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    },
+    {
+      "evidence": "acit/acit.py:417 = app.run(main)",
+      "id": "S2U-0365",
+      "kind": "natural",
+      "line": 417,
+      "mechanism": "version_literal",
+      "path": "acit/acit.py",
+      "scope": "line",
+      "sources": [
+        "S2"
+      ],
+      "subject": "",
+      "verdict": "UNSETTLED"
+    }
+  ],
+  "notes": [
+    "365 line(s) in adjudicated files carry no version token S2 can read; S2 rules only on version tokens, so every other line is UNSETTLED and scores neither way, whatever reason an arm gives for flagging it",
+    "1 file(s) a past migration touched no longer exist at the pinned SHA and are not adjudicated; renames are not followed"
+  ],
+  "repo": "google/ads_oneshop",
+  "schema": "hubbleops.corpus.labels/1",
+  "sha": "7884a51bf1e434ceae3612784f41e76236e7cfad",
+  "signed": false,
+  "signer": "",
+  "source": "S2"
+}

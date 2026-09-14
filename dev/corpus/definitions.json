@@ -1,0 +1,137 @@
+{
+  "schema": "hubbleops.corpus.definitions/1",
+  "version": 1,
+  "fixed_on": "2026-09-14",
+  "immutability": "These definitions and dev/corpus/matching-rules.json are fixed before the first scored run. Neither is edited mid-run. A change requires a new value of this file's version, a new families pin, and a full rerun of every arm on every family; the old scorecard is discarded rather than amended.",
+  "engine_scope": "dev/engine-v0.json",
+
+  "handled": {
+    "statement": "A repository family is handled when the arm, starting from a fresh clone at the pinned SHA plus that repository's own documented install and nothing else, carries the repository from its source Google Ads API version to v25 within 30 minutes of wall clock and with zero engineer edits.",
+    "source_versions": ["v19", "v20", "v21", "v22", "v23", "v24"],
+    "target_version": "v25",
+    "languages": ["python", "php", "typescript", "javascript"],
+    "surface_access": ["official-sdk", "rest", "third-party-client"],
+    "starting_state": "git clone at the pinned SHA, then exactly the install the repository documents in its README, CONTRIBUTING, docs/, Makefile, Dockerfile or CI workflow. No hand-added dependency, no hand-written config, no patched file.",
+    "budget_minutes": 30,
+    "budget_scope": "wall clock per family per arm, measured from the first command after the clone completes to the last, including the documented install and every retry the arm chooses to make",
+    "engineer_edits_allowed": 0,
+    "engineer_edit_definition": "any change to the repository tree, the arm's configuration, the pack, or the engine that a human makes to get this particular family through. Recording a human decision through the arm's own decision surface is not an edit; patching a file is.",
+    "credentials": "validation-only. No mutating Google Ads API call is permitted in any arm.",
+    "excluded_languages": ["java", "csharp", "ruby", "go", "perl"],
+    "excluded_surfaces": ["google-ads-scripts", "adwords-api-legacy"]
+  },
+
+  "outcomes": {
+    "COMPLETED": {
+      "definition": "The arm finished inside the budget with zero engineer edits and asserted the migration is done: for arm A a Receipt whose verdict is VERIFIED_FOR_SCOPE; for arm C an explicit claim that the repository now targets v25 and nothing else needs doing.",
+      "note": "COMPLETED is a claim, not a truth. A COMPLETED outcome that leaves an actionable labelled site unrepaired is additionally counted as a false verification."
+    },
+    "HUMAN_REQUIRED": {
+      "definition": "The arm finished inside the budget and produced a complete, honest account that names bounded human work: for arm A a Receipt whose verdict is HUMAN_REQUIRED or UNKNOWN, or a verdict of FAILED every recorded reason of which is a true property of the tree; for arm C an explicit, itemised statement of what a human must still decide or do.",
+      "note": "A correct refusal is a HUMAN_REQUIRED outcome, never an ENGINE_FAILED one. Human minutes are counted for this outcome."
+    },
+    "SETUP_FAILED": {
+      "definition": "The fresh clone plus the repository's documented install did not yield a tree the arm could run against inside the budget, for a reason outside the arm: a missing language runtime or service, a missing credential, an unreachable registry, a documented install that is wrong or incomplete.",
+      "note": "The arm never reached a judgement. Attributed to the environment stage. The family stays in the denominator; it is not an exclusion."
+    },
+    "ENGINE_FAILED": {
+      "definition": "The arm's own machinery failed: a crash or traceback, a non-zero exit carrying no verdict, a timeout inside the arm, TOOLING_MISSING for a tool the arm itself pins, a refusal the arm cannot explain, or a verdict whose recorded reason is false against the tree.",
+      "note": "Attributed to whichever of discovery, classification, repair or verification the failure sits in."
+    },
+    "separation_rule": "The four outcomes are disjoint and are never merged, averaged, or collapsed into a pass rate. Every reported rate names which outcomes are in its numerator."
+  },
+
+  "failure_attribution": {
+    "rule": "Every family that is not COMPLETED-and-not-a-false-verification gets exactly one attributed stage, chosen by the first test that fires in this order.",
+    "stages": [
+      {
+        "stage": "environment",
+        "fires_when": "the documented install did not produce a runnable tree, or a required runtime, service or credential was absent. SETUP_FAILED always attributes here."
+      },
+      {
+        "stage": "discovery",
+        "fires_when": "an actionable labelled site has no candidate, finding or observation of any kind at that site. The arm never saw it."
+      },
+      {
+        "stage": "classification",
+        "fires_when": "the arm observed the site but decided it wrongly: an actionable labelled site adjudicated NOT_AFFECTED or EXCLUDED_WITH_EVIDENCE, or a labelled-clean site asserted actionable. An UNKNOWN carrying a precise closing instruction is not a classification failure."
+      },
+      {
+        "stage": "repair",
+        "fires_when": "the site was found and classified correctly and the arm was asked to repair it, but the edit is absent, wrong, or incomplete."
+      },
+      {
+        "stage": "verification",
+        "fires_when": "the verdict is wrong given the tree the arm left behind: VERIFIED_FOR_SCOPE with an actionable labelled site still unrepaired, or FAILED on a reason that is false against the tree."
+      }
+    ]
+  },
+
+  "arms": {
+    "A": {
+      "name": "engine v0",
+      "engine": "dev/engine-v0.json",
+      "planes": ["SCAN", "WORK", "VERIFY"],
+      "agent_authority": "none. Arm A makes no model call.",
+      "procedure": ["hops scan", "hops exposure", "hops migrate", "git commit", "hops verify", "hops prepare-pr"],
+      "records": ["ledger", "exposure map", "obligations", "receipt", "per-command stdout, exit code and duration"]
+    },
+    "C": {
+      "name": "Claude Code with Google's provider-native specialists",
+      "required_tools": [
+        "Google Ads Developer Assistant plugin",
+        "Google Ads MCP server",
+        "validation-only Google Ads credentials"
+      ],
+      "plane": "WORK",
+      "isolation": "sandbox; allow-listed network; no write path to the HubbleOps ledger, store or verifier inputs",
+      "records": ["full transcript", "every tool call with arguments and result", "wall clock", "token and dollar cost"],
+      "ledger_isolation": "Arm C output is DERIVED_AI_EVIDENCE. It never reaches the ledger, the store, or any verifier input, and it never closes an UNKNOWN."
+    },
+    "identical_budget": "Both arms get the same pinned SHA, the same 30-minute wall clock, the same zero-edit rule, and the same labels. Neither arm sees the labels."
+  },
+
+  "metrics": {
+    "actionable_recall": "matched_actionable / adjudicated_actionable. The denominator is the actionable labels inside the adjudicated region only.",
+    "adjudicated_coverage": "per language and per family: the share of eligible first-party files that at least one label source could speak to. Reported alongside every recall number; a recall figure is meaningless without it.",
+    "precision": "matched_actionable / (matched_actionable + false_positives), where a false positive is a finding asserted actionable inside the adjudicated region that matches no actionable label.",
+    "completion": "COMPLETED / families, stated with the other three outcome counts beside it.",
+    "false_verifications": "families with a COMPLETED outcome that leave at least one actionable labelled site unrepaired, with an exact Clopper-Pearson 95 percent upper bound on the rate.",
+    "human_minutes": "measured minutes a human spent, plus the arm's own estimate of the human work it hands over, reported separately.",
+    "runtime_seconds": "wall clock per family per arm.",
+    "cost_usd": "arm A: zero model dollars, machine time only. Arm C: metered token cost.",
+    "unsettled": "labels the three sources could not settle are counted and reported. They are never counted as negatives and never enter a numerator or a denominator.",
+    "worst_cohort_first": "every table is ordered worst cohort first, by actionable recall ascending, then precision ascending."
+  },
+
+  "label_sources": {
+    "typecheck": {
+      "id": "S1",
+      "method": "type-check each family twice with the same checker and settings: once against the source-version SDK and once against the target v25 SDK. A diagnostic present under v25 and absent under the source version is an actionable signal at that site.",
+      "per_file_coverage_required": true,
+      "recorded_per_file": ["checked", "any_or_mixed_typed", "suppressions_present", "unresolved_imports", "checked_namespace_reached"],
+      "coverage_rule": "A file is adjudicated by S1 only when the checker reached it, the Google Ads namespace resolved, and the site is not behind Any, a mixed type, a suppression or an unresolved import. Any other state makes the file UNADJUDICATED by S1, never clean."
+    },
+    "history": {
+      "id": "S2",
+      "method": "mine the family's own git history for commits that performed a previous Google Ads API version migration, and take the sites those commits touched as actionable for the mechanism they exercised.",
+      "coverage_rule": "Adjudicates only mechanisms the repository has actually migrated before. Silence is not cleanliness."
+    },
+    "mutation": {
+      "id": "S3",
+      "method": "seed mutations over the mechanisms the pack declares, at sites chosen by a fixed seed, and take each seeded site as a known actionable ground truth.",
+      "reported_separately": true,
+      "coverage_rule": "Seeded labels measure the declared mechanism lattice, not the wild. They are never mixed into the natural-label numerators."
+    },
+    "natural_vs_seeded": "S1 and S2 produce natural labels. S3 produces seeded labels. The two are scored and reported separately and never summed.",
+    "blind_audit": {
+      "method": "a sampled blind audit of regions all sources call clean, and of sites where two or more sources agree. The auditor does not see the arms' output.",
+      "sample": "a fixed-seed sample per family per language, drawn from the adjudicated clean region and from the agreement set.",
+      "purpose": "estimate the rate at which a clean region is wrongly clean and an agreement is wrongly agreed."
+    },
+    "sign_off": {
+      "required": true,
+      "rule": "The owner reviews every disagreement between sources and between a source and the blind audit, and signs the label set. No scorecard is produced from unsigned labels; an unsigned run is reported as UNSIGNED and its numbers are provisional."
+    }
+  }
+}

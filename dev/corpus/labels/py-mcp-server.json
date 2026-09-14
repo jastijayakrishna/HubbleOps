@@ -1,0 +1,17 @@
+{
+  "adjudicated_files": [],
+  "coverage_note": "S2 adjudicates only files this repository has itself migrated before, found by mining its own history for a commit that replaced one Google Ads version with another. Silence elsewhere is not cleanliness. Sites are detected with a provider-neutral version token rather than the pack's own carriers, so a site the pack cannot see still counts against the arm. A version token in a comment, a docstring, a documentation file or a documentation URL is CLEAN, not actionable: prose is not a call site, and an arm that flags it is over-reporting. A version token in a documentation file is UNSETTLED rather than clean: whether a migration must also update a README or a changelog is a judgement for the owner, not for S2. A line naming the Google Ads surface with no version token at all is UNSETTLED.",
+  "eligible_files": 166,
+  "family_id": "py-mcp-server",
+  "kind": "natural",
+  "labels": [],
+  "notes": [
+    "this repository's history records no commit that moved a Google Ads version, so S2 adjudicates nothing here; that is a coverage gap, not a clean bill"
+  ],
+  "repo": "promobase/google-ads-mcp",
+  "schema": "hubbleops.corpus.labels/1",
+  "sha": "d21eb4abd71ac163aee4fb031244e19a313fd93f",
+  "signed": false,
+  "signer": "",
+  "source": "S2"
+}

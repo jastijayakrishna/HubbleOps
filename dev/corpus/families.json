@@ -1,0 +1,370 @@
+{
+  "schema": "hubbleops.corpus.families/1",
+  "version": 2,
+  "pinned_on": "2026-09-14",
+  "definitions": "dev/corpus/definitions.json",
+  "matching_rules": "dev/corpus/matching-rules.json",
+  "engine_scope": "dev/engine-v0.json",
+  "provenance": {
+    "discovery": "Eight independent discovery modalities over public GitHub produced 364 raw candidates and 259 unique repositories. 48 were cloned and verified deterministically; 33 met the fixed eligibility definition.",
+    "verification": "Every version claim below is a path and line read out of the pinned tree, not a search snippet. Detection runs two passes: the eleven version carriers the pack itself declares in hubbleops/packs/google_ads/surface.yaml, and a provider-neutral pass for any vNN token in a file that also carries a Google Ads identifier. The neutral pass exists because the pack's config_literal_version carrier matches GOOGLE_ADS_API_VERSION but not the bare API_VERSION that singer-io/tap-google-ads uses, so a carrier-only scan would under-report.",
+    "independence": "Lineage is decided by content, not by GitHub's fork flag: the Jaccard and containment of the first-party file-name and file-content-hash sets, with trivially shared names excluded. The detector was calibrated against a known fork cluster before it was trusted, where it grouped singer-io/tap-google-ads with biron-bi, health-union and peliqan-io at name-Jaccard 0.851 to 1.000 and content-Jaccard 0.673 to 0.860, separately grouped Matatika/tap-googleads with hotgluexyz and ticketswap at containment 1.000, never linked the two lineages to each other, and left vibeus/tap-google-ads unlinked. Across the ten families pinned here no pair reaches name-Jaccard above 0.000.",
+    "excluded_as_tuned": {
+      "reason": "CLAUDE.md requires the acceptance criterion be measured on labelled families the engine was never tuned on. These four are the engine's own development set and are barred from the scored corpus.",
+      "repos": [
+        "dubinc/dub",
+        "woocommerce/google-listings-and-ads",
+        "singer-io/tap-google-ads",
+        "google/ads-api-report-fetcher"
+      ]
+    },
+    "reserve": "Nineteen further verified, independent, untuned eligible families are recorded in the verification report and are available if a family has to be replaced. The denominator was not padded to reach ten; ten were selected from twenty-nine.",
+    "verification_report": ".hubbleops/artifacts/corpus/reports/shortlist_verified.json"
+  },
+  "environment_at_pin": {
+    "present": [
+      "node 22.12.0",
+      "npm 10.9.0",
+      "pnpm 10.33.4",
+      "yarn 1.22.22",
+      "python 3.11.9",
+      "uv 0.12.9",
+      "docker 29.7.2"
+    ],
+    "absent": [
+      "php",
+      "composer",
+      "poetry",
+      "pipenv",
+      "make"
+    ],
+    "consequence": "Every PHP family will fail its documented install on this machine and is expected to record SETUP_FAILED attributed to the environment. hops scan is SCAN-plane and needs no repository dependency, so discovery and classification are still measured on those families and are still scored. This is recorded before the run, not discovered after it."
+  },
+  "families": [
+    {
+      "family_id": "php-sylius-plugin",
+      "representative": {
+        "repo": "Setono/SyliusGoogleAdsPlugin",
+        "sha": "bf163951fb8b5fdaa786849aa69604b3d482b972",
+        "clone_url": "https://github.com/Setono/SyliusGoogleAdsPlugin.git"
+      },
+      "members": [
+        "Setono/SyliusGoogleAdsPlugin"
+      ],
+      "language": "php",
+      "source_api_version": "v24",
+      "sdk_kind": "official-sdk",
+      "shape": "ecommerce-plugin",
+      "documented_install": [
+        "composer install --no-interaction"
+      ],
+      "install_documented_as": "composer require setono/sylius-google-ads-plugin (README.md); the manifest-standard form is used because the corpus installs from a clone rather than from Packagist",
+      "test_command": "vendor/bin/phpunit",
+      "independence": "A Sylius e-commerce plugin uploading offline conversions. Shares no file name with any other pinned family.",
+      "eligible": true,
+      "evidence": [
+        "src/Client/Client.php:8 = use Google\\Ads\\GoogleAds\\V24\\Services\\SearchGoogleAdsStreamRequest;",
+        "src/Client/SearchResponse.php:8 = use Google\\Ads\\GoogleAds\\V24\\Services\\GoogleAdsRow;"
+      ],
+      "marker_count": 142,
+      "ads_files": 26,
+      "loc": 7660,
+      "license": "MIT",
+      "last_commit": "2026-05-29"
+    },
+    {
+      "family_id": "php-laravel-conversions",
+      "representative": {
+        "repo": "electrictomcat/laravel-google-ads-conversions",
+        "sha": "d5ae5297b28e4e52f9b0cd6789a43c08224c4efb",
+        "clone_url": "https://github.com/electrictomcat/laravel-google-ads-conversions.git"
+      },
+      "members": [
+        "electrictomcat/laravel-google-ads-conversions"
+      ],
+      "language": "php",
+      "source_api_version": "v23",
+      "sdk_kind": "official-sdk",
+      "shape": "framework-package",
+      "documented_install": [
+        "composer install --no-interaction"
+      ],
+      "install_documented_as": "composer require electrictomcat/laravel-google-ads-conversions (README.md)",
+      "test_command": "vendor/bin/phpunit",
+      "independence": "A Laravel offline-conversion uploader. Distinct from the Sylius plugin in layout and in every file name.",
+      "eligible": true,
+      "evidence": [
+        "src/ConversionUploader.php:19 = use Google\\Ads\\GoogleAds\\V23\\Enums\\OfflineConversionDiagnosticStatusEnum...",
+        "tests/Feature/DataLossRegressionTest.php:48 = type.googleapis.com/google.ads.googleads.v23.errors.GoogleAdsFailure"
+      ],
+      "marker_count": 61,
+      "ads_files": 8,
+      "loc": 6777,
+      "license": "MIT",
+      "last_commit": "2026-09-07"
+    },
+    {
+      "family_id": "php-laravel-rest",
+      "representative": {
+        "repo": "jeffersongoncalves/laravel-google-ads",
+        "sha": "0ad5b52eed04a3360170539e4f81c30bf9c58612",
+        "clone_url": "https://github.com/jeffersongoncalves/laravel-google-ads.git"
+      },
+      "members": [
+        "jeffersongoncalves/laravel-google-ads"
+      ],
+      "language": "php",
+      "source_api_version": "v19",
+      "sdk_kind": "rest",
+      "shape": "framework-package",
+      "documented_install": [
+        "composer install --no-interaction"
+      ],
+      "install_documented_as": "composer require jeffersongoncalves/laravel-google-ads (README.md)",
+      "test_command": "composer test",
+      "independence": "Hand-rolls REST calls rather than using the PHP SDK, so it exercises the endpoint-path carrier instead of the namespace carrier. The oldest source version in the corpus.",
+      "eligible": true,
+      "evidence": [
+        "tests/Feature/GoogleAdsClientTest.php:23 = https://googleads.googleapis.com/v19/customers/1234567890/googleAds:search",
+        "config/google-ads.php:63 = 'version' => env('GOOGLE_ADS_API_VERSION', 'v19'),",
+        "src/GoogleAdsClient.php:294 = return is_string($version) && $version !== '' ? $version : 'v19';"
+      ],
+      "marker_count": 7,
+      "ads_files": 4,
+      "loc": 610,
+      "license": "MIT",
+      "last_commit": "2026-09-07"
+    },
+    {
+      "family_id": "py-mcp-server",
+      "representative": {
+        "repo": "promobase/google-ads-mcp",
+        "sha": "d21eb4abd71ac163aee4fb031244e19a313fd93f",
+        "clone_url": "https://github.com/promobase/google-ads-mcp.git"
+      },
+      "members": [
+        "promobase/google-ads-mcp"
+      ],
+      "language": "python",
+      "source_api_version": "v20",
+      "sdk_kind": "official-sdk",
+      "shape": "agent-integration",
+      "documented_install": [
+        "uv sync"
+      ],
+      "install_documented_as": "uv sync (README.md)",
+      "test_command": "uv run pytest",
+      "independence": "A service-per-module MCP server. The widest Google Ads surface in the corpus at 158 files and 1541 markers.",
+      "eligible": true,
+      "evidence": [
+        "src/sdk_client.py:64 = customer_service = self.client.get_service(\"CustomerService\", version=\"v20\")",
+        "scripts/keyword_planner_live.py:52 = request = client.get_type(\"GenerateKeywordIdeasRequest\", version=\"v20\")",
+        "tests/conftest.py:18 = from google.ads.googleads.v20.services.services.google_ads_service import ("
+      ],
+      "marker_count": 1541,
+      "ads_files": 158,
+      "loc": 72220,
+      "license": "LICENSE",
+      "last_commit": "2026-04-28"
+    },
+    {
+      "family_id": "py-google-shopping",
+      "representative": {
+        "repo": "google/ads_oneshop",
+        "sha": "7884a51bf1e434ceae3612784f41e76236e7cfad",
+        "clone_url": "https://github.com/google/ads_oneshop.git"
+      },
+      "members": [
+        "google/ads_oneshop"
+      ],
+      "language": "python",
+      "source_api_version": "v22",
+      "sdk_kind": "official-sdk",
+      "shape": "vendor-tool",
+      "documented_install": [
+        "python -m pip install -r requirements.txt"
+      ],
+      "install_documented_as": "the README documents a GCP deployment rather than a local install; requirements.txt is the standard manifest the definition permits",
+      "test_command": "",
+      "independence": "Google-owned Shopping and Ads reconciliation tooling built with Bazel. Shares nothing with the other Google-org families, which are TypeScript.",
+      "eligible": true,
+      "evidence": [
+        "acit/acit.py:39 = ADS_API_VERSION = 'v22'",
+        "acit/ads.py:17 = from google.ads.googleads.v22.services.services.google_ads_service import client as service"
+      ],
+      "marker_count": 10,
+      "ads_files": 4,
+      "loc": 7595,
+      "license": "LICENSE",
+      "last_commit": "2026-08-19"
+    },
+    {
+      "family_id": "py-spend-killswitch",
+      "representative": {
+        "repo": "getyourguide/sem-emergency-stop",
+        "sha": "574ed54c58d7abb62b0256c51d6537af7ad4ea64",
+        "clone_url": "https://github.com/getyourguide/sem-emergency-stop.git"
+      },
+      "members": [
+        "getyourguide/sem-emergency-stop"
+      ],
+      "language": "python",
+      "source_api_version": "v21",
+      "sdk_kind": "official-sdk",
+      "shape": "company-tool",
+      "documented_install": [
+        "python -m pip install -e ."
+      ],
+      "install_documented_as": "make develop with pipenv (README.md); neither make nor pipenv exists on this machine, so the manifest-standard editable install is used and the substitution is recorded",
+      "test_command": "",
+      "independence": "A published production kill-switch for Google Ads spend from a single company. Version literals are inlined at the call sites with no constant to rewrite.",
+      "eligible": true,
+      "evidence": [
+        "ses/ads.py = get_service and get_type calls carrying version=\"v21\" at each site"
+      ],
+      "marker_count": 3,
+      "ads_files": 1,
+      "loc": 755,
+      "license": "LICENSE",
+      "last_commit": "2026-01-22"
+    },
+    {
+      "family_id": "py-ai-adops-cli",
+      "representative": {
+        "repo": "klosk/adloop",
+        "sha": "237fb5209baa6993448fde054a881d77594314f2",
+        "clone_url": "https://github.com/klosk/adloop.git"
+      },
+      "members": [
+        "klosk/adloop"
+      ],
+      "language": "python",
+      "source_api_version": "v24",
+      "sdk_kind": "official-sdk",
+      "shape": "cli-tool",
+      "documented_install": [
+        "uv sync --all-extras"
+      ],
+      "install_documented_as": "uv sync --all-extras (CONTRIBUTING.md)",
+      "test_command": "uv run pytest",
+      "independence": "An AI ad-operations command centre. Carries the version in one constant and again in test imports, a split the single-site families do not have.",
+      "eligible": true,
+      "evidence": [
+        "src/adloop/ads/client.py:19 = GOOGLE_ADS_API_VERSION = \"v24\"",
+        "tests/test_gaql_errors.py:59 = from google.ads.googleads.v24.common.types import LocationInfo"
+      ],
+      "marker_count": 7,
+      "ads_files": 3,
+      "loc": 30468,
+      "license": "LICENSE",
+      "last_commit": "2026-09-11"
+    },
+    {
+      "family_id": "ts-node-client",
+      "representative": {
+        "repo": "Opteo/google-ads-api",
+        "sha": "e066efba47ebd94c0bda2d06e20af1f84a6e25ac",
+        "clone_url": "https://github.com/Opteo/google-ads-api.git"
+      },
+      "members": [
+        "Opteo/google-ads-api"
+      ],
+      "language": "typescript",
+      "source_api_version": "v24",
+      "sdk_kind": "third-party-client",
+      "shape": "client-library",
+      "documented_install": [
+        "yarn install --frozen-lockfile"
+      ],
+      "install_documented_as": "npm install google-ads-api (README.md); the corpus installs the repository's own dependencies from its committed yarn.lock, because the repository ships yarn.lock and no package-lock.json",
+      "test_command": "npm test",
+      "independence": "The de-facto third-party Node client. A library rather than an application, so its migration moves a generated surface as well as call sites.",
+      "eligible": true,
+      "evidence": [
+        "src/version.ts:1 = export const googleAdsVersion = \"v24\";",
+        "src/protos/index.ts:5 = export const VERSION = googleAdsVersion as \"v24\";"
+      ],
+      "marker_count": 584,
+      "ads_files": 5,
+      "loc": 80542,
+      "license": "MIT",
+      "last_commit": "2026-06-15"
+    },
+    {
+      "family_id": "ts-asset-manager",
+      "representative": {
+        "repo": "google-marketing-solutions/adios",
+        "sha": "37431d7b783575d8eb073cab996c529d180aae62",
+        "clone_url": "https://github.com/google-marketing-solutions/adios.git"
+      },
+      "members": [
+        "google-marketing-solutions/adios"
+      ],
+      "language": "typescript",
+      "source_api_version": "v20",
+      "sdk_kind": "rest",
+      "shape": "vendor-tool",
+      "documented_install": [
+        "npm install"
+      ],
+      "install_documented_as": "npm install (README.md)",
+      "test_command": "npm test",
+      "independence": "Google-published image-asset management calling the REST endpoint directly from Apps Script TypeScript. No shared file with giga despite the shared org.",
+      "eligible": true,
+      "evidence": [
+        "src/ads-api.ts = googleads.googleapis.com/v20 endpoint construction"
+      ],
+      "marker_count": 1,
+      "ads_files": 1,
+      "loc": 3519,
+      "license": "Apache-2.0",
+      "last_commit": "2026-04-28"
+    },
+    {
+      "family_id": "ts-keyword-app",
+      "representative": {
+        "repo": "google-marketing-solutions/giga",
+        "sha": "b8bde5b14f8a48969f28fedb6a1e0be502e8a53a",
+        "clone_url": "https://github.com/google-marketing-solutions/giga.git"
+      },
+      "members": [
+        "google-marketing-solutions/giga"
+      ],
+      "language": "typescript",
+      "source_api_version": "v23",
+      "sdk_kind": "rest",
+      "shape": "vendor-app",
+      "documented_install": [
+        "npm install"
+      ],
+      "install_documented_as": "npm run deploy after npx @google/aside init (README.md); the corpus installs dependencies from the manifest instead of running a deployment, and uses npm install rather than npm ci because the committed lockfile is out of sync upstream",
+      "test_command": "npm test",
+      "independence": "A keyword-ideas application split across an Apps Script front end and a GCP back end. Its stale v15, v18 and v22 documentation URLs sit beside a live v23 constant, which is the precision trap in this family.",
+      "eligible": true,
+      "evidence": [
+        "src/ideas.ts:30 = export const ADS_VERSION = 'v23';",
+        "src/ideas.ts:22 = comment URL naming rest/v18, a documentation reference rather than a call site",
+        "gcp/src/lib/google-ads.ts:108 = comment URL naming rpc/v22"
+      ],
+      "marker_count": 5,
+      "ads_files": 2,
+      "loc": 13714,
+      "license": "Apache-2.0",
+      "last_commit": "2026-06-16"
+    }
+  ],
+  "version_history": [
+    {
+      "version": 1,
+      "note": "Pinned before the first run."
+    },
+    {
+      "version": 2,
+      "note": "Raised the same day, before any signed scorecard existed. Repositories and SHAs are unchanged; two install commands were wrong and were producing SETUP_FAILED outcomes that measured the pin rather than the arm.",
+      "changes": [
+        "ts-node-client (Opteo/google-ads-api): npm ci -> yarn install --frozen-lockfile. The repository ships yarn.lock and no package-lock.json, so npm ci can never run: 'The `npm ci` command can only install with an existing package-lock.json'.",
+        "ts-keyword-app (google-marketing-solutions/giga): npm ci -> npm install. The repository's committed package-lock.json is out of sync with its package.json upstream ('Missing: typescript@5.9.3 from lock file'), so npm ci refuses; npm install is the manifest-standard form the definition permits. The upstream lockfile drift is a real property of the repository and is recorded, not hidden."
+      ]
+    }
+  ]
+}

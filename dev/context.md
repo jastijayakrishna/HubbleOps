@@ -11,7 +11,164 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Branch** | `phase-06-repository-intelligence`, cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
 | **Engine baseline** | `engine-v0`, frozen 2026-09-13. Its scope is `dev/engine-v0.json`: lattice `4555e93f…`, ripgrep and ast-grep sha256, `uv.lock` hash, verifier image, Python 3.12.14, and the exact harness commands. Any change that moves a real-repo count is measured `engine-v0` → new before it is believed |
-| **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) awaits the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
+| **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) and P-035 (the three planes and the WORK-plane agent harness) await the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
+
+**FIRST-SIGNAL CORPUS built (2026-09-14). Ten independent families pinned; the STOP condition did
+not fire.** The brief asked for ten independent Google Ads repository families and said to stop
+rather than fill the denominator. Eight discovery modalities over public GitHub produced 364 raw
+candidates and **259 unique repositories**; 48 were cloned and verified deterministically; **33 met
+the fixed eligibility definition**; four (`dubinc/dub`, `woocommerce/google-listings-and-ads`,
+`singer-io/tap-google-ads`, `google/ads-api-report-fetcher`) are barred as the engine's own
+development set, leaving **29 available**. Ten were selected from twenty-nine, not scraped together
+to reach ten. `dev/corpus/families.json` pins them with SHA, evidence lines, install command,
+licence and last commit: php 3 (v19, v23, v24), python 4 (v20, v21, v22, v24), typescript 3
+(v20, v23, v24) — every source version v19…v24 represented.
+
+Two things make the count defensible. Version detection runs a second, **provider-neutral** pass
+beside the pack's own eleven carriers, because a carrier-only scan misses `API_VERSION = "v24"` —
+the pack declares `GOOGLE_ADS_API_VERSION` and `ADS_API_VERSION` but not the bare `API_VERSION`
+that `singer-io/tap-google-ads` actually uses, and that repository reported "no marker" until the
+neutral pass was added. And independence is decided by **content, not GitHub's fork flag**, with the
+detector calibrated on a known fork cluster before it was trusted: it grouped `singer-io` with
+`biron-bi`, `health-union` and `peliqan-io` at name-Jaccard 0.851–1.000, separately grouped
+`Matatika` with `hotgluexyz` and `ticketswap` at containment 1.000, never linked the two lineages,
+and left `vibeus/tap-google-ads` unlinked. Across the ten pinned families no pair reaches
+name-Jaccard above 0.000.
+
+**Written before any run and not edited during it:** `dev/corpus/definitions.json` (the "handled"
+definition, the four disjoint outcomes, the five attribution stages, the metric definitions) and
+`dev/corpus/matching-rules.json` (four match rules M1–M4, the mechanism-compatibility table, the
+counting laws, the arm-A claim-type mapping). The harness is `tests/corpus/`, run as
+`uv run python -m tests.corpus <verb>`. It is **not** `hops corpus`: adding a verb to the engine CLI
+would move `engine_tree` off the `d78cc87c…` that `dev/engine-v0.json` pins, which is the hash arm A
+checks before it agrees to run. **P-037** records the finding and the three-line change if the owner
+wants the literal command. Arm A refuses to run unless engine tree, pack tree, `uv.lock` and both
+tool binaries hash-match the frozen scope; `check` prints `SCOPE OK` on this machine.
+
+**Environment, recorded before the run rather than discovered after it:** this machine has node,
+npm, pnpm, yarn, python, uv and docker, and has **no php, composer, poetry, pipenv or make**. Every
+PHP family therefore fails its documented install and records `SETUP_FAILED` attributed to the
+environment. `hops scan` is SCAN-plane and needs no repository dependency, so the harness runs the
+scan anyway and discovery and classification are still measured on those families — the outcome is
+honest and the recall is not thrown away.
+
+**The harness was audited by a separate agent, as `CLAUDE.md` requires, and it found nineteen
+defects — most of them real and several of them moving the headline numbers.** The audit checked the
+code against the two fixed spec files rather than against intent, and every finding it reported was
+reproduced before being accepted. What it caught, and what changed:
+
+- **`false_verification` never consulted `repaired`.** It was computed as "a label went unmatched",
+  not the fixed definition's "a COMPLETED outcome that leaves an actionable labelled site
+  unrepaired". This is the one metric carrying the Clopper-Pearson bound, and the error ran in the
+  flattering direction: found-but-unrepaired was invisible. Now both halves count.
+- **A finding could claim only one label**, so one correct finding spanning two labelled lines
+  turned the second into a miss and manufactured a stage attribution. The fixed rule constrains
+  *labels* ("a label is matched at most once"), not findings.
+- **Obligations were never read.** `arm_finding_extraction.A.actionable_set` is "candidates with
+  status AFFECTED, plus every obligation the exposure map raises", and only the ledger was parsed.
+  Re-deriving from the persisted `obligations.json` moved the three PHP families from 306/161/466
+  findings to 372/224/565, roughly doubling arm A's actionable set — a gap that had been
+  **penalising arm A**.
+- **The five attribution stages were not tested in the stated order**, so counts that belong in
+  `discovery` were landing in `verification`.
+- **An UNKNOWN sitting on an actionable label was charged as both a miss and a classification
+  failure**, against the fixed rule's `unknown_is_not_a_miss`. Such a label is now conserved out of
+  the denominator and reported in its own column, which is what "forcing it either way would score
+  the engine for a law it is required to obey" means.
+- **`HUMAN_ACCEPTED_RISK` candidates were dropped** before any bucket, making a site the arm had
+  seen and a human had ruled on look like a site the arm never saw.
+
+**Three corrections of my own work, all now rules in `CLAUDE.md`.** (1) The harness was about to run
+`pip install -e .` and `pip install -r requirements.txt` against the host interpreter; the run was
+stopped before it reached those two families and installs now happen in a per-family `uv venv` with
+`PIP_REQUIRE_VIRTUALENV=1`. The system Python was verified clean afterwards. (2) Failure attribution
+treated any finding anywhere in a file as having seen every site in it; the fixed definition says
+"at that site". (3) **S2 was charging arm A for its own blind spots, twice over.** It first scored
+versionless surface lines as false positives; then, once those were UNSETTLED, it scored *comments
+and docstrings* as actionable — the four "misses" that produced a Python recall of 0.000 were
+`# v24 dropped impressions/click_through_rate`, `"""Since Ads API v24 the forecast takes no
+per-keyword bids"""` and two more of exactly that shape. Arm A was right not to flag them. S2 now
+separates code from prose: a version token in code is ACTIONABLE, one in a comment or docstring is
+CLEAN, one in a README or CHANGELOG is UNSETTLED because whether a migration must update
+documentation is the owner's call and not S2's, and **every other line in an adjudicated file is
+UNSETTLED** — because S2 rules on version tokens and nothing else, whatever reason an arm gives for
+flagging a line. That last change is what stopped GAQL obligations (`SELECT campaign.id FROM
+campaign`) from being counted as arm A errors: they are legitimate findings S2 simply cannot judge.
+
+**The first arm A run was discarded: three of its ten outcomes were measuring the harness, not the
+engine.** The run completed all ten families and reported 0 COMPLETED, 5 SETUP_FAILED and 2
+ENGINE_FAILED. Reading the per-stage detail rather than the outcome showed that most of it was mine:
+
+- **The per-family venv was created inside the repository under test.** That makes the tree differ
+  from HEAD, and `hops migrate` correctly fail-closes: "the working tree differs from HEAD, so
+  obligations derived from it would bind to a ProofScope no commit reproduces". Six families hit it.
+  The engine's refusal is right; the harness was wrong to hand it a dirty tree. The venv now lives
+  beside the repository, never in it.
+- **Isolating the per-family install took three attempts, and the first two each cost a run.** A
+  Windows `;`-separated PATH was handed to a `bash -lc` process, which broke it outright and produced
+  `python: command not found` on two families whose install commands were fine. Rebuilding the PATH
+  POSIX-style did not fix it either, because `bash -lc` is a login shell and rebuilds PATH from the
+  profile, discarding anything the parent sets. What works is exporting inside the command
+  (`export PATH="/c/…/venv/Scripts:$PATH"; <install>`), which was checked against a live shell before
+  the third run rather than after it. That check also caught the next failure before it cost
+  anything: `uv venv` does not seed pip, so `python -m pip install -e .` would have failed with
+  "No module named pip" on a third family. The venv is created with `--seed`, and python, pip, node,
+  npm, yarn and uv were all confirmed to resolve inside the isolated environment before the run
+  started.
+- **A 900-second per-install cap that no definition contains was deciding an outcome.**
+  `klosk/adloop`'s `uv sync --all-extras` was killed at 900.1s and recorded SETUP_FAILED at the
+  harness's cap rather than at the definition's 30-minute budget. The install now gets the whole
+  remaining budget, and every bound the harness imposes that the definitions do not is declared in
+  the scorecard's `harness_parameters` block.
+- **Two install commands in the pin were simply wrong.** `npm ci` was pinned for
+  `Opteo/google-ads-api`, which ships `yarn.lock` and no `package-lock.json`, so npm refused before
+  doing anything; and for `google-marketing-solutions/giga`, whose committed lockfile is out of sync
+  with its own `package.json` upstream ("Missing: typescript@5.9.3 from lock file"). `families.json`
+  is version 2: same repositories, same SHAs, two install commands corrected with the reason
+  recorded. The giga lockfile drift is a real property of that repository and is kept, not hidden.
+
+One genuine engine-facing finding survived the cleanup and is the reason the harness now commits the
+post-install state: **the tree the documented install produces is not a tree the engine will
+migrate.** `npm install` rewrites `package-lock.json`, so the "fresh clone plus documented install"
+state the definition names is dirty by construction, and `hops migrate` refuses it. The harness now
+commits that state and uses it as the base SHA, which is what a real user's tree looks like anyway;
+the underlying gap is recorded rather than fixed, because the engine is frozen.
+
+**Label sources: all three built, and only one of them runs everywhere.** S2 mines each repository's own history for a commit that
+replaced one Google Ads version with another and adjudicates only the files such a commit touched,
+detecting sites with the provider-neutral pattern so a site the pack cannot see still counts against
+the arm. S3 seeds one mutation per declared version carrier at a fixed seed; a permanent test proves
+every one of the twelve seeded templates is matched by the pack's own carrier regex, because a
+seeded label the pack cannot match would be scored as a miss the engine never had a chance to make.
+**S1 is built for Python.** It installs two SDKs per family — a release carrying the family's source
+version and `google-ads==31.2.0` for v25 — introspects which `google.ads.googleads.vNN` packages each
+release actually carries rather than trusting a version table, and type-checks the family's
+first-party Python twice with the same checker and settings. A diagnostic present under v25 and
+absent under the source version is an actionable site. Per file it records checked, unresolved
+imports, suppressions present and whether the Google Ads namespace resolved; a file failing any of
+those is UNADJUDICATED by S1, never clean. **S1 does not run on PHP** (no php, no composer on this
+machine) **or on TypeScript** (no `google-ads-api` major carries v25 yet), and both are recorded as
+coverage gaps rather than as clean regions.
+
+**S3 now plants a removed-field GAQL query per family, grounded outside the engine.** The pack's own
+change data may not be a label source — it is the thing under test — so the removed field is found by
+diffing the protos of Google's published client library between the source release and 31.2.0, and
+the mutation is planted only when that diff proves the field is present in the source version and
+absent in v25. If no such field is found, nothing is planted and the omission is recorded. This is
+the only source that can judge a GAQL finding at all, which is where the migration risk actually
+sits and where 143 arm A findings previously sat unadjudicated.
+
+**Arm C could not be run as specified and was not faked.** It needs a Google Ads developer token and
+OAuth refresh token in `~/google-ads.yaml` for the `google-ads-a2a-service` MCP sidecar; that file
+is absent and no `GOOGLE_ADS_*` variable exists. On the owner's instruction the plugin was installed
+and a credential-free arm runs as **`C-offline`, never as `C`**, with the degradation carried on
+every number. Installing it found two defects in `googleads/google-ads-api-developer-assistant`
+v4.0.0 on Windows: `install.ps1`'s Python probe passes `print(f"...")` through PowerShell 5.1, which
+strips the inner quotes so the probe always raises `SyntaxError` and the script reports "Python 3.10
+or higher is required" against a compliant 3.11.9; and it calls
+`claude plugin marketplace add $ProjectDirAbs`, which the CLI rejects because an absolute Windows
+path is not `owner/repo`, `https://…` or `./path`. Both were worked around by hand; the plugin then
+loads headless and exposes all ten slash commands.
 
 **ENGINE v0 — PART ELEVEN integrated and frozen (2026-09-13), tags `engine-v0-pre` … `engine-v0`.**
 The four PART ELEVEN mechanisms were wired into their consumers and the result tagged. `engine-v0-pre`
@@ -1007,6 +1164,11 @@ unscannable `rg` hit is preserved as evidence.
   unreadable inside the container (`EIO`), which costs proxy mode its certificate (FA-013).
 - P-009 remains OPEN. AI triage is default-off and disconnected; it must not receive an operational
   application, CLI, scan, or store route until the owner decides the producer-attestation boundary.
+- **P-035 is OPEN, awaiting the owner.** It proposes `docs/ARCHITECTURE.md` §22 (the three planes,
+  the WORK plane as a producer/judge agent harness, evidence classes, the trust boundary, and the
+  four-arm release gate) with a ten-line diff drafted and deliberately not applied. Until it is
+  decided the planes stay a `CLAUDE.md` convention, `repair_tools()` stays `[]`, no provider-native
+  specialist is installed or credentialed, and the verifier's import guard stays a denylist.
 - `rg` was not on this machine at the start of Phase 1; the official 14.1.1 binary is now at
   `~/.local/bin/rg.exe`. The scan refuses to run without it (`TOOLING_MISSING`), by design.
 - `pyright` is a dev dependency and pinned in `uv.lock` (1.1.411). It used to run only from a
@@ -1345,5 +1507,9 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
   Phase 8 still requires an `incremental == clean` proof before any cache may influence proof.
 - P-009 must be decided before AI triage is operationally connected; no Phase 3 or Phase 4 runtime
   path reaches it.
+- P-035 raises the plane and agent-harness boundary that P-009 sits inside, so read the two
+  together: P-009 governs who may mint a record, P-035 governs which plane may run an actor at all.
+  P-035 also names the held-out corpus (`tests/heldout/`, still absent, `dev/tasks.md:469`) as a
+  release blocker rather than a standing task, because the four-arm benchmark cannot run without it.
 - The Exposure Map production-services line is live: it prints `N/M` once a telemetry or sentinel
   observer is in the ProofScope, and the "not in this ProofScope" wording only when neither is.

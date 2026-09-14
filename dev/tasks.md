@@ -5,6 +5,39 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] **First-signal corpus: ten independent families pinned, harness built and tested
+      (2026-09-14).** 259 unique repositories discovered, 48 cloned and verified, 33 eligible,
+      4 barred as the engine's own development set, 29 available, 10 pinned in
+      `dev/corpus/families.json` covering php/python/typescript and every source version
+      v19…v24. The STOP condition did not fire. `dev/corpus/definitions.json` and
+      `dev/corpus/matching-rules.json` were written before the first run and not edited during
+      it. Harness at `tests/corpus/` with `run`, `score`, `label`, `challenge`,
+      `decision-report` and `check`; 40 unit tests; ruff and strict pyright clean. Arm A
+      refuses to run unless engine tree, pack tree, `uv.lock` and both tool hashes match
+      `dev/engine-v0.json`.
+- [ ] **Build S1, the third label source.** Type-check each family twice with the same checker
+      and settings, once against the source-version SDK and once against v25, and take a
+      diagnostic present under v25 and absent under the source version as an actionable signal.
+      Record per file: checked, any/mixed typed, suppressions present, unresolved imports,
+      checked namespace reached; a file failing any of those is UNADJUDICATED by S1, never
+      clean. This is the only source independent of the version-literal surface that both S2
+      and arm A read, so until it exists the recall numbers rest on two sources that share a
+      detection idea. Python first (pyright is already pinned); PHP needs php and composer,
+      which this machine does not have.
+- [ ] **Get the labels signed.** Every scorecard produced so far carries `labels_signed=false`
+      and is provisional by its own definition. The owner must review every disagreement
+      between sources and between a source and the blind audit, and sign. No number here is
+      settled until that happens.
+- [ ] **Run the blind audit.** A fixed-seed sample of the regions all sources call clean and of
+      the sites two or more sources agree on, audited without sight of either arm's output, to
+      estimate how often a clean region is wrongly clean. Not built.
+- [ ] **Show the three decision reports to two intended users.** The reports render
+      (`.hubbleops/artifacts/corpus/decisions/`) and name a single next action each. Whether a
+      user finds that action unaided is a question only the two users can answer, and neither
+      has seen them.
+- [ ] **Arm C proper.** Needs a validation-only Google Ads developer token and OAuth refresh
+      token in `~/google-ads.yaml`. Until then only `C-offline` exists and its numbers are not
+      arm C's. See the two Windows installer defects recorded in `dev/context.md`.
 - [x] **FA-069 … FA-072, FA-074 closed; FA-073 narrowed. Engine frozen as `engine-v0`
       (2026-09-13).** PART ELEVEN's four mechanisms integrated into their consumers; eleven
       commits from `engine-v0-pre` (`e5e1237`). FA-069 was misdiagnosed: a background

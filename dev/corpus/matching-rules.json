@@ -1,0 +1,147 @@
+{
+  "schema": "hubbleops.corpus.matching/1",
+  "version": 2,
+  "fixed_on": "2026-09-14",
+  "immutability": "Written before the first scored run and never changed mid-run. Any change bumps version, invalidates every scorecard produced under the old version, and forces a full rerun of both arms on every family.",
+  "version_history": [
+    {
+      "version": 1,
+      "note": "Written before the first run."
+    },
+    {
+      "version": 2,
+      "note": "Raised the same day, before any signed scorecard existed, after an independent audit found the implementation doing two things version 1 did not state. Both are written down here rather than left in the code. Every scorecard produced under version 1 was unsigned and provisional and is discarded.",
+      "changes": [
+        "counting.findings_on_unsettled is named as its own bucket. Version 1 said an unsettled LABEL is excluded from every numerator and denominator but did not say what happens to a FINDING that lands on one; the implementation was already excluding it, which is the only reading consistent with the label rule.",
+        "metrics.precision is declared unmeasurable, and reported as null, when no label source asserted anything CLEAN. A precision figure whose denominator contains no site any source was willing to call clean is not a measurement."
+      ]
+    }
+  ],
+  "purpose": "Decide mechanically, with no judgement at scoring time, whether one arm finding matches one label.",
+
+  "normalisation": {
+    "path": "repository-relative, forward slashes, no leading ./, case preserved. A path outside the pinned tree never matches.",
+    "line": "1-based. A finding that carries a range is represented by [start, end]; a finding that carries a single line is [line, line].",
+    "label_site": "(path, line, mechanism). A label that is file-scoped rather than line-scoped carries line 0 and scope file.",
+    "text": "compared after stripping leading and trailing whitespace only. Never lowercased: a Google Ads PHP namespace segment is case-significant and V23 is not v23."
+  },
+
+  "match_predicate": {
+    "order": "tested in this order; the first that holds decides the match",
+    "rules": [
+      {
+        "id": "M1",
+        "name": "exact site",
+        "holds_when": "same normalised path AND the finding's line range contains the label line AND the mechanism is compatible",
+        "strength": "exact"
+      },
+      {
+        "id": "M2",
+        "name": "line window",
+        "holds_when": "same normalised path AND min distance between the finding's line range and the label line is at most 3 lines AND the mechanism is compatible",
+        "window_lines": 3,
+        "rationale": "a repair may report the statement head where the label marks the argument, or the reverse; three lines is the largest window any observed mechanism in the pack spans",
+        "strength": "windowed"
+      },
+      {
+        "id": "M3",
+        "name": "file scope",
+        "holds_when": "the label has scope file (line 0) AND the finding is in the same normalised path AND the mechanism is compatible",
+        "applies_to": ["manifest_pin", "lockfile_pin", "config_version", "generated_client_version"],
+        "strength": "file"
+      },
+      {
+        "id": "M4",
+        "name": "subject scope",
+        "holds_when": "the label has scope subject AND the finding names the same provider subject (the same resource, field, enum value or service method, compared as the pack spells it) anywhere in the same family",
+        "applies_to": ["removed_field_read", "removed_enum_value", "renamed_resource", "removed_service_method"],
+        "rationale": "a subject removed at the contract level is one obligation however many sites read it; scoring it per site would reward and punish the same fact many times",
+        "strength": "subject"
+      }
+    ],
+    "no_match": "if no rule holds, the finding and the label are unmatched."
+  },
+
+  "mechanism_compatibility": {
+    "rule": "a finding matches a label only when the finding's mechanism is in the label mechanism's compatible set. An arm that reports the right site for the wrong reason still matches on site, but is flagged right_site_wrong_mechanism and reported separately; precision is therefore reported twice, once over all matches and once over exact-mechanism matches only.",
+    "universal_finding_mechanisms": ["other"],
+    "universal_rule": "a finding whose mechanism is in universal_finding_mechanisms is compatible with every label mechanism, so a site the arm named for an unmappable reason still matches on site. It is never an exact-mechanism match, so it never reaches precision_exact_mechanism. This is what keeps arm C from being penalised for prose.",
+    "table": {
+      "version_literal": ["version_literal", "endpoint_path", "namespace_segment", "client_version_default", "config_version"],
+      "namespace_segment": ["namespace_segment", "version_literal", "import_statement"],
+      "endpoint_path": ["endpoint_path", "version_literal", "rest_url"],
+      "manifest_pin": ["manifest_pin", "lockfile_pin", "dependency_state", "sdk_installed"],
+      "lockfile_pin": ["lockfile_pin", "manifest_pin", "dependency_state"],
+      "removed_field_read": ["removed_field_read", "response_consumer", "gaql_select", "field_reference"],
+      "removed_enum_value": ["removed_enum_value", "enum_reference", "literal_string"],
+      "renamed_resource": ["renamed_resource", "resource_reference", "gaql_from", "field_reference"],
+      "removed_service_method": ["removed_service_method", "service_call", "request_shape"],
+      "request_shape": ["request_shape", "removed_service_method", "field_reference"],
+      "config_version": ["config_version", "version_literal", "manifest_pin"],
+      "generated_client_version": ["generated_client_version", "version_literal", "namespace_segment"]
+    }
+  },
+
+  "counting": {
+    "one_label_one_match": "a label is matched at most once. The first finding that satisfies the earliest match rule claims it; ties inside a rule are broken by smallest line distance, then by lexicographic finding id, so the result is deterministic.",
+    "duplicates": "further findings that would match an already-claimed label are counted as duplicates. Duplicates are reported and are never counted as false positives.",
+    "false_positive": "a finding asserted actionable whose site lies inside the adjudicated region and which matches no actionable label.",
+    "unscored_finding": "a finding asserted actionable whose site lies OUTSIDE the adjudicated region. Counted and reported as unscored. Never a false positive, never a hit.",
+    "missed_label": "an actionable label inside the adjudicated region that no finding matched. Counted as a miss and attributed to a stage by dev/corpus/definitions.json failure_attribution.",
+    "unsettled_label": "a label the three sources could not settle. Excluded from every numerator and denominator, counted and reported.",
+    "findings_on_unsettled": "a finding asserted actionable whose site carries an UNSETTLED label. Counted and reported in its own column, and excluded from false_positive, because an unsettled label means no source was willing to rule on that site and a finding there can be neither confirmed nor refuted. Matched on site alone, ignoring mechanism compatibility: an unsettled site is unsettled whatever reason the arm gives for flagging it.",
+    "precision_is_not_always_measurable": "precision and precision_exact_mechanism are reported as null when the label set contains no CLEAN label. With no site any source was willing to call clean, the false-positive denominator is empty by construction and a precision of 1.0 would be an artefact of the label source's silence, not a property of the arm.",
+    "unknown_is_not_a_miss": "an arm candidate with status UNKNOWN that carries a precise closing instruction, sitting on an actionable label, is recorded as unknown_on_actionable. It is not a hit and not a classification miss; it is reported as its own column. Forcing it either way would score the engine for a law it is required to obey."
+  },
+
+  "arm_finding_extraction": {
+    "A": {
+      "source": "the exported ledger and the obligations file",
+      "actionable_set": "candidates with status AFFECTED, plus every obligation the exposure map raises",
+      "mechanism_field": "the claim_type of each evidence record attached to the candidate, mapped through claim_type_to_mechanism below",
+      "site_field": "the evidence record's path and line_start..line_end",
+      "unknown_set": "candidates with status UNKNOWN",
+      "clean_set": "candidates with status NOT_AFFECTED_WITH_EVIDENCE or EXCLUDED_WITH_EVIDENCE",
+      "not_a_finding": "candidates whose only claim types are file_unscanned, structure_unsupported or ai_triage_residue are coverage claims, not assertions about a site. They are recorded as coverage and never scored as findings either way.",
+      "claim_type_to_mechanism": {
+        "call_version": "version_literal",
+        "production_version": "version_literal",
+        "telemetry_state": "version_literal",
+        "surface_reference": "namespace_segment",
+        "endpoint_reference": "endpoint_path",
+        "package_reference": "manifest_pin",
+        "dependency_state": "manifest_pin",
+        "sdk_installed": "manifest_pin",
+        "config_reference": "config_version",
+        "contract_surface": "field_reference",
+        "adjacent_contract": "field_reference",
+        "bulk_data_reference": "field_reference",
+        "request_text": "request_shape",
+        "external_boundary": "other",
+        "file_unscanned": "other",
+        "structure_unsupported": "other",
+        "ai_triage_residue": "other"
+      }
+    },
+    "C": {
+      "source": "the recorded transcript and tool calls",
+      "actionable_set": "every site the arm states needs a change for v25, or edits",
+      "mechanism_field": "mapped to the table above by the stated reason; a finding whose reason maps to nothing is mechanism other, which is universally compatible and always carries the right_site_wrong_mechanism flag",
+      "site_field": "the path and line the arm names, or the path and the line of the edit it made",
+      "extraction_is_generous": "where arm C's wording is ambiguous the extraction resolves in arm C's favour, and the ambiguity is recorded. The competitor is not penalised for prose."
+    }
+  },
+
+  "adjudicated_region": {
+    "definition": "the union over label sources of the files each source could speak to, intersected with the eligible first-party file set of the family",
+    "eligible_first_party": "files in the pinned tree that are not vendored dependencies, not node_modules, not a checked-in generated SDK client, not minified bundles, and not test fixtures that exist only to pin bytes",
+    "per_file_record_required": ["source_id", "file", "adjudicated", "reason_if_not"],
+    "rule": "a file no source could speak to is UNADJUDICATED. It is never clean, and nothing inside it scores either way."
+  },
+
+  "determinism": {
+    "requirement": "matching is a pure function of (findings, labels, this file). Same inputs give byte-identical scoring output.",
+    "ordering": "findings sorted by (path, start line, end line, mechanism, id); labels sorted by (path, line, mechanism, id); output sorted the same way.",
+    "no_clock": "no timestamp, no random seed and no machine path enters the scoring output."
+  }
+}
