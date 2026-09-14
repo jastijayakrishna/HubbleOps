@@ -179,6 +179,47 @@ def test_a_changed_observation_under_a_new_run_is_new_evidence() -> None:
     assert observation_identity(before) != observation_identity(after)
 
 
+def test_editing_the_enclosing_file_is_not_a_new_observation() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"}, source_hash="a" * 64)
+    after = evidence(
+        "a.py",
+        "surface_reference",
+        {"pattern": "x"},
+        source_hash="b" * 64,
+        run_id=CANDIDATE_RUN,
+        proof_scope_hash=CANDIDATE_SCOPE,
+    )
+    assert observation_identity(before) == observation_identity(after), (
+        "law L3: source_hash is the blob hash of the enclosing file, so any edit anywhere in "
+        "that file would otherwise turn every observation it holds into new evidence"
+    )
+
+
+def test_an_unknown_closed_after_the_file_was_rewritten_is_a_conservation_failure() -> None:
+    before = evidence("a.py", "surface_reference", {"pattern": "x"}, source_hash="a" * 64)
+    after = evidence(
+        "a.py",
+        "surface_reference",
+        {"pattern": "x"},
+        source_hash="b" * 64,
+        run_id=CANDIDATE_RUN,
+        proof_scope_hash=CANDIDATE_SCOPE,
+    )
+    base = ledger_of([before], {"a.py": "UNKNOWN"})
+    candidate = ledger_of(
+        [after],
+        {"a.py": "NOT_AFFECTED_WITH_EVIDENCE"},
+        run_id=CANDIDATE_RUN,
+        proof_scope_hash=CANDIDATE_SCOPE,
+    )
+    result = conserve.compare(base, candidate)
+    assert result.report().passed is False, (
+        "law L3: rewriting the file an observation sits in is not evidence about the "
+        "observation, so an UNKNOWN cannot close on it"
+    )
+    assert "no new evidence" in result.violations[0].justification
+
+
 def test_an_unknown_closed_on_new_evidence_conserves() -> None:
     before = evidence("a.py", "surface_reference", {"pattern": "x"})
     fresh = evidence("a.py", "surface_reference", {"pattern": "y"})

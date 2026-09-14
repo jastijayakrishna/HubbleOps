@@ -16,7 +16,9 @@ VERSION_SUBJECT_CLAIMS = ("call_version",)
 VERSION_VALUE_KEYS = ("version", "detected", "target")
 PACKAGE_VERSION_CLAIMS = ("dependency_state", "sdk_installed")
 
-RUN_SCOPED_FIELDS = frozenset({"id", "run_id", "proof_scope_hash", "repo_sha"})
+NON_OBSERVATIONAL_FIELDS = frozenset(
+    {"id", "run_id", "proof_scope_hash", "repo_sha", "source_hash"}
+)
 
 
 def searchable_text(record: Mapping[str, Any]) -> str:
@@ -61,7 +63,9 @@ def evidence_identity(record: Mapping[str, Any]) -> str:
 
 
 def observation_identity(record: Mapping[str, Any]) -> str:
-    return content_id({key: value for key, value in record.items() if key not in RUN_SCOPED_FIELDS})
+    return content_id(
+        {key: value for key, value in record.items() if key not in NON_OBSERVATIONAL_FIELDS}
+    )
 
 
 def make_evidence(
