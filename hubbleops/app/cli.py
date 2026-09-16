@@ -1267,10 +1267,16 @@ def _prepare_pr(args: argparse.Namespace) -> int:
         prepared.bindings,
         prepared.decisions,
         prepared.retired,
-        prepared.guard_workflow,
         prepared.verification_workflow,
     ):
         print(f"  {path}")
+    if prepared.guard_workflow is not None:
+        print(f"  {prepared.guard_workflow}")
+    else:
+        print(
+            "  NO GUARD  this migration retired nothing the tree is clean of, so no backslide "
+            "workflow was installed; a guard with no pattern would fail every pull request"
+        )
     for pattern, sites in sorted(prepared.deferred.items()):
         print(
             f"  NOT RETIRED  {pattern}  still written at {len(sites)} site(s) the audit proved "

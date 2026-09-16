@@ -33,7 +33,7 @@ class PreparedPullRequest:
     bindings: Path
     decisions: Path
     retired: Path
-    guard_workflow: Path
+    guard_workflow: Path | None
     verification_workflow: Path
     deferred: Mapping[str, tuple[str, ...]] = field(default_factory=dict[str, tuple[str, ...]])
 
@@ -107,7 +107,7 @@ def prepare(
         provider=provider,
         proof_scope_hash=scope_hash,
     )
-    guard_workflow = guard.install_workflow(root, command)
+    guard_workflow = guard.install_workflow(root, command) if guard.load(retired) else None
     verification_workflow = root / ".github" / "workflows" / "hubbleops-verify.yml"
     write_atomic(
         verification_workflow,
