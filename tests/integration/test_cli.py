@@ -339,6 +339,54 @@ def test_guard_cli_passes_then_rejects_a_retired_literal(
     assert "REINTRODUCED" in capsys.readouterr().out
 
 
+def test_guard_with_no_retired_surface_loaded_is_not_a_pass(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    absent = tmp_path / ".hubbleops" / "retired.yml"
+    assert not absent.exists()
+
+    assert main(["guard", "--repo", str(tmp_path)]) == EXIT_FAILED, (
+        "a guard that loaded no pattern searched for nothing, so it proved nothing; "
+        "reporting that as PASS is a green check standing for an unrun check"
+    )
+    captured = capsys.readouterr()
+    assert "PASS" not in captured.out
+    assert str(absent) in captured.out + captured.err
+
+
+def test_guard_with_an_empty_retired_surface_is_not_a_pass(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    empty = tmp_path / ".hubbleops" / "retired.yml"
+    empty.parent.mkdir(parents=True)
+    empty.write_text(yaml.safe_dump({"schema_version": 1, "entries": []}), encoding="utf-8")
+
+    assert main(["guard", "--repo", str(tmp_path)]) == EXIT_FAILED
+    captured = capsys.readouterr()
+    assert "PASS" not in captured.out
+    assert str(empty) in captured.out + captured.err
+
+
+def test_guard_names_the_retired_path_it_was_pointed_at_when_it_holds_nothing(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    guard.write_retired(
+        tmp_path,
+        patterns=("retired.call",),
+        provider="_mock",
+        proof_scope_hash="a" * 64,
+    )
+    typo = tmp_path / ".hubbleops" / "retired.yaml"
+
+    assert main(["guard", "--repo", str(tmp_path), "--retired", str(typo)]) == EXIT_FAILED, (
+        "a mistyped --retired and a checkout that never committed retired.yml are the same "
+        "silence, and the guard has to say which file it read"
+    )
+    captured = capsys.readouterr()
+    assert "PASS" not in captured.out
+    assert str(typo.resolve()) in captured.out + captured.err
+
+
 def test_exposure_installs_a_read_only_pull_request_workflow_without_a_run(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

@@ -61,7 +61,11 @@ def load(path: Path) -> tuple[dict[str, str], ...]:
 def run(repository: Path, retired: Path, rg: str = RIPGREP) -> GuardResult:
     entries = load(retired)
     if not entries:
-        return GuardResult(0, ())
+        raise GuardInvalid(
+            f"{retired} {'holds no retired pattern' if retired.is_file() else 'does not exist'}, "
+            "so this guard searched for nothing and proved nothing; point --retired at the file "
+            "hops prepare-pr wrote, or commit it"
+        )
     return GuardResult(
         len(entries), search(repository, [entry["pattern"] for entry in entries], rg)
     )
