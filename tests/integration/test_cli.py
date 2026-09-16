@@ -18,7 +18,7 @@ from hubbleops.app.cli import (
     main,
     scan_repository,
 )
-from hubbleops.core.candidate import OPEN_STATUSES
+from hubbleops.core.candidate import DECISION_REASON_PREFIX, OPEN_STATUSES
 from hubbleops.core.errors import ToolingTimeout
 from hubbleops.core.proof_scope import scanner_fingerprint
 from hubbleops.proof import guard
@@ -264,6 +264,53 @@ def test_decide_writes_an_idempotent_source_bound_human_decision(
     assert "DECIDED" in output
     assert main(arguments) == EXIT_OK
     assert destination.read_bytes() == first
+
+
+def test_hops_decide_moves_the_stored_candidate_out_of_unknown(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    state = tmp_path / "state"
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    assert run_scan(state, pack="_mock") == EXIT_OK
+    capsys.readouterr()
+    with Store(state) as store:
+        run = store.latest_run("_mock")
+        assert run is not None
+        candidate = next(
+            item for item in store.candidates_for(run.run_id) if item["status"] in OPEN_STATUSES
+        )
+    arguments = [
+        "decide",
+        str(candidate["id"])[:12],
+        "--value",
+        "HUMAN_ACCEPTED_RISK",
+        "--by",
+        "Reviewer",
+        "--run",
+        run.run_id,
+        "--repo",
+        str(repository),
+        "--state-dir",
+        str(state),
+    ]
+
+    assert main(arguments) == EXIT_OK
+    capsys.readouterr()
+
+    with Store(state) as store:
+        moved = next(
+            item for item in store.candidates_for(run.run_id) if item["id"] == candidate["id"]
+        )
+    assert moved["status"] == "HUMAN_ACCEPTED_RISK", (
+        "a decision the engine accepted has to reach the ledger it adjudicates; leaving the row "
+        "UNKNOWN means the next scan re-asks a question a human already answered"
+    )
+    assert moved["reason"].startswith(DECISION_REASON_PREFIX)
+    assert moved["evidence_ids"] == candidate["evidence_ids"]
+    assert moved["close_with"] is None
+    document = yaml.safe_load((repository / ".hubbleops" / "decisions.yml").read_bytes())
+    assert document["decisions"][0]["blob_hash"] in moved["reason"]
 
 
 def test_replay_verifies_a_completed_runs_identity_and_artifacts(

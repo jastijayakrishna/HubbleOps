@@ -88,7 +88,17 @@ def write(
             evidence=store.evidence_for(row.run_id),
             candidates=store.candidates_for(row.run_id),
         )
-    item = record(book, candidate_prefix, value, decided_by)
+        item = record(book, candidate_prefix, value, decided_by)
+        decided = apply(
+            book,
+            (item,),
+            decided_run_id=row.run_id,
+            decided_proof_scope_hash=row.proof_scope_hash,
+        )
+        moved = [
+            held for held in decided.candidates if str(held["id"]) == str(item["candidate_id"])
+        ]
+        store.write_candidates(moved, decisions=(item,))
     destination = repository.resolve() / ".hubbleops" / "decisions.yml"
     existing = [
         held for held in load(destination) if held.get("candidate_id") != item["candidate_id"]
@@ -210,12 +220,18 @@ def _candidate(book: Ledger, prefix: str) -> Mapping[str, Any]:
     matches = [
         item
         for item in book.candidates
-        if str(item["id"]).startswith(prefix) and item["status"] in OPEN_STATUSES
+        if str(item["id"]).startswith(prefix) and _adjudicable(item)
     ]
     if len(matches) != 1:
         detail = "no open candidate matches" if not matches else "candidate prefix is ambiguous"
         raise DecisionInvalid(f"{detail}: {prefix}")
     return matches[0]
+
+
+def _adjudicable(item: Mapping[str, Any]) -> bool:
+    if item["status"] in OPEN_STATUSES:
+        return True
+    return str(item.get("reason") or "").startswith(DECISION_REASON_PREFIX)
 
 
 def _validate(raw: Mapping[str, Any]) -> dict[str, Any]:

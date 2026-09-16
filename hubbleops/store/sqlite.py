@@ -5,10 +5,11 @@ import sqlite3
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from types import TracebackType
+from types import MappingProxyType, TracebackType
 from typing import Any
 
 from hubbleops.core.candidate import (
+    DECISION_REASON_PREFIX,
     OPEN_STATUSES,
     STATUSES,
     candidate_identity,
@@ -18,6 +19,7 @@ from hubbleops.core.canonical import canonical_text
 from hubbleops.core.errors import (
     AiEvidenceAlone,
     CandidateIdentityMismatch,
+    DecisionNotRecorded,
     EvidenceContextMismatch,
     EvidenceIdentityMismatch,
     EvidenceNotFound,
@@ -35,6 +37,8 @@ from hubbleops.core.evidence import AI_DERIVATION, evidence_identity
 from hubbleops.core.proof_scope import proof_scope_hash as derive_proof_scope_hash
 from hubbleops.core.proof_scope import run_id_for
 from hubbleops.core.schema import validate
+
+EMPTY_DECISIONS: Mapping[str, Mapping[str, Any]] = MappingProxyType({})
 
 DATABASE_FILENAME = "hubbleops.sqlite"
 SCHEMA_VERSION = 2
@@ -357,7 +361,10 @@ class Store:
             raise CandidateIdentityMismatch(offered, tuple(sorted(identities)))
 
     def _guard_candidate_transition(
-        self, record: dict[str, Any], pending: Mapping[tuple[str, str], dict[str, Any]]
+        self,
+        record: dict[str, Any],
+        pending: Mapping[tuple[str, str], dict[str, Any]],
+        decided: Mapping[str, Mapping[str, Any]] = EMPTY_DECISIONS,
     ) -> None:
         stored = pending.get((str(record["run_id"]), str(record["id"])))
         if stored is None:
@@ -376,10 +383,48 @@ class Store:
         if not held <= offered:
             raise ProvenanceDropped(str(record["id"]), tuple(sorted(held - offered)))
         if was in OPEN_STATUSES and now not in OPEN_STATUSES:
+            decision = decided.get(str(record["id"]))
+            if decision is not None:
+                self._guard_decision_backed_close(record, decision)
+                return
             if held == offered:
                 raise UnknownNotConserved(str(record["id"]), was, now)
             if self._every_derivation_is_ai(str(record["run_id"]), offered - held):
                 raise AiEvidenceAlone(str(record["id"]), was, now)
+
+    def _guard_decision_backed_close(
+        self, record: dict[str, Any], decision: Mapping[str, Any]
+    ) -> None:
+        candidate_id = str(record["id"])
+        decision_id = str(decision.get("id", ""))
+        if not str(record["reason"]).startswith(f"{DECISION_REASON_PREFIX}{decision_id}"):
+            raise DecisionNotRecorded(
+                candidate_id, decision_id, "the candidate's reason does not name that decision"
+            )
+        if str(decision.get("value")) != str(record["status"]):
+            raise DecisionNotRecorded(
+                candidate_id,
+                decision_id,
+                f"the decision records {decision.get('value')} and the write claims "
+                f"{record['status']}",
+            )
+        blob = str(decision.get("blob_hash"))
+        held = self._evidence_records(
+            str(record["run_id"]), {str(item) for item in record["evidence_ids"]}
+        )
+        if not any(
+            str(item["source_hash"]) == blob
+            and str(item["path"]) == str(decision.get("path"))
+            and item["line_start"] == decision.get("line_start")
+            and str(item["claim_type"]) == str(decision.get("claim_type"))
+            for item in held
+        ):
+            raise DecisionNotRecorded(
+                candidate_id,
+                decision_id,
+                f"no evidence on this candidate sits at {decision.get('path')}:"
+                f"{decision.get('line_start')} with source blob {blob[:12]}",
+            )
 
     def _every_derivation_is_ai(self, run_id: str, evidence_ids: set[str]) -> bool:
         if not evidence_ids:
@@ -441,9 +486,15 @@ class Store:
             self._guard_evidence_context(record)
             self._pending_evidence[(str(record["run_id"]), str(record["id"]))] = record
 
-    def write_candidates(self, records: Sequence[dict[str, Any]]) -> None:
+    def write_candidates(
+        self,
+        records: Sequence[dict[str, Any]],
+        *,
+        decisions: Sequence[Mapping[str, Any]] = (),
+    ) -> None:
         rows: list[tuple[Any, ...]] = []
         pending: dict[tuple[str, str], dict[str, Any]] = {}
+        decided = {str(item["candidate_id"]): item for item in decisions}
         run_ids = {str(record["run_id"]) for record in records}
         for (run_id, _), evidence in self._pending_evidence.items():
             if run_id in run_ids:
@@ -478,7 +529,7 @@ class Store:
                 str(record["proof_scope_hash"]),
             )
             self._guard_candidate_provider(record)
-            self._guard_candidate_transition(record, pending)
+            self._guard_candidate_transition(record, pending, decided)
             self._guard_evidence_exists(record)
             self._guard_candidate_identity(record)
             pending[(str(record["run_id"]), str(record["id"]))] = record

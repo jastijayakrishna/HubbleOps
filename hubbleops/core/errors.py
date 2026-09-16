@@ -70,6 +70,18 @@ class UnknownNotConserved(HubbleOpsError):
         self.now = now
 
 
+class DecisionNotRecorded(HubbleOpsError):
+    def __init__(self, candidate_id: str, decision_id: str, detail: str) -> None:
+        super().__init__(
+            f"UNKNOWN_CONSERVATION (law L3): candidate {candidate_id} closes on decision "
+            f"{decision_id}, but {detail}. A decision closes an UNKNOWN only where it is bound "
+            "to the evidence and the status it claims."
+        )
+        self.candidate_id = candidate_id
+        self.decision_id = decision_id
+        self.detail = detail
+
+
 class EvidenceNotFound(HubbleOpsError):
     def __init__(self, candidate_id: str, missing: tuple[str, ...]) -> None:
         super().__init__(

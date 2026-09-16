@@ -6,11 +6,16 @@ from typing import Any
 
 import pytest
 
-from hubbleops.core.candidate import candidate_identity, make_candidate
+from hubbleops.core.candidate import (
+    DECISION_REASON_PREFIX,
+    candidate_identity,
+    make_candidate,
+)
 from hubbleops.core.canonical import EMPTY_SHA256, content_id
 from hubbleops.core.errors import (
     AiEvidenceAlone,
     CandidateIdentityMismatch,
+    DecisionNotRecorded,
     EvidenceContextMismatch,
     EvidenceIdentityMismatch,
     EvidenceNotFound,
@@ -204,6 +209,7 @@ def open_candidate(
     evidence_ids: list[str],
     status: str,
     close_with: str | None,
+    reason: str = "the version at this call site is not statically resolvable",
 ) -> dict[str, Any]:
     return make_candidate(
         candidate_id=candidate_identity("p", "call_version", "src/open.py:1"),
@@ -212,8 +218,47 @@ def open_candidate(
         provider="p",
         evidence_ids=evidence_ids,
         status=status,
-        reason="the version at this call site is not statically resolvable",
+        reason=reason,
         close_with=close_with,
+    )
+
+
+def decision_for(
+    run_id: str,
+    scope_hash: str,
+    value: str = "HUMAN_ACCEPTED_RISK",
+    blob_hash: str = EMPTY_SHA256,
+) -> dict[str, Any]:
+    body: dict[str, Any] = {
+        "run_id": run_id,
+        "proof_scope_hash": scope_hash,
+        "candidate_id": candidate_identity("p", "call_version", "src/open.py:1"),
+        "blob_hash": blob_hash,
+        "path": "src/open.py",
+        "line_start": 1,
+        "claim_type": "call_version",
+        "value": value,
+        "by": "Reviewer",
+    }
+    return {"id": content_id(body), **body}
+
+
+def decided_candidate(
+    run_id: str,
+    scope_hash: str,
+    evidence_ids: list[str],
+    item: dict[str, Any],
+) -> dict[str, Any]:
+    return open_candidate(
+        run_id,
+        scope_hash,
+        evidence_ids,
+        str(item["value"]),
+        None,
+        reason=(
+            f"{DECISION_REASON_PREFIX}{item['id']} by {item['by']} "
+            f"for source blob {item['blob_hash']}"
+        ),
     )
 
 
@@ -319,6 +364,72 @@ def test_an_unknown_closes_when_new_evidence_arrives(tmp_path: Path) -> None:
     closing = open_candidate(run_id, scope_hash, [first["id"], second["id"]], "AFFECTED", None)
     store.write_candidates([closing])
     assert held_status(store, run_id, closing["id"]) == "AFFECTED"
+    store.close()
+
+
+def test_a_recorded_human_decision_moves_the_stored_candidate_row(tmp_path: Path) -> None:
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    item = decision_for(run_id, scope_hash)
+    closing = decided_candidate(run_id, scope_hash, [first["id"]], item)
+
+    store.write_candidates([closing], decisions=(item,))
+
+    assert held_status(store, run_id, closing["id"]) == "HUMAN_ACCEPTED_RISK", (
+        "law L3: a recorded human decision is one of the two ways an UNKNOWN closes, so the "
+        "persisted row moves rather than staying open behind a decisions file"
+    )
+    store.close()
+
+
+def test_a_decided_status_without_its_adjudication_record_never_closes(tmp_path: Path) -> None:
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    item = decision_for(run_id, scope_hash)
+    forged = decided_candidate(run_id, scope_hash, [first["id"]], item)
+
+    with pytest.raises(UnknownNotConserved):
+        store.write_candidates([forged])
+
+    assert held_status(store, run_id, forged["id"]) == "UNKNOWN", (
+        "law L3: a reason that claims a decision is not a decision; only the adjudication "
+        "record handed to the store closes an UNKNOWN"
+    )
+    store.close()
+
+
+def test_a_decision_bound_to_another_blob_never_closes_the_candidate(tmp_path: Path) -> None:
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    drifted = decision_for(run_id, scope_hash, blob_hash="b" * 64)
+    closing = decided_candidate(run_id, scope_hash, [first["id"]], drifted)
+
+    with pytest.raises(DecisionNotRecorded):
+        store.write_candidates([closing], decisions=(drifted,))
+
+    assert held_status(store, run_id, closing["id"]) == "UNKNOWN", (
+        "FA-031: a decision made about one source blob cannot close a candidate whose evidence "
+        "carries a different one"
+    )
+    store.close()
+
+
+def test_a_decision_disagreeing_with_the_status_it_licenses_never_closes(tmp_path: Path) -> None:
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    item = decision_for(run_id, scope_hash, value="AFFECTED")
+    mismatched = open_candidate(
+        run_id,
+        scope_hash,
+        [first["id"]],
+        "HUMAN_ACCEPTED_RISK",
+        None,
+        reason=(
+            f"{DECISION_REASON_PREFIX}{item['id']} by {item['by']} "
+            f"for source blob {item['blob_hash']}"
+        ),
+    )
+
+    with pytest.raises(DecisionNotRecorded):
+        store.write_candidates([mismatched], decisions=(item,))
+
+    assert held_status(store, run_id, mismatched["id"]) == "UNKNOWN"
     store.close()
 
 
