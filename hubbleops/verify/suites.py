@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from hubbleops.core.errors import ToolingMissing
+from hubbleops.core.errors import ToolingMissing, WorkspaceNotIsolated
 from hubbleops.core.process import bounded_process
 from hubbleops.core.verification import SuiteCase, SuiteRun
 from hubbleops.graph import language_for
@@ -70,9 +70,19 @@ def covered_languages(run: SuiteRun) -> frozenset[str]:
     return frozenset(run.languages) if run.languages else frozenset({"python"})
 
 
+def _require_disposable(workspace: Path) -> None:
+    if not workspace.is_absolute():
+        raise WorkspaceNotIsolated(
+            str(workspace), "it is a relative path and would resolve against the working directory"
+        )
+    if (workspace / ".git").exists():
+        raise WorkspaceNotIsolated(str(workspace), "it is a git checkout")
+
+
 def stage_frozen(
     base: Path, candidate: Path, workspace: Path, dependencies: Path | None = None
 ) -> FrozenSuitePlan:
+    _require_disposable(workspace)
     if workspace.exists():
         shutil.rmtree(workspace, onexc=_drop_readonly)
     shutil.copytree(candidate, workspace, ignore=shutil.ignore_patterns(".git"))
@@ -125,6 +135,7 @@ def run_candidate(
     python_executable: str,
     wall_seconds: float = DEFAULT_WALL_SECONDS,
 ) -> SuiteRun:
+    _require_disposable(workspace)
     if workspace.exists():
         shutil.rmtree(workspace, onexc=_drop_readonly)
     shutil.copytree(tree, workspace, ignore=shutil.ignore_patterns(".git"))

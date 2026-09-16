@@ -10,6 +10,7 @@ import pytest
 from hubbleops.app import decision, verification
 from hubbleops.core.candidate import DECISION_REASON_PREFIX, candidate_identity, make_candidate
 from hubbleops.core.canonical import content_id
+from hubbleops.core.errors import WorkspaceNotIsolated
 from hubbleops.core.evidence import AI_DERIVATION, make_evidence, observation_identity
 from hubbleops.core.verification import (
     ChangeSet,
@@ -1146,3 +1147,51 @@ def test_an_oracle_result_is_rejected_if_its_bound_context_moves() -> None:
     outcome = bound.validate({}, "v2")
     assert outcome.code == "ORACLE_UNAVAILABLE"
     assert "changed while validating" in outcome.reason
+
+
+def _staging_trees(root: Path) -> tuple[Path, Path]:
+    base = root / "base"
+    candidate = root / "candidate"
+    for tree in (base, candidate):
+        (tree / "tests").mkdir(parents=True)
+        (tree / "tests" / "test_ok.py").write_text("def test_ok():\n    pass\n", encoding="utf-8")
+    return base, candidate
+
+
+def test_a_relative_workspace_never_resolves_against_the_working_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    base, candidate = _staging_trees(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(WorkspaceNotIsolated) as raised:
+        suites.stage_frozen(base, candidate, Path("staging"))
+
+    assert "absolute" in str(raised.value)
+    assert not (tmp_path / "staging").exists(), (
+        "the verifier wrote into the working directory, so the next scan reads a tree it moved"
+    )
+
+
+def test_a_git_checkout_is_never_staged_over(tmp_path: Path) -> None:
+    base, candidate = _staging_trees(tmp_path)
+    checkout = tmp_path / "someones-repository"
+    (checkout / ".git").mkdir(parents=True)
+    keep = checkout / "source.py"
+    keep.write_text("live source\n", encoding="utf-8")
+
+    with pytest.raises(WorkspaceNotIsolated):
+        suites.stage_frozen(base, candidate, checkout)
+
+    assert keep.read_text(encoding="utf-8") == "live source\n", (
+        "staging deleted a real checkout; a workspace is disposable and a checkout is not"
+    )
+
+
+def test_the_candidate_suite_refuses_the_same_two_workspaces(tmp_path: Path) -> None:
+    tree, _ = _staging_trees(tmp_path)
+    checkout = tmp_path / "live"
+    (checkout / ".git").mkdir(parents=True)
+
+    with pytest.raises(WorkspaceNotIsolated):
+        suites.run_candidate(tree, checkout, "python")

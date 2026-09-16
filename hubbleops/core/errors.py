@@ -231,3 +231,14 @@ class StoreSchemaMismatch(HubbleOpsError):
         self.path = path
         self.found = found
         self.expected = expected
+
+
+class WorkspaceNotIsolated(HubbleOpsError):
+    def __init__(self, workspace: str, detail: str) -> None:
+        super().__init__(
+            f"WORKSPACE_NOT_ISOLATED: {workspace} is not a disposable staging directory because "
+            f"{detail}. Staging copies a tree in and deletes whatever is already there, so it "
+            "runs only against an absolute path the verifier owns."
+        )
+        self.workspace = workspace
+        self.detail = detail
