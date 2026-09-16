@@ -205,7 +205,8 @@ def transform_requests(
         for path, line in edit_sites(obligation, located):
             source = root / path
             try:
-                text = source.read_text(encoding="utf-8")
+                with source.open("r", encoding="utf-8", newline="") as handle:
+                    text = handle.read()
             except (OSError, UnicodeDecodeError):
                 continue
             requests.append(

@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 
 from hubbleops.app import migration, registry
+from hubbleops.closure import source_closure
 from hubbleops.core.candidate import candidate_identity, make_candidate
 from hubbleops.core.evidence import make_evidence
 from hubbleops.core.verification import OracleOutcome
@@ -257,3 +258,30 @@ def test_readers_of_a_rewritten_constant_are_discharged_as_satisfied_by_that_sit
     assert set(report.discharged()) == {item["id"] for item in obligations}
     assert result.open_for_human() == ()
     assert report.texts["src/client.py"].startswith('API_VERSION = "v2"\n')
+
+
+def test_a_crlf_file_keeps_crlf_on_every_line_the_migration_did_not_edit(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "src").mkdir()
+    source = tmp_path / "src" / "client.py"
+    source.write_bytes(CLIENT_SOURCE.replace("\n", "\r\n").encode("utf-8"))
+    before = source.read_bytes()
+
+    result = migration.migrate(
+        pack=mock_pack(),
+        ledger=constant_reader_ledger(),
+        closure=source_closure.build(tmp_path),
+        root=tmp_path,
+        target="v2",
+        write=True,
+    )
+
+    assert result.written == ("src/client.py",)
+    after = source.read_bytes()
+    assert after.count(b"\r\n") == before.count(b"\r\n"), (
+        "a migration rewrites the sites its obligations name and nothing else; rewriting every "
+        "line terminator makes every line of the file a hunk no obligation contains"
+    )
+    assert after.split(b"\r\n")[0] == b'API_VERSION = "v2"'
+    assert after.split(b"\r\n")[1:] == before.split(b"\r\n")[1:]
