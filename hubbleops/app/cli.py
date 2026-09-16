@@ -1256,6 +1256,7 @@ def _prepare_pr(args: argparse.Namespace) -> int:
             if args.obligations
             else _repository_state_dir(args, root) / OBLIGATIONS_FILENAME
         ),
+        state_dir=_repository_state_dir(args, root),
         command=str(args.command),
         environment=pack.verification_environment(),
     )

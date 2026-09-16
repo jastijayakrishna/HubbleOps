@@ -187,41 +187,58 @@ def test_the_receipt_states_the_packs_own_catalog_scope_and_asserts_none_of_its_
     )
 
 
-def test_pr_materials_preserve_memory_and_bind_actions_to_the_candidate(
-    good_run: VerificationRun,
-    repository: Repository,
-    obligations: Path,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    root = tmp_path / "candidate"
+def _verified_candidate(repository: Repository, obligations: Path, root: Path) -> Receipt:
     subprocess.run(
         ["git", "clone", "--quiet", str(repository.path), str(root)],
         check=True,
         capture_output=True,
     )
     subprocess.run(
-        ["git", "-C", str(root), "checkout", "--quiet", good_run.candidate_sha],
+        ["git", "-C", str(root), "checkout", "--quiet", repository.candidate_sha],
         check=True,
         capture_output=True,
     )
     state = root / ".hubbleops"
-    state.mkdir(parents=True)
-    state.joinpath("obligations.json").write_bytes(obligations.read_bytes())
-    document = receipt.build(
-        evaluation=good_run.evaluation,
-        proof_scope=good_run.proof_scope,
-        provider="_mock",
-        changes_hash=good_run.changes_hash,
-        base_sha=good_run.base_sha,
-        candidate_sha=good_run.candidate_sha,
-        from_version=good_run.from_version,
-        to_version=good_run.to_version,
-        retired_patterns=("v1", "campaigns.legacy"),
+    assert (
+        cli.main(
+            [
+                "verify",
+                repository.base_sha,
+                repository.candidate_sha,
+                "--pack",
+                "_mock",
+                "--repo",
+                str(root),
+                "--from",
+                "v1",
+                "--to",
+                "v2",
+                "--obligations",
+                str(obligations),
+                "--state-dir",
+                str(state),
+            ]
+        )
+        == cli.EXIT_OK
     )
+    state.joinpath("obligations.json").write_bytes(obligations.read_bytes())
+    written = next(state.rglob("receipt.json"))
+    return Receipt(json.loads(written.read_text(encoding="utf-8")))
+
+
+def test_pr_materials_preserve_memory_and_bind_actions_to_the_candidate(
+    repository: Repository,
+    obligations: Path,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    root = tmp_path / "candidate"
+    document = _verified_candidate(repository, obligations, root)
+    state = root / ".hubbleops"
     receipt_path = tmp_path / "receipt.json"
     receipt_path.write_bytes(document.json_bytes())
     body = tmp_path / "pr-body.md"
+    capsys.readouterr()
     assert (
         cli.main(
             [
@@ -231,6 +248,8 @@ def test_pr_materials_preserve_memory_and_bind_actions_to_the_candidate(
                 str(root),
                 "--body",
                 str(body),
+                "--state-dir",
+                str(state),
             ]
         )
         == cli.EXIT_OK
@@ -249,6 +268,99 @@ def test_pr_materials_preserve_memory_and_bind_actions_to_the_candidate(
     )
     assert "GITHUB_SHA" in workflow_text
     assert "--pack _mock" in workflow_text
+
+
+def test_a_receipt_no_verify_run_recorded_cannot_prepare_a_proof_pack(
+    good_run: VerificationRun,
+    repository: Repository,
+    obligations: Path,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    root = tmp_path / "unrecorded"
+    subprocess.run(
+        ["git", "clone", "--quiet", str(repository.path), str(root)],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(root), "checkout", "--quiet", good_run.candidate_sha],
+        check=True,
+        capture_output=True,
+    )
+    state = tmp_path / "empty-state"
+    state.mkdir()
+    state.joinpath("obligations.json").write_bytes(obligations.read_bytes())
+    document = _receipt(good_run)
+    receipt_path = tmp_path / "unrecorded-receipt.json"
+    receipt_path.write_bytes(document.json_bytes())
+    body = tmp_path / "unrecorded-body.md"
+    capsys.readouterr()
+
+    assert (
+        cli.main(
+            [
+                "prepare-pr",
+                str(receipt_path),
+                "--repo",
+                str(root),
+                "--body",
+                str(body),
+                "--state-dir",
+                str(state),
+            ]
+        )
+        != cli.EXIT_OK
+    ), "a Proof Pack is bound to a verify run, not to a JSON file anyone can write"
+    printed = capsys.readouterr()
+    assert document.body_hash()[:12] in printed.out + printed.err
+    assert not body.exists()
+    assert not (root / ".hubbleops" / "retired.yml").exists()
+    assert not (root / ".github" / "workflows" / "hubbleops-verify.yml").exists()
+
+
+def test_a_receipt_edited_after_verify_wrote_it_no_longer_matches_its_recorded_body(
+    repository: Repository,
+    obligations: Path,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    root = tmp_path / "edited"
+    document = _verified_candidate(repository, obligations, root)
+    state = root / ".hubbleops"
+    altered = json.loads(json.dumps(document.record))
+    altered["candidates_summary"]["unknown"] = (
+        int(altered["candidates_summary"]["unknown"] or 0) + 1
+    )
+    forged = Receipt(altered)
+    assert pr_body.verdict_holds(forged.record), (
+        "the edit must be one the conjunct re-derivation cannot see, or this test proves "
+        "nothing the existing verdict_holds gate did not already catch"
+    )
+    assert forged.body_hash() != document.body_hash()
+    receipt_path = tmp_path / "edited-receipt.json"
+    receipt_path.write_bytes(forged.json_bytes())
+    body = tmp_path / "edited-body.md"
+    capsys.readouterr()
+
+    assert (
+        cli.main(
+            [
+                "prepare-pr",
+                str(receipt_path),
+                "--repo",
+                str(root),
+                "--body",
+                str(body),
+                "--state-dir",
+                str(state),
+            ]
+        )
+        != cli.EXIT_OK
+    ), "the receipt a verify run recorded is the only receipt that prepares its Proof Pack"
+    printed = capsys.readouterr()
+    assert forged.body_hash()[:12] in printed.out + printed.err
+    assert not body.exists()
 
 
 def test_a_forged_candidate_sha_cannot_present_a_dead_receipt_for_a_new_tree(

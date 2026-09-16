@@ -105,6 +105,8 @@ def test_migrate_verify_prepare_pr_runs_end_to_end_without_hand_editing(
                 str(repository),
                 "--obligations",
                 str(obligations),
+                "--state-dir",
+                str(state),
             ]
         )
         == EXIT_OK
@@ -138,6 +140,8 @@ def test_migrate_verify_prepare_pr_runs_end_to_end_without_hand_editing(
                 str(repository),
                 "--obligations",
                 str(obligations),
+                "--state-dir",
+                str(state),
             ]
         )
         != EXIT_OK
@@ -155,6 +159,8 @@ def test_migrate_verify_prepare_pr_runs_end_to_end_without_hand_editing(
                 str(repository),
                 "--obligations",
                 str(obligations),
+                "--state-dir",
+                str(state),
             ]
         )
         != EXIT_OK

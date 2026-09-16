@@ -12,11 +12,12 @@ import yaml
 
 from hubbleops.core.canonical import content_id, export_bytes
 from hubbleops.core.errors import HubbleOpsError
+from hubbleops.core.proof_scope import run_id_for
 from hubbleops.core.records import MAX_JSON_BYTES, as_mapping, as_sequence
 from hubbleops.core.schema import validate
 from hubbleops.proof import guard, pr_body
 from hubbleops.proof.receipt import Receipt
-from hubbleops.store import write_atomic
+from hubbleops.store import DATABASE_FILENAME, Store, write_atomic
 
 GIT_TIMEOUT_SECONDS = 60.0
 
@@ -42,6 +43,7 @@ def prepare(
     receipt_path: Path,
     body_path: Path,
     obligations: Path,
+    state_dir: Path,
     command: str = "uv run hops",
     environment: Mapping[str, str] | None = None,
 ) -> PreparedPullRequest:
@@ -73,6 +75,7 @@ def prepare(
             f"the receipt is bound to candidate {candidate_sha[:12]} but "
             f"{root} is at {head[:12]}; a new SHA kills the old proof, run hops verify on it"
         )
+    _require_recorded_verify_run(state_dir.resolve(), document, audit, scope_hash)
     provider = _text(audit, "provider")
     from_version = _text(audit, "from_version")
     to_version = _text(audit, "to_version")
@@ -203,6 +206,47 @@ def _head(repository: Path) -> str:
             f"{completed.stderr.strip() or completed.returncode}"
         )
     return head
+
+
+def _require_recorded_verify_run(
+    state_dir: Path,
+    document: Receipt,
+    audit: Mapping[str, Any],
+    scope_hash: str,
+) -> None:
+    recorded = document.body_hash()
+    if not (state_dir / DATABASE_FILENAME).is_file():
+        raise MemoryInvalid(
+            f"no run store exists at {state_dir}, so nothing attests that hops verify ever "
+            f"produced the receipt whose body hashes to {recorded[:12]}; run hops verify with "
+            "this --state-dir, or name the one it wrote"
+        )
+    run_id = run_id_for(
+        scope_hash=scope_hash,
+        provider=_text(audit, "provider"),
+        verb="verify",
+        target=f"{_text(audit, 'base_sha')}..{_text(audit, 'candidate_sha')}",
+    )
+    with Store(state_dir) as store:
+        row = store.run(run_id)
+    if row is None:
+        raise MemoryInvalid(
+            f"{state_dir} records no verify run for this ProofScope and SHA pair, so the "
+            f"receipt whose body hashes to {recorded[:12]} was not written by a verification "
+            "this store witnessed; run hops verify"
+        )
+    if row.finished_at is None:
+        raise MemoryInvalid(
+            f"the verify run {run_id[:12]} never finished, so the receipt whose body hashes to "
+            f"{recorded[:12]} is bound to a verification that did not complete; run hops verify"
+        )
+    witnessed = str(row.closure.get("receipt_body_hash") or "")
+    if witnessed != recorded:
+        raise MemoryInvalid(
+            f"the verify run {run_id[:12]} recorded receipt body {witnessed[:12] or 'nothing'} "
+            f"but this file's body hashes to {recorded[:12]}; the receipt was altered after "
+            "hops verify wrote it; run hops verify again"
+        )
 
 
 def _receipt(path: Path) -> Receipt:
