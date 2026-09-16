@@ -22,6 +22,7 @@ MANIFEST = "corruption.json"
 @dataclass(frozen=True, slots=True)
 class Corruption:
     name: str
+    driver: str
     summary: str
     expected_verdict: str
     reason_contains: str
@@ -43,6 +44,7 @@ def _load(directory: Path) -> Corruption:
         edits[str(removed)] = None
     return Corruption(
         name=directory.name,
+        driver=str(manifest.get("driver", "verify")),
         summary=str(manifest["summary"]),
         expected_verdict=str(manifest["expected_verdict"]),
         reason_contains=str(manifest["reason_contains"]),
@@ -64,6 +66,7 @@ def corruptions() -> list[Corruption]:
 
 
 CORRUPTIONS = corruptions()
+VERIFY_CORRUPTIONS = [item for item in CORRUPTIONS if item.driver == "verify"]
 
 
 def test_the_corpus_is_large_enough() -> None:
@@ -83,7 +86,13 @@ def test_the_corpus_is_not_caught_by_a_single_stage() -> None:
     )
 
 
-@pytest.mark.parametrize("corruption", CORRUPTIONS, ids=lambda item: item.name)
+def test_every_corruption_names_a_driver_that_executes_it() -> None:
+    assert {item.driver for item in CORRUPTIONS} <= {"verify", "operations"}, (
+        "a corruption whose driver nothing runs is a description of an attack, not a test of it"
+    )
+
+
+@pytest.mark.parametrize("corruption", VERIFY_CORRUPTIONS, ids=lambda item: item.name)
 def test_a_corrupted_candidate_is_rejected_for_the_right_reason(
     corruption: Corruption, tmp_path: Path
 ) -> None:

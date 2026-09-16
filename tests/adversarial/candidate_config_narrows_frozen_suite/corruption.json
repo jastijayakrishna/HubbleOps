@@ -1,0 +1,9 @@
+{
+  "driver": "verify",
+  "summary": "the candidate ships a pytest config that points the proof suite at a path holding no tests, so collection fails and the frozen baseline counts nothing about the candidate",
+  "expected_verdict": "FAILED",
+  "reason_contains": "frozen baseline tests did not run",
+  "caught_by": "frozen baseline tests (the declared test path is read out of the candidate tree)",
+  "delete": [],
+  "obligation_sites": []
+}

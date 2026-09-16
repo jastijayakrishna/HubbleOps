@@ -1,0 +1,3 @@
+reporting:
+  window_days: 30
+  destination: warehouse

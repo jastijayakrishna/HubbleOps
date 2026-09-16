@@ -1,0 +1,9 @@
+{
+  "driver": "verify",
+  "summary": "the candidate changes only a configuration file, so the import graph finds no changed symbol and the blast radius is empty while the tree really did change",
+  "expected_verdict": "FAILED",
+  "reason_contains": "unexplained hunk config/runtime.yml",
+  "caught_by": "diff containment (an empty blast radius proves nothing, so containment is the only check left standing)",
+  "delete": [],
+  "obligation_sites": []
+}

@@ -1,0 +1,9 @@
+{
+  "driver": "operations",
+  "summary": "the candidate run rewrites the file an UNKNOWN sits in and closes the UNKNOWN on the same observation, whose only difference is the enclosing file's blob hash",
+  "expected_verdict": "FAILED",
+  "reason_contains": "without new evidence",
+  "caught_by": "UNKNOWN conservation (observation identity ignores the enclosing file's hash)",
+  "delete": [],
+  "obligation_sites": []
+}

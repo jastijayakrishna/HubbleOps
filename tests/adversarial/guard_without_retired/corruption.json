@@ -1,0 +1,9 @@
+{
+  "driver": "operations",
+  "summary": "the backslide guard runs against a checkout whose retired surface was never committed, so it loads no pattern and reports a green check for a tree it never searched",
+  "expected_verdict": "REFUSED",
+  "reason_contains": "searched for nothing and proved nothing",
+  "caught_by": "guard (a guard that loaded no pattern refuses instead of passing)",
+  "delete": [],
+  "obligation_sites": []
+}

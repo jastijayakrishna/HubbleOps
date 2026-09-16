@@ -1,0 +1,9 @@
+{
+  "driver": "operations",
+  "summary": "a receipt a real verify run produced is hand-edited in a field the conjunct re-derivation cannot see, then presented to prepare-pr as a Proof Pack",
+  "expected_verdict": "REFUSED",
+  "reason_contains": "but this file's body hashes to",
+  "caught_by": "prepare-pr (the receipt body hash the verify run recorded in the store)",
+  "delete": [],
+  "obligation_sites": []
+}
