@@ -15,7 +15,7 @@ from hubbleops.core.candidate import (
     candidate_identity,
     claim_key,
 )
-from hubbleops.core.canonical import canonical_text
+from hubbleops.core.canonical import canonical_text, content_id
 from hubbleops.core.errors import (
     AiEvidenceAlone,
     CandidateIdentityMismatch,
@@ -382,11 +382,18 @@ class Store:
         now = str(record["status"])
         if not held <= offered:
             raise ProvenanceDropped(str(record["id"]), tuple(sorted(held - offered)))
-        if was in OPEN_STATUSES and now not in OPEN_STATUSES:
+        decided_before = str(stored["reason"]).startswith(DECISION_REASON_PREFIX)
+        if (was in OPEN_STATUSES and now not in OPEN_STATUSES) or decided_before:
             decision = decided.get(str(record["id"]))
             if decision is not None:
                 self._guard_decision_backed_close(record, decision)
                 return
+            if decided_before:
+                raise DecisionNotRecorded(
+                    str(record["id"]),
+                    str(stored["reason"])[: len(DECISION_REASON_PREFIX) + 64],
+                    "the stored row already carries a human decision and this write names none",
+                )
             if held == offered:
                 raise UnknownNotConserved(str(record["id"]), was, now)
             if self._every_derivation_is_ai(str(record["run_id"]), offered - held):
@@ -397,6 +404,11 @@ class Store:
     ) -> None:
         candidate_id = str(record["id"])
         decision_id = str(decision.get("id", ""))
+        body = {key: value for key, value in decision.items() if key != "id"}
+        if not decision_id or content_id(body) != decision_id:
+            raise DecisionNotRecorded(
+                candidate_id, decision_id, "the decision's content does not hash to its own id"
+            )
         if not str(record["reason"]).startswith(f"{DECISION_REASON_PREFIX}{decision_id}"):
             raise DecisionNotRecorded(
                 candidate_id, decision_id, "the candidate's reason does not name that decision"

@@ -411,6 +411,54 @@ def test_a_decision_bound_to_another_blob_never_closes_the_candidate(tmp_path: P
     store.close()
 
 
+def test_a_second_write_over_a_decided_row_needs_its_own_adjudication_record(
+    tmp_path: Path,
+) -> None:
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    item = decision_for(run_id, scope_hash)
+    store.write_candidates(
+        [decided_candidate(run_id, scope_hash, [first["id"]], item)], decisions=(item,)
+    )
+
+    flipped = open_candidate(
+        run_id, scope_hash, [first["id"]], "AFFECTED", None, reason="no decision named here at all"
+    )
+    with pytest.raises(DecisionNotRecorded):
+        store.write_candidates([flipped])
+
+    assert held_status(store, run_id, flipped["id"]) == "HUMAN_ACCEPTED_RISK", (
+        "law L3: a row a human adjudicated does not move again on a write that names no "
+        "decision; the guard governs every write to it, not only the one that closed it"
+    )
+    store.close()
+
+
+def test_a_decision_whose_content_does_not_hash_to_its_id_never_closes(tmp_path: Path) -> None:
+    store, run_id, scope_hash, first = seeded_unknown(tmp_path)
+    item = decision_for(run_id, scope_hash)
+    tampered = {**item, "by": "Someone Else"}
+    closing = open_candidate(
+        run_id,
+        scope_hash,
+        [first["id"]],
+        "HUMAN_ACCEPTED_RISK",
+        None,
+        reason=(
+            f"{DECISION_REASON_PREFIX}{item['id']} by {tampered['by']} "
+            f"for source blob {item['blob_hash']}"
+        ),
+    )
+
+    with pytest.raises(DecisionNotRecorded):
+        store.write_candidates([closing], decisions=(tampered,))
+
+    assert held_status(store, run_id, closing["id"]) == "UNKNOWN", (
+        "the store checks the adjudication record itself rather than trusting the caller to "
+        "have validated it"
+    )
+    store.close()
+
+
 def test_a_decision_disagreeing_with_the_status_it_licenses_never_closes(tmp_path: Path) -> None:
     store, run_id, scope_hash, first = seeded_unknown(tmp_path)
     item = decision_for(run_id, scope_hash, value="AFFECTED")
