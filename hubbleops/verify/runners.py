@@ -100,6 +100,7 @@ NO_PHP_INTERPRETER = (
 MAX_SEARCH_DEPTH = 6
 MAX_REPORT_BYTES = 33_554_432
 SUMMARY = re.compile(r"(\d+) (passed|failed|error|errors|skipped|xfailed|xpassed|todo)")
+SUMMARY_FOOTER = re.compile(r"\bin \d+(?:\.\d+)?s\b")
 JAVASCRIPT_SUMMARY = re.compile(r"Tests\s+(?:(\d+) failed[^\n]*?)?(\d+) passed", re.IGNORECASE)
 
 
@@ -527,7 +528,15 @@ def read_cases(plan: RunnerPlan, source: str, counts: Mapping[str, int]) -> tupl
 def run_counts(plan: RunnerPlan, output: str) -> dict[str, int] | None:
     if plan.layout.runner == PHP_RUNNER:
         return junit_counts(plan.report)
+    if plan.layout.runner == "pytest":
+        return pytest_counts(plan)
     return counts_of(plan.layout, output)
+
+
+def pytest_counts(plan: RunnerPlan) -> dict[str, int] | None:
+    if not plan.report.is_file():
+        return None
+    return coverage.summarize(coverage.read_report(plan.report))
 
 
 def junit_counts(report: Path) -> dict[str, int] | None:
@@ -550,6 +559,13 @@ def junit_counts(report: Path) -> dict[str, int] | None:
     return counts if seen or _tag(root) in ("testsuites", "testsuite") else None
 
 
+def _final_summary_line(output: str) -> str:
+    for line in reversed(output.splitlines()):
+        if SUMMARY_FOOTER.search(line) and SUMMARY.search(line):
+            return line
+    return ""
+
+
 def counts_of(layout: SuiteLayout, output: str) -> dict[str, int]:
     counts = {"passed": 0, "failed": 0, "skipped": 0}
     if layout.runner != "pytest":
@@ -558,7 +574,7 @@ def counts_of(layout: SuiteLayout, output: str) -> dict[str, int]:
             counts["failed"] = int(match.group(1) or 0)
             counts["passed"] = int(match.group(2))
         return counts
-    for number, label in SUMMARY.findall(output):
+    for number, label in SUMMARY.findall(_final_summary_line(output)):
         if label in ("passed", "xpassed"):
             counts["passed"] += int(number)
         elif label in ("failed", "error", "errors"):

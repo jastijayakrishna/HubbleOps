@@ -874,6 +874,49 @@ def test_an_abnormal_pytest_exit_never_becomes_a_completed_suite(
     assert result.all_passed() is False
 
 
+def test_a_collection_error_reports_no_failed_test_because_none_ran(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    plan = suites.FrozenSuitePlan(
+        workspace=workspace,
+        report=workspace / "coverage.jsonl",
+        plugin=workspace / "plugin.py",
+        paths=("tests",),
+        layout=runners.SuiteLayout(
+            runner="pytest", languages=("python",), paths=("tests",), project="."
+        ),
+    )
+
+    def collection_error(
+        argv: tuple[str, ...],
+        wall_seconds: float,
+        output_bytes: int,
+        name: str,
+        environment: dict[str, str],
+        working_directory: str,
+    ) -> tuple[str, int | None, bytes, bytes]:
+        return (
+            "COMPLETED",
+            2,
+            b"ERROR tests/test_one.py\n"
+            b"!!!!!!!! Interrupted: 8 errors during collection !!!!!!!!\n"
+            b"================= 8 errors in 1.89s =================\n",
+            b"",
+        )
+
+    monkeypatch.setattr(suites, "bounded_process", collection_error)
+    result = suites.run_frozen(plan, "python", 1)
+
+    assert result.outcome == "EXECUTION_FAILED"
+    assert result.executed is False
+    assert (result.passed, result.failed, result.skipped) == (0, 0, 0), (
+        "no test executed, so the Proof Pack cannot report failed tests; a count read out of "
+        "the terminal banner is a number about pytest's prose, not about this repository"
+    )
+
+
 def test_an_untraceable_language_is_named_not_assumed_covered() -> None:
     modules = ("a.py", "b.ts", "c.php")
     languages = {"a.py": "python", "b.ts": "typescript", "c.php": "php"}

@@ -180,6 +180,36 @@ def test_vitest_output_is_counted(tmp_path: Path) -> None:
     assert failing == {"passed": 3, "failed": 1, "skipped": 0}
 
 
+def test_a_pytest_summary_is_counted_once_not_once_per_line_that_mentions_it() -> None:
+    transcript = (
+        "ERROR tests/test_one.py\n"
+        "!!!!!!!! Interrupted: 8 errors during collection !!!!!!!!\n"
+        "======================== 8 errors in 1.89s ========================\n"
+    )
+
+    assert runners.counts_of(_pytest_layout(), transcript) == {
+        "passed": 0,
+        "failed": 8,
+        "skipped": 0,
+    }, (
+        "pytest prints its error count twice, in the interrupt banner and in the footer; "
+        "adding both up reports twice as many tests as the run ever had"
+    )
+
+
+def test_a_pytest_footer_is_read_and_the_lines_above_it_are_not() -> None:
+    transcript = (
+        "FAILED tests/test_two.py::test_b\n"
+        "=============== 431 passed, 1 failed, 2 skipped in 12.3s ===============\n"
+    )
+
+    assert runners.counts_of(_pytest_layout(), transcript) == {
+        "passed": 431,
+        "failed": 1,
+        "skipped": 2,
+    }
+
+
 def _python_tree(tmp_path: Path, *suite_dirs: str) -> Path:
     tree = tmp_path / "pyrepo"
     for relative in suite_dirs:
