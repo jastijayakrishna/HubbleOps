@@ -2079,3 +2079,85 @@ tag in the same commit.
 **Decision.** Pending repository-owner ruling.
 
 ---
+
+## P-038 — A falsifier says whether it applies, so a skip is not always an open question
+
+| | |
+|---|---|
+| **Raised** | 2026-09-16, Phase 6 (week 1 audit fixes) |
+| **Touches** | `docs/ARCHITECTURE.md` §3.1, the FROZEN `Falsifier` sub-protocol of `ProviderPack`; `hubbleops/core/verification.py` `FalsifierView`; `hubbleops/verify/falsify.py`; `hubbleops/packs/google_ads/falsifiers.py`; `hubbleops/packs/_mock` |
+| **Status** | OPEN |
+
+**What forced this.** An independent audit on 2026-09-14 demonstrated that `verify/falsify.py`
+marked a falsifier `SKIPPED` when its `failure_class` appeared nowhere in the run's ledger, and that
+`report()` added nothing to `unresolved` unless *every* falsifier skipped. Measured: 5 of 8 skipped,
+`falsifiers_pass=True`, no unresolved entry, and `pr_body.FALSIFIER_RESULTS_THAT_HOLD` accepted
+`SKIPPED` as holding. The adversarial check built to catch what the ledger missed was switched off
+exactly when the ledger missed something.
+
+The week-1 brief specified the repair as: split `SKIPPED` into `NOT_APPLICABLE` — "the change sets
+contain no subject of that falsifier's `failure_class`" — and `NOT_RUN`, with every `NOT_RUN` an
+`unresolved` entry. **That predicate is not computable in `verify/`.** `ChangeSet` carries
+`from_version`, `to_version`, `pair_hash` and a tuple of `SubjectChange`; `SubjectChange` carries
+`subject`, `change`, `replacement`, `kind`, `reason`. None of them carries a failure class, and
+`SubjectChange.kind` is a `ContractCode` (`VALID`, `INVALID`, `UNKNOWN_PROVIDER_CONTRACT`,
+`ORACLE_UNAVAILABLE`), not a claim type. Mapping a subject to a failure class is pack knowledge, and
+L5 forbids `verify/` from holding it.
+
+What shipped instead (`d9f1dd1`) is the strictly more conservative rule the generic layer *can*
+compute: `NOT_APPLICABLE` only when the Change Pack changes no subject and no version, so nothing of
+any class can have been left behind; every other skip is `NOT_RUN` and therefore `unresolved`.
+
+**The consequence, measured on the shipped pack.** Eight falsifiers across seven failure classes,
+with a fully migrated ledger and every other conjunct passing:
+
+```
+  dynamic_version_config      config_reference     NOT_RUN
+  generated_namespace         package_reference    NOT_RUN
+  per_call_version_override   call_version         PASS
+  production_version_residue  production_version   NOT_RUN
+  removed_subject_in_request  request_text         NOT_RUN
+  renamed_subject_in_request  request_text         NOT_RUN
+  rest_endpoint_version       endpoint_reference   NOT_RUN
+  sdk_constraint              sdk_installed        NOT_RUN
+  unresolved entries: 7        falsifiers_pass: True        verdict: UNKNOWN
+```
+
+`verdict.decide` turns any unresolved entry into `UNKNOWN`, so **no capture-less `hops verify` on
+`google_ads` can reach `VERIFIED_FOR_SCOPE`**, however clean the repository. `production_version` is
+only ever a detected class when captured requests exist (`falsify.detected_classes`), and a
+repository with no REST endpoints can never make an `endpoint_reference` claim appear. These
+UNKNOWNs have no achievable closing instruction, which §4 requires of every UNKNOWN.
+
+This was kept rather than reverted because reverting restores the audited hole, and Axiom
+`Cost(FALSE_VERIFIED) ≫ Cost(UNKNOWN)` orders an over-refusal above a check that silently holds. It
+is a real product defect and it is why this proposal exists.
+
+**The proposed change.** One optional member on the frozen sub-protocol:
+
+```python
+class Falsifier(Protocol):
+    name: str
+    failure_class: str
+    def applies(self, changes: ChangeSet) -> bool: ...
+    def check(self, subject: FalsifierInput) -> FalsifierOutcome: ...
+```
+
+`verify/falsify.py` calls `applies(changes)` when the failure class is absent from the ledger:
+`False` is `NOT_APPLICABLE` and holds; `True` is `NOT_RUN` and is unresolved. A pack that does not
+define `applies` is read as always applicable, which is the conservative behaviour shipping today,
+so no pack breaks. The pack answers in its own vocabulary — `SubjectResidue` returns
+`bool(changes.removed())` or `bool(changes.renamed())`, `VersionResidue` returns
+`changes.from_version != changes.to_version` — and `verify/` learns nothing about Google Ads.
+
+**Alternative considered and rejected.** Run every falsifier and let it return `PASS`. Every
+falsifier in the pack is already total under an empty evidence set, so this needs no protocol change
+at all. It was rejected because a vacuous `PASS` is the same dishonesty in the other direction: a
+Receipt reading `FALSIFIERS 8 / 8 PASS` would claim production traffic was checked on a run that
+observed none.
+
+**Decision.** Pending repository-owner ruling. Until it is ruled on, `VERIFIED_FOR_SCOPE` is
+unreachable for `google_ads` without dynamic capture, and week 1's item 4b stands as PARTIALLY
+FIXED: the hole is closed and the replacement over-refuses.
+
+---

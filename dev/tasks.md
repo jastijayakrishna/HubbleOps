@@ -5,6 +5,51 @@ Updated before every session ends. Phase-level status lives in
 
 ## Now
 
+- [x] **Week 1 audit fixes: seven fail-closed defects closed on `phase-06-audit-fixes`
+      (2026-09-16).** Branch cut from `phase-06-repository-intelligence`; ten commits, one per
+      defect plus three closing review gaps and one for the fixtures. Full suite on a quiet tree:
+      **1359 passed, 1 skipped** in 23:10, the skip being `test_indexers.py:549` (scip-typescript
+      is not on PATH, pre-existing). Six new directories under `tests/adversarial/`, all six
+      executed. One item is PARTIALLY fixed and carries **P-038**; everything else is closed.
+- [ ] **Rule on P-038 (`Falsifier.applies`).** Until it is ruled on, no capture-less
+      `hops verify` on `google_ads` can reach `VERIFIED_FOR_SCOPE`: seven of eight falsifiers are
+      `NOT_RUN`, every `NOT_RUN` is unresolved, and `verdict.decide` turns any unresolved entry
+      into UNKNOWN. The audited hole (a skipped falsifier counting as holding) is closed; the
+      replacement over-refuses, and closing it correctly needs the frozen `Falsifier` sub-protocol
+      to gain one member. Kept rather than reverted because
+      `Cost(FALSE_VERIFIED) ≫ Cost(UNKNOWN)`.
+
+### Found during week 1
+
+- [ ] **`hubbleops/app/verification.py:596` reads with universal newlines too.**
+      `first_party_sources` has the same `read_text(encoding="utf-8")` that defect 2 fixed in
+      `migration.py`. It feeds obligation `current_state` strings and is never written back, so it
+      corrupts nothing today; it is the same latent shape one refactor away from mattering.
+- [ ] **`splitlines` splits on more Unicode boundaries than ripgrep counts.** Every pack transform
+      uses `text.splitlines(keepends=True)`, which also breaks on a lone `\r`, `\v`, `\f`, `\x85`,
+      ` ` and ` `. Observers number lines by `\n` only, so a file carrying any of those
+      inside a literal makes `_line_span` target a different line than the one the evidence names.
+      Unchanged by the CRLF fix — `\r\n` was always one break either way — but now the only
+      remaining terminator disagreement.
+- [ ] **`--state-dir` resolves two ways.** Every command that opens the store uses
+      `Path(args.state_dir).resolve()` (CWD-relative); `prepare-pr` resolves its obligations
+      default, and now its store, with `_repository_state_dir(args, root)` (repo-relative, which
+      §19 implies is correct for `.hubbleops/`). With `--repo .` they coincide. With a relative
+      `--state-dir` and a `--repo` elsewhere, `hops verify` writes one directory and
+      `hops prepare-pr` reads another, and the new receipt-binding check refuses an honest
+      receipt. Fail-closed, so it is a usability defect rather than a proof defect, but the two
+      resolutions should become one.
+- [ ] **An identical re-scan overwrites a decided candidate row.** `hops decide` now persists the
+      decided status, but a later `hops scan` of the same tree writes a fresh ledger for the same
+      `run_id` and puts the row back to UNKNOWN with no guard and no record. The decision survives
+      in `.hubbleops/decisions.yml` and is re-applied at verify time, so nothing is lost, but the
+      store is not yet the place the answer lives.
+- [ ] **`hops guard --install` exits FAILED on a repository with no retired surface.** `--install`
+      writes the workflow, then the run refuses because nothing was loaded. The pair is correct
+      fail-closed behaviour — the exit code reports the guard, not the install — but a user
+      installing the guard before their first migration sees a failure for a command that
+      succeeded.
+
 - [x] **First-signal corpus: ten independent families pinned, harness built and tested
       (2026-09-14).** 259 unique repositories discovered, 48 cloned and verified, 33 eligible,
       4 barred as the engine's own development set, 29 available, 10 pinned in

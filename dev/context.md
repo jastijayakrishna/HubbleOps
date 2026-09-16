@@ -8,10 +8,54 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | | |
 |---|---|
 | **Current phase** | Compressed Tiers 0-2 are implemented through Phase 7 on top of an unmerged Phase 5. Phase 4 is merged to `main` and tagged `v0.4` |
-| **Branch** | `phase-06-repository-intelligence`, cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
+| **Branch** | `phase-06-audit-fixes`, cut from `phase-06-repository-intelligence` on 2026-09-16 for the week-1 audit fixes; that branch was itself cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
 | **Engine baseline** | `engine-v0`, frozen 2026-09-13. Its scope is `dev/engine-v0.json`: lattice `4555e93f…`, ripgrep and ast-grep sha256, `uv.lock` hash, verifier image, Python 3.12.14, and the exact harness commands. Any change that moves a real-repo count is measured `engine-v0` → new before it is believed |
 | **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) and P-035 (the three planes and the WORK-plane agent harness) await the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
+
+**WEEK 1 AUDIT FIXES (2026-09-16), branch `phase-06-audit-fixes`.** An independent audit on
+2026-09-14 demonstrated seven fail-closed defects. All seven were reproduced against the tree at
+`bd24d9a` before anything was changed, and each fix carries the test that fails without it. Full
+suite on a quiet tree: **1359 passed, 1 skipped** in 23:10 (`test_indexers.py:549`, scip-typescript
+not on PATH, pre-existing).
+
+What closed: `observation_identity` no longer varies with the enclosing file's blob hash, so a
+one-byte edit can no longer manufacture the "new evidence" that closes an UNKNOWN. `migrate` reads
+with `newline=""` and stops converting every CRLF in a touched file to LF — which mattered twice
+over, because each rewritten line was also a hunk `zero_unexplained_hunks` could never contain.
+`prepare-pr` refuses a receipt no finished verify run in the store recorded, checked by re-deriving
+the run id from the receipt's own ProofScope and SHA pair and comparing `document.body_hash()`; a
+hand-edited receipt previously produced a VERIFIED_FOR_SCOPE Proof Pack at exit 0. `guard` refuses
+instead of printing PASS when it loaded no pattern, naming the file it read and whether that file
+was absent or empty. The frozen baseline counts the coverage plugin's per-test rows instead of
+pytest's terminal prose, so eight collection errors are no longer sixteen failed tests and the
+"left no readable report" branch — unreachable for pytest before — now fires with zero counts.
+`hops decide` writes the decided candidate through the store, and the transition guard accepts a
+close only on an adjudication record whose content hashes to its own id and binds to evidence the
+candidate carries at that path, line and blob.
+
+**What it uncovered.** Three things a fix opened or exposed, all closed in the same branch: a row a
+human decided was unguarded on every later write, so a write naming no decision could flip it;
+`prepare-pr` could write an empty `retired.yml` and install a CI guard against it, failing every
+pull request with no remedy once the 4a refusal landed; and the adversarial manifests carried
+`expected_verdict` and `reason_contains` fields that no driver asserted. Five further defects are
+recorded in `dev/tasks.md` under "Found during week 1" and were not fixed: the same universal-
+newline read in `app/verification.py:596`, `splitlines` breaking on Unicode boundaries ripgrep does
+not count, `--state-dir` resolving CWD-relative in `verify` and repo-relative in `prepare-pr`, a
+re-scan overwriting a decided candidate row, and `guard --install` exiting FAILED on a repository
+with no retired surface yet.
+
+**The one item that is only partially fixed, and why — P-038.** The brief specified
+`NOT_APPLICABLE` as "the change sets contain no subject of that falsifier's `failure_class`". That
+predicate is not computable in `verify/`: nothing on `ChangeSet` or `SubjectChange` carries a
+failure class, and mapping a subject to one is pack knowledge L5 forbids the generic layer to hold.
+What shipped is the conservative rule the generic layer can compute — `NOT_APPLICABLE` only when
+the Change Pack changes no subject and no version — so on `google_ads` seven of eight falsifiers
+are `NOT_RUN`, every `NOT_RUN` is unresolved, and `verdict.decide` turns any unresolved entry into
+UNKNOWN. **No capture-less `hops verify` on `google_ads` can currently reach VERIFIED_FOR_SCOPE.**
+It was kept rather than reverted because reverting restores the audited hole and
+`Cost(FALSE_VERIFIED) ≫ Cost(UNKNOWN)`. P-038 proposes the one protocol member that fixes it. The
+owner rules.
 
 **FIRST-SIGNAL CORPUS built (2026-09-14). Ten independent families pinned; the STOP condition did
 not fire.** The brief asked for ten independent Google Ads repository families and said to stop
