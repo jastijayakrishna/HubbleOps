@@ -13,7 +13,9 @@ from hubbleops.core.verification import (
 )
 from hubbleops.observe import Ledger
 
-SKIPPED = "SKIPPED"
+NOT_APPLICABLE = "NOT_APPLICABLE"
+NOT_RUN = "NOT_RUN"
+UNEXECUTED = (NOT_APPLICABLE, NOT_RUN)
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,7 +48,10 @@ class FalsifierReview:
         return tuple(item for item in self.runs if item.result == "UNKNOWN")
 
     def executed(self) -> tuple[FalsifierRun, ...]:
-        return tuple(item for item in self.runs if item.result != SKIPPED)
+        return tuple(item for item in self.runs if item.result not in UNEXECUTED)
+
+    def not_run(self) -> tuple[FalsifierRun, ...]:
+        return tuple(item for item in self.runs if item.result == NOT_RUN)
 
     def report(self) -> CheckReport:
         failures = self.failures()
@@ -66,6 +71,10 @@ class FalsifierReview:
             unresolved=tuple(
                 sorted(
                     [f"falsifier {item.name} undecided: {item.reason}" for item in self.undecided()]
+                    + [
+                        f"falsifier {item.name} did not run: {item.reason}"
+                        for item in self.not_run()
+                    ]
                     + list(disarmed)
                 )
             ),
@@ -73,7 +82,8 @@ class FalsifierReview:
                 "total": len(self.runs),
                 "passed": sum(1 for item in self.runs if item.result == "PASS"),
                 "failed": len(failures),
-                "skipped": sum(1 for item in self.runs if item.result == SKIPPED),
+                "not_applicable": sum(1 for item in self.runs if item.result == NOT_APPLICABLE),
+                "not_run": len(self.not_run()),
                 "runs": [item.to_mapping() for item in self.runs],
             },
         )
@@ -111,6 +121,7 @@ def run(
         candidates=tuple(ledger.candidates),
         captured_requests=tuple(captured),
     )
+    inert = not changes.changes and changes.from_version == changes.to_version
     runs: list[FalsifierRun] = []
     for falsifier in sorted(falsifiers, key=lambda item: item.name):
         if falsifier.failure_class not in classes:
@@ -118,8 +129,8 @@ def run(
                 FalsifierRun(
                     name=falsifier.name,
                     failure_class=falsifier.failure_class,
-                    result=SKIPPED,
-                    reason=f"no {falsifier.failure_class} evidence in this run",
+                    result=NOT_APPLICABLE if inert else NOT_RUN,
+                    reason=_unexecuted_reason(falsifier.failure_class, changes, inert),
                     sites=(),
                 )
             )
@@ -134,10 +145,23 @@ def run(
                 sites=outcome.sites,
             )
         )
-    executed = [item for item in runs if item.result != SKIPPED]
+    executed = [item for item in runs if item.result not in UNEXECUTED]
     return FalsifierReview(
         runs=tuple(runs),
         disarmed=not executed and bool(changes.changes),
+    )
+
+
+def _unexecuted_reason(failure_class: str, changes: ChangeSet, inert: bool) -> str:
+    if inert:
+        return (
+            f"no {failure_class} evidence in this run and this Change Pack changes no subject "
+            f"and no version, so there is nothing of this class to leave behind"
+        )
+    return (
+        f"no {failure_class} evidence in this run, but this Change Pack carries "
+        f"{len(changes.changes)} subject change(s) from {changes.from_version} to "
+        f"{changes.to_version}, so nothing checked whether the migration left one behind"
     )
 
 
@@ -161,4 +185,11 @@ def _check(falsifier: FalsifierView, subject: FalsifierInput) -> FalsifierOutcom
     return outcome
 
 
-__all__ = ["FalsifierReview", "FalsifierRun", "detected_classes", "run"]
+__all__ = [
+    "NOT_APPLICABLE",
+    "NOT_RUN",
+    "FalsifierReview",
+    "FalsifierRun",
+    "detected_classes",
+    "run",
+]

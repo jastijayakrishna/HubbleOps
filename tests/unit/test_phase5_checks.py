@@ -506,12 +506,53 @@ def test_an_invalid_falsifier_result_is_unknown_not_a_pass() -> None:
         changes=(SubjectChange("campaigns.gone", "REMOVED", None, "VALID", ""),),
     )
     review = falsify.run((_RequestFalsifier(),), book, changed, "/candidate")
-    assert review.runs[0].result == "SKIPPED"
+    assert review.runs[0].result == falsify.NOT_RUN
     assert review.executed() == ()
     report = review.report()
     assert report.passed is True
-    assert any("skipped" in item for item in report.unresolved), (
+    assert any("did not run" in item for item in report.unresolved), (
         "a falsifier set that never ran cannot make falsifiers_pass mean anything"
+    )
+
+
+def test_a_falsifier_skipped_while_the_change_pack_changes_subjects_is_unresolved() -> None:
+    book = ledger_of(
+        [evidence("a.py", "surface_reference", {"pattern": "x"})], {"a.py": "AFFECTED"}
+    )
+    changed = ChangeSet(
+        from_version="v1",
+        to_version="v2",
+        pair_hash="h",
+        changes=(SubjectChange("campaigns.gone", "REMOVED", None, "VALID", ""),),
+    )
+
+    review = falsify.run((_RequestFalsifier(), _SurfaceFalsifier()), book, changed, "/candidate")
+
+    assert [(item.name, item.result) for item in review.runs] == [
+        ("request_only", falsify.NOT_RUN),
+        ("surface_only", "PASS"),
+    ]
+    assert review.report().passed is True
+    assert any(
+        "request_only" in item and "did not run" in item for item in review.report().unresolved
+    ), (
+        "a falsifier that never ran while the Change Pack changes subjects has not held; it is "
+        "an open question, and an open question is unresolved rather than silently holding"
+    )
+
+
+def test_a_falsifier_with_nothing_to_check_is_not_applicable_and_not_unresolved() -> None:
+    book = ledger_of(
+        [evidence("a.py", "surface_reference", {"pattern": "x"})], {"a.py": "AFFECTED"}
+    )
+    inert = ChangeSet(from_version="v2", to_version="v2", pair_hash="h", changes=())
+
+    review = falsify.run((_RequestFalsifier(),), book, inert, "/candidate")
+
+    assert review.runs[0].result == falsify.NOT_APPLICABLE
+    assert review.report().unresolved == (), (
+        "a Change Pack that changes no subject and no version gives this falsifier nothing to "
+        "look for, and a correct absence is not an open question"
     )
 
 
@@ -562,6 +603,14 @@ def test_an_unknown_on_a_path_the_candidate_no_longer_observes_is_not_a_violatio
 class _RequestFalsifier:
     name = "request_only"
     failure_class = "request_text"
+
+    def check(self, subject: object) -> FalsifierOutcome:
+        return FalsifierOutcome(result="PASS", reason="fixture")
+
+
+class _SurfaceFalsifier:
+    name = "surface_only"
+    failure_class = "surface_reference"
 
     def check(self, subject: object) -> FalsifierOutcome:
         return FalsifierOutcome(result="PASS", reason="fixture")

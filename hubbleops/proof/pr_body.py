@@ -54,7 +54,7 @@ PASSING_SECTIONS = (
     "response_consumer_check",
     "unknown_conservation",
 )
-FALSIFIER_RESULTS_THAT_HOLD = ("PASS", "SKIPPED")
+FALSIFIER_RESULTS_THAT_HOLD = ("PASS", "NOT_APPLICABLE")
 
 
 def eligible(record: Mapping[str, Any]) -> bool:

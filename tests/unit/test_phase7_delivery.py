@@ -116,7 +116,7 @@ def holding_record(verdict: str = "VERIFIED_FOR_SCOPE", **overrides: Any) -> dic
         },
         "oracle_authority": "CATALOG",
         "oracle_results": [{"code": "VALID"}],
-        "falsifiers": [{"result": "PASS"}, {"result": "SKIPPED"}],
+        "falsifiers": [{"result": "PASS"}, {"result": "NOT_APPLICABLE"}],
         "blast_radius": {"unknown_blast": [], "containment": {"unexplained": 0}},
         "reasons": [],
     }
@@ -148,6 +148,8 @@ def test_a_receipt_whose_conjuncts_hold_is_eligible() -> None:
         {"oracle_authority": "ORACLE_UNAVAILABLE"},
         {"oracle_results": [{"code": "INVALID"}]},
         {"falsifiers": [{"result": "FAIL"}]},
+        {"falsifiers": [{"result": "NOT_RUN"}]},
+        {"falsifiers": [{"result": "SKIPPED"}]},
         {"blast_radius": {"unknown_blast": [], "containment": {"unexplained": 2}}},
         {"reasons": ["audit_pass is FAIL"]},
         {"blast_radius": {"unknown_blast": ["mod"], "containment": {"unexplained": 0}}},

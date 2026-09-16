@@ -182,7 +182,9 @@ def render(receipt: Receipt) -> str:
         "",
         f"FALSIFIERS  {sum(1 for item in record['falsifiers'] if item['result'] == 'PASS')}"
         f" / {len(record['falsifiers'])} PASS"
-        f" ({sum(1 for item in record['falsifiers'] if item['result'] == 'SKIPPED')} skipped)",
+        f" ({sum(1 for item in record['falsifiers'] if item['result'] == 'NOT_APPLICABLE')}"
+        " not applicable, "
+        f"{sum(1 for item in record['falsifiers'] if item['result'] == 'NOT_RUN')} did not run)",
         "",
         "UNKNOWN",
     ]
