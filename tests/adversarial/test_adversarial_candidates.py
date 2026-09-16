@@ -87,8 +87,19 @@ def test_the_corpus_is_not_caught_by_a_single_stage() -> None:
 
 
 def test_every_corruption_names_a_driver_that_executes_it() -> None:
-    assert {item.driver for item in CORRUPTIONS} <= {"verify", "operations"}, (
-        "a corruption whose driver nothing runs is a description of an attack, not a test of it"
+    operations = (
+        (ADVERSARIAL_ROOT / "test_adversarial_operations.py").read_text(encoding="utf-8")
+        if (ADVERSARIAL_ROOT / "test_adversarial_operations.py").is_file()
+        else ""
+    )
+    unrun = [
+        item.name
+        for item in CORRUPTIONS
+        if (item.driver == "operations" and f'BY_NAME["{item.name}"]' not in operations)
+        or item.driver not in ("verify", "operations")
+    ]
+    assert not unrun, (
+        f"a corruption nothing executes is a description of an attack, not a test of it: {unrun}"
     )
 
 

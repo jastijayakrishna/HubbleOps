@@ -2,7 +2,7 @@
   "driver": "operations",
   "summary": "a migration of a CRLF repository rewrites every line terminator in the files it touches, turning every line of each file into a hunk no obligation can contain",
   "expected_verdict": "PRESERVED",
-  "reason_contains": "line terminator",
+  "reason_contains": "rewrote v1 to v2",
   "caught_by": "migrate (the transform reads and writes the file without translating terminators)",
   "delete": [],
   "obligation_sites": []

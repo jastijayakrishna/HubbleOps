@@ -182,18 +182,18 @@ def test_vitest_output_is_counted(tmp_path: Path) -> None:
 
 def test_a_pytest_summary_is_counted_once_not_once_per_line_that_mentions_it() -> None:
     transcript = (
-        "ERROR tests/test_one.py\n"
-        "!!!!!!!! Interrupted: 8 errors during collection !!!!!!!!\n"
-        "======================== 8 errors in 1.89s ========================\n"
+        "FAILED tests/test_one.py::test_a\n"
+        "rerunning 2 failed, 5 passed in 0.10s\n"
+        "=================== 2 failed, 5 passed in 1.89s ===================\n"
     )
 
     assert runners.counts_of(_pytest_layout(), transcript) == {
-        "passed": 0,
-        "failed": 8,
+        "passed": 5,
+        "failed": 2,
         "skipped": 0,
     }, (
-        "pytest prints its error count twice, in the interrupt banner and in the footer; "
-        "adding both up reports twice as many tests as the run ever had"
+        "pytest can print a count on more than one line; adding every line up reports more "
+        "tests than the run ever had"
     )
 
 

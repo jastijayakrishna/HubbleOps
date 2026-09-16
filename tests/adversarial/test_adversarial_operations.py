@@ -82,6 +82,7 @@ def test_rewritten_file_closes_unknown_is_still_a_conservation_failure() -> None
         _ledger(after, "NOT_AFFECTED_WITH_EVIDENCE", CANDIDATE_RUN, CANDIDATE_SCOPE),
     )
 
+    assert attack.expected_verdict == "FAILED"
     assert result.report().passed is False, f"P0: {attack.summary}"
     assert any(attack.reason_contains in reason for reason in result.report().reasons)
 
@@ -136,11 +137,14 @@ def test_crlf_rewrite_leaves_every_untouched_terminator_alone(tmp_path: Path) ->
         write=True,
     )
 
+    assert attack.expected_verdict == "PRESERVED"
     assert result.written == ("src/client.py",), f"P0: {attack.summary}"
+    assert any(attack.reason_contains in outcome.reason for outcome in result.report.outcomes), (
+        f"the migration never made the edit this fixture is about: {result.report.outcomes}"
+    )
     after = source.read_bytes()
     assert after.count(b"\r\n") == before.count(b"\r\n"), f"P0: {attack.summary}"
     assert after.split(b"\r\n")[1:] == before.split(b"\r\n")[1:]
-    assert attack.expected_verdict == "PRESERVED"
 
 
 def test_guard_without_retired_refuses_instead_of_passing(
@@ -152,6 +156,7 @@ def test_guard_without_retired_refuses_instead_of_passing(
     code = cli.main(["guard", "--repo", str(tmp_path)])
 
     printed = capsys.readouterr()
+    assert attack.expected_verdict == "REFUSED"
     assert code == cli.EXIT_FAILED, f"P0: {attack.summary}"
     assert "PASS" not in printed.out
     assert attack.reason_contains in printed.out + printed.err
@@ -194,6 +199,7 @@ def test_forged_receipt_cannot_prepare_a_proof_pack(
     )
 
     printed = capsys.readouterr()
+    assert attack.expected_verdict == "REFUSED"
     assert code != cli.EXIT_OK, f"P0: {attack.summary}"
     assert attack.reason_contains in printed.out + printed.err
     assert not body.exists()
