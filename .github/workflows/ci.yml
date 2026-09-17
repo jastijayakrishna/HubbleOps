@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      record_baselines:
+        description: "Record candidate-count baselines from this runner instead of gating on them"
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -80,3 +85,74 @@ jobs:
 
       - name: Deterministic cost budgets
         run: uv run pytest tests/property/test_cost_budgets.py -q
+
+  baselines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Install ast-grep
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL https://github.com/ast-grep/ast-grep/releases/download/0.45.0/app-x86_64-unknown-linux-gnu.zip -o "$RUNNER_TEMP/ast-grep.zip"
+          unzip -o "$RUNNER_TEMP/ast-grep.zip" -d "$HOME/.local/bin"
+          chmod +x "$HOME/.local/bin/ast-grep"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install scip-python
+        run: npm install -g @sourcegraph/scip-python@0.6.6
+
+      - name: Record tool versions
+        run: |
+          rg --version | head -1
+          ast-grep --version
+          scip-python --version
+
+      - name: Sync
+        run: uv sync --frozen --all-packages
+
+      - name: Seed pip, which scip-python shells out to for the environment
+        run: uv pip install pip
+
+      - name: Baseline counts gate
+        env:
+          RECORD: ${{ inputs.record_baselines }}
+        run: |
+          if [ "$RECORD" = "true" ]; then set -- --record; else set --; fi
+          uv run python -m tests.corpus.baseline_gate \
+            --work-dir "$RUNNER_TEMP/baselines" \
+            --engine-scope "$RUNNER_TEMP/engine-v0.json" \
+            "$@"
+
+      - name: Engine scope
+        if: always()
+        run: cat "$RUNNER_TEMP/engine-v0.json" || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: engine-scope
+          path: ${{ runner.temp }}/engine-v0.json
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.record_baselines
+        with:
+          name: recorded-baselines
+          path: tests/corpus/baselines/
+          if-no-files-found: error

@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "affected": 4,
+    "excluded_with_evidence": 3,
+    "human_accepted_risk": 0,
+    "human_required": 0,
+    "not_affected_with_evidence": 90,
+    "provider_reference_data": 0,
+    "total": 327,
+    "unexplained": 0,
+    "unknown": 15,
+    "unscanned": 9,
+    "unsupported": 206
+  },
+  "pack": "google_ads",
+  "repository": "dubinc/dub",
+  "sha": "b8866f413cec065438d6e5faabbd9dac7d1ceea5",
+  "slug": "dub"
+}

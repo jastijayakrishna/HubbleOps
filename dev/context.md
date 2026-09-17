@@ -1537,6 +1537,24 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
   UNKNOWN. A resolver that cannot read a language's own module configuration reports every aliased
   import as external, which is a silent recall loss dressed as a boundary.
 
+- **A baseline count is a count of one environment, and the precise layer is part of that
+  environment.** The CI baseline gate (`tests/corpus/baseline_gate.py`, third `baselines` job)
+  clones the three pinned repositories, scans each with the state directory outside the clone, and
+  fails on any movement against `tests/corpus/baselines/`. Its Linux numbers reproduce the owner's
+  recorded `engine-v0` figures exactly on `dubinc/dub` (327 · 4 · 90 · 15 · 0) and
+  `woocommerce/google-listings-and-ads` (1143 · 259 · 457 · 94 · 0), and differ on
+  `singer-io/tap-google-ads` (647 · 38 · 507 · 91 · 0 → 651 · 43 · 500 · 97 · 0). The delta is the
+  whole point: the recorded figures were measured on Windows, where `scip-python` does not start,
+  and the runner's Linux environment indexes it. The only repository that moves is the only pure
+  Python one. Baselines are therefore recorded by the runner in the environment that enforces them,
+  never transcribed from another machine.
+- **`scip-python` shells out to `pip`, and `uv sync` seeds no pip.** A CI-mirror run failed with
+  `TOOLING_FAILED: scip-python: Could not find valid pip command`, and `hops scan` exited 4 rather
+  than degrading — correct fail-closed behaviour that would have been a red job on first push. The
+  `baselines` job runs `uv pip install pip` after `uv sync`. This is the third form of the venv
+  lesson already in this file; the environment fix was verified in a live container before a run
+  was spent on it.
+
 ## Open threads
 
 - Phase 4 is merged to `main` and tagged `v0.4`; nothing was pushed.

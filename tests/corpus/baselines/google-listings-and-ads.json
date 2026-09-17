@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "affected": 259,
+    "excluded_with_evidence": 1,
+    "human_accepted_risk": 0,
+    "human_required": 0,
+    "not_affected_with_evidence": 457,
+    "provider_reference_data": 0,
+    "total": 1143,
+    "unexplained": 0,
+    "unknown": 94,
+    "unscanned": 26,
+    "unsupported": 306
+  },
+  "pack": "google_ads",
+  "repository": "woocommerce/google-listings-and-ads",
+  "sha": "b43b322771071ed88d5a817422dd222acbaa5f33",
+  "slug": "google-listings-and-ads"
+}

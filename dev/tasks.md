@@ -752,6 +752,9 @@ loop (from Phase 2).
 
 ## Recurring
 
+- [ ] Reseed `tests/corpus/baselines/` from the `baselines` job (`workflow_dispatch` with
+      `record_baselines`) whenever a pinned tool version in that job changes; a tool bump moves the
+      counts it enforces, and a baseline recorded on another machine is not evidence.
 - [ ] Weekly: [spec-drift audit](../prompts/cross-cutting/spec-drift-audit.md)
 - [ ] Nightly from Phase 5: [red-team](../prompts/cross-cutting/red-team.md) — now live, since the
       authority it attacks exists

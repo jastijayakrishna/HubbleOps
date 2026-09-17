@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "affected": 43,
+    "excluded_with_evidence": 0,
+    "human_accepted_risk": 0,
+    "human_required": 0,
+    "not_affected_with_evidence": 500,
+    "provider_reference_data": 0,
+    "total": 651,
+    "unexplained": 0,
+    "unknown": 97,
+    "unscanned": 0,
+    "unsupported": 11
+  },
+  "pack": "google_ads",
+  "repository": "singer-io/tap-google-ads",
+  "sha": "5b6a201558875a2859caa04fc992adf892fd30c7",
+  "slug": "tap-google-ads"
+}
