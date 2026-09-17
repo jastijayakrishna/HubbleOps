@@ -759,6 +759,19 @@ loop (from Phase 2).
 - [ ] Nightly from Phase 5: [red-team](../prompts/cross-cutting/red-team.md) — now live, since the
       authority it attacks exists
 
+## Found by the 2026-09-17 data-file field-name survey
+
+- [ ] `google/ads_oneshop` carries Ads field names in BigQuery view definitions
+      (`acit/views/main_view.sql:59`, `extensions/merchant_excellence/all_metrics.sql:314`) —
+      camelCased column paths no GAQL-shaped search reaches. One family of thirteen; decide whether
+      `.sql` view definitions are an observable surface before any field-name search is built.
+- [ ] A provider field name passed as a bare string to a query builder produces no candidate:
+      `singer-io/tap-google-ads` `tap_google_ads/streams.py:851` `filter_param="campaign.id"`
+      (also :904, :920) has no candidate and no evidence in a scan that reproduces the engine-v0
+      count; GLNA `src/API/Google/AdsCampaign.php:147` is the same shape. Recorded as **FA-079**;
+      belongs to the structure observer's sink-argument walk. Harmless on v22→v25 (both subjects
+      stable), a miss the day one is removed.
+
 ## Blocked / parked
 
 - P-009 remains parked while AI triage is default-off and disconnected.

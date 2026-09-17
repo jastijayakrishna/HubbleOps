@@ -1581,6 +1581,78 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
   lesson already in this file; the environment fix was verified in a live container before a run
   was spent on it.
 
+**Provider field names in data files: the Airbyte shape does not recur (2026-09-17).** Before
+building a search for field names carried outside query literals (tasks 3 and 8), the ten pinned
+families and the three baselines were surveyed with one command each, run on the pinned clones
+under `.hubbleops/artifacts/corpus/clones/`:
+
+```
+rg -n --no-heading -e 'metrics\.[a-z_]+' -e 'segments\.[a-z_]+' -e 'campaign\.[a-z_]+' \
+   -g '*.{yml,yaml,json,toml,csv}' -g '!**/node_modules/**' -g '!**/vendor/**' \
+   -g '!package-lock.json' -g '!composer.lock' -g '!yarn.lock' -g '!poetry.lock' -g '!uv.lock' \
+   <family-root>
+```
+
+A hit counts as outside a query literal when its own line carries no `SELECT`; a hit under
+`tests/`, `fixtures/`, `mocks/`, `examples/` or `testdata/` is reported separately, because a JSON
+test mock is not the shape.
+
+| family | data-file hits | outside SELECT | non-test | verdict |
+|---|---|---|---|---|
+| php-sylius-plugin | 0 | 0 | 0 | no |
+| php-laravel-conversions | 0 | 0 | 0 | no |
+| php-laravel-rest | 0 | 0 | 0 | no |
+| py-mcp-server | 0 | 0 | 0 | no |
+| py-google-shopping | 0 | 0 | 0 | no in the surveyed kinds; **yes in `.sql`** — `acit/views/main_view.sql:59` |
+| py-spend-killswitch | 0 | 0 | 0 | no |
+| py-ai-adops-cli | 2 | 0 | 0 | no — both are English prose in `tests/evals/read.json:74` |
+| ts-node-client | 0 | 0 | 0 | no |
+| ts-asset-manager | 0 | 0 | 0 | no |
+| ts-keyword-app | 0 | 0 | 0 | no |
+| baseline dubinc/dub | 0 | 0 | 0 | no |
+| baseline woocommerce/google-listings-and-ads | 0 | 0 | 0 | no |
+| baseline singer-io/tap-google-ads | 0 | 0 | 0 | no |
+
+The detector was calibrated before the silence was believed: the same command on
+`airbytehq/airbyte` `airbyte-integrations/connectors/source-google-ads` returns **901** hits, which
+is the repository the shape was measured on. A detector that has never fired proves nothing by
+staying silent; this one fires.
+
+One real find the mandated extension list does not cover. `google/ads_oneshop`
+(`py-google-shopping`) keeps Google Ads field names in **BigQuery view definitions** —
+`acit/views/main_view.sql:59` `A.segments.productMerchantId`, and five more, plus
+`extensions/merchant_excellence/all_metrics.sql:314`. They are camelCased BigQuery column paths
+over a landed Ads table, not GAQL, so no GAQL-shaped search finds them and a v25 field removal
+breaks the view silently. One family of thirteen, one file kind: `.sql`.
+
+A second pass over `*.py`, `*.php`, `*.ts`, `*.tsx`, `*.js`, `*.jsx` (same patterns, excluding any
+hit within four lines of a `SELECT`) finds field names in code constants on several families —
+`AdsCampaign.php:147` `$query->where( 'campaign.status', … )` on GLNA, `streams.py:851`
+`filter_param="campaign.id"` on tap-google-ads — but that is the query-builder surface the pack
+already observes, not field names read from data, and the pass is heavily polluted by
+`segments.length` and `metrics.record_counter`. It is not evidence for this question.
+
+**Conclusion: the Airbyte shape is one repository, not a family property.** Tasks 3 and 8 —
+building a search for provider field names outside query literals — earn effort on `.sql` view
+definitions (one family) and nowhere else in the corpus. Do not build the YAML/JSON schema-key
+search on the strength of Airbyte alone.
+
+**Correction, same day, verified by scan.** The survey's code-file pass set aside bare field-name
+strings handed to query builders as "the surface the pack already observes". It is not. A scan of
+the pinned `singer-io/tap-google-ads` clone reproduces the engine-v0 count (647 candidates);
+`tap_google_ads/streams.py` carries 56 of them, none between lines 845 and 925 where
+`filter_param="campaign.id"` appears three times, and none mentioning `campaign.id`. GLNA's
+`$query->where( 'campaign.status', … )` is the same shape. It costs nothing on v22→v25 because both
+subjects are CHANGED only by "composed consecutive mapping" (hop composition, not a contract
+change), which is also why a Delta Radar must search REMOVED and renamed subjects only. So the
+radar (task 3) and the consumer check (task 8) keep their Phase 4.2 timing, justified by two
+measured corpus shapes — bare strings into builders, landed-table `.sql` — not by Airbyte.
+
+**Ownership rule (2026-09-17).** Every task session owns every defect it meets: fixed in that
+session, own commit, before "done". No reporting back and stopping, no deferring to a later task,
+no handing the operator a choice. Only a frozen surface stops work, and then only the part that
+depends on it. Added to CLAUDE.md "How to work".
+
 ## Open threads
 
 - Phase 4 is merged to `main` and tagged `v0.4`; nothing was pushed.
