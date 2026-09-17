@@ -796,6 +796,8 @@ def _parse_pipfile(text: str) -> list[RawDependency]:
             if name is None:
                 continue
             raw_spec = as_text(spec)
+            if raw_spec is None:
+                raw_spec = as_text(as_mapping(spec).get("version"))
             version = None
             if raw_spec is not None:
                 pinned = EXACT_PIN.match(raw_spec)
@@ -836,7 +838,7 @@ def _parse_setup_cfg(text: str) -> ManifestParse:
     return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-SETUP_REQUIREMENT_FIELDS = ("install_requires",)
+SETUP_REQUIREMENT_FIELDS = ("install_requires", "setup_requires", "tests_require")
 
 
 def _parse_setup_py(text: str) -> ManifestParse:

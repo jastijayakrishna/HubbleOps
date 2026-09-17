@@ -375,3 +375,39 @@ def test_setup_cfg_that_does_not_parse_is_recorded_not_dropped(tmp_path: Path) -
 
     assert resolution.dependencies == ()
     assert "parse failure" in (resolution.files[0].error or "")
+
+
+def test_setup_py_reads_every_requirement_field_it_declares(tmp_path: Path) -> None:
+    found = resolved(
+        tmp_path,
+        {
+            "setup.py": (
+                "from setuptools import setup\n"
+                "setup(name='tap',\n"
+                "      install_requires=['probe-sdk==30.1.0'],\n"
+                "      setup_requires=['setuptools_scm==8.0.4'],\n"
+                "      tests_require=['probe-sdk-testing==2.0.0'])\n"
+            )
+        },
+    )
+    assert found == {
+        "probe-sdk": "30.1.0",
+        "setuptools_scm": "8.0.4",
+        "probe-sdk-testing": "2.0.0",
+    }
+
+
+def test_pipfile_reads_the_version_a_table_spec_holds(tmp_path: Path) -> None:
+    found = resolved(
+        tmp_path,
+        {
+            "Pipfile": (
+                "[packages]\n"
+                'probe-sdk = {version = "==30.1.0"}\n'
+                'requests = "*"\n'
+                "\n[dev-packages]\n"
+                'pylint = {version = "==3.0.0", extras = ["spelling"]}\n'
+            )
+        },
+    )
+    assert found == {"probe-sdk": "30.1.0", "requests": None, "pylint": "3.0.0"}
