@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
@@ -248,7 +249,9 @@ def signals(receipt: Path) -> dict[str, object]:
     }
 
 
-def catching_stage(baseline: dict[str, object], corrupted: dict[str, object]) -> dict[str, object]:
+def catching_stage(
+    baseline: Mapping[str, object], corrupted: Mapping[str, object]
+) -> dict[str, object]:
     base_conj = cast("dict[str, object]", baseline.get("conjuncts", {}))
     bad_conj = cast("dict[str, object]", corrupted.get("conjuncts", {}))
     base_fals = cast("dict[str, str]", baseline.get("falsifiers", {}))

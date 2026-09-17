@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -153,7 +154,7 @@ def test_catching_stage_names_only_what_newly_fires() -> None:
     }
     outcome = catching_stage(baseline, corrupted)
     assert outcome["caught"] is True
-    assert "falsifier:per_call_version_override" in outcome["catching_stage"]
+    assert "falsifier:per_call_version_override" in cast("list[str]", outcome["catching_stage"])
     assert outcome["new_reasons"] == ["v22 is still present at a.py:3"]
 
 
@@ -170,8 +171,13 @@ def test_a_corruption_that_changes_nothing_is_recorded_as_escaped() -> None:
 
 
 def test_a_verified_verdict_on_a_corrupted_tree_is_always_an_escape() -> None:
-    baseline = {"verdict": "FAILED", "reasons": [], "conjuncts": {}, "falsifiers": {}}
-    corrupted = {
+    baseline: dict[str, object] = {
+        "verdict": "FAILED",
+        "reasons": [],
+        "conjuncts": {},
+        "falsifiers": {},
+    }
+    corrupted: dict[str, object] = {
         "verdict": "VERIFIED_FOR_SCOPE",
         "reasons": ["something new"],
         "conjuncts": {},
