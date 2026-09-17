@@ -1548,6 +1548,13 @@ dependency was added. Phase 1 remediation remains preserved and uncommitted.
   and the runner's Linux environment indexes it. The only repository that moves is the only pure
   Python one. Baselines are therefore recorded by the runner in the environment that enforces them,
   never transcribed from another machine.
+- **A test fixture written with `write_text` is not the same bytes on two platforms.** Python's
+  text mode translates `\n` to `\r\n` on Windows, so a fixture written that way hashes differently
+  there, and `test_the_closure_of_a_tree_without_a_generated_directory_keeps_its_digest` pinned the
+  CRLF digest `d861a0b6…` — green on the owner's machine, red on any Linux runner. The fixture now
+  passes `newline="\n"` and the constant is the LF digest `c76fb604…`, which both platforms now
+  produce. Any fixture whose bytes feed a digest pins its newline; the closure itself was never
+  wrong, since a CRLF file genuinely is a different file.
 - **The `engine-v0` figures for `singer-io/tap-google-ads` are now the Linux ones:
   651 candidates · 43 AFFECTED · 500 NOT_AFFECTED · 97 UNKNOWN · 0 unexplained.** The Windows
   figures 647 · 38 · 507 · 91 · 0 are superseded and must not be used as a comparison point; a

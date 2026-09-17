@@ -14,7 +14,7 @@ from hubbleops.core.observer import ObserverContext
 from hubbleops.observe import text
 
 DIGEST_WITHOUT_GENERATED_DIRECTORY = (
-    "d861a0b6a1c567dcc9c0d5b8422b60fed95c336c11c3cc1ce9b686d724ae4613"
+    "c76fb6049a4e4d76d5e5a986718b03132929fcba3c58be97004d17163b3da588"
 )
 
 
@@ -392,17 +392,19 @@ def test_the_closure_of_a_tree_without_a_generated_directory_keeps_its_digest(
     tmp_path: Path,
 ) -> None:
     (tmp_path / "src").mkdir()
-    (tmp_path / "src" / "app.py").write_text("value = 1\n", encoding="utf-8")
-    (tmp_path / "src" / "schema_pb2.py").write_text("SERIALIZED = b''\n", encoding="utf-8")
+    (tmp_path / "src" / "app.py").write_text("value = 1\n", encoding="utf-8", newline="\n")
+    (tmp_path / "src" / "schema_pb2.py").write_text(
+        "SERIALIZED = b''\n", encoding="utf-8", newline="\n"
+    )
     (tmp_path / "node_modules" / "pkg").mkdir(parents=True)
     (tmp_path / "node_modules" / "pkg" / "index.js").write_text(
-        "module.exports = {};\n", encoding="utf-8"
+        "module.exports = {};\n", encoding="utf-8", newline="\n"
     )
     (tmp_path / "assets").mkdir()
     (tmp_path / "assets" / "logo.png").write_bytes(b"\x89PNG\x00\x00binary")
     (tmp_path / ".venv").mkdir()
-    (tmp_path / ".venv" / "first.py").write_text("value = 1\n", encoding="utf-8")
-    (tmp_path / "README.md").write_text("docs\n", encoding="utf-8")
+    (tmp_path / ".venv" / "first.py").write_text("value = 1\n", encoding="utf-8", newline="\n")
+    (tmp_path / "README.md").write_text("docs\n", encoding="utf-8", newline="\n")
 
     closure = source_closure.build(tmp_path)
 
