@@ -1724,15 +1724,23 @@ recall-only cause class; and the `google-listings-and-ads` clone cannot be check
 Windows temp path at all (`Filename too long` on four `js/src/...` paths), which is MAX_PATH in the
 harness's work directory, not the closure. Measure real-repo counts in the Linux container.
 
-**The baselines gate is green twice on GitHub's runner (2026-09-17).** Run 18 at `0a9e4ca`
-([35220888682](https://github.com/jastijayakrishna/HubbleOps/actions/runs/35220888682)) and run 19
-at `d0a9fee`, this session's engine change
-([35243847832](https://github.com/jastijayakrishna/HubbleOps/actions/runs/35243847832)) — `checks`,
-`baselines` and `cost` all success on both. The gate compares all eleven counts on all three pinned
-repositories and exits non-zero on any move, so `GATE: PASS` on two separate runner allocations,
-before and after the change, *is* the identical-counts evidence. It also settles the reseed
-question: GitHub's apt ripgrep agrees with the committed baselines, so `record_baselines` was never
-needed. Both were push-triggered; see `dev/tasks.md` for why `workflow_dispatch` was unreachable.
+**The baselines gate is green on GitHub's runner, twice by `workflow_dispatch` (2026-09-17).**
+Runs 21 ([35249364298](https://github.com/jastijayakrishna/HubbleOps/actions/runs/35249364298)) and
+22 ([35250531615](https://github.com/jastijayakrishna/HubbleOps/actions/runs/35250531615)), both
+`workflow_dispatch` at `e951069`, `checks` · `baselines` · `cost` all success. Their two
+`baselines` logs are byte-identical once timestamps are stripped — same `ripgrep 14.1.0`, same
+eleven counts on all three repositories, `GATE: PASS`:
+
+```
+COUNTS  tap-google-ads            total=651  affected=43   not_affected=500  unknown=97  unexplained=0
+COUNTS  dub                       total=327  affected=4    not_affected=90   unknown=15  unexplained=0
+COUNTS  google-listings-and-ads   total=1143 affected=259  not_affected=457  unknown=94  unexplained=0
+```
+
+Three push-triggered runs are green on the same branch as well — 18 at `0a9e4ca` (pre-change), 19
+at `d0a9fee` (the engine change), 20 at `e951069` — so the gate has passed five times across five
+runner allocations, before and after the change. It settles the reseed question: GitHub's apt
+ripgrep is 14.1.0 and agrees with the committed baselines, so `record_baselines` was never needed.
 
 **A determinism test failed once and did not reproduce (2026-09-17).**
 `tests/unit/test_structure.py::test_compositional_summaries_change_cost_but_never_a_single_record`

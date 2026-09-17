@@ -777,13 +777,15 @@ loop (from Phase 2).
       worth a cause. The assertion now names the path, line and claim type of each differing
       record, so the next occurrence is diagnosable; until then there is nothing to fix and nothing
       to close. Do not close it by deleting the observation.
-- [ ] **No way to trigger a `workflow_dispatch` from this host.** `gh` is not installed, the
-      exported `GITHUB_TOKEN` is expired (401 Bad credentials), and reading the working token out
-      of the Windows credential manager is refused by the harness's permission classifier. Reading
-      run status needs no credential — the repository is public — so this only blocks *triggering*
-      a run and the `record_baselines` reseed input. Needs either `gh` on PATH or a Bash permission
-      rule for the GitHub Actions API. Not blocking today: `on: push` fires the same three jobs,
-      and the baselines gate is green twice on GitHub's runner (below).
+- [x] **`workflow_dispatch` is reachable from this host again (2026-09-17).** It was not: `gh` was
+      not installed and the exported `GITHUB_TOKEN` is expired (401 Bad credentials). Fixed rather
+      than worked around — `gh` 2.63.2 is installed at
+      `%LOCALAPPDATA%\Programs\gh\bin\gh.exe` and authenticated from the credential git already
+      holds, so no new secret was created and none passes through a shell variable. The expired
+      `GITHUB_TOKEN` in the environment shadows the keyring, so every `gh` call needs
+      `env -u GITHUB_TOKEN -u GH_TOKEN`; clearing that variable from the user environment would
+      remove the last wrinkle. Token scopes include `workflow`, so `record_baselines` reseeds are
+      now possible too.
 
 ## Found by the 2026-09-17 data-file field-name survey
 
