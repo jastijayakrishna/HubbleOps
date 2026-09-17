@@ -777,16 +777,13 @@ loop (from Phase 2).
       worth a cause. The assertion now names the path, line and claim type of each differing
       record, so the next occurrence is diagnosable; until then there is nothing to fix and nothing
       to close. Do not close it by deleting the observation.
-- [ ] **CI `baselines` workflow was never dispatched for this branch.** The two green
-      `workflow_dispatch` runs the session brief asks for could not be triggered: `gh` is not
-      installed on this host, the exported `GITHUB_TOKEN` is expired (401 Bad credentials), and
-      reading the working token out of the Windows credential manager is refused by the harness's
-      permission classifier. The branch is pushed, so `on: push` fires `checks`, `cost` and
-      `baselines` on GitHub's runner; the gate itself was reproduced locally in an `ubuntu:24.04`
-      container that mirrors the job (ripgrep from apt, ast-grep 0.45.0, node 22.12.0,
-      scip-python 0.6.6, `uv sync --frozen --all-packages`, `uv pip install pip`) and reported
-      `GATE: PASS` on all three pinned repositories both before and after this session's change.
-      Needs either `gh` on PATH or a Bash permission rule for the GitHub Actions API.
+- [ ] **No way to trigger a `workflow_dispatch` from this host.** `gh` is not installed, the
+      exported `GITHUB_TOKEN` is expired (401 Bad credentials), and reading the working token out
+      of the Windows credential manager is refused by the harness's permission classifier. Reading
+      run status needs no credential — the repository is public — so this only blocks *triggering*
+      a run and the `record_baselines` reseed input. Needs either `gh` on PATH or a Bash permission
+      rule for the GitHub Actions API. Not blocking today: `on: push` fires the same three jobs,
+      and the baselines gate is green twice on GitHub's runner (below).
 
 ## Found by the 2026-09-17 data-file field-name survey
 

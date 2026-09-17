@@ -1724,6 +1724,16 @@ recall-only cause class; and the `google-listings-and-ads` clone cannot be check
 Windows temp path at all (`Filename too long` on four `js/src/...` paths), which is MAX_PATH in the
 harness's work directory, not the closure. Measure real-repo counts in the Linux container.
 
+**The baselines gate is green twice on GitHub's runner (2026-09-17).** Run 18 at `0a9e4ca`
+([35220888682](https://github.com/jastijayakrishna/HubbleOps/actions/runs/35220888682)) and run 19
+at `d0a9fee`, this session's engine change
+([35243847832](https://github.com/jastijayakrishna/HubbleOps/actions/runs/35243847832)) — `checks`,
+`baselines` and `cost` all success on both. The gate compares all eleven counts on all three pinned
+repositories and exits non-zero on any move, so `GATE: PASS` on two separate runner allocations,
+before and after the change, *is* the identical-counts evidence. It also settles the reseed
+question: GitHub's apt ripgrep agrees with the committed baselines, so `record_baselines` was never
+needed. Both were push-triggered; see `dev/tasks.md` for why `workflow_dispatch` was unreachable.
+
 **A determinism test failed once and did not reproduce (2026-09-17).**
 `tests/unit/test_structure.py::test_compositional_summaries_change_cost_but_never_a_single_record`
 — two scans of the same fixture, the second with `ResolutionCache.store` disabled, asserting the
