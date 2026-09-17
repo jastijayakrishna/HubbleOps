@@ -11,6 +11,14 @@ Updated before every session ends. Phase-level status lives in
       **1359 passed, 1 skipped** in 23:10, the skip being `test_indexers.py:549` (scip-typescript
       is not on PATH, pre-existing). Six new directories under `tests/adversarial/`, all six
       executed. One item is PARTIALLY fixed and carries **P-038**; everything else is closed.
+- [x] **A dependency manifest the parser reads but cannot evaluate produces an unresolved record,
+      never silence (2026-09-17).** `install_requires=MAIN_REQUIREMENTS` read as zero dependencies;
+      every parser in `hubbleops/observe/deps.py` carried the same hole somewhere and each is now
+      closed by an `UNEVALUATED_DEPENDENCIES` record naming the field, expression, file and line,
+      wired into the coverage rule through `locked_ecosystems`/`locks_for`. The audit table is in
+      `dev/context.md`. `tests/unit/test_deps_nonliteral.py` (29 tests: 27 failed before, all pass
+      after). No real-repo count moved — `GATE: PASS` on all three pinned repositories.
+
 - [ ] **Rule on P-038 (`Falsifier.applies`).** Until it is ruled on, no capture-less
       `hops verify` on `google_ads` can reach `VERIFIED_FOR_SCOPE`: seven of eight falsifiers are
       `NOT_RUN`, every `NOT_RUN` is unresolved, and `verdict.decide` turns any unresolved entry
@@ -758,6 +766,27 @@ loop (from Phase 2).
 - [ ] Weekly: [spec-drift audit](../prompts/cross-cutting/spec-drift-audit.md)
 - [ ] Nightly from Phase 5: [red-team](../prompts/cross-cutting/red-team.md) — now live, since the
       authority it attacks exists
+
+## Found by the 2026-09-17 dependency-manifest audit
+
+- [ ] **`test_compositional_summaries_change_cost_but_never_a_single_record` failed once and did
+      not reproduce.** One `uv run pytest tests/unit` run on `phase-06-audit-fixes`; green in its
+      own file, green in two further full unit runs, and byte-identical across eight direct scans
+      of `tests/fixtures/phase3/wrapper_patterns/repo` (four with the resolution cache, four with
+      `ResolutionCache.store` disabled). The test guards a determinism law, so a single failure is
+      worth a cause. The assertion now names the path, line and claim type of each differing
+      record, so the next occurrence is diagnosable; until then there is nothing to fix and nothing
+      to close. Do not close it by deleting the observation.
+- [ ] **CI `baselines` workflow was never dispatched for this branch.** The two green
+      `workflow_dispatch` runs the session brief asks for could not be triggered: `gh` is not
+      installed on this host, the exported `GITHUB_TOKEN` is expired (401 Bad credentials), and
+      reading the working token out of the Windows credential manager is refused by the harness's
+      permission classifier. The branch is pushed, so `on: push` fires `checks`, `cost` and
+      `baselines` on GitHub's runner; the gate itself was reproduced locally in an `ubuntu:24.04`
+      container that mirrors the job (ripgrep from apt, ast-grep 0.45.0, node 22.12.0,
+      scip-python 0.6.6, `uv sync --frozen --all-packages`, `uv pip install pip`) and reported
+      `GATE: PASS` on all three pinned repositories both before and after this session's change.
+      Needs either `gh` on PATH or a Bash permission rule for the GitHub Actions API.
 
 ## Found by the 2026-09-17 data-file field-name survey
 

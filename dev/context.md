@@ -1653,6 +1653,86 @@ session, own commit, before "done". No reporting back and stopping, no deferring
 no handing the operator a choice. Only a frozen surface stops work, and then only the part that
 depends on it. Added to CLAUDE.md "How to work".
 
+**A manifest read but not evaluated is now a record, never silence (2026-09-17).**
+`_parse_setup_py` read `install_requires` and `_literal_requirements` returned `[]` for anything
+that is not a list or tuple of string constants, so `install_requires=MAIN_REQUIREMENTS` — the
+shape Airbyte's Google Ads connector shipped for about two years across five API migrations — read
+as zero dependencies with no signal. Row two of the coverage rule treats a cleanly parsed manifest
+as a reading of its dependencies; that file parses cleanly and reads nothing.
+
+Every parser in `deps.py` was audited for the same hole and each is closed the same way: a
+declaration the parser reads but cannot statically evaluate emits an `UnresolvedExpression` naming
+the field, the expression, the file and the line, which `scan` emits as a `dependency_state` record
+with `state = UNEVALUATED_DEPENDENCIES` and the resolver turns into an UNKNOWN with a `close_with`.
+Nothing is evaluated: `ast.unparse` renders the expression and the module is never executed.
+
+| parser | the hole | note |
+|---|---|---|
+| `_requirement` (shared by `requirements*.txt`, `constraints*.txt`, pyproject, setup.py, setup.cfg) | `-r`/`-c`/`-e` includes; URL and `git+` requirements; any non-empty non-comment line the PEP 508 regex rejects | `--index-url`, `--hash`, `-f` declare no dependency and stay silent by design |
+| `pyproject.toml` | `project.dynamic = ["dependencies"]` — the backend supplies them, the file declares none; a non-string array entry | the modern form of the same defect |
+| `poetry.lock`, `uv.lock` | a `[[package]]` with no `name` | |
+| `setup.cfg` | entries the regex rejects, which is exactly setuptools' `file:` and `attr:` directives | |
+| `setup.py` | non-literal `install_requires`; a list element that is not a string constant; a computed `extras_require` | the named defect |
+| `package.json`, `composer.json` | a section that is not a mapping; a dependency whose spec is not a string | |
+| `package-lock.json`, `npm-shrinkwrap.json` | a locked entry (v3 `packages` or legacy `dependencies`) with an empty spec | the `""` root key is the project, not a drop |
+| `yarn.lock` | a resolution block that never carries a `version` line | the specs were held and silently overwritten by the next header |
+| `pnpm-lock.yaml` | `packages` that is not a mapping; a key yielding an empty package name | |
+| `composer.lock` | a locked package with no `name` | |
+| `pom.xml` | a `<dependency>` missing `<groupId>` or `<artifactId>`; a coordinate whose group or artifact is a `${property}` | the second was kept under a name no surface package can match, which is silence wearing a name |
+| `build.gradle(.kts)` | any dependency declaration with no literal `group:artifact:version` — `"g:a:$ver"`, the map form, a version-catalog alias, a two-part BOM coordinate | `project(...)`, `files(...)`, `fileTree(...)` declare no external package and stay silent by design |
+| `gradle.lockfile` | a non-empty line that is neither a comment, `empty=`, nor a coordinate | |
+| `packages.lock.json` | a framework block that is not a mapping; a locked entry with an empty spec | |
+| `packages.config` | a `<package>` with no `id` | |
+| `*.csproj`, `*.vbproj` | a `<PackageReference>` with no `Include` (the `Update=` form); an `Include="$(Property)"` | |
+| `go.mod` | a line inside a `require (...)` block that is not a resolvable require | `replace`/`exclude` blocks declare no requirement |
+| `go.sum` | a non-empty line that is not a checksummed module line | |
+| `Gemfile` | `gemspec`, `eval_gemfile`, `instance_eval` | the gems live in the file the directive loads |
+| `Gemfile.lock`, `Pipfile.lock` | none — the name always survives, so a missing version is UNKNOWN, not silence | |
+| `_parse` dispatcher, `_read_text` | already fail-closed: unknown filename and undecodable bytes both reach `UNPARSABLE` | |
+
+Two decisions worth keeping. **The claim key was not changed.** `dependency_state`'s key is
+`{state}:{path}`, so every unevaluated expression in one file groups into one candidate carrying
+every record's evidence id; per-expression evidence survives, the candidate count grows by at most
+one per manifest, and `core/candidate.py` needed no edit. **A manifest's unread expression does not
+weaken a lock that did resolve.** The lock is the installed set and its absence claim stays PROVEN;
+only a lock whose *own* entries did not fully resolve is dropped from `locked_ecosystems` and
+`locks_for`, which is how the coverage rule sees the record rather than being told about it.
+
+No count moved. `tap-google-ads` 651/43, `dub` 327/4, `google-listings-and-ads` 1143/259 on the
+Linux runner, `GATE: PASS`, and all 651 tap-google-ads identities and statuses byte-identical. The
+proof scope moves, as it must: `resolution_hash` now carries the unresolved set. Two under-readings
+found in the same audit are their own commit — `setup.py` never read `setup_requires` or
+`tests_require`, and `Pipfile` never read the `version` key of a table spec.
+
+**tap-google-ads Windows 38 ⊆ Linux 43, and the cause is not a defect (2026-09-17).** The committed
+engine-v0 export (`tests/fixtures/real_repo/tapga_identities_before.json`, 647 identities, 38
+AFFECTED) against a Linux ledger export at the same SHA (651 candidates, 43 AFFECTED): **every
+Windows AFFECTED is AFFECTED on Linux, and all 647 Windows identities are present on Linux.** The
+delta is four Linux-only `UNRESOLVED_PARAMETER` candidates from the wrapper walk in
+`tap_google_ads/streams.py`, plus seven status moves off `NOT_AFFECTED_WITH_EVIDENCE` — five to
+AFFECTED in `spikes/`, two to UNKNOWN in `client.py` — all of them `login_customer_id` bindings the
+precise layer resolves. The cause is `indexers.py:283`: `scip-python.version()` raises
+`ToolingMissing(WINDOWS_START_FAILURE)` unconditionally on `win32`, so **every** Windows scan is
+recall-only for Python. It is deterministic, not intermittent, and it is *recorded* — the scan's
+`index_status` says `recall-only: scip-python does not start on Windows` — so it is a platform
+limitation the Exposure Map already carries, not silence. A Windows run of the baseline gate
+reproduces 647/38 exactly. Windows is not engine-v0's platform; `dev/engine-v0.json` is Linux.
+
+Two smaller Windows-only observations from the same run, neither an engine defect: `dub` reads
+`unsupported=207 unscanned=8` on Windows against `206/9` on Linux, same total 327, the same
+recall-only cause class; and the `google-listings-and-ads` clone cannot be checked out under a deep
+Windows temp path at all (`Filename too long` on four `js/src/...` paths), which is MAX_PATH in the
+harness's work directory, not the closure. Measure real-repo counts in the Linux container.
+
+**A determinism test failed once and did not reproduce (2026-09-17).**
+`tests/unit/test_structure.py::test_compositional_summaries_change_cost_but_never_a_single_record`
+— two scans of the same fixture, the second with `ResolutionCache.store` disabled, asserting the
+structural evidence is identical — failed in one `pytest tests/unit` run. It passed in its own
+file, in two further full unit runs, and in a probe that scanned the fixture eight times (four
+cached, four with `store` disabled) producing byte-identical evidence every time. The observation is
+not explained, so it is not closed: it is in `dev/tasks.md`, and the test now names the path, line
+and claim type of every record that differs instead of dumping twelve dicts pytest cannot diff.
+
 ## Open threads
 
 - Phase 4 is merged to `main` and tagged `v0.4`; nothing was pushed.
