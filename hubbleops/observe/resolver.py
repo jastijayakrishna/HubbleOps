@@ -9,7 +9,7 @@ from hubbleops.core.candidate import claim_key as core_claim_key
 from hubbleops.core.errors import PathNotInClosure, UnknownClaimType
 from hubbleops.core.records import as_line, as_mapping, as_sequence, as_text
 from hubbleops.core.surface import SurfaceSpec
-from hubbleops.observe.deps import classify_manifest
+from hubbleops.observe.deps import UNEVALUATED, classify_manifest
 
 
 def claim_key(record: Mapping[str, Any]) -> str:
@@ -800,16 +800,57 @@ def _dependency_state(
             close_with=(f"commit a {ecosystem} lock file so absence can be resolved"),
             winner_id=str(chosen["id"]),
         )
-    detail = value.get("detail")
+    if state == UNEVALUATED:
+        sites = _unevaluated_sites(records)
+        shown = "; ".join(sites[:3])
+        rest = f" and {len(sites) - 3} more" if len(sites) > 3 else ""
+        return Resolution(
+            status="UNKNOWN",
+            reason=(
+                f"DEPENDENCY_STATE_UNKNOWN: {chosen['path']} declares {ecosystem} dependencies "
+                "through expressions this scan reads but cannot evaluate, so nothing it does not "
+                f"name is proven absent: {shown}{rest}"
+            ),
+            close_with=(
+                "state the declared requirements as literals in the manifest, or commit a "
+                f"{ecosystem} lock file, so they resolve without executing the repository"
+            ),
+            winner_id=str(chosen["id"]),
+        )
+    if state == "UNPARSABLE":
+        detail = value.get("detail")
+        return Resolution(
+            status="UNKNOWN",
+            reason=(
+                f"DEPENDENCY_STATE_UNKNOWN: {chosen['path']} could not be parsed as a {ecosystem} "
+                f"manifest: {detail}"
+            ),
+            close_with=(f"repair or replace {chosen['path']} so the dependency state resolves"),
+            winner_id=str(chosen["id"]),
+        )
     return Resolution(
         status="UNKNOWN",
         reason=(
-            f"DEPENDENCY_STATE_UNKNOWN: {chosen['path']} could not be parsed as a {ecosystem} "
-            f"manifest: {detail}"
+            f"DEPENDENCY_STATE_UNKNOWN: {chosen['path']} carries dependency state {state!r}, "
+            "which this resolver has no rule for"
         ),
-        close_with=(f"repair or replace {chosen['path']} so the dependency state resolves"),
+        close_with="add a resolution rule for this dependency state and rescan",
         winner_id=str(chosen["id"]),
     )
+
+
+def _unevaluated_sites(records: Sequence[Mapping[str, Any]]) -> list[str]:
+    sites: set[str] = set()
+    for record in records:
+        value = as_mapping(record.get("value"))
+        if value.get("state") != UNEVALUATED:
+            continue
+        line = as_line(record.get("line_start"))
+        where = f"{record['path']}:{line}" if line is not None else str(record["path"])
+        field = value.get("field")
+        expression = value.get("expression")
+        sites.add(f"{where} {field}={expression!r} ({value.get('reason')})")
+    return sorted(sites)
 
 
 def _file_unscanned(chosen: Mapping[str, Any], records: Sequence[Mapping[str, Any]]) -> Resolution:

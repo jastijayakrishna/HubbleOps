@@ -291,7 +291,7 @@ def test_setup_py_install_requires_literal_list_binds_the_pin(tmp_path: Path) ->
     assert matched[0]["value"]["version"] == "30.1.0"
 
 
-def test_setup_py_with_a_computed_install_requires_yields_nothing_and_no_error(
+def test_setup_py_with_a_computed_install_requires_is_recorded_not_dropped(
     tmp_path: Path,
 ) -> None:
     closure = write(
@@ -311,7 +311,13 @@ def test_setup_py_with_a_computed_install_requires_yields_nothing_and_no_error(
 
     assert [item.error for item in resolution.files] == [None]
     assert resolution.dependencies == ()
-    assert {record["value"]["state"] for record in claims(closure)} == {"UNRESOLVED_ECOSYSTEM"}
+    assert not resolution.fully_read(resolution.files[0])
+    fields = {item.field for item in resolution.unresolved_for("setup.py")}
+    assert fields == {"install_requires", "extras_require"}
+    assert {record["value"]["state"] for record in claims(closure)} == {
+        "UNRESOLVED_ECOSYSTEM",
+        deps.UNEVALUATED,
+    }
 
 
 def test_setup_py_is_parsed_never_executed(tmp_path: Path) -> None:

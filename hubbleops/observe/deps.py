@@ -66,6 +66,19 @@ GEMFILE_LOCK_SPEC = re.compile(r"^ {4}(?P<name>[A-Za-z0-9._\-]+) \((?P<version>[
 GO_REQUIRE_LINE = re.compile(r"^\s*(?P<name>[^\s]+)\s+(?P<version>v[0-9][^\s]*)")
 GO_SUM_LINE = re.compile(r"^(?P<name>[^\s]+)\s+(?P<version>v[0-9][^\s/]*)(/go\.mod)?\s+h1:")
 XML_ENTITY = re.compile(r"<!ENTITY", re.IGNORECASE)
+PIP_INCLUDE_OPTION = re.compile(r"^(?:-r|-c|-e|--requirement|--constraint|--editable)(?:[=\s]|$)")
+GRADLE_DECLARATION = re.compile(
+    r"^\s*(?:testImplementation|androidTestImplementation|debugImplementation"
+    r"|releaseImplementation|testCompileOnly|testRuntimeOnly|providedCompile|providedRuntime"
+    r"|annotationProcessor|developmentOnly|implementation|compileOnly|runtimeOnly|testCompile"
+    r"|classpath|compile|kapt|ksp|api)\s*[\s(]"
+)
+GRADLE_LOCAL_DEPENDENCY = re.compile(r"\b(?:project|files|fileTree|gradleApi|localGroovy)\s*\(")
+GRADLE_LOCK_IGNORED = re.compile(r"^(?:#|empty=)")
+GEMFILE_DELEGATION = re.compile(r"^\s*(?P<directive>gemspec|eval_gemfile|instance_eval)\b")
+UNRESOLVED_LIMIT = 200
+
+UNEVALUATED = "UNEVALUATED_DEPENDENCIES"
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,6 +87,42 @@ class RawDependency:
     version: str | None
     spec: str | None
     line: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class RawUnresolved:
+    field: str
+    expression: str
+    line: int | None
+    reason: str
+
+
+@dataclass(frozen=True, slots=True)
+class ManifestParse:
+    dependencies: tuple[RawDependency, ...]
+    unresolved: tuple[RawUnresolved, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class UnresolvedExpression:
+    ecosystem: str
+    source_kind: str
+    path: str
+    field: str
+    expression: str
+    line: int | None
+    reason: str
+
+    def to_mapping(self) -> dict[str, Any]:
+        return {
+            "ecosystem": self.ecosystem,
+            "source_kind": self.source_kind,
+            "path": self.path,
+            "field": self.field,
+            "expression": self.expression,
+            "line": self.line,
+            "reason": self.reason,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,22 +169,31 @@ class ManifestFile:
 class DependencyResolution:
     files: tuple[ManifestFile, ...]
     dependencies: tuple[ParsedDependency, ...]
+    unresolved: tuple[UnresolvedExpression, ...] = ()
 
     def resolution_hash(self) -> str:
         return content_id(
             {
                 "files": [item.to_mapping() for item in self.files],
                 "dependencies": [item.to_mapping() for item in self.dependencies],
+                "unresolved": [item.to_mapping() for item in self.unresolved],
             }
         )
 
+    def unresolved_paths(self) -> frozenset[str]:
+        return frozenset(item.path for item in self.unresolved)
+
+    def fully_read(self, item: ManifestFile) -> bool:
+        return item.error is None and item.path not in self.unresolved_paths()
+
     def locked_ecosystems(self) -> tuple[str, ...]:
+        holes = self.unresolved_paths()
         return tuple(
             sorted(
                 {
                     item.ecosystem
                     for item in self.files
-                    if item.source_kind == LOCK and item.error is None
+                    if item.source_kind == LOCK and item.error is None and item.path not in holes
                 }
             )
         )
@@ -144,11 +202,15 @@ class DependencyResolution:
         return tuple(sorted({item.ecosystem for item in self.files if item.error is None}))
 
     def locks_for(self, ecosystem: str) -> tuple[str, ...]:
+        holes = self.unresolved_paths()
         return tuple(
             sorted(
                 item.path
                 for item in self.files
-                if item.ecosystem == ecosystem and item.source_kind == LOCK and item.error is None
+                if item.ecosystem == ecosystem
+                and item.source_kind == LOCK
+                and item.error is None
+                and item.path not in holes
             )
         )
 
@@ -160,6 +222,9 @@ class DependencyResolution:
                 if item.ecosystem == ecosystem and item.error is None
             )
         )
+
+    def unresolved_for(self, path: str) -> tuple[UnresolvedExpression, ...]:
+        return tuple(item for item in self.unresolved if item.path == path)
 
 
 def classify_manifest(relative_path: str) -> tuple[str, str] | None:
@@ -188,6 +253,7 @@ def normalize_package(name: str) -> str:
 def resolve(closure: SourceClosure) -> DependencyResolution:
     files: list[ManifestFile] = []
     dependencies: list[ParsedDependency] = []
+    unresolved: list[UnresolvedExpression] = []
     for entry in closure.scannable():
         kind = classify_manifest(entry.path)
         if kind is None:
@@ -227,7 +293,7 @@ def resolve(closure: SourceClosure) -> DependencyResolution:
                 error=None,
             )
         )
-        for item in raw:
+        for item in raw.dependencies:
             dependencies.append(
                 ParsedDependency(
                     ecosystem=ecosystem,
@@ -239,10 +305,28 @@ def resolve(closure: SourceClosure) -> DependencyResolution:
                     line=item.line,
                 )
             )
+        for hole in raw.unresolved:
+            unresolved.append(
+                UnresolvedExpression(
+                    ecosystem=ecosystem,
+                    source_kind=source_kind,
+                    path=entry.path,
+                    field=hole.field,
+                    expression=hole.expression,
+                    line=hole.line,
+                    reason=hole.reason,
+                )
+            )
     return DependencyResolution(
         files=tuple(sorted(files, key=lambda item: item.path)),
         dependencies=tuple(
             sorted(dependencies, key=lambda item: (item.path, item.name, item.version or ""))
+        ),
+        unresolved=tuple(
+            sorted(
+                unresolved,
+                key=lambda item: (item.path, item.line or 0, item.field, item.expression),
+            )
         ),
     )
 
@@ -371,6 +455,33 @@ def scan(
             )
         )
 
+    for hole in state.unresolved:
+        records.append(
+            make_evidence(
+                run_id=ctx.run_id,
+                proof_scope_hash=ctx.proof_scope_hash,
+                claim_type="dependency_state",
+                observer=NAME,
+                repo_sha=ctx.repo_sha,
+                path=hole.path,
+                line_start=hole.line,
+                line_end=hole.line,
+                source_hash=blobs.get(hole.path) or EMPTY_SHA256,
+                value={
+                    "state": UNEVALUATED,
+                    "ecosystem": hole.ecosystem,
+                    "source_kind": hole.source_kind,
+                    "field": hole.field,
+                    "expression": hole.expression,
+                    "reason": hole.reason,
+                },
+                provider_subject=None,
+                dependency_context_hash=ctx.dependency_context_hash,
+                derivation="OBSERVED",
+                confidence="RAW",
+            )
+        )
+
     if not state.files:
         records.append(
             make_evidence(
@@ -404,7 +515,27 @@ def _read_text(closure: SourceClosure, relative: str) -> str | None:
         return None
 
 
-def _parse(path: str, ecosystem: str, source_kind: str, text: str) -> list[RawDependency]:
+def _parse(path: str, ecosystem: str, source_kind: str, text: str) -> ManifestParse:
+    parsed = _dispatch(path, ecosystem, source_kind, text)
+    if isinstance(parsed, ManifestParse):
+        return parsed
+    return ManifestParse(dependencies=tuple(parsed), unresolved=())
+
+
+def _condense(expression: str) -> str:
+    collapsed = " ".join(expression.split())
+    if len(collapsed) <= UNRESOLVED_LIMIT:
+        return collapsed
+    return collapsed[:UNRESOLVED_LIMIT] + "..."
+
+
+def _hole(field: str, expression: str, line: int | None, reason: str) -> RawUnresolved:
+    return RawUnresolved(field=field, expression=_condense(expression), line=line, reason=reason)
+
+
+def _dispatch(
+    path: str, ecosystem: str, source_kind: str, text: str
+) -> list[RawDependency] | ManifestParse:
     filename = path.rsplit("/", 1)[-1]
     lowered = filename.lower()
     if filename == "pyproject.toml":
@@ -480,13 +611,38 @@ def _requirement(spec_line: str, line: int | None) -> RawDependency | None:
     return RawDependency(name=match.group("name"), version=version, spec=spec, line=line)
 
 
-def _parse_requirements(text: str) -> list[RawDependency]:
+def _requirement_hole(field: str, entry: str, line: int | None) -> RawUnresolved | None:
+    stripped = entry.split(";", 1)[0].strip()
+    if not stripped or stripped.startswith("#"):
+        return None
+    if stripped.startswith("-"):
+        if PIP_INCLUDE_OPTION.match(stripped) is None:
+            return None
+        return _hole(
+            field,
+            stripped,
+            line,
+            "an include or editable option whose requirements are declared elsewhere",
+        )
+    if "://" in stripped or stripped.startswith("git+"):
+        return _hole(field, stripped, line, "a URL or VCS requirement with no resolvable version")
+    if REQUIREMENT_LINE.match(stripped) is None:
+        return _hole(field, stripped, line, "not a requirement this parser can evaluate")
+    return None
+
+
+def _parse_requirements(text: str) -> ManifestParse:
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for number, line in enumerate(text.splitlines(), start=1):
         item = _requirement(line, number)
         if item is not None:
             found.append(item)
-    return found
+            continue
+        hole = _requirement_hole("requirements", line, number)
+        if hole is not None:
+            holes.append(hole)
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
 def _load_toml(text: str) -> dict[str, Any]:
@@ -496,32 +652,67 @@ def _load_toml(text: str) -> dict[str, Any]:
         raise ManifestParseError(f"TOML parse failure: {error}") from error
 
 
-def _parse_pyproject(text: str) -> list[RawDependency]:
+def _parse_pyproject(text: str) -> ManifestParse:
     data = _load_toml(text)
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     project = as_mapping(data.get("project"))
-    found.extend(_requirement_strings(project.get("dependencies"), text))
-    for group in as_mapping(project.get("optional-dependencies")).values():
-        found.extend(_requirement_strings(group, text))
-    for group in as_mapping(data.get("dependency-groups")).values():
-        found.extend(_requirement_strings(group, text))
+    _requirement_strings("project.dependencies", project.get("dependencies"), text, found, holes)
+    for key, group in as_mapping(project.get("optional-dependencies")).items():
+        _requirement_strings(f"project.optional-dependencies.{key}", group, text, found, holes)
+    for key, group in as_mapping(data.get("dependency-groups")).items():
+        _requirement_strings(f"dependency-groups.{key}", group, text, found, holes)
     poetry = _nested(data, ("tool", "poetry"))
     found.extend(_poetry_dependencies(poetry.get("dependencies"), text))
     for group in as_mapping(poetry.get("group")).values():
         found.extend(_poetry_dependencies(as_mapping(group).get("dependencies"), text))
-    return found
+    holes.extend(_dynamic_metadata(project, text))
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _requirement_strings(value: Any, text: str) -> list[RawDependency]:
-    found: list[RawDependency] = []
+DYNAMIC_DEPENDENCY_FIELDS = frozenset({"dependencies", "optional-dependencies"})
+
+
+def _dynamic_metadata(project: Mapping[str, Any], text: str) -> list[RawUnresolved]:
+    declared = sorted(
+        {
+            name
+            for name in (as_text(item) for item in as_sequence(project.get("dynamic")))
+            if name in DYNAMIC_DEPENDENCY_FIELDS
+        }
+    )
+    if not declared:
+        return []
+    return [
+        _hole(
+            "project.dynamic",
+            ", ".join(declared),
+            _line_of(text, "dynamic"),
+            "the build backend supplies these fields at build time, not this file",
+        )
+    ]
+
+
+def _requirement_strings(
+    field: str,
+    value: Any,
+    text: str,
+    found: list[RawDependency],
+    holes: list[RawUnresolved],
+) -> None:
     for candidate in as_sequence(value):
         entry = as_text(candidate)
         if entry is None:
+            holes.append(_hole(field, repr(candidate), None, "not a requirement string"))
             continue
-        item = _requirement(entry, _line_of(text, entry))
+        line = _line_of(text, entry)
+        item = _requirement(entry, line)
         if item is not None:
             found.append(item)
-    return found
+            continue
+        hole = _requirement_hole(field, entry, line)
+        if hole is not None:
+            holes.append(hole)
 
 
 def _poetry_dependencies(value: Any, text: str) -> list[RawDependency]:
@@ -540,22 +731,25 @@ def _poetry_dependencies(value: Any, text: str) -> list[RawDependency]:
     return found
 
 
-def _parse_python_lock(text: str) -> list[RawDependency]:
+def _parse_python_lock(text: str) -> ManifestParse:
     data = _load_toml(text)
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for item in as_sequence(data.get("package")):
         entry = as_mapping(item)
         name = as_text(entry.get("name"))
-        if name is not None:
-            found.append(
-                RawDependency(
-                    name=name,
-                    version=as_text(entry.get("version")),
-                    spec=None,
-                    line=_line_of(text, name),
-                )
+        if name is None:
+            holes.append(_hole("package", repr(item), None, "a locked package with no name"))
+            continue
+        found.append(
+            RawDependency(
+                name=name,
+                version=as_text(entry.get("version")),
+                spec=None,
+                line=_line_of(text, name),
             )
-    return found
+        )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
 def _load_json(text: str) -> Any:
@@ -612,90 +806,165 @@ def _parse_pipfile(text: str) -> list[RawDependency]:
     return found
 
 
-def _parse_setup_cfg(text: str) -> list[RawDependency]:
+def _parse_setup_cfg(text: str) -> ManifestParse:
     parser = configparser.ConfigParser(interpolation=None)
     try:
         parser.read_string(text)
     except configparser.Error as error:
         raise ManifestParseError(f"setup.cfg parse failure: {error}") from error
-    blocks: list[str] = []
+    blocks: list[tuple[str, str]] = []
     if parser.has_option("options", "install_requires"):
-        blocks.append(parser.get("options", "install_requires"))
+        blocks.append(("options.install_requires", parser.get("options", "install_requires")))
     if parser.has_section("options.extras_require"):
-        blocks.extend(parser["options.extras_require"].values())
+        for key, block in parser["options.extras_require"].items():
+            blocks.append((f"options.extras_require.{key}", block))
     found: list[RawDependency] = []
-    for block in blocks:
+    holes: list[RawUnresolved] = []
+    for field, block in blocks:
         for line in block.splitlines():
             stripped = line.strip()
             if not stripped:
                 continue
-            item = _requirement(stripped, _line_of(text, stripped))
+            located = _line_of(text, stripped)
+            item = _requirement(stripped, located)
             if item is not None:
                 found.append(item)
-    return found
+                continue
+            hole = _requirement_hole(field, stripped, located)
+            if hole is not None:
+                holes.append(hole)
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_setup_py(text: str) -> list[RawDependency]:
+SETUP_REQUIREMENT_FIELDS = ("install_requires",)
+
+
+def _parse_setup_py(text: str) -> ManifestParse:
     try:
         module = ast.parse(text)
     except (SyntaxError, ValueError) as error:
         raise ManifestParseError(f"setup.py parse failure: {error}") from error
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for node in ast.walk(module):
         if not isinstance(node, ast.Call):
             continue
         for keyword in node.keywords:
-            if keyword.arg == "install_requires":
-                found.extend(_literal_requirements(keyword.value))
-            elif keyword.arg == "extras_require" and isinstance(keyword.value, ast.Dict):
-                for group in keyword.value.values:
-                    found.extend(_literal_requirements(group))
-    return found
+            if keyword.arg in SETUP_REQUIREMENT_FIELDS:
+                _literal_requirements(keyword.arg, keyword.value, found, holes)
+            elif keyword.arg == "extras_require":
+                _extras_require(keyword.value, found, holes)
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _literal_requirements(node: ast.expr) -> list[RawDependency]:
+def _extras_require(node: ast.expr, found: list[RawDependency], holes: list[RawUnresolved]) -> None:
+    if not isinstance(node, ast.Dict):
+        holes.append(
+            _hole(
+                "extras_require",
+                ast.unparse(node),
+                node.lineno,
+                "bound to an expression this parser does not evaluate",
+            )
+        )
+        return
+    for key, group in zip(node.keys, node.values, strict=True):
+        name = key.value if isinstance(key, ast.Constant) else None
+        field = f"extras_require.{name}" if isinstance(name, str) else "extras_require"
+        _literal_requirements(field, group, found, holes)
+
+
+def _literal_requirements(
+    field: str, node: ast.expr, found: list[RawDependency], holes: list[RawUnresolved]
+) -> None:
     if not isinstance(node, (ast.List, ast.Tuple)):
-        return []
-    found: list[RawDependency] = []
+        holes.append(
+            _hole(
+                field,
+                ast.unparse(node),
+                node.lineno,
+                "bound to an expression this parser does not evaluate",
+            )
+        )
+        return
     for element in node.elts:
         if not isinstance(element, ast.Constant) or not isinstance(element.value, str):
+            holes.append(
+                _hole(
+                    field,
+                    ast.unparse(element),
+                    element.lineno,
+                    "an element that is not a string literal",
+                )
+            )
             continue
         item = _requirement(element.value, element.lineno)
         if item is not None:
             found.append(item)
-    return found
+            continue
+        hole = _requirement_hole(field, element.value, element.lineno)
+        if hole is not None:
+            holes.append(hole)
 
 
-def _parse_package_json(text: str) -> list[RawDependency]:
+def _string_map(field: str, value: Any, text: str, holes: list[RawUnresolved]) -> Mapping[str, Any]:
+    if value is not None and not is_mapping(value):
+        holes.append(
+            _hole(field, repr(value), _line_of(text, field), "not a mapping of requirements")
+        )
+    return as_mapping(value)
+
+
+def _named_requirements(
+    field: str,
+    value: Any,
+    text: str,
+    found: list[RawDependency],
+    holes: list[RawUnresolved],
+) -> None:
+    for key, raw in _string_map(field, value, text, holes).items():
+        name = as_text(key)
+        if name is None:
+            continue
+        spec = as_text(raw)
+        if spec is None:
+            holes.append(
+                _hole(f"{field}.{name}", repr(raw), _line_of(text, name), "not a version string")
+            )
+            continue
+        version = spec if NPM_EXACT.match(spec) else None
+        found.append(
+            RawDependency(name=name, version=version, spec=spec, line=_line_of(text, name))
+        )
+
+
+NPM_SECTIONS = ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
+
+
+def _parse_package_json(text: str) -> ManifestParse:
     data = _json_object(text, "package.json is not a JSON object")
     found: list[RawDependency] = []
-    for section in (
-        "dependencies",
-        "devDependencies",
-        "peerDependencies",
-        "optionalDependencies",
-    ):
-        for key, raw in as_mapping(data.get(section)).items():
-            name = as_text(key)
-            spec = as_text(raw)
-            if name is None or spec is None:
-                continue
-            version = spec if NPM_EXACT.match(spec) else None
-            found.append(
-                RawDependency(name=name, version=version, spec=spec, line=_line_of(text, name))
-            )
-    return found
+    holes: list[RawUnresolved] = []
+    for section in NPM_SECTIONS:
+        _named_requirements(section, data.get(section), text, found, holes)
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_package_lock(text: str) -> list[RawDependency]:
+def _parse_package_lock(text: str) -> ManifestParse:
     data = _json_object(text, "lock file is not a JSON object")
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     packages = as_mapping(data.get("packages"))
     if packages:
         for raw_key, raw_spec in packages.items():
             key = as_text(raw_key)
             spec = as_mapping(raw_spec)
-            if not key or not spec:
+            if not key:
+                continue
+            if not spec:
+                holes.append(
+                    _hole("packages", key, _line_of(text, key), "a locked entry with no resolution")
+                )
                 continue
             found.append(
                 RawDependency(
@@ -705,17 +974,28 @@ def _parse_package_lock(text: str) -> list[RawDependency]:
                     line=_line_of(text, key),
                 )
             )
-        return found
-    found.extend(_walk_legacy_lock(as_mapping(data.get("dependencies")), text))
-    return found
+        return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
+    _walk_legacy_lock(as_mapping(data.get("dependencies")), text, found, holes)
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _walk_legacy_lock(block: Mapping[str, Any], text: str) -> list[RawDependency]:
-    found: list[RawDependency] = []
+def _walk_legacy_lock(
+    block: Mapping[str, Any],
+    text: str,
+    found: list[RawDependency],
+    holes: list[RawUnresolved],
+) -> None:
     for raw_name, raw_spec in block.items():
         name = as_text(raw_name)
         spec = as_mapping(raw_spec)
-        if name is None or not spec:
+        if name is None:
+            continue
+        if not spec:
+            holes.append(
+                _hole(
+                    "dependencies", name, _line_of(text, name), "a locked entry with no resolution"
+                )
+            )
             continue
         found.append(
             RawDependency(
@@ -725,18 +1005,24 @@ def _walk_legacy_lock(block: Mapping[str, Any], text: str) -> list[RawDependency
                 line=_line_of(text, name),
             )
         )
-        found.extend(_walk_legacy_lock(as_mapping(spec.get("dependencies")), text))
-    return found
+        _walk_legacy_lock(as_mapping(spec.get("dependencies")), text, found, holes)
 
 
-def _parse_yarn_lock(text: str) -> list[RawDependency]:
+def _parse_yarn_lock(text: str) -> ManifestParse:
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     specs: list[str] = []
     header_line = 0
+
+    def close_pending() -> None:
+        for spec in specs:
+            holes.append(_hole("resolution", spec, header_line, "a locked entry with no version"))
+
     for number, line in enumerate(text.splitlines(), start=1):
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         if not line.startswith((" ", "\t")) and line.rstrip().endswith(":"):
+            close_pending()
             specs = [part.strip().strip('"') for part in line.rstrip()[:-1].split(",")]
             header_line = number
             continue
@@ -750,7 +1036,8 @@ def _parse_yarn_lock(text: str) -> list[RawDependency]:
                         RawDependency(name=name, version=version, spec=spec, line=header_line)
                     )
             specs = []
-    return found
+    close_pending()
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
 def _yarn_name(spec: str) -> str:
@@ -759,13 +1046,14 @@ def _yarn_name(spec: str) -> str:
     return f"@{name}" if spec.startswith("@") else name
 
 
-def _parse_pnpm_lock(text: str) -> list[RawDependency]:
+def _parse_pnpm_lock(text: str) -> ManifestParse:
     loaded = _load_yaml(text)
     if not is_mapping(loaded):
         raise ManifestParseError("pnpm-lock.yaml is not a mapping")
     data = as_mapping(loaded)
     found: list[RawDependency] = []
-    for raw_key in as_mapping(data.get("packages")):
+    holes: list[RawUnresolved] = []
+    for raw_key in _string_map("packages", data.get("packages"), text, holes):
         key = as_text(raw_key)
         if key is None:
             continue
@@ -774,13 +1062,15 @@ def _parse_pnpm_lock(text: str) -> list[RawDependency]:
             name, _, version = trimmed.rpartition("@")
         else:
             name, _, version = trimmed.rpartition("/")
-        if name:
-            found.append(
-                RawDependency(
-                    name=name, version=version or None, spec=None, line=_line_of(text, key)
-                )
+        if not name:
+            holes.append(
+                _hole("packages", key, _line_of(text, key), "a locked key with no package name")
             )
-    return found
+            continue
+        found.append(
+            RawDependency(name=name, version=version or None, spec=None, line=_line_of(text, key))
+        )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
 def _load_yaml(text: str) -> Any:
@@ -790,39 +1080,35 @@ def _load_yaml(text: str) -> Any:
         raise ManifestParseError(f"YAML parse failure: {error}") from error
 
 
-def _parse_composer_json(text: str) -> list[RawDependency]:
+def _parse_composer_json(text: str) -> ManifestParse:
     data = _json_object(text, "composer.json is not a JSON object")
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for section in ("require", "require-dev"):
-        for raw_name, raw_spec in as_mapping(data.get(section)).items():
-            name = as_text(raw_name)
-            spec = as_text(raw_spec)
-            if name is None or spec is None:
-                continue
-            version = spec if NPM_EXACT.match(spec) else None
-            found.append(
-                RawDependency(name=name, version=version, spec=spec, line=_line_of(text, name))
-            )
-    return found
+        _named_requirements(section, data.get(section), text, found, holes)
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_composer_lock(text: str) -> list[RawDependency]:
+def _parse_composer_lock(text: str) -> ManifestParse:
     data = _json_object(text, "composer.lock is not a JSON object")
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for section in ("packages", "packages-dev"):
         for item in as_sequence(data.get(section)):
             entry = as_mapping(item)
             name = as_text(entry.get("name"))
-            if name is not None:
-                found.append(
-                    RawDependency(
-                        name=name,
-                        version=as_text(entry.get("version")),
-                        spec=None,
-                        line=_line_of(text, name),
-                    )
+            if name is None:
+                holes.append(_hole(section, repr(item), None, "a locked package with no name"))
+                continue
+            found.append(
+                RawDependency(
+                    name=name,
+                    version=as_text(entry.get("version")),
+                    spec=None,
+                    line=_line_of(text, name),
                 )
-    return found
+            )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
 def _parse_xml(text: str) -> ElementTree.Element:
@@ -845,68 +1131,119 @@ def _child_text(element: ElementTree.Element, name: str) -> str | None:
     return None
 
 
-def _parse_pom(text: str) -> list[RawDependency]:
+def _parse_pom(text: str) -> ManifestParse:
     root = _parse_xml(text)
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for element in root.iter():
         if _tag(element) != "dependency":
             continue
         group = _child_text(element, "groupId")
         artifact = _child_text(element, "artifactId")
         version = _child_text(element, "version")
-        if group and artifact:
-            name = f"{group}:{artifact}"
-            found.append(
-                RawDependency(
-                    name=name,
-                    version=version if version and not version.startswith("${") else None,
-                    spec=version,
-                    line=_line_of(text, artifact),
+        rendered = f"{group}:{artifact}:{version}"
+        if not group or not artifact:
+            holes.append(
+                _hole(
+                    "dependency",
+                    rendered,
+                    _line_of(text, artifact or group or "dependency"),
+                    "a dependency with no groupId or no artifactId",
                 )
             )
-    return found
+            continue
+        if "${" in group or "${" in artifact:
+            holes.append(
+                _hole(
+                    "dependency",
+                    rendered,
+                    _line_of(text, artifact),
+                    "a coordinate built from a property this file does not resolve",
+                )
+            )
+            continue
+        found.append(
+            RawDependency(
+                name=f"{group}:{artifact}",
+                version=version if version and not version.startswith("${") else None,
+                spec=version,
+                line=_line_of(text, artifact),
+            )
+        )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_gradle(text: str) -> list[RawDependency]:
+def _parse_gradle(text: str) -> ManifestParse:
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for number, line in enumerate(text.splitlines(), start=1):
+        matched = False
         for match in GRADLE_COORDINATE.finditer(line):
-            name = f"{match.group('group')}:{match.group('artifact')}"
+            matched = True
             found.append(
                 RawDependency(
-                    name=name,
+                    name=f"{match.group('group')}:{match.group('artifact')}",
                     version=match.group("version"),
                     spec=match.group("version"),
                     line=number,
                 )
             )
-    return found
-
-
-def _parse_gradle_lock(text: str) -> list[RawDependency]:
-    found: list[RawDependency] = []
-    for number, line in enumerate(text.splitlines(), start=1):
-        match = GRADLE_LOCK_LINE.match(line.strip())
-        if match is not None:
-            found.append(
-                RawDependency(
-                    name=f"{match.group('group')}:{match.group('artifact')}",
-                    version=match.group("version"),
-                    spec=None,
-                    line=number,
-                )
+        if matched or GRADLE_DECLARATION.match(line) is None:
+            continue
+        if GRADLE_LOCAL_DEPENDENCY.search(line):
+            continue
+        holes.append(
+            _hole(
+                "dependencies",
+                line,
+                number,
+                "a dependency declaration carrying no literal group:artifact:version coordinate",
             )
-    return found
+        )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_nuget_lock(text: str) -> list[RawDependency]:
+def _parse_gradle_lock(text: str) -> ManifestParse:
+    found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
+    for number, line in enumerate(text.splitlines(), start=1):
+        stripped = line.strip()
+        if not stripped or GRADLE_LOCK_IGNORED.match(stripped):
+            continue
+        match = GRADLE_LOCK_LINE.match(stripped)
+        if match is None:
+            holes.append(_hole("lock", stripped, number, "not a locked gradle coordinate"))
+            continue
+        found.append(
+            RawDependency(
+                name=f"{match.group('group')}:{match.group('artifact')}",
+                version=match.group("version"),
+                spec=None,
+                line=number,
+            )
+        )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
+
+
+def _parse_nuget_lock(text: str) -> ManifestParse:
     data = _json_object(text, "packages.lock.json is not a JSON object")
     found: list[RawDependency] = []
-    for block in as_mapping(data.get("dependencies")).values():
-        for raw_name, raw_spec in as_mapping(block).items():
+    holes: list[RawUnresolved] = []
+    for framework, block in as_mapping(data.get("dependencies")).items():
+        for raw_name, raw_spec in _string_map(str(framework), block, text, holes).items():
             name = as_text(raw_name)
+            if name is None:
+                continue
             spec = as_mapping(raw_spec)
-            if name is None or not spec:
+            if not spec:
+                holes.append(
+                    _hole(
+                        str(framework),
+                        name,
+                        _line_of(text, name),
+                        "a locked entry with no resolution",
+                    )
+                )
                 continue
             found.append(
                 RawDependency(
@@ -916,46 +1253,71 @@ def _parse_nuget_lock(text: str) -> list[RawDependency]:
                     line=_line_of(text, name),
                 )
             )
-    return found
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_packages_config(text: str) -> list[RawDependency]:
+def _parse_packages_config(text: str) -> ManifestParse:
     root = _parse_xml(text)
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for element in root.iter():
         if _tag(element) != "package":
             continue
         name = element.get("id")
         version = element.get("version")
-        if name:
-            found.append(
-                RawDependency(name=name, version=version, spec=version, line=_line_of(text, name))
-            )
-    return found
+        if not name:
+            holes.append(_hole("package", f"version={version}", None, "a package entry with no id"))
+            continue
+        found.append(
+            RawDependency(name=name, version=version, spec=version, line=_line_of(text, name))
+        )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_csproj(text: str) -> list[RawDependency]:
+def _parse_csproj(text: str) -> ManifestParse:
     root = _parse_xml(text)
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for element in root.iter():
         if _tag(element) != "PackageReference":
             continue
         name = element.get("Include")
         version = element.get("Version") or _child_text(element, "Version")
-        if name:
-            found.append(
-                RawDependency(
-                    name=name,
-                    version=version if version and not version.startswith("$(") else None,
-                    spec=version,
-                    line=_line_of(text, name),
+        if not name:
+            updated = element.get("Update")
+            holes.append(
+                _hole(
+                    "PackageReference",
+                    f"Update={updated} Version={version}",
+                    _line_of(text, updated) if updated else None,
+                    "a package reference with no Include",
                 )
             )
-    return found
+            continue
+        if name.startswith("$("):
+            holes.append(
+                _hole(
+                    "PackageReference",
+                    f"Include={name} Version={version}",
+                    _line_of(text, name),
+                    "a package name built from a property this file does not resolve",
+                )
+            )
+            continue
+        found.append(
+            RawDependency(
+                name=name,
+                version=version if version and not version.startswith("$(") else None,
+                spec=version,
+                line=_line_of(text, name),
+            )
+        )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_go_mod(text: str) -> list[RawDependency]:
+def _parse_go_mod(text: str) -> ManifestParse:
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     inside_block = False
     for number, line in enumerate(text.splitlines(), start=1):
         stripped = line.strip()
@@ -973,24 +1335,31 @@ def _parse_go_mod(text: str) -> list[RawDependency]:
         elif not inside_block:
             continue
         match = GO_REQUIRE_LINE.match(target)
-        if match is not None:
-            found.append(
-                RawDependency(
-                    name=match.group("name"),
-                    version=match.group("version"),
-                    spec=match.group("version"),
-                    line=number,
-                )
+        if match is None:
+            holes.append(_hole("require", stripped, number, "not a resolvable require line"))
+            continue
+        found.append(
+            RawDependency(
+                name=match.group("name"),
+                version=match.group("version"),
+                spec=match.group("version"),
+                line=number,
             )
-    return found
+        )
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_go_sum(text: str) -> list[RawDependency]:
+def _parse_go_sum(text: str) -> ManifestParse:
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     seen: set[tuple[str, str]] = set()
     for number, line in enumerate(text.splitlines(), start=1):
-        match = GO_SUM_LINE.match(line.strip())
+        stripped = line.strip()
+        if not stripped:
+            continue
+        match = GO_SUM_LINE.match(stripped)
         if match is None:
+            holes.append(_hole("sum", stripped, number, "not a checksummed module line"))
             continue
         key = (match.group("name"), match.group("version"))
         if key in seen:
@@ -999,12 +1368,24 @@ def _parse_go_sum(text: str) -> list[RawDependency]:
         found.append(
             RawDependency(name=key[0], version=key[1], spec=None, line=number),
         )
-    return found
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
-def _parse_gemfile(text: str) -> list[RawDependency]:
+def _parse_gemfile(text: str) -> ManifestParse:
     found: list[RawDependency] = []
+    holes: list[RawUnresolved] = []
     for number, line in enumerate(text.splitlines(), start=1):
+        delegation = GEMFILE_DELEGATION.match(line)
+        if delegation is not None:
+            holes.append(
+                _hole(
+                    delegation.group("directive"),
+                    line,
+                    number,
+                    "gems declared in a file this directive loads, not here",
+                )
+            )
+            continue
         match = GEMFILE_GEM.match(line)
         if match is None:
             continue
@@ -1015,7 +1396,7 @@ def _parse_gemfile(text: str) -> list[RawDependency]:
         found.append(
             RawDependency(name=match.group("name"), version=version, spec=spec, line=number)
         )
-    return found
+    return ManifestParse(dependencies=tuple(found), unresolved=tuple(holes))
 
 
 def _parse_gemfile_lock(text: str) -> list[RawDependency]:
