@@ -151,8 +151,19 @@ def test_compositional_summaries_change_cost_but_never_a_single_record(
         scan_repository(FIXTURES / "wrapper_patterns" / "repo", load_pack("google_ads"))
     )
 
+    def sites(records: list[dict[str, Any]]) -> list[tuple[Any, ...]]:
+        return [
+            (record["path"], record["line_start"], record["claim_type"], record["id"])
+            for record in records
+        ]
+
     assert with_cache
-    assert with_cache == without_cache
+    assert sites(with_cache) == sites(without_cache)
+    assert [
+        site
+        for site, cached, uncached in zip(sites(with_cache), with_cache, without_cache, strict=True)
+        if cached != uncached
+    ] == []
 
 
 def test_a_summary_is_never_reused_for_a_cycle_or_an_exhausted_walk() -> None:
