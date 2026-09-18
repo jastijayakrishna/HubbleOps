@@ -5,7 +5,8 @@ from typing import Any
 
 import pytest
 
-from hubbleops.packs.google_ads.changes import DATA_ROOT
+from hubbleops.core.errors import PackDataError
+from hubbleops.packs.google_ads.changes import CHANGES, DATA_ROOT
 from hubbleops.packs.google_ads.refresh import migration_table_changes
 
 VERSIONS = ("v19", "v20", "v21", "v22", "v23", "v24", "v25")
@@ -200,3 +201,21 @@ def test_every_unbound_row_is_an_unknown_with_a_closing_instruction() -> None:
             assert attributes["stated_subject"] in attributes["claim"]
             assert attributes["stated_replacement"] in attributes["claim"]
     assert seen == 22
+
+
+def test_pack_verification_refuses_while_any_row_is_unbound_and_prints_each_one() -> None:
+    expected = [item["subject"] for version in VERSIONS for item in sorted_unbound_records(version)]
+    assert len(expected) == 22
+    with pytest.raises(PackDataError) as refusal:
+        CHANGES.verify()
+    message = str(refusal.value)
+    assert "22" in message
+    for subject in expected:
+        assert subject in message, subject
+    for version in VERSIONS:
+        for item in sorted_unbound_records(version):
+            assert item["attributes"]["close_with"] in message
+
+
+def sorted_unbound_records(version: str) -> list[dict[str, Any]]:
+    return sorted(unbound_records(version), key=lambda item: str(item["subject"]))

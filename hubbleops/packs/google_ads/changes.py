@@ -196,7 +196,43 @@ class GoogleAdsChanges:
                 shipped = self.data_root / path.name
                 if not shipped.is_file() or shipped.read_bytes() != path.read_bytes():
                     raise PackDataError(f"computed proto diff mismatch: {path.name}")
+            unbound = self._unbound_replacements(output, tuple(report.catalog_hashes))
+            if unbound:
+                raise PackDataError(self._unbound_refusal(unbound))
             return report
+
+    def _unbound_replacements(
+        self, output: Path, versions: Sequence[str]
+    ) -> tuple[Mapping[str, Any], ...]:
+        found: list[Mapping[str, Any]] = []
+        for version in versions:
+            text = (output / f"catalog_{version}.jsonl").read_text(encoding="utf-8")
+            for line in text.splitlines():
+                if UNRESOLVED_CHANGE_KIND not in line:
+                    continue
+                item = as_mapping(json.loads(line))
+                if item.get("kind") == UNRESOLVED_CHANGE_KIND:
+                    found.append(item)
+        return tuple(found)
+
+    def _unbound_refusal(self, unbound: Sequence[Mapping[str, Any]]) -> str:
+        lines = [
+            f"{len(unbound)} documented replacements bind to no catalog subject, so this pack "
+            "cannot be verified; every one of them is an UNKNOWN awaiting the evidence named "
+            "below"
+        ]
+        for number, item in enumerate(unbound, start=1):
+            attributes = as_mapping(item["attributes"])
+            lines.extend(
+                [
+                    f"  {number}. {attributes['from_version']} -> {attributes['to_version']}  "
+                    f"{item['subject']}",
+                    f"     claim       {attributes['claim']}",
+                    f"     conflict    {attributes['conflict']}",
+                    f"     close with  {attributes['close_with']}",
+                ]
+            )
+        return "\n".join(lines)
 
     def versions(self) -> tuple[Version, ...]:
         entries = as_sequence(self._lattice().get("versions"))

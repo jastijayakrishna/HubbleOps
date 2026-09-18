@@ -11,6 +11,7 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Branch** | `phase-06-audit-fixes`, cut from `phase-06-repository-intelligence` on 2026-09-16 for the week-1 audit fixes; that branch was itself cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
 | **Engine baseline** | `engine-v0`, frozen 2026-09-13. Its scope is `dev/engine-v0.json`: lattice `4555e93f…`, ripgrep and ast-grep sha256, `uv.lock` hash, verifier image, Python 3.12.14, and the exact harness commands. Any change that moves a real-repo count is measured `engine-v0` → new before it is believed |
+| **Pack completeness** | `uv run hops pack verify google_ads` exits **4** by design: the pack carries 22 documented replacements that bind to no catalog subject, each now an `unresolved_documented_change` fact at `UNKNOWN_PROVIDER_CONTRACT` with a closing instruction. Task 2 adjudicates them. The pack tree has therefore moved off `engine-v0`'s pinned lattice and catalog hashes |
 | **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) and P-035 (the three planes and the WORK-plane agent harness) await the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
 
 **WEEK 1 AUDIT FIXES (2026-09-16), branch `phase-06-audit-fixes`.** An independent audit on
@@ -1750,6 +1751,93 @@ file, in two further full unit runs, and in a probe that scanned the fixture eig
 cached, four with `store` disabled) producing byte-identical evidence every time. The observation is
 not explained, so it is not closed: it is in `dev/tasks.md`, and the test now names the path, line
 and claim type of every record that differs instead of dumping twelve dicts pytest cannot diff.
+
+**A release-note row that binds to no catalog subject is a record, never a counter (2026-09-18).**
+`migration_table_changes` counted every migration-table row it could not bind to a catalog subject
+and dropped the row. The count was summed into `attributes.unresolved_replacement_rows` on each
+version's `release_notes` fact — v21=1, v22=5, v23=4, v24=8, v25=4, **22** in total. A number is not
+a record: nothing named which row, which version pair, which side failed to bind, or what would
+close it, and no gate could refuse on it. Reproduced independently from
+`data/catalog_*.jsonl` and again from the retained upstream HTML before anything changed.
+
+Each unbound row is now its own catalog fact: `kind = unresolved_documented_change`, subject
+`docs.unresolved_change.<content hash>`, resolution `UNKNOWN_PROVIDER_CONTRACT`, carrying `claim`
+(the row's four cells joined, as `documented_change` already does), `stated_subject` and
+`stated_replacement` (the raw text of each side), `from_version`/`to_version`, `conflict` (which
+side failed and why) and `close_with` (the catalog file a binding fact must appear in, or a recorded
+human decision). The scalar is gone from `release_notes`. Measured distribution: 13 bind on neither
+side, 7 fail on the replacement side, 2 on the replaced side, 0 bind both sides to one subject.
+
+Six decisions worth keeping.
+
+- **`migration_table_changes` returns one flat list of records and no integer at all**, so a
+  binding failure has no scalar to collapse into. The same silent `continue` in
+  `documented_replacements` — a second, entirely uncounted drop site over release-note `<li>`
+  paragraphs and upgrade-guide rows — is closed the same way. It drops **0** on the shipped sources
+  (two `to replace` matches, both bound), so closing it leaves the count at 22 and shuts the hole
+  before the next refresh opens it.
+- **The resolution code was reused, not invented.** `app/stability.py:60` is an equality test
+  against the literal `UNKNOWN_PROVIDER_CONTRACT` while `contract.py` tests `!= "RESOLVED"`, so a
+  novel code would read as unresolved in three places and resolved in the fourth. The precision
+  lives in `attributes.conflict`, which is how the three existing field conflicts already work.
+- **The subject namespace is load-bearing.** `stability._catalog_dispositions` registers the bare
+  remainder of any subject that starts with its own kind plus a dot, so a subject spelled
+  `unresolved_documented_change.<...>` would have injected raw claim text into the stability table
+  as UNDECIDED. Keeping it in the `docs.` namespace avoids that entirely.
+- **The subject hashes `[version, cells, occurrence ordinal]`**, so two byte-identical rows in one
+  version stay two records instead of colliding into `_reconcile`'s duplicate-subject refusal.
+- **The refusal lives in the pack, not the CLI.** `GoogleAdsChanges.verify()` raises after the
+  byte-identity checks — so tamper detection keeps its own failure mode — and its message prints all
+  22 with claim, conflict and closing instruction. `hops pack verify google_ads` exits 4. A generic
+  hook in `_pack_verify` would have put provider vocabulary in `app/` and dragged `_mock` in;
+  `hops pack verify _mock` still exits 0.
+- **Regeneration is fully offline and provable.** `data/sources/upstream/` retains every fetched
+  payload gzipped by digest, so `docs_records` re-runs from the retained bytes with no network. The
+  rebuild reproduced the seven shipped `normalized/docs_v*.jsonl` **byte-identically before the
+  change** — that is what makes the regenerated bytes afterwards a proof rather than an assertion.
+
+**No real-repo count can move, measured exhaustively rather than sampled (2026-09-18).** Every
+non-docs fact in all seven catalogs is byte-identical old→new (15577/15716/16208/16474/17151/17512/
+18175), the only changed records being the 22 additions and the 7 `docs.release.v*` facts that lost
+the scalar, with nothing removed. `query_resources()` is 192→192 and the `SurfaceSpec` hash is
+unchanged, so the surface, `contract.validate`'s field and shape lookups and `judge_skeletons` all
+see identical input. The stability table gains exactly the 22 `docs.unresolved_change.<64 hex>` keys
+as UNDECIDED, with **0 keys removed and 0 dispositions changed** — and a 64-hex content hash cannot
+occur as an identifier in a repository. Diff facts grow by those subjects (v19→v20 2794→2794,
+v20→v21 1387→1388, v21→v22 692→698, v22→v23 1568→1577, v23→v24 877→889, v24→v25 1127→1139,
+composed v22→v25 2873→2894) and cannot raise an obligation, because `obligations/engine.py:255`
+requires the literal subject string to appear in the repository's observed text. Confirmed
+end to end by the three real-repo conservation tests, which are live on this machine because all
+three pinned repositories are checked out at their engine-v0 SHAs: full suite **1421 passed, 1
+skipped**, the skip being the pre-existing `scip-typescript is not on PATH`.
+
+**The pack tree has moved off engine-v0's pinned hashes, as it must (2026-09-18).** Lattice
+`4555e93f3377` → `cbe20b9f094a`, and all seven catalog hashes with it (v19 `c9f8a7267abc` →
+`09f15fe16bbe`, v20 `8e2c8c1e08b6` → `26bd9fb09cd2`, v21 `e2ea549aa1e1` → `5ae447635e20`, v22
+`93f21820f255` → `434df22c1409`, v23 `311f1c383f49` → `d6e4d583c831`, v24 `efbe7b08f8cd` →
+`5fe67096bfc1`, v25 `e4d269969340` → `a55f2b038a74`). `dev/engine-v0.json` is a frozen snapshot and
+was **not** edited; corpus arm A will refuse to run against it until a new scope is frozen, which is
+the guard working rather than a defect. That file also pins `uv run hops pack verify google_ads` as
+a harness command, and it now exits 4 **by design** until the 22 are adjudicated — the harness line
+records what engine-v0 did, not what the current tree must do.
+
+**`tests/corpus/baseline_gate.py` no longer crashes the CI gate (2026-09-18).** `engine_scope()`
+called `pack.changes.verify()` purely for its `BuildReport`, so the new refusal would have aborted
+the `baselines` job with a traceback *after* the clone-and-scan work and written no scope artifact.
+It now builds into a temp directory and raises `GateFailed` if the rebuilt lattice disagrees with
+the shipped catalogs, which keeps the tamper check the scope document actually needs and keeps the
+failure inside the gate's own reporting.
+
+**Four tests were restated, none weakened (2026-09-18).** Each now asserts the law it guards
+instead of a claim table. `test_pack_verify_is_offline` kept its socket ban — the only proof the
+verb does no network I/O — and asserts exit 4 with every unbound subject on stderr.
+`test_full_provider_contract` asserted `report == pack.changes.verify()`; the reproducibility half
+moved to `report.lattice_hash == pack.changes.lattice_hash`, which is the same claim, and `verify()`
+may now either return that report or refuse with a reason it states. `test_verification_rejects_
+tampered_inputs` was the real trap: with an unconditional refusal all five tamper cases would have
+passed for the wrong reason, so each case now asserts its own message and the pack keeps its
+tamper-detection proof. `test_only_disagreeing_sources_stay_unresolved` split its closed two-string
+`conflict` whitelist by kind, so the field law stays exactly as strict as it was.
 
 ## Open threads
 

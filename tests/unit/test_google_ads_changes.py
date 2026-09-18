@@ -69,8 +69,17 @@ def test_two_offline_builds_are_byte_identical(tmp_path: Path) -> None:
         assert path.read_bytes() == (second / path.name).read_bytes()
 
 
-@pytest.mark.parametrize("tamper", ["normalized", "raw", "catalog", "missing_family", "escape"])
-def test_verification_rejects_tampered_inputs(tmp_path: Path, tamper: str) -> None:
+@pytest.mark.parametrize(
+    ("tamper", "named"),
+    [
+        ("normalized", "source hash mismatch for normalized/proto_v18.jsonl"),
+        ("raw", "raw source hash mismatch for normalized/proto_v18.jsonl"),
+        ("catalog", "shipped catalog mismatch for v25"),
+        ("missing_family", "v25 is missing source families: field"),
+        ("escape", "source path escapes source root: ../../outside.jsonl"),
+    ],
+)
+def test_verification_rejects_tampered_inputs(tmp_path: Path, tamper: str, named: str) -> None:
     data = tmp_path / "data"
     shutil.copytree(DATA_ROOT, data)
     compiler = GoogleAdsChanges(data)
@@ -93,8 +102,9 @@ def test_verification_rejects_tampered_inputs(tmp_path: Path, tamper: str) -> No
         else:
             entry["path"] = "../../outside.jsonl"
         manifest_path.write_text(canonical_text(manifest), encoding="utf-8")
-    with pytest.raises(PackDataError):
+    with pytest.raises(PackDataError) as refusal:
         compiler.verify()
+    assert named in str(refusal.value)
 
 
 def test_catalogs_are_canonical_complete_and_provenanced() -> None:

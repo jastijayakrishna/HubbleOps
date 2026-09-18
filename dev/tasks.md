@@ -19,6 +19,32 @@ Updated before every session ends. Phase-level status lives in
       `dev/context.md`. `tests/unit/test_deps_nonliteral.py` (29 tests: 27 failed before, all pass
       after). No real-repo count moved — `GATE: PASS` on all three pinned repositories.
 
+- [x] **A release-note row naming a replacement the refresh tool cannot bind is a first-class
+      record with an UNKNOWN resolution (2026-09-18).** The 22 unbindable migration-table rows were
+      summed into `attributes.unresolved_replacement_rows` on each version's `release_notes` fact
+      and the rows themselves dropped; each is now its own `unresolved_documented_change` catalog
+      fact at resolution `UNKNOWN_PROVIDER_CONTRACT`, carrying the raw claim, both stated sides, the
+      version pair, which side failed to bind, and the closing instruction naming the catalog file a
+      binding fact must appear in. `migration_table_changes` no longer returns an integer at all,
+      and `documented_replacements`' uncounted second drop site is closed the same way (0 today, so
+      the count stays 22). `GoogleAdsChanges.verify()` refuses while any exist and prints all 22:
+      `uv run hops pack verify google_ads` exits 4. `tests/unit/test_pack_replacement_unresolved.py`
+      (26 tests: 24 failed before, all pass after). No real-repo count can move — every non-docs
+      catalog fact byte-identical, surface hash unchanged, stability table +22 content-hash keys
+      with 0 dispositions changed; full suite **1421 passed, 1 skipped**.
+
+- [ ] **Adjudicate the 22 (task 2).** Until then `hops pack verify google_ads` exits 4 by design
+      and the `baselines` CI job records a scope for a pack that refuses its own completeness. Each
+      record already names the evidence that closes it: a single binding fact in the catalog file it
+      names, or a recorded human decision that the row names no catalog subject. 13 bind on neither
+      side, 7 fail on the replacement side, 2 on the replaced side. Do not close one by relaxing
+      `documented_row_subject` to make a status assertion pass.
+
+- [ ] **Freeze a new engine scope when this branch settles.** The pack tree has moved off
+      `engine-v0`'s pinned lattice (`4555e93f…` → `cbe20b9f…`) and all seven catalog hashes, so
+      corpus arm A refuses to run against `dev/engine-v0.json` until a successor scope is recorded.
+      `dev/engine-v0.json` is frozen and was deliberately not edited.
+
 - [ ] **Rule on P-038 (`Falsifier.applies`).** Until it is ruled on, no capture-less
       `hops verify` on `google_ads` can reach `VERIFIED_FOR_SCOPE`: seven of eight falsifiers are
       `NOT_RUN`, every `NOT_RUN` is unresolved, and `verdict.decide` turns any unresolved entry

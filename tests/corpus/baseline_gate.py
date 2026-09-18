@@ -7,6 +7,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -238,7 +239,10 @@ def engine_scope() -> dict[str, Any]:
         raise GateFailed(f"{ENGINE_SCOPE} is not an object")
     previous = cast(Mapping[str, Any], existing)
     pack = registry.load_pack(PACK)
-    report = pack.changes.verify()
+    with tempfile.TemporaryDirectory(prefix="hops-engine-scope-") as directory:
+        report = pack.changes.build(Path(directory))
+    if report.lattice_hash != pack.changes.lattice_hash:
+        raise GateFailed("the rebuilt pack lattice differs from the shipped catalogs")
     from hubbleops.sandbox.verifier_image import VERIFIER_REFERENCE
 
     scope: dict[str, Any] = {key: previous[key] for key in PRESERVED_SCOPE_KEYS if key in previous}

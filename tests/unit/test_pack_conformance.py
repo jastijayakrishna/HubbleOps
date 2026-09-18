@@ -57,7 +57,12 @@ def test_full_provider_contract(name: str, tmp_path: Path) -> None:
     assert pack.wire_signature.parse("", {}).code == "UNKNOWN_WIRE_SIGNATURE"
     assert pack.telemetry.parse("not,a,method\n1,2,3\n").issues
     report = pack.changes.build(tmp_path)
-    assert report == pack.changes.verify()
     assert report.lattice_hash == pack.changes.lattice_hash
+    try:
+        verified = pack.changes.verify()
+    except PackDataError as refusal:
+        assert str(refusal).strip(), f"{name} refuses its own sources without saying why"
+    else:
+        assert verified == report
     with pytest.raises(PackDataError):
         pack.contract.catalog("v99999")
