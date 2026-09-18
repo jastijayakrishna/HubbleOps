@@ -18,6 +18,8 @@ DATA_ROOT = Path(__file__).resolve().parent / "data"
 SOURCE_ROOT = DATA_ROOT / "sources"
 MANIFEST_PATH = SOURCE_ROOT / "manifest.json"
 REQUIRED_FAMILIES = frozenset({"proto", "field", "docs", "compatibility"})
+UNRESOLVED_CHANGE_KIND = "unresolved_documented_change"
+UNRESOLVED_CHANGE_RESOLUTION = "UNKNOWN_PROVIDER_CONTRACT"
 
 
 class GoogleAdsChanges:
@@ -336,6 +338,8 @@ class GoogleAdsChanges:
         record = records[0]
         family = self._required_text(record, "family")
         confidence = "PROVEN" if family == "proto" else "DOCUMENTED"
+        if self._required_text(record, "kind") == UNRESOLVED_CHANGE_KIND:
+            return self._fact(record, confidence, (), UNRESOLVED_CHANGE_RESOLUTION)
         return self._fact(record, confidence, (), "RESOLVED")
 
     def _reconcile_field(

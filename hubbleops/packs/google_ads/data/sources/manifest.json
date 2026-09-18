@@ -64,7 +64,7 @@
       "path": "normalized/docs_v19.jsonl",
       "raw_path": "raw/docs_v19.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "b747e6ad2ffd9632e64fe8363af712dc278bd538cf3998174f88948a754a767c",
+      "sha256": "d107c61879086a69d8a6ea2a89611917d7773d9fd51df8c71774de0641a12775",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -1218,7 +1218,7 @@
       "path": "normalized/docs_v20.jsonl",
       "raw_path": "raw/docs_v20.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "25e1723d47e08f88bb05fa9f1e8fddfdeb123edffa019f9b575f84d01688dd49",
+      "sha256": "9cc63730576df1dd8cacaae46ea6c542f1cfa22a6efcceb42c452d3fbda31005",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -2350,12 +2350,12 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 9,
+      "expected_records": 10,
       "family": "docs",
       "path": "normalized/docs_v21.jsonl",
       "raw_path": "raw/docs_v21.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "cbe6707db1c8840aef3840a5979f3797f487d3b0e0cd70a0849fb1326ff70926",
+      "sha256": "8b27b926960993b4b4a2326277c0a30641039c77e72c6affd56721fb9b3e9466",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -3529,12 +3529,12 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 33,
+      "expected_records": 38,
       "family": "docs",
       "path": "normalized/docs_v22.jsonl",
       "raw_path": "raw/docs_v22.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "6f8917d1a00dbe5054168e54dbb55e90cb2246cb411c5d24c9f35f8f04a164ce",
+      "sha256": "c9814bf5affbde84f66d9ba91b47100b311a890ff22662b0ff7741b93e78424d",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -4726,12 +4726,12 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 73,
+      "expected_records": 77,
       "family": "docs",
       "path": "normalized/docs_v23.jsonl",
       "raw_path": "raw/docs_v23.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "470c5f5ddb8c84464e766ae7238fd410aa8cdcc824f6b441b404c6d8fd684f12",
+      "sha256": "fc74309ea9570945f755f1446de737779ff15ef62565657e23b9e9964962b520",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -5953,12 +5953,12 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 62,
+      "expected_records": 70,
       "family": "docs",
       "path": "normalized/docs_v24.jsonl",
       "raw_path": "raw/docs_v24.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "bfe40d36cb38d055582a79d0a35198af68b7b9dc331dc3a7cf01df9514dc5616",
+      "sha256": "d23dc24e29b11f6dd3d9b054f2fab7cbd6f66d25e7b776aa3acd78ee5da4b9f1",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -7186,12 +7186,12 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 69,
+      "expected_records": 73,
       "family": "docs",
       "path": "normalized/docs_v25.jsonl",
       "raw_path": "raw/docs_v25.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "2745f7fcad1c1f0da994a8ca8208d1ef51eded39e6b668984d727d1e3889a63a",
+      "sha256": "5dfe03f9f7e29c582a07142c47a152aa157fbcb73d3de80d1c66f61b4eda4786",
       "upstream_files": [
         {
           "bytes": 169646,

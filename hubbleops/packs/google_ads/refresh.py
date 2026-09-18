@@ -16,6 +16,7 @@ from typing import Any
 
 from hubbleops.core.canonical import blob_hash, canonical_text, export_bytes
 from hubbleops.core.records import as_mapping, as_sequence, as_text
+from hubbleops.packs.google_ads.changes import UNRESOLVED_CHANGE_KIND
 from hubbleops.packs.google_ads.proto import Symbol, resolve_type, symbols
 
 RETRIEVED_AT = "2026-09-04T00:00:00Z"
@@ -50,6 +51,16 @@ REPLACEMENT = re.compile(
     re.I,
 )
 MIGRATION_HEADER = ("Initial state", "New state", "Change type", "Implementation guidance")
+NEITHER_SIDE_BOUND = "neither side of this documented replacement binds to a single catalog subject"
+REPLACED_SIDE_UNBOUND = (
+    "the replaced side of this documented replacement binds to no single catalog subject"
+)
+REPLACEMENT_SIDE_UNBOUND = (
+    "the replacement side of this documented replacement binds to no single catalog subject"
+)
+BOTH_SIDES_ONE_SUBJECT = (
+    "both sides of this documented replacement bind to the same catalog subject"
+)
 SUBJECT_CHANGE_TYPE = re.compile(r"remov|renam|replac", re.I)
 GUIDANCE_TARGET = re.compile(r"\b(?:use|replaced by)\s+(.*?)(?:\binstead\b|\.\s|\.$|$)", re.I)
 IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_.]*")
@@ -721,7 +732,7 @@ def docs_records(
     ]
     if not sections:
         raise ValueError(f"release notes have no {version} section")
-    table_changes, unresolved_rows = migration_table_changes(
+    table_changes = migration_table_changes(
         version,
         sections,
         previous_subjects,
@@ -757,7 +768,6 @@ def docs_records(
                 "major": version,
                 "released_at": releases[version][0],
                 "minor_updates_folded": True,
-                "unresolved_replacement_rows": unresolved_rows,
             },
             release_url,
             blob_hash(release),
@@ -835,10 +845,10 @@ def migration_table_changes(
     current_subjects: Sequence[str],
     source_url: str,
     digest: str,
-) -> tuple[list[dict[str, Any]], int]:
+) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     seen: set[str] = set()
-    unresolved = 0
+    occurrences: dict[str, int] = {}
     for table in re.findall(r"<table\b.*?</table>", "".join(sections), re.S):
         rows = [
             [clean(cell) for cell in re.findall(r"<t[dh]\b[^>]*>(.*?)</t[dh]>", row, re.S)]
@@ -855,7 +865,22 @@ def migration_table_changes(
                 stated = " ".join(item[1] for item in GUIDANCE_TARGET.finditer(cells[3]))
                 replacement = documented_row_subject(stated, current_subjects, cells[0])
             if change_subject is None or replacement is None or change_subject == replacement:
-                unresolved += 1
+                position = canonical_text([version, list(cells)])
+                ordinal = occurrences.get(position, 0)
+                occurrences[position] = ordinal + 1
+                records.append(
+                    unresolved_replacement(
+                        version,
+                        " ".join(cells),
+                        cells[0],
+                        cells[1],
+                        change_subject,
+                        replacement,
+                        canonical_text([version, list(cells), ordinal]),
+                        source_url,
+                        digest,
+                    )
+                )
                 continue
             claim = " ".join(cells)
             identity = canonical_text([change_subject, replacement, claim])
@@ -879,7 +904,72 @@ def migration_table_changes(
                     digest,
                 )
             )
-    return records, unresolved
+    return records
+
+
+def unresolved_replacement(
+    version: str,
+    claim: str,
+    stated_subject: str,
+    stated_replacement: str,
+    change_subject: str | None,
+    replacement: str | None,
+    identity: str,
+    source_url: str,
+    digest: str,
+) -> dict[str, Any]:
+    previous = f"v{int(version[1:]) - 1}"
+    if change_subject is None and replacement is None:
+        conflict = NEITHER_SIDE_BOUND
+        close_with = (
+            f"name the single {previous} catalog subject the replaced side means and the single "
+            f"{version} subject the replacement side means, each already a fact in "
+            f"catalog_{previous}.jsonl and catalog_{version}.jsonl, or record a human decision "
+            "that this claim names no catalog subject"
+        )
+    elif change_subject is None:
+        conflict = REPLACED_SIDE_UNBOUND
+        close_with = (
+            f"name the single {previous} catalog subject the replaced side means, already a fact "
+            f"in catalog_{previous}.jsonl, or record a human decision that this claim names no "
+            "catalog subject"
+        )
+    elif replacement is None:
+        conflict = REPLACEMENT_SIDE_UNBOUND
+        close_with = (
+            f"name the single {version} catalog subject the replacement side means, already a "
+            f"fact in catalog_{version}.jsonl, or record a human decision that this claim "
+            "documents a removal with no replacement"
+        )
+    else:
+        conflict = BOTH_SIDES_ONE_SUBJECT
+        close_with = (
+            f"name the {version} catalog subject the replacement side means distinct from "
+            f"{change_subject}, already a fact in catalog_{version}.jsonl, or record a human "
+            "decision that this claim states no replacement"
+        )
+    attributes: dict[str, Any] = {
+        "claim": claim,
+        "close_with": close_with,
+        "conflict": conflict,
+        "from_version": previous,
+        "stated_replacement": stated_replacement,
+        "stated_subject": stated_subject,
+        "to_version": version,
+    }
+    if change_subject is not None:
+        attributes["change_subject"] = change_subject
+    if replacement is not None:
+        attributes["replacement"] = replacement
+    return record(
+        version,
+        "docs",
+        f"docs.unresolved_change.{blob_hash(identity.encode())}",
+        UNRESOLVED_CHANGE_KIND,
+        attributes,
+        source_url,
+        digest,
+    )
 
 
 def api_identifiers(phrase: str) -> list[str]:
@@ -921,10 +1011,23 @@ def documented_replacements(
     digest: str,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
-    for match in REPLACEMENT.finditer(claim):
+    for ordinal, match in enumerate(REPLACEMENT.finditer(claim)):
         replacement = documented_subject(match[1], current_subjects)
         change_subject = documented_subject(match[2], previous_subjects)
         if replacement is None or change_subject is None or replacement == change_subject:
+            records.append(
+                unresolved_replacement(
+                    version,
+                    claim,
+                    match[2],
+                    match[1],
+                    change_subject,
+                    replacement,
+                    canonical_text([version, claim, match[0], ordinal]),
+                    source_url,
+                    digest,
+                )
+            )
             continue
         identity = canonical_text([change_subject, replacement, claim])
         records.append(

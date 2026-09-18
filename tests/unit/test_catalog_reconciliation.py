@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from hubbleops.packs.google_ads.changes import CHANGES, DATA_ROOT
+from hubbleops.packs.google_ads.changes import CHANGES, DATA_ROOT, UNRESOLVED_CHANGE_KIND
 from hubbleops.packs.google_ads.refresh import migration_table_changes
 
 NAMED_FIELDS = ("customer.id", "metrics.clicks", "segments.date")
@@ -176,14 +176,17 @@ def test_unresolved_facts_always_record_why(version: str) -> None:
 
 
 @pytest.mark.parametrize("version", VERSIONS)
-def test_only_disagreeing_sources_stay_unresolved(version: str) -> None:
+def test_only_disagreeing_sources_and_unbound_claims_stay_unresolved(version: str) -> None:
     records = catalog_records(version)
     unresolved = [item for item in records if item["resolution"] != "RESOLVED"]
-    assert {item["attributes"]["conflict"] for item in unresolved} <= {
+    fields = [item for item in unresolved if item["kind"] == "field"]
+    claims = [item for item in unresolved if item["kind"] == UNRESOLVED_CHANGE_KIND]
+    assert len(fields) + len(claims) == len(unresolved)
+    assert {item["attributes"]["conflict"] for item in fields} <= {
         "proto and field catalog type or repetition disagree",
         "Query Builder sources disagree about the field",
     }
-    for item in unresolved:
+    for item in fields:
         if item["attributes"]["conflict"].startswith("proto and field"):
             assert (
                 item["attributes"]["proto_data_type"] != item["attributes"]["data_type"]
@@ -191,11 +194,14 @@ def test_only_disagreeing_sources_stay_unresolved(version: str) -> None:
             )
         else:
             assert item["attributes"]["source_conflicts"]
+    for item in claims:
+        assert item["attributes"]["close_with"]
+        assert item["attributes"]["claim"]
     assert len(unresolved) < len(records) // 20, f"{version} leaves {len(unresolved)} unresolved"
 
 
 def test_the_migration_table_resolves_only_unambiguous_rows() -> None:
-    records, unresolved = migration_table_changes(
+    records = migration_table_changes(
         "v25",
         (migration_table(MIGRATION_ROWS),),
         BEFORE_SUBJECTS,
@@ -203,20 +209,22 @@ def test_the_migration_table_resolves_only_unambiguous_rows() -> None:
         "https://example.test/release-notes",
         "a" * 64,
     )
+    bound = [item for item in records if item["kind"] == "documented_change"]
+    unbound = [item for item in records if item["kind"] == UNRESOLVED_CHANGE_KIND]
     carried = {
-        item["attributes"]["change_subject"]: item["attributes"]["replacement"] for item in records
+        item["attributes"]["change_subject"]: item["attributes"]["replacement"] for item in bound
     }
     assert carried == {
         CAMPAIGN_SUITABILITY: CUSTOMER_SUITABILITY,
         SEARCH_BRAND: SEARCH_TOPICS,
     }
-    assert unresolved == 1
-    assert all(item["kind"] == "documented_change" for item in records)
-    assert all(item["attributes"]["change_kind"] == "REPLACED" for item in records)
+    assert len(unbound) == 1
+    assert all(item["attributes"]["change_kind"] == "REPLACED" for item in bound)
+    assert len(bound) + len(unbound) == len(records)
 
 
-def test_a_row_naming_two_subjects_emits_nothing_and_is_counted() -> None:
-    records, unresolved = migration_table_changes(
+def test_a_row_naming_two_subjects_becomes_an_unresolved_record_of_its_own() -> None:
+    records = migration_table_changes(
         "v25",
         (migration_table((MIGRATION_ROWS[0], MIGRATION_ROWS[3])),),
         BEFORE_SUBJECTS,
@@ -224,8 +232,8 @@ def test_a_row_naming_two_subjects_emits_nothing_and_is_counted() -> None:
         "https://example.test/release-notes",
         "a" * 64,
     )
-    assert records == []
-    assert unresolved == 1
+    assert [item["kind"] for item in records] == [UNRESOLVED_CHANGE_KIND]
+    assert records[0]["attributes"]["claim"] == " ".join(MIGRATION_ROWS[3])
 
 
 def test_a_behavioural_row_is_never_read_as_a_replacement() -> None:
@@ -235,7 +243,7 @@ def test_a_behavioural_row_is_never_read_as_a_replacement() -> None:
         "Behavioral shift",
         "Use Customer.video_brand_safety_suitability instead.",
     )
-    records, unresolved = migration_table_changes(
+    records = migration_table_changes(
         "v25",
         (migration_table((MIGRATION_ROWS[0], row)),),
         BEFORE_SUBJECTS,
@@ -243,15 +251,22 @@ def test_a_behavioural_row_is_never_read_as_a_replacement() -> None:
         "https://example.test/release-notes",
         "a" * 64,
     )
-    assert (records, unresolved) == ([], 0)
+    assert records == []
 
 
 @pytest.mark.parametrize("version", VERSIONS)
-def test_every_release_record_reports_the_rows_it_could_not_resolve(version: str) -> None:
-    release = [item for item in catalog_records(version) if item["kind"] == "release_notes"]
+def test_every_row_the_release_notes_could_not_resolve_is_its_own_record(version: str) -> None:
+    records = catalog_records(version)
+    release = [item for item in records if item["kind"] == "release_notes"]
     assert len(release) == 1
-    count = release[0]["attributes"]["unresolved_replacement_rows"]
-    assert isinstance(count, int) and count >= 0
+    assert "unresolved_replacement_rows" not in release[0]["attributes"]
+    for item in records:
+        if item["kind"] != UNRESOLVED_CHANGE_KIND:
+            continue
+        assert item["resolution"] != "RESOLVED"
+        assert item["attributes"]["to_version"] == version
+        assert item["attributes"]["conflict"]
+        assert item["attributes"]["close_with"]
 
 
 @pytest.mark.parametrize(
