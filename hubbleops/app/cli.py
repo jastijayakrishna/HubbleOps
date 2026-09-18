@@ -39,12 +39,13 @@ from hubbleops.core.proof_scope import (
     scanner_fingerprint,
     short_scope,
 )
-from hubbleops.core.records import as_mapping
+from hubbleops.core.records import as_mapping, as_text
 from hubbleops.core.requests import static_request
 from hubbleops.graph import indexers
 from hubbleops.graph.imports import AstGrep, language_for
 from hubbleops.observe import DEFERRED_VALIDATION, deps, ledger, structure, telemetry, text
 from hubbleops.observe.dynamic import runner as dynamic
+from hubbleops.packs._protocol import CatalogFact
 from hubbleops.proof import exposure_workflow, guard, memory, pr_body, receipt
 from hubbleops.store.artifacts import write_atomic
 from hubbleops.store.sqlite import Store
@@ -1296,7 +1297,26 @@ def _pack_verify(args: argparse.Namespace) -> int:
     for version, digest in report.catalog_hashes.items():
         print(f"  {version:<12} {digest}  facts={report.fact_counts[version]}")
     print(f"  sources      {len(report.source_hashes)}")
+    open_claims = _open_provider_claims(pack, tuple(report.catalog_hashes))
+    print(f"  open UNKNOWN {len(open_claims)}")
+    for number, (version, fact) in enumerate(open_claims, start=1):
+        print(f"  {number}. {version}  {fact.subject}")
+        for key in ("claim", "conflict", "close_with"):
+            value = as_text(fact.attributes.get(key))
+            if value:
+                print(f"     {key:<11} {value}")
     return EXIT_OK
+
+
+def _open_provider_claims(
+    pack: registry.LoadedPack, versions: Sequence[str]
+) -> tuple[tuple[str, CatalogFact], ...]:
+    return tuple(
+        (version, fact)
+        for version in versions
+        for fact in pack.contract.catalog(version).facts
+        if fact.resolution != "RESOLVED" and as_text(fact.attributes.get("close_with"))
+    )
 
 
 def _scan_summary(result: ScanResult) -> str:

@@ -13,12 +13,17 @@ from hubbleops.core.canonical import blob_hash, canonical_text, content_id, expo
 from hubbleops.core.errors import PackDataError
 from hubbleops.core.records import as_mapping, as_sequence, as_text
 from hubbleops.packs._protocol import BuildReport, CatalogFact, Confidence, Version
+from hubbleops.packs.google_ads.refresh import (
+    DOCUMENTED_CHANGE_KIND,
+    MIGRATION_ENTRY_KIND,
+    UNRESOLVED_CHANGE_KIND,
+    replacement_accounting,
+)
 
 DATA_ROOT = Path(__file__).resolve().parent / "data"
 SOURCE_ROOT = DATA_ROOT / "sources"
 MANIFEST_PATH = SOURCE_ROOT / "manifest.json"
 REQUIRED_FAMILIES = frozenset({"proto", "field", "docs", "compatibility"})
-UNRESOLVED_CHANGE_KIND = "unresolved_documented_change"
 UNRESOLVED_CHANGE_RESOLUTION = "UNKNOWN_PROVIDER_CONTRACT"
 
 
@@ -196,43 +201,75 @@ class GoogleAdsChanges:
                 shipped = self.data_root / path.name
                 if not shipped.is_file() or shipped.read_bytes() != path.read_bytes():
                     raise PackDataError(f"computed proto diff mismatch: {path.name}")
-            unbound = self._unbound_replacements(output, tuple(report.catalog_hashes))
-            if unbound:
-                raise PackDataError(self._unbound_refusal(unbound))
+            self._reconcile_replacements(output, tuple(report.catalog_hashes))
             return report
 
-    def _unbound_replacements(
-        self, output: Path, versions: Sequence[str]
-    ) -> tuple[Mapping[str, Any], ...]:
+    def unresolved_replacements(self) -> tuple[Mapping[str, Any], ...]:
+        versions = self._expected_versions(self._manifest())
+        return self._recorded_replacements(self.data_root, versions)[1]
+
+    def _reconcile_replacements(self, output: Path, versions: Sequence[str]) -> None:
+        expected = {
+            self._required_text(source, "version"): as_mapping(source.get("expected_replacements"))
+            for source in self._source_entries(self._manifest())
+            if source.get("family") == "docs"
+        }
+        for version in versions:
+            records, unresolved = self._recorded_replacements(output, (version,))
+            accounting = replacement_accounting(records)
+            declared = expected.get(version)
+            if not declared:
+                raise PackDataError(
+                    f"the {version} docs source declares no documented-replacement accounting, so "
+                    "a row this pack never bound would leave no trace"
+                )
+            gaps = [
+                f"{key}: manifest declares {declared.get(key)}, rebuilt catalog carries {value}"
+                for key, value in sorted(accounting.items())
+                if declared.get(key) != value
+            ]
+            if gaps:
+                raise PackDataError(
+                    f"{version} documented replacements do not reconcile, so a row this pack "
+                    f"recognised left no record: {'; '.join(gaps)}"
+                )
+            if (
+                accounting["bound_pairs"] + accounting["unresolved_pairs"]
+                != (accounting["stated_pairs"])
+            ):
+                raise PackDataError(
+                    f"{version} states a replacement that is neither bound nor open"
+                )
+            if accounting["stated_pairs"] < accounting["replacement_rows"]:
+                raise PackDataError(
+                    f"{version} recognised {accounting['replacement_rows']} replacement rows "
+                    f"stating only {accounting['stated_pairs']} pairs"
+                )
+            silent = [
+                item
+                for item in unresolved
+                if not str(as_mapping(item["attributes"]).get("close_with", "")).strip()
+            ]
+            if silent:
+                raise PackDataError(
+                    f"{version} carries {len(silent)} unresolved documented replacements with no "
+                    "closing instruction, so nothing names the evidence that would close them"
+                )
+
+    def _recorded_replacements(
+        self, root: Path, versions: Sequence[str]
+    ) -> tuple[tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...]]:
+        kinds = frozenset({DOCUMENTED_CHANGE_KIND, MIGRATION_ENTRY_KIND, UNRESOLVED_CHANGE_KIND})
         found: list[Mapping[str, Any]] = []
         for version in versions:
-            text = (output / f"catalog_{version}.jsonl").read_text(encoding="utf-8")
+            text = (root / f"catalog_{version}.jsonl").read_text(encoding="utf-8")
             for line in text.splitlines():
-                if UNRESOLVED_CHANGE_KIND not in line:
-                    continue
                 item = as_mapping(json.loads(line))
-                if item.get("kind") == UNRESOLVED_CHANGE_KIND:
+                if item.get("kind") in kinds:
                     found.append(item)
-        return tuple(found)
-
-    def _unbound_refusal(self, unbound: Sequence[Mapping[str, Any]]) -> str:
-        lines = [
-            f"{len(unbound)} documented replacements bind to no catalog subject, so this pack "
-            "cannot be verified; every one of them is an UNKNOWN awaiting the evidence named "
-            "below"
-        ]
-        for number, item in enumerate(unbound, start=1):
-            attributes = as_mapping(item["attributes"])
-            lines.extend(
-                [
-                    f"  {number}. {attributes['from_version']} -> {attributes['to_version']}  "
-                    f"{item['subject']}",
-                    f"     claim       {attributes['claim']}",
-                    f"     conflict    {attributes['conflict']}",
-                    f"     close with  {attributes['close_with']}",
-                ]
-            )
-        return "\n".join(lines)
+        return tuple(found), tuple(
+            item for item in found if item.get("kind") == UNRESOLVED_CHANGE_KIND
+        )
 
     def versions(self) -> tuple[Version, ...]:
         entries = as_sequence(self._lattice().get("versions"))

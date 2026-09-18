@@ -2,14 +2,14 @@
   "fact_counts": {
     "v19": 15617,
     "v20": 15737,
-    "v21": 16218,
-    "v22": 16512,
-    "v23": 17228,
-    "v24": 17582,
-    "v25": 18248
+    "v21": 16225,
+    "v22": 16531,
+    "v23": 17236,
+    "v24": 17596,
+    "v25": 18259
   },
-  "lattice_hash": "cbe20b9f094a729a2f537963c634b1343271be783c188e52164a7f6d27d4c15c",
-  "manifest_sha256": "3b6e69f80ffb5bfb271d5837fe002b52b2f0da39c424c223b4ff6694c02ed533",
+  "lattice_hash": "ea086178677331ad6ed7b62f5eef1cea1208114d29f75c76ccb6b6a20b1f2be4",
+  "manifest_sha256": "007b95b21dab7e1b6c17a665fc2a7451466a8d7f79bdb1fba8c8a0531dcd92e5",
   "source_hashes": {
     "normalized/compatibility_v19.jsonl": "3d786723cf346ca1c4c6a1f8d2b543b155014896de2956ea35e79fef8b0b732e",
     "normalized/compatibility_v20.jsonl": "ad527952f514822fca2666cf2efb1745981bb07e4adaddfbd623ff6ac303ec8f",
@@ -19,12 +19,12 @@
     "normalized/compatibility_v24.jsonl": "485ce819508dbf8f1c83dfc3628ae7705233a67eca87045eec54dbfd47f3f815",
     "normalized/compatibility_v25.jsonl": "a3909d0d21ef07faf7ccc9287f96cf059003684d75a925daf28ebec706c092cd",
     "normalized/docs_v19.jsonl": "d107c61879086a69d8a6ea2a89611917d7773d9fd51df8c71774de0641a12775",
-    "normalized/docs_v20.jsonl": "9cc63730576df1dd8cacaae46ea6c542f1cfa22a6efcceb42c452d3fbda31005",
-    "normalized/docs_v21.jsonl": "8b27b926960993b4b4a2326277c0a30641039c77e72c6affd56721fb9b3e9466",
-    "normalized/docs_v22.jsonl": "c9814bf5affbde84f66d9ba91b47100b311a890ff22662b0ff7741b93e78424d",
-    "normalized/docs_v23.jsonl": "fc74309ea9570945f755f1446de737779ff15ef62565657e23b9e9964962b520",
-    "normalized/docs_v24.jsonl": "d23dc24e29b11f6dd3d9b054f2fab7cbd6f66d25e7b776aa3acd78ee5da4b9f1",
-    "normalized/docs_v25.jsonl": "5dfe03f9f7e29c582a07142c47a152aa157fbcb73d3de80d1c66f61b4eda4786",
+    "normalized/docs_v20.jsonl": "7163a17166970139bf7e18464d8604ddcc7efef5b3f9ee6ba73b3215bdf2344f",
+    "normalized/docs_v21.jsonl": "86a29c8c028c5ea48c0e515a14c545bc331ff2a3da15ef2aa44f1205d15a525d",
+    "normalized/docs_v22.jsonl": "9212b27e3356aa0b08cc88dfcc2cfcf6807a64b08dc81a38bcefaca95712667b",
+    "normalized/docs_v23.jsonl": "ace6ece8b50cf43c4c9fcfe010d3ccd36b9bb273af84207ecd48ed7cd0eb565a",
+    "normalized/docs_v24.jsonl": "923c14d7a3331c0a657442839345a7c464c38520a1591645cb3c93223a395526",
+    "normalized/docs_v25.jsonl": "d79629100a2f7c59e1103805ff4d5bc3589ce030a8475bcbc8a529d9a7c00814",
     "normalized/field_v19.jsonl": "2f71d3100095f692096f8b13d4dabfb3ed9d79a3e06341814e4d70fb5b06bd38",
     "normalized/field_v20.jsonl": "b4a4ce834e833e4eb8063257a986c3b218809f84f35b01642ef654be59e31e79",
     "normalized/field_v21.jsonl": "d1a28aba843c8385a59389ef0d6d80092c32bad71792d088d1c08bd2425f389a",
@@ -49,37 +49,37 @@
       "sunset_at": "2026-02-11"
     },
     {
-      "catalog_hash": "26bd9fb09cd2a41a6b22e81e569cd75d78e5817c125f22580cd9a8fa80e6e7e8",
+      "catalog_hash": "690b8f9e018b0d32f76a8cba709c2d31afd577f2aeddd9b8b796e7dff76435da",
       "id": "v20",
       "released_at": "2025-06-04",
       "sunset_at": "2026-06-10"
     },
     {
-      "catalog_hash": "5ae447635e2025e72ca91d7151b1f28d808f170cf7fede9645aa8fc6e1810f22",
+      "catalog_hash": "e2a7adac769345a667c91de2a638d0391359c0bfa3343d2102ae7f86ec96eb0a",
       "id": "v21",
       "released_at": "2025-08-06",
       "sunset_at": "2026-08-05"
     },
     {
-      "catalog_hash": "434df22c140914095d17fa63beb54087b3391b55a6e168a30b687018b273cb8d",
+      "catalog_hash": "44380fc72a6bb377d08bc19eb84dc88317dcdc0c7bbdac042cb693c9c524cb36",
       "id": "v22",
       "released_at": "2025-10-15",
       "sunset_at": "2026-10"
     },
     {
-      "catalog_hash": "d6e4d583c83180334715180418e6e8c72d5522cb7d0dc49f84d5624d76039669",
+      "catalog_hash": "bb0c4b177a1257bb28b37c4b2ee41049c0d0e62274f46b72971ead1698fad0ea",
       "id": "v23",
       "released_at": "2026-01-28",
       "sunset_at": "2027-02"
     },
     {
-      "catalog_hash": "5fe67096bfc1fb276e26b6173af6897d8503faed3e00e508ef151ec69a9f1aa2",
+      "catalog_hash": "a96215fc1c7c1a6769d038c99f810d61fe1f93e3517502013615afb734df1c39",
       "id": "v24",
       "released_at": "2026-04-22",
       "sunset_at": "2027-05"
     },
     {
-      "catalog_hash": "a55f2b038a74dee6ab22b8d1626473a768eb9e14031abebd6aef7047aba33905",
+      "catalog_hash": "746d658a2077f02558310570d4d6c488635fbfd840de592bfcdd48ecead9e869",
       "id": "v25",
       "released_at": "2026-07-22",
       "sunset_at": "2027-08"

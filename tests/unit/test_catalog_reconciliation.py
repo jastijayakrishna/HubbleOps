@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from hubbleops.packs.google_ads.changes import CHANGES, DATA_ROOT, UNRESOLVED_CHANGE_KIND
-from hubbleops.packs.google_ads.refresh import migration_table_changes
+from hubbleops.packs.google_ads.refresh import MIGRATION_ENTRY_KIND, migration_table_changes
 
 NAMED_FIELDS = ("customer.id", "metrics.clicks", "segments.date")
 VERSIONS = ("v19", "v20", "v21", "v22", "v23", "v24", "v25")
@@ -211,6 +211,7 @@ def test_the_migration_table_resolves_only_unambiguous_rows() -> None:
     )
     bound = [item for item in records if item["kind"] == "documented_change"]
     unbound = [item for item in records if item["kind"] == UNRESOLVED_CHANGE_KIND]
+    entries = [item for item in records if item["kind"] == MIGRATION_ENTRY_KIND]
     carried = {
         item["attributes"]["change_subject"]: item["attributes"]["replacement"] for item in bound
     }
@@ -219,8 +220,9 @@ def test_the_migration_table_resolves_only_unambiguous_rows() -> None:
         SEARCH_BRAND: SEARCH_TOPICS,
     }
     assert len(unbound) == 1
+    assert len(entries) == len(MIGRATION_ROWS) - 1
     assert all(item["attributes"]["change_kind"] == "REPLACED" for item in bound)
-    assert len(bound) + len(unbound) == len(records)
+    assert len(bound) + len(unbound) + len(entries) == len(records)
 
 
 def test_a_row_naming_two_subjects_becomes_an_unresolved_record_of_its_own() -> None:
@@ -232,11 +234,11 @@ def test_a_row_naming_two_subjects_becomes_an_unresolved_record_of_its_own() -> 
         "https://example.test/release-notes",
         "a" * 64,
     )
-    assert [item["kind"] for item in records] == [UNRESOLVED_CHANGE_KIND]
-    assert records[0]["attributes"]["claim"] == " ".join(MIGRATION_ROWS[3])
+    assert [item["kind"] for item in records] == [MIGRATION_ENTRY_KIND, UNRESOLVED_CHANGE_KIND]
+    assert records[1]["attributes"]["claim"] == " ".join(MIGRATION_ROWS[3])
 
 
-def test_a_behavioural_row_is_never_read_as_a_replacement() -> None:
+def test_a_behavioural_row_is_never_read_as_a_replacement_and_is_never_silent() -> None:
     row = (
         "Campaign.video_brand_safety_suitability",
         "Required field",
@@ -251,7 +253,10 @@ def test_a_behavioural_row_is_never_read_as_a_replacement() -> None:
         "https://example.test/release-notes",
         "a" * 64,
     )
-    assert records == []
+    assert [item["kind"] for item in records] == [MIGRATION_ENTRY_KIND]
+    assert records[0]["attributes"]["states_replacement"] is False
+    assert records[0]["attributes"]["initial_state"] == row[0]
+    assert records[0]["attributes"]["new_state"] == row[1]
 
 
 @pytest.mark.parametrize("version", VERSIONS)

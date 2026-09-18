@@ -16,7 +16,6 @@ from typing import Any
 
 from hubbleops.core.canonical import blob_hash, canonical_text, export_bytes
 from hubbleops.core.records import as_mapping, as_sequence, as_text
-from hubbleops.packs.google_ads.changes import UNRESOLVED_CHANGE_KIND
 from hubbleops.packs.google_ads.proto import Symbol, resolve_type, symbols
 
 RETRIEVED_AT = "2026-09-04T00:00:00Z"
@@ -65,15 +64,30 @@ SUBJECT_CHANGE_TYPE = re.compile(r"remov|renam|replac", re.I)
 GUIDANCE_TARGET = re.compile(r"\b(?:use|replaced by)\s+(.*?)(?:\binstead\b|\.\s|\.$|$)", re.I)
 IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_.]*")
 SUBJECT_KINDS = frozenset({"enum", "enum_value", "field", "message", "proto_field", "service"})
+CODE_ITEM = re.compile(r"<code\b[^>]*>(.*?)</code>", re.S)
+LIST_ITEM = re.compile(r"<li\b[^>]*>(.*?)</li>", re.S)
+LINE_BREAK = re.compile(r"<br\b[^>]*>")
+TABLE = re.compile(r"<table\b.*?</table>", re.S)
+TABLE_ROW = re.compile(r"<tr\b[^>]*>(.*?)</tr>", re.S)
+TABLE_CELL = re.compile(r"<t[dh]\b[^>]*>(.*?)</t[dh]>", re.S)
+DOCUMENTED_CHANGE_KIND = "documented_change"
+MIGRATION_ENTRY_KIND = "migration_entry"
+UNRESOLVED_CHANGE_KIND = "unresolved_documented_change"
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tar-root", required=True)
+    parser.add_argument("--tar-root")
     parser.add_argument("--output", default=str(Path(__file__).resolve().parent / "data"))
     parser.add_argument("--field-workers", type=int, default=4)
     parser.add_argument("--config")
+    parser.add_argument("--docs-only", action="store_true")
     args = parser.parse_args(argv)
+    if args.docs_only:
+        refresh_docs(Path(args.output))
+        return 0
+    if args.tar_root is None:
+        parser.error("--tar-root is required unless --docs-only is given")
     config = None if args.config is None else as_mapping(json.loads(Path(args.config).read_bytes()))
     refresh(Path(args.tar_root), Path(args.output), args.field_workers, config)
     return 0
@@ -122,8 +136,10 @@ def refresh(
                 baseline=version == "v18",
             )
         )
+    field_subjects: dict[str, tuple[str, ...]] = {}
     for version in versions:
         field_records, inventory = fetch_fields(version, field_workers, cache)
+        field_subjects[version] = tuple(str(item["subject"]) for item in field_records)
         proto_records[version].extend(
             crosscheck_records(version, field_records, proto_field_indexes[version])
         )
@@ -154,20 +170,23 @@ def refresh(
             version,
             shared_pages,
             releases,
-            tuple(str(item["subject"]) for item in proto_records[previous]),
-            tuple(str(item["subject"]) for item in proto_records[version]),
+            catalog_subjects(proto_records[previous], field_subjects.get(previous, ())),
+            catalog_subjects(proto_records[version], field_subjects.get(version, ())),
         )
         compatibility = compatibility_records(version, shared_pages["sunset"])
         manifest_sources.append(
-            emit_source(
-                sources,
-                raw,
-                normalized,
-                version,
-                "docs",
-                docs,
-                digest_inventory(shared_pages),
-            )
+            {
+                **emit_source(
+                    sources,
+                    raw,
+                    normalized,
+                    version,
+                    "docs",
+                    docs,
+                    digest_inventory(shared_pages),
+                ),
+                "expected_replacements": replacement_accounting(docs),
+            }
         )
         manifest_sources.append(
             emit_source(
@@ -196,6 +215,75 @@ def refresh(
         "sources": manifest_sources,
     }
     (sources / "manifest.json").write_bytes(export_bytes(manifest))
+
+
+def refresh_docs(output: Path) -> None:
+    sources = output / "sources"
+    manifest = as_mapping(json.loads((sources / "manifest.json").read_bytes()))
+    versions = tuple(str(item) for item in as_sequence(manifest["expected_versions"]))
+    releases = {
+        str(as_mapping(item)["id"]): (
+            str(as_mapping(item)["released_at"]),
+            str(as_mapping(item).get("sunset_at") or ""),
+        )
+        for item in as_sequence(manifest["versions"])
+    }
+    entries = [dict(as_mapping(item)) for item in as_sequence(manifest["sources"])]
+    subjects = {
+        version: catalog_subjects(
+            retained_records(sources, "proto", version),
+            [str(item["subject"]) for item in retained_records(sources, "field", version)],
+        )
+        for version in ("v18", *versions)
+    }
+    for version in versions:
+        previous = f"v{int(version[1:]) - 1}"
+        pages = retained_pages(sources, version)
+        docs = docs_records(version, pages, releases, subjects[previous], subjects.get(version, ()))
+        entry = {
+            **write_source(
+                sources,
+                sources / "raw",
+                sources / "normalized",
+                version,
+                "docs",
+                docs,
+                digest_inventory(pages),
+            ),
+            "expected_replacements": replacement_accounting(docs),
+        }
+        previous_entry = next(
+            item for item in entries if item["version"] == version and item["family"] == "docs"
+        )
+        if entry["raw_sha256"] != previous_entry["raw_sha256"]:
+            raise ValueError(f"{version} docs sources changed while replaying retained bytes")
+        entry["upstream_files"] = previous_entry["upstream_files"]
+        entries[entries.index(previous_entry)] = entry
+    (sources / "manifest.json").write_bytes(export_bytes({**manifest, "sources": entries}))
+
+
+def retained_records(sources: Path, family: str, version: str) -> list[dict[str, Any]]:
+    path = sources / "normalized" / f"{family}_{version}.jsonl"
+    if not path.is_file():
+        return []
+    return [
+        dict(as_mapping(json.loads(line)))
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line
+    ]
+
+
+def retained_pages(sources: Path, version: str) -> dict[str, tuple[str, bytes, str]]:
+    inventory = as_mapping(json.loads((sources / "raw" / f"docs_{version}.json").read_bytes()))
+    pages: dict[str, tuple[str, bytes, str]] = {}
+    for item in as_sequence(inventory["pages"]):
+        page = as_mapping(item)
+        digest = str(page["sha256"])
+        payload = gzip.decompress((sources / "upstream" / f"{digest}.gz").read_bytes())
+        if blob_hash(payload) != digest:
+            raise ValueError(f"retained upstream page {digest} does not match its own hash")
+        pages[str(page["name"])] = (str(page["url"]), payload, str(page["resolved_url"]))
+    return pages
 
 
 def retain_upstream_bytes(
@@ -732,6 +820,7 @@ def docs_records(
     ]
     if not sections:
         raise ValueError(f"release notes have no {version} section")
+    occurrences: dict[str, int] = {}
     table_changes = migration_table_changes(
         version,
         sections,
@@ -739,6 +828,7 @@ def docs_records(
         current_subjects,
         release_url,
         blob_hash(release),
+        occurrences,
     )
     records = [
         record(
@@ -773,12 +863,14 @@ def docs_records(
             blob_hash(release),
         ),
     ]
+    prose_claims = 0
     paragraphs = re.findall(r"<li\b[^>]*>(.*?)</li>", "".join(sections), re.S)
     for paragraph in paragraphs:
         claim = clean(paragraph)
         action = re.search(r"\b(Added|Removed|Deprecated|Renamed|Updated|Changed)\b", claim, re.I)
         if action is None:
             continue
+        prose_claims += len(replacement_claims(claim))
         identifiers = sorted(
             set(clean(value) for value in re.findall(r"<code\b[^>]*>(.*?)</code>", paragraph, re.S))
         )
@@ -801,6 +893,7 @@ def docs_records(
                 current_subjects,
                 release_url,
                 blob_hash(release),
+                occurrences,
             )
         )
     for row in re.findall(r"<tr\b[^>]*>(.*?)</tr>", "".join(guide_sections), re.S):
@@ -808,6 +901,7 @@ def docs_records(
         if len(cells) < 2 or not any(cells):
             continue
         guidance = " ".join(cells)
+        prose_claims += len(replacement_claims(guidance))
         records.append(
             record(
                 version,
@@ -832,10 +926,96 @@ def docs_records(
                 current_subjects,
                 upgrade_url,
                 blob_hash(upgrade),
+                occurrences,
             )
         )
     records.extend(table_changes)
+    rows = migration_rows(sections)
+    accounting = replacement_accounting(records)
+    stated = (
+        sum(len(stated_replacements(row)) for row in rows if states_replacement(row)) + prose_claims
+    )
+    if accounting["stated_pairs"] != stated:
+        raise ValueError(
+            f"{version} documents {stated} stated replacements but recorded "
+            f"{accounting['stated_pairs']}; a documented replacement left no record"
+        )
+    if accounting["migration_rows"] != tabulated_rows(sections):
+        raise ValueError(
+            f"{version} release notes tabulate {tabulated_rows(sections)} migration rows but "
+            f"{accounting['migration_rows']} were recognised; a documented row left no record"
+        )
     return records
+
+
+def replacement_accounting(records: Sequence[Mapping[str, Any]]) -> dict[str, int]:
+    pairs: dict[str, set[str]] = {DOCUMENTED_CHANGE_KIND: set(), UNRESOLVED_CHANGE_KIND: set()}
+    counts: dict[str, int] = {DOCUMENTED_CHANGE_KIND: 0, MIGRATION_ENTRY_KIND: 0}
+    replacement_rows = 0
+    for item in records:
+        kind = str(item["kind"])
+        attributes = as_mapping(item["attributes"])
+        if kind in counts:
+            counts[kind] += 1
+        if kind == MIGRATION_ENTRY_KIND:
+            replacement_rows += attributes["states_replacement"] is True
+        if kind in pairs:
+            pairs[kind].add(str(attributes["stated_pair"]))
+    bound = pairs[DOCUMENTED_CHANGE_KIND]
+    unresolved = pairs[UNRESOLVED_CHANGE_KIND]
+    if bound & unresolved:
+        raise ValueError("a stated replacement is recorded as both bound and unresolved")
+    return {
+        "bindings": counts[DOCUMENTED_CHANGE_KIND],
+        "bound_pairs": len(bound),
+        "migration_rows": counts[MIGRATION_ENTRY_KIND],
+        "replacement_rows": replacement_rows,
+        "stated_pairs": len(bound | unresolved),
+        "unresolved_pairs": len(unresolved),
+    }
+
+
+def migration_rows(sections: Sequence[str]) -> list[tuple[str, ...]]:
+    rows: list[tuple[str, ...]] = []
+    for table in TABLE.findall("".join(sections)):
+        cells = [tuple(TABLE_CELL.findall(row)) for row in TABLE_ROW.findall(table)]
+        if not cells or tuple(clean(item) for item in cells[0]) != MIGRATION_HEADER:
+            continue
+        rows.extend(row for row in cells[1:] if len(row) == len(MIGRATION_HEADER))
+    return rows
+
+
+def tabulated_rows(sections: Sequence[str]) -> int:
+    return sum(
+        sum(1 for row in TABLE_ROW.findall(table)[1:] if len(TABLE_CELL.findall(row)) == 4)
+        for table in TABLE.findall("".join(sections))
+    )
+
+
+def states_replacement(row: Sequence[str]) -> bool:
+    return SUBJECT_CHANGE_TYPE.search(clean(row[2])) is not None
+
+
+def stated_items(cell: str) -> tuple[str, ...]:
+    return tuple(found for item in CODE_ITEM.findall(cell) for found in [clean(item)] if found)
+
+
+def list_items(cell: str) -> tuple[str, ...]:
+    chunks = LIST_ITEM.findall(cell) or LINE_BREAK.split(cell)
+    if len(chunks) < 2:
+        return ()
+    found = [stated_items(chunk) for chunk in chunks]
+    if any(len(item) != 1 for item in found):
+        return ()
+    return tuple(item[0] for item in found)
+
+
+def stated_replacements(row: Sequence[str]) -> tuple[tuple[str, str], ...]:
+    replaced = list_items(row[0])
+    replacing = list_items(row[1])
+    if replaced and len(replaced) == len(replacing):
+        return tuple(zip(replaced, replacing, strict=True))
+    return ((clean(row[0]), clean(row[1])),)
 
 
 def migration_table_changes(
@@ -845,66 +1025,165 @@ def migration_table_changes(
     current_subjects: Sequence[str],
     source_url: str,
     digest: str,
+    occurrences: dict[str, int] | None = None,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    occurrences: dict[str, int] = {}
-    for table in re.findall(r"<table\b.*?</table>", "".join(sections), re.S):
-        rows = [
-            [clean(cell) for cell in re.findall(r"<t[dh]\b[^>]*>(.*?)</t[dh]>", row, re.S)]
-            for row in re.findall(r"<tr\b[^>]*>(.*?)</tr>", table, re.S)
-        ]
-        if not rows or tuple(rows[0]) != MIGRATION_HEADER:
+    counted = {} if occurrences is None else occurrences
+    for row in migration_rows(sections):
+        records.append(migration_entry(version, row, source_url, digest, counted))
+        if not states_replacement(row):
             continue
-        for cells in rows[1:]:
-            if len(cells) != len(MIGRATION_HEADER) or not SUBJECT_CHANGE_TYPE.search(cells[2]):
-                continue
-            change_subject = documented_row_subject(cells[0], previous_subjects)
-            replacement = documented_row_subject(cells[1], current_subjects, cells[0])
-            if replacement is None:
-                stated = " ".join(item[1] for item in GUIDANCE_TARGET.finditer(cells[3]))
-                replacement = documented_row_subject(stated, current_subjects, cells[0])
-            if change_subject is None or replacement is None or change_subject == replacement:
-                position = canonical_text([version, list(cells)])
-                ordinal = occurrences.get(position, 0)
-                occurrences[position] = ordinal + 1
-                records.append(
-                    unresolved_replacement(
-                        version,
-                        " ".join(cells),
-                        cells[0],
-                        cells[1],
-                        change_subject,
-                        replacement,
-                        canonical_text([version, list(cells), ordinal]),
-                        source_url,
-                        digest,
-                    )
-                )
-                continue
-            claim = " ".join(cells)
-            identity = canonical_text([change_subject, replacement, claim])
-            subject = f"docs.change.{blob_hash(identity.encode())}"
-            if subject in seen:
-                continue
-            seen.add(subject)
-            records.append(
-                record(
+        claim = " ".join(clean(cell) for cell in row)
+        guidance = " ".join(item[1] for item in GUIDANCE_TARGET.finditer(clean(row[3])))
+        for stated_subject, stated_replacement in stated_replacements(row):
+            records.extend(
+                replacement_records(
                     version,
-                    "docs",
-                    subject,
-                    "documented_change",
-                    {
-                        "change_kind": "REPLACED",
-                        "change_subject": change_subject,
-                        "replacement": replacement,
-                        "claim": claim,
-                    },
+                    claim,
+                    stated_subject,
+                    stated_replacement,
+                    guidance,
+                    previous_subjects,
+                    current_subjects,
                     source_url,
                     digest,
+                    counted,
                 )
             )
     return records
+
+
+def migration_entry(
+    version: str,
+    row: Sequence[str],
+    source_url: str,
+    digest: str,
+    occurrences: dict[str, int],
+) -> dict[str, Any]:
+    cells = [clean(cell) for cell in row]
+    position = canonical_text([version, cells])
+    ordinal = occurrences.get(position, 0)
+    occurrences[position] = ordinal + 1
+    return record(
+        version,
+        "docs",
+        f"docs.migration_entry.{blob_hash(canonical_text([position, ordinal]).encode())}",
+        MIGRATION_ENTRY_KIND,
+        {
+            "change_type": cells[2],
+            "from_version": f"v{int(version[1:]) - 1}",
+            "guidance": cells[3],
+            "initial_state": cells[0],
+            "new_state": cells[1],
+            "states_replacement": states_replacement(row),
+            "to_version": version,
+        },
+        source_url,
+        digest,
+    )
+
+
+def replacement_records(
+    version: str,
+    claim: str,
+    stated_subject: str,
+    stated_replacement: str,
+    guidance: str,
+    previous_subjects: Sequence[str],
+    current_subjects: Sequence[str],
+    source_url: str,
+    digest: str,
+    occurrences: dict[str, int],
+) -> list[dict[str, Any]]:
+    position = canonical_text([version, claim, stated_subject, stated_replacement])
+    ordinal = occurrences.get(position, 0)
+    occurrences[position] = ordinal + 1
+    pair = blob_hash(canonical_text([position, ordinal]).encode())
+    bindings = replacement_bindings(
+        stated_subject, stated_replacement, previous_subjects, current_subjects
+    )
+    change_subject: str | None = None
+    replacement: str | None = None
+    if not bindings:
+        change_subject = documented_row_subject(stated_subject, previous_subjects)
+        replacement = documented_row_subject(stated_replacement, current_subjects, stated_subject)
+        if replacement is None and guidance:
+            replacement = documented_row_subject(guidance, current_subjects, stated_subject)
+        if change_subject is not None and replacement is not None and change_subject != replacement:
+            bindings = ((change_subject, replacement),)
+    if not bindings:
+        return [
+            unresolved_replacement(
+                version,
+                claim,
+                stated_subject,
+                stated_replacement,
+                change_subject,
+                replacement,
+                pair,
+                source_url,
+                digest,
+            )
+        ]
+    return [
+        record(
+            version,
+            "docs",
+            f"docs.change.{blob_hash(canonical_text([subject, target, claim, pair]).encode())}",
+            DOCUMENTED_CHANGE_KIND,
+            {
+                "change_kind": "REPLACED",
+                "change_subject": subject,
+                "replacement": target,
+                "claim": claim,
+                "stated_pair": pair,
+            },
+            source_url,
+            digest,
+        )
+        for subject, target in bindings
+    ]
+
+
+def replacement_bindings(
+    stated_subject: str,
+    stated_replacement: str,
+    previous_subjects: Sequence[str],
+    current_subjects: Sequence[str],
+) -> tuple[tuple[str, str], ...]:
+    replaced = container_index(stated_subject, previous_subjects)
+    replacing = container_index(stated_replacement, current_subjects)
+    return tuple(
+        (replaced[container], replacing[container])
+        for container in sorted(set(replaced) & set(replacing))
+        if replaced[container] != replacing[container]
+    )
+
+
+def container_index(identifier: str, subjects: Sequence[str]) -> dict[str, str]:
+    lowered = identifier.lower()
+    leaf = identifier.rpartition(".")[2]
+    grouped: dict[str, list[str]] = {}
+    for subject in subjects:
+        folded = subject.lower()
+        if folded != lowered and not folded.endswith(f".{lowered}"):
+            continue
+        if not subject.endswith(leaf):
+            continue
+        container = subject[: len(subject) - len(identifier)].rstrip(".")
+        grouped.setdefault(container, []).append(subject)
+    return {container: found[0] for container, found in grouped.items() if len(found) == 1}
+
+
+def catalog_subjects(
+    proto_records: Sequence[Mapping[str, Any]], field_subjects: Sequence[str]
+) -> tuple[str, ...]:
+    return tuple(
+        dict.fromkeys(
+            [str(item["subject"]) for item in proto_records]
+            + [str(item) for item in field_subjects]
+        )
+    )
 
 
 def unresolved_replacement(
@@ -953,6 +1232,7 @@ def unresolved_replacement(
         "close_with": close_with,
         "conflict": conflict,
         "from_version": previous,
+        "stated_pair": identity,
         "stated_replacement": stated_replacement,
         "stated_subject": stated_subject,
         "to_version": version,
@@ -1002,6 +1282,10 @@ def documented_row_subject(phrase: str, subjects: Sequence[str], context: str = 
     return next(iter(resolved)) if len(resolved) == 1 else None
 
 
+def replacement_claims(claim: str) -> tuple[tuple[str, str], ...]:
+    return tuple((match[2], match[1]) for match in REPLACEMENT.finditer(claim))
+
+
 def documented_replacements(
     version: str,
     claim: str,
@@ -1009,44 +1293,25 @@ def documented_replacements(
     current_subjects: Sequence[str],
     source_url: str,
     digest: str,
+    occurrences: dict[str, int] | None = None,
 ) -> list[dict[str, Any]]:
-    records: list[dict[str, Any]] = []
-    for ordinal, match in enumerate(REPLACEMENT.finditer(claim)):
-        replacement = documented_subject(match[1], current_subjects)
-        change_subject = documented_subject(match[2], previous_subjects)
-        if replacement is None or change_subject is None or replacement == change_subject:
-            records.append(
-                unresolved_replacement(
-                    version,
-                    claim,
-                    match[2],
-                    match[1],
-                    change_subject,
-                    replacement,
-                    canonical_text([version, claim, match[0], ordinal]),
-                    source_url,
-                    digest,
-                )
-            )
-            continue
-        identity = canonical_text([change_subject, replacement, claim])
-        records.append(
-            record(
-                version,
-                "docs",
-                f"docs.change.{blob_hash(identity.encode())}",
-                "documented_change",
-                {
-                    "change_kind": "REPLACED",
-                    "change_subject": change_subject,
-                    "replacement": replacement,
-                    "claim": claim,
-                },
-                source_url,
-                digest,
-            )
+    counted = {} if occurrences is None else occurrences
+    return [
+        item
+        for stated_subject, stated_replacement in replacement_claims(claim)
+        for item in replacement_records(
+            version,
+            claim,
+            stated_subject,
+            stated_replacement,
+            "",
+            previous_subjects,
+            current_subjects,
+            source_url,
+            digest,
+            counted,
         )
-    return records
+    ]
 
 
 def documented_subject(identifier: str, subjects: Sequence[str]) -> str | None:

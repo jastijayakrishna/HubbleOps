@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import json
+import shutil
+from pathlib import Path
 from typing import Any
 
 import pytest
 
+from hubbleops.core.canonical import blob_hash, canonical_text
 from hubbleops.core.errors import PackDataError
-from hubbleops.packs.google_ads.changes import CHANGES, DATA_ROOT
-from hubbleops.packs.google_ads.refresh import migration_table_changes
+from hubbleops.packs.google_ads.changes import CHANGES, DATA_ROOT, GoogleAdsChanges
+from hubbleops.packs.google_ads.refresh import MIGRATION_ENTRY_KIND, migration_table_changes
 
 VERSIONS = ("v19", "v20", "v21", "v22", "v23", "v24", "v25")
-SHIPPED_UNBOUND = {"v19": 0, "v20": 0, "v21": 1, "v22": 5, "v23": 4, "v24": 8, "v25": 4}
+SHIPPED_UNBOUND = {"v19": 0, "v20": 0, "v21": 1, "v22": 3, "v23": 3, "v24": 8, "v25": 3}
+SHIPPED_UNBOUND_TOTAL = 18
 UNRESOLVED_KIND = "unresolved_documented_change"
 UNRESOLVED_SUBJECT_PREFIX = "docs.unresolved_change."
 UNRESOLVED_RESOLUTION = "UNKNOWN_PROVIDER_CONTRACT"
@@ -65,7 +69,7 @@ def migration_table(rows: tuple[tuple[str, ...], ...]) -> str:
     return f"<h2>v25 major and minor versions</h2><table>{body}</table>"
 
 
-def rows_of(*rows: tuple[str, ...]) -> list[dict[str, Any]]:
+def records_of(*rows: tuple[str, ...]) -> list[dict[str, Any]]:
     return migration_table_changes(
         "v25",
         (migration_table((HEADER, *rows)),),
@@ -74,6 +78,10 @@ def rows_of(*rows: tuple[str, ...]) -> list[dict[str, Any]]:
         "https://example.test/release-notes",
         "a" * 64,
     )
+
+
+def rows_of(*rows: tuple[str, ...]) -> list[dict[str, Any]]:
+    return [item for item in records_of(*rows) if item["kind"] != MIGRATION_ENTRY_KIND]
 
 
 def catalog_records(version: str) -> list[dict[str, Any]]:
@@ -159,6 +167,9 @@ def test_a_row_the_compiler_can_bind_is_still_a_documented_change() -> None:
 
 def test_a_behavioural_row_is_neither_a_replacement_nor_an_unbound_row() -> None:
     assert rows_of(BEHAVIOURAL_ROW) == []
+    entries = records_of(BEHAVIOURAL_ROW)
+    assert [item["kind"] for item in entries] == [MIGRATION_ENTRY_KIND]
+    assert entries[0]["attributes"]["states_replacement"] is False
 
 
 def test_two_identical_unbound_rows_stay_two_records() -> None:
@@ -173,8 +184,8 @@ def test_the_shipped_catalog_carries_one_record_for_every_unbound_row(version: s
     assert len(unbound_records(version)) == SHIPPED_UNBOUND[version]
 
 
-def test_the_shipped_catalogs_still_carry_all_twenty_two_unbound_rows() -> None:
-    assert sum(len(unbound_records(version)) for version in VERSIONS) == 22
+def test_the_shipped_catalogs_still_carry_every_unbound_row() -> None:
+    assert sum(len(unbound_records(version)) for version in VERSIONS) == SHIPPED_UNBOUND_TOTAL
 
 
 @pytest.mark.parametrize("version", VERSIONS)
@@ -200,21 +211,49 @@ def test_every_unbound_row_is_an_unknown_with_a_closing_instruction() -> None:
             assert attributes["from_version"] == f"v{int(version[1:]) - 1}"
             assert attributes["stated_subject"] in attributes["claim"]
             assert attributes["stated_replacement"] in attributes["claim"]
-    assert seen == 22
+    assert seen == SHIPPED_UNBOUND_TOTAL
 
 
-def test_pack_verification_refuses_while_any_row_is_unbound_and_prints_each_one() -> None:
+def test_pack_verification_passes_while_every_unbound_row_is_recorded() -> None:
     expected = [item["subject"] for version in VERSIONS for item in sorted_unbound_records(version)]
-    assert len(expected) == 22
+    assert len(expected) == SHIPPED_UNBOUND_TOTAL
+    report = CHANGES.verify()
+    assert sorted(report.catalog_hashes) == sorted(VERSIONS)
+    recorded = CHANGES.unresolved_replacements()
+    assert sorted(str(item["subject"]) for item in recorded) == sorted(expected)
+    for item in recorded:
+        assert str(item["attributes"]["close_with"]).strip()
+
+
+def test_pack_verification_refuses_when_an_unbound_row_goes_silent(tmp_path: Path) -> None:
+    data = tmp_path / "data"
+    shutil.copytree(DATA_ROOT, data)
+    dropped = drop_one_unbound_row(data, "v22")
     with pytest.raises(PackDataError) as refusal:
-        CHANGES.verify()
+        GoogleAdsChanges(data).verify()
     message = str(refusal.value)
-    assert "22" in message
-    for subject in expected:
-        assert subject in message, subject
-    for version in VERSIONS:
-        for item in sorted_unbound_records(version):
-            assert item["attributes"]["close_with"] in message
+    assert "do not reconcile" in message
+    assert "unresolved_pairs" in message
+    assert dropped not in (data / "sources" / "normalized" / "docs_v22.jsonl").read_text("utf-8")
+
+
+def drop_one_unbound_row(data: Path, version: str) -> str:
+    normalized = data / "sources" / "normalized" / f"docs_{version}.jsonl"
+    lines = normalized.read_text("utf-8").splitlines()
+    kept = [line for line in lines if UNRESOLVED_SUBJECT_PREFIX not in line]
+    dropped = next(line for line in lines if UNRESOLVED_SUBJECT_PREFIX in line)
+    payload = "".join(f"{line}\n" for line in kept).encode()
+    normalized.write_bytes(payload)
+    manifest_path = data / "sources" / "manifest.json"
+    manifest = json.loads(manifest_path.read_bytes())
+    for entry in manifest["sources"]:
+        if entry["version"] == version and entry["family"] == "docs":
+            entry["sha256"] = blob_hash(payload)
+            entry["expected_records"] = len(kept)
+    manifest_path.write_text(canonical_text(manifest), encoding="utf-8")
+    rebuilt = GoogleAdsChanges(data)
+    rebuilt.build(data)
+    return dropped
 
 
 def sorted_unbound_records(version: str) -> list[dict[str, Any]]:

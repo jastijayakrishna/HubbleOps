@@ -43,9 +43,9 @@ def _combine(left: ContractDiff, right: ContractDiff) -> ContractDiff:
                 previous,
                 after=incoming.after,
                 change="ADDED"
-                if previous.before is None
+                if previous.before is None and incoming.after is not None
                 else "REMOVED"
-                if incoming.after is None
+                if incoming.after is None and previous.before is not None
                 else "CHANGED",
                 replacement=incoming.replacement or previous.replacement,
                 result="UNKNOWN_PROVIDER_CONTRACT" if conflict else "VALID",
@@ -82,14 +82,19 @@ def _combine(left: ContractDiff, right: ContractDiff) -> ContractDiff:
                 dependents.setdefault(replacement, set()).add(subject)
         if incoming.replacement is not None:
             dependents.setdefault(incoming.replacement, set()).add(incoming.subject)
-    facts = tuple(
+    composed = [
         replace(
             fact,
+            replacement=None if fact.before is None else fact.replacement,
             reason="consecutive mapping conflicts"
             if fact.result == "UNKNOWN_PROVIDER_CONTRACT"
             else "composed consecutive mapping",
         )
         for _, fact in sorted(result.items())
+    ]
+    facts = tuple(
+        fact
+        for fact in composed
         if fact.before != fact.after
         or fact.replacement is not None
         or fact.result == "UNKNOWN_PROVIDER_CONTRACT"

@@ -77,20 +77,41 @@ def test_a_documented_replacement_only_ever_retargets_a_removed_subject(
         assert fact.replacement != fact.subject
 
 
-def test_composition_keeps_the_documented_replacements_of_every_hop() -> None:
+def test_composition_keeps_every_documented_replacement_the_source_version_can_name() -> None:
+    source = {fact.subject for fact in CONTRACT.catalog("v22").facts}
+    target = {fact.subject for fact in CONTRACT.catalog("v25").facts}
     hops = [
         fact
-        for source, target in ADJACENT[ADJACENT.index(("v22", "v23")) :]
-        for fact in CONTRACT.diff(source, target).facts
+        for start, end in ADJACENT[ADJACENT.index(("v22", "v23")) :]
+        for fact in CONTRACT.diff(start, end).facts
         if fact.replacement is not None
     ]
+    observable = [fact for fact in hops if fact.subject in source]
+    assert observable, "with no hop replacement present at v22 this test asserts nothing"
     composed = {
         fact.subject: fact
         for fact in CONTRACT.diff("v22", "v25").facts
         if fact.replacement is not None
     }
-    assert len(composed) > 0
-    assert {fact.subject for fact in hops} == set(composed)
-    for fact in hops:
+    assert {fact.subject for fact in observable} == set(composed)
+    for fact in observable:
         assert composed[fact.subject].change == "REMOVED"
+        assert composed[fact.subject].after is None
         assert composed[fact.subject].replacement == fact.replacement
+        assert composed[fact.subject].replacement in target
+
+
+def test_composition_never_retargets_a_subject_the_source_version_does_not_have() -> None:
+    source = {fact.subject for fact in CONTRACT.catalog("v22").facts}
+    introduced = [
+        fact
+        for start, end in ADJACENT[ADJACENT.index(("v22", "v23")) :]
+        for fact in CONTRACT.diff(start, end).facts
+        if fact.replacement is not None and fact.subject not in source
+    ]
+    assert introduced, "with no subject introduced inside the window this test asserts nothing"
+    composed = {fact.subject for fact in CONTRACT.diff("v22", "v25").facts}
+    for fact in introduced:
+        assert fact.subject not in composed, fact.subject
+    for fact in CONTRACT.diff("v22", "v25").facts:
+        assert fact.before is not None or fact.replacement is None, fact.subject

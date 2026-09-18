@@ -60,6 +60,14 @@
         "pages": 8
       },
       "expected_records": 40,
+      "expected_replacements": {
+        "bindings": 0,
+        "bound_pairs": 0,
+        "migration_rows": 0,
+        "replacement_rows": 0,
+        "stated_pairs": 0,
+        "unresolved_pairs": 0
+      },
       "family": "docs",
       "path": "normalized/docs_v19.jsonl",
       "raw_path": "raw/docs_v19.json",
@@ -1214,11 +1222,19 @@
         "pages": 8
       },
       "expected_records": 21,
+      "expected_replacements": {
+        "bindings": 2,
+        "bound_pairs": 2,
+        "migration_rows": 0,
+        "replacement_rows": 0,
+        "stated_pairs": 2,
+        "unresolved_pairs": 0
+      },
       "family": "docs",
       "path": "normalized/docs_v20.jsonl",
       "raw_path": "raw/docs_v20.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "9cc63730576df1dd8cacaae46ea6c542f1cfa22a6efcceb42c452d3fbda31005",
+      "sha256": "7163a17166970139bf7e18464d8604ddcc7efef5b3f9ee6ba73b3215bdf2344f",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -2350,12 +2366,20 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 10,
+      "expected_records": 17,
+      "expected_replacements": {
+        "bindings": 0,
+        "bound_pairs": 0,
+        "migration_rows": 7,
+        "replacement_rows": 1,
+        "stated_pairs": 1,
+        "unresolved_pairs": 1
+      },
       "family": "docs",
       "path": "normalized/docs_v21.jsonl",
       "raw_path": "raw/docs_v21.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "8b27b926960993b4b4a2326277c0a30641039c77e72c6affd56721fb9b3e9466",
+      "sha256": "86a29c8c028c5ea48c0e515a14c545bc331ff2a3da15ef2aa44f1205d15a525d",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -3529,12 +3553,20 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 38,
+      "expected_records": 57,
+      "expected_replacements": {
+        "bindings": 14,
+        "bound_pairs": 7,
+        "migration_rows": 7,
+        "replacement_rows": 5,
+        "stated_pairs": 10,
+        "unresolved_pairs": 3
+      },
       "family": "docs",
       "path": "normalized/docs_v22.jsonl",
       "raw_path": "raw/docs_v22.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "c9814bf5affbde84f66d9ba91b47100b311a890ff22662b0ff7741b93e78424d",
+      "sha256": "9212b27e3356aa0b08cc88dfcc2cfcf6807a64b08dc81a38bcefaca95712667b",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -4726,12 +4758,20 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 77,
+      "expected_records": 85,
+      "expected_replacements": {
+        "bindings": 4,
+        "bound_pairs": 2,
+        "migration_rows": 5,
+        "replacement_rows": 4,
+        "stated_pairs": 5,
+        "unresolved_pairs": 3
+      },
       "family": "docs",
       "path": "normalized/docs_v23.jsonl",
       "raw_path": "raw/docs_v23.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "fc74309ea9570945f755f1446de737779ff15ef62565657e23b9e9964962b520",
+      "sha256": "ace6ece8b50cf43c4c9fcfe010d3ccd36b9bb273af84207ecd48ed7cd0eb565a",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -5953,12 +5993,20 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 70,
+      "expected_records": 84,
+      "expected_replacements": {
+        "bindings": 2,
+        "bound_pairs": 2,
+        "migration_rows": 13,
+        "replacement_rows": 9,
+        "stated_pairs": 10,
+        "unresolved_pairs": 8
+      },
       "family": "docs",
       "path": "normalized/docs_v24.jsonl",
       "raw_path": "raw/docs_v24.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "d23dc24e29b11f6dd3d9b054f2fab7cbd6f66d25e7b776aa3acd78ee5da4b9f1",
+      "sha256": "923c14d7a3331c0a657442839345a7c464c38520a1591645cb3c93223a395526",
       "upstream_files": [
         {
           "bytes": 169646,
@@ -7186,12 +7234,20 @@
         "bytes": 11292274,
         "pages": 8
       },
-      "expected_records": 73,
+      "expected_records": 84,
+      "expected_replacements": {
+        "bindings": 4,
+        "bound_pairs": 4,
+        "migration_rows": 9,
+        "replacement_rows": 5,
+        "stated_pairs": 7,
+        "unresolved_pairs": 3
+      },
       "family": "docs",
       "path": "normalized/docs_v25.jsonl",
       "raw_path": "raw/docs_v25.json",
       "raw_sha256": "918b33580b9c0466884a0f6017df9793beebbe7e50c33bb967b2fadb9d42b445",
-      "sha256": "5dfe03f9f7e29c582a07142c47a152aa157fbcb73d3de80d1c66f61b4eda4786",
+      "sha256": "d79629100a2f7c59e1103805ff4d5bc3589ce030a8475bcbc8a529d9a7c00814",
       "upstream_files": [
         {
           "bytes": 169646,
