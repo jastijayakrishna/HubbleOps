@@ -47,7 +47,9 @@ Updated before every session ends. Phase-level status lives in
       0 → **18**. `uv run hops pack verify google_ads` exits **0** and prints all 18 open UNKNOWNs
       with their closing instructions. `tests/unit/test_pack_replacement_bound.py` (23 tests) plus
       the updated `test_pack_replacement_unresolved.py`, `test_catalog_reconciliation.py` and
-      `test_google_ads_change_pack.py`. Detail in `dev/context.md`.
+      `test_google_ads_change_pack.py`. Full suite on a quiet tree: **1446 passed, 1 skipped** in
+      19:46. No real-repo count moved — `baselines` green on GitHub's Linux runner at `2543b0f`,
+      run 35315986107. Detail in `dev/context.md`.
 
 - [x] **A four-column migration row never leaves the parser without a record (2026-09-18).** Only
       the 24 rows whose Change type matched `remov|renam|replac` were read; the other 17 —

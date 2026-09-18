@@ -1767,9 +1767,15 @@ shift", "Type change", "Structural change" — produced nothing at all. Every fo
 
 Counts, before → after, on the retained bytes: unresolved documented replacements 22 → **18**
 (v21 1→1, v22 5→3, v23 4→3, v24 8→8, v25 4→3); bound replacements 4 → **26**; `migration_entry` facts
-0 → **41**; `ChangeSet.renamed()` over v21→v22 and v22→v23 0 → **18**. No candidate count can move:
-`observe/resolver.py` never reads the contract oracle, and `replacement` reaches only
-`obligations/engine.py`, which the baseline gate does not count.
+0 → **41**; `ChangeSet.renamed()` over v21→v22 and v22→v23 0 → **18**. No candidate count moved, and
+it could not: `observe/resolver.py` never reads the contract oracle, and `replacement` reaches only
+`obligations/engine.py`, which the baseline gate does not count. Measured rather than argued — the
+`baselines` job is **green on GitHub's Linux runner** at `2543b0f`, run
+[35315986107](https://github.com/jastijayakrishna/HubbleOps/actions/runs/35315986107) — `checks` ·
+`cost` · `baselines` all success on the first attempt — against the
+same committed `tests/corpus/baselines/*.json` this branch never touched (last changed in `9a4a8dd`).
+The predecessor is exact: `fe87637`'s `baselines` job was also success — that run's overall failure
+was an "Install ast-grep" download flake in `checks`, not a moved count.
 
 **Why this is one commit, not three.** The parser change, the row-recording change and the gate
 change share one artefact — the seven regenerated catalogs — and no two of them produce a tree that
