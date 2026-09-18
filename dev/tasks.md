@@ -33,17 +33,46 @@ Updated before every session ends. Phase-level status lives in
       catalog fact byte-identical, surface hash unchanged, stability table +22 content-hash keys
       with 0 dispositions changed; full suite **1421 passed, 1 skipped**.
 
-- [ ] **Adjudicate the 22 (task 2).** Until then `hops pack verify google_ads` exits 4 by design
-      and the `baselines` CI job records a scope for a pack that refuses its own completeness. Each
-      record already names the evidence that closes it: a single binding fact in the catalog file it
-      names, or a recorded human decision that the row names no catalog subject. 13 bind on neither
-      side, 7 fail on the replacement side, 2 on the replaced side. Do not close one by relaxing
-      `documented_row_subject` to make a status assertion pass.
+- [x] **`ChangeSet.renamed()` returns the provider's documented renames (2026-09-18).** It returned
+      nothing on every hop, so `SubjectRenameTransform` and the `renamed_subject_in_request`
+      falsifier were unreachable. Two defects, both reproduced against the retained provider bytes
+      first: the release-note parser flattened each `<td>` and demanded one subject for the whole
+      cell, so the v22 row stating six renames as two parallel `<br>` lists became one UNKNOWN even
+      though all twelve names resolved individually; and `docs_records` was handed proto subjects
+      only, so the GAQL field names a repository's query text actually carries were unbindable. A
+      row is now split on the provider's own `<li>`/`<br>` structure and paired by position, never
+      by similarity, and a pair binds through a container bijection over a deduplicated proto+field
+      universe, case-insensitive on the container and case-sensitive on the leaf. Bound
+      replacements 4 → **26**, unresolved 22 → **18**, `renamed()` over v21→v22 and v22→v23
+      0 → **18**. `uv run hops pack verify google_ads` exits **0** and prints all 18 open UNKNOWNs
+      with their closing instructions. `tests/unit/test_pack_replacement_bound.py` (23 tests) plus
+      the updated `test_pack_replacement_unresolved.py`, `test_catalog_reconciliation.py` and
+      `test_google_ads_change_pack.py`. Detail in `dev/context.md`.
+
+- [x] **A four-column migration row never leaves the parser without a record (2026-09-18).** Only
+      the 24 rows whose Change type matched `remov|renam|replac` were read; the other 17 —
+      "Behavioral shift", "Type change", "Structural change" — produced nothing at all. All 41 rows
+      are now `migration_entry` facts carrying their four cells and whether they state a
+      replacement, and `pack verify` reconciles the manifest's `expected_replacements` against the
+      rebuilt catalog, refusing on any disagreement, on a version that declares no accounting, and
+      on an unresolved row with no `close_with`. A header-independent four-cell row census closes
+      the cheapest cheat: narrowing `MIGRATION_HEADER` to reach zero now breaks the reconciliation
+      instead of turning the gate green.
+
+- [ ] **Adjudicate the remaining 18.** Each record names the evidence that closes it: a single
+      binding fact in the catalog file it names, or a recorded human decision that the row names no
+      catalog subject. Do not close one by relaxing the binder to make a status assertion pass. The
+      four that closed on 2026-09-18 closed on new evidence — the provider's own list structure and
+      the field-subject universe — not on a relaxed resolver.
+
+- [ ] **Rule on P-039 (the pack's open UNKNOWNs on the Receipt).** `pack verify` going green
+      removes the only loud signal that a lattice carries unbound provider claims; `receipt.json`
+      is FROZEN, so the count and content hash it should carry were not implemented.
 
 - [ ] **Freeze a new engine scope when this branch settles.** The pack tree has moved off
-      `engine-v0`'s pinned lattice (`4555e93f…` → `cbe20b9f…`) and all seven catalog hashes, so
-      corpus arm A refuses to run against `dev/engine-v0.json` until a successor scope is recorded.
-      `dev/engine-v0.json` is frozen and was deliberately not edited.
+      `engine-v0`'s pinned lattice (`4555e93f…` → `cbe20b9f…` → `ea086178…`) and all seven catalog
+      hashes, so corpus arm A refuses to run against `dev/engine-v0.json` until a successor scope is
+      recorded. `dev/engine-v0.json` is frozen and was deliberately not edited.
 
 - [ ] **Rule on P-038 (`Falsifier.applies`).** Until it is ruled on, no capture-less
       `hops verify` on `google_ads` can reach `VERIFIED_FOR_SCOPE`: seven of eight falsifiers are

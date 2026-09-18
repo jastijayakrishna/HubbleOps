@@ -11,7 +11,7 @@ Read by every phase prompt. Keep it short — this is what the next session wake
 | **Branch** | `phase-06-audit-fixes`, cut from `phase-06-repository-intelligence` on 2026-09-16 for the week-1 audit fixes; that branch was itself cut from `phase-05-verification-authority` (not from `main`, because the obligation engine and deterministic repair it carries are prerequisites and Phase 5 has not merged) |
 | **Last gate passed** | Phase 4, on `e408545`. The post-gate hardening changed closure semantics after that audit, so the `v0.4` merge carries the owner's explicit merge instruction of 2026-09-08 rather than a fresh `GATE: PASS` on the merged bytes. Evidence taken immediately before the merge: `pytest -q` → **464 passed, 1 skipped** on the full tree |
 | **Engine baseline** | `engine-v0`, frozen 2026-09-13. Its scope is `dev/engine-v0.json`: lattice `4555e93f…`, ripgrep and ast-grep sha256, `uv.lock` hash, verifier image, Python 3.12.14, and the exact harness commands. Any change that moves a real-repo count is measured `engine-v0` → new before it is believed |
-| **Pack completeness** | `uv run hops pack verify google_ads` exits **4** by design: the pack carries 22 documented replacements that bind to no catalog subject, each now an `unresolved_documented_change` fact at `UNKNOWN_PROVIDER_CONTRACT` with a closing instruction. Task 2 adjudicates them. The pack tree has therefore moved off `engine-v0`'s pinned lattice and catalog hashes |
+| **Pack completeness** | `uv run hops pack verify google_ads` exits **0** and prints the **18** documented replacements that still bind to no catalog subject, each an `unresolved_documented_change` fact at `UNKNOWN_PROVIDER_CONTRACT` with its closing instruction. **26** documented replacements now bind, so `ChangeSet.renamed()` is non-empty for the first time. The gate refuses only when a row the release notes tabulate leaves no record — see "Documented renames bind" below. The pack tree has moved off `engine-v0`'s pinned lattice and catalog hashes: lattice `ea086178…` |
 | **Next action** | Tier 3b (PART NINE of `dev/plan.md`) is built on the owner's instruction to decide without asking; P-034 (vendoring the indexers) and P-035 (the three planes and the WORK-plane agent harness) await the owner. Tier 3a (PART EIGHT of `dev/plan.md`) is built on the owner's delegation of Q29-Q31. Remaining before merge: a fresh spec-auditor gate audit, publication of the wheels (an approval boundary, not performed), and the three GLNA gaps below. No merge, tag, publication, or deployment was requested or performed; `main`, the six phase branches and tags `v0.1`-`v0.4` were pushed to `origin` on 2026-09-13 at the owner's instruction, as a backup before the working copy moved. |
 
 **WEEK 1 AUDIT FIXES (2026-09-16), branch `phase-06-audit-fixes`.** An independent audit on
@@ -1704,6 +1704,87 @@ Linux runner, `GATE: PASS`, and all 651 tap-google-ads identities and statuses b
 proof scope moves, as it must: `resolution_hash` now carries the unresolved set. Two under-readings
 found in the same audit are their own commit — `setup.py` never read `setup_requires` or
 `tests_require`, and `Pipfile` never read the `version` key of a table spec.
+
+**Documented renames bind, and a row the provider tabulates is never silent (2026-09-18).**
+`ChangeSet.renamed()` returned nothing on every hop, so `SubjectRenameTransform` and the
+`renamed_subject_in_request` falsifier were unreachable. Two independent defects in the release-note
+parser, both reproduced against the retained provider bytes before anything changed:
+
+- **The cell was flattened before it was read.** `migration_table_changes` cleaned each `<td>` to one
+  string and demanded that the whole string bind to a single catalog subject. The v22 "Videos" row
+  states six renames as two parallel six-item `<br>` lists, each new-state item anchored to
+  `/reference/rpc/v22/Metrics#<field>`; the v23 "Campaigns" row states two the same way; v25's
+  Incentive row states three as two `<ul>`. Every individual name resolved — `average_cpv` →
+  `proto_field.common.metrics.Metrics.average_cpv`, and so on for all twelve — and the row still
+  became one `unresolved_documented_change`, because the flattened cell named six subjects.
+- **The subject universe was proto-only.** `docs_records` was handed `proto_records[version]`, so the
+  GAQL field subjects (`metrics.video_views`, `campaign.start_date`) that a repository's query text
+  actually names were not bindable at all.
+
+What replaced it. A row's sides are split on the provider's own list structure — `<li>` items, else
+`<br>`-delimited chunks, each holding exactly one `<code>` — and paired **by position** when both
+sides yield the same count. Never by string distance: `IncentiveOffer.type` → `IncentiveOffer.offer_type`
+is right by position and wrong by edit distance, and a row the provider writes as prose
+(`geo_modifiers and biddable_keywords in …`) yields no list and stays one claim. A stated pair binds
+through a **container bijection**: candidates on each side are grouped by the subject with the stated
+name stripped, and a container binds only when it holds exactly one candidate on each side. That is
+what lets one claim bind at both kinds (`metrics.average_cpv` *and*
+`proto_field.common.metrics.Metrics.average_cpv`) while refusing
+`Recommendation.RecommendationMetrics.video_views`, whose container has no counterpart in v22.
+
+Three guards the adversarial audit earned. The universe is a **set**: `proto_*.jsonl` carries 1,619
+crosscheck records spelled exactly like `field_*.jsonl`, and concatenating the two made every
+duplicate container ambiguous — which cost precisely the `campaign.start_date` → `campaign.start_date_time`
+binding the outcome needs. Matching is **case-insensitive on the container, case-sensitive on the
+leaf**: `Campaign.start_date` must reach `campaign.start_date`, but the literal `None` that 16 of the
+24 replacement rows carry as their New state must not reach `…Status.NONE`. And a stated side that is
+prose binds to nothing, because no catalog subject contains a space.
+
+**The trap in the brief, resolved against the provider.** The brief listed
+`metrics.video_view_rate_shorts`, `_in_feed` and `_in_stream` as "REMOVED at v21 to v22 with no
+replacement". The provider disagrees: they are items 4–6 of the same six-item `Renames` row, with
+new-state anchors `#video_trueview_view_rate_in_feed`, `#video_trueview_view_rate_in_stream`,
+`#video_trueview_view_rate_shorts`, and `proto_diff_v21_v22.jsonl` carries all six originals REMOVED
+and all six counterparts ADDED. Binding six is the provider's claim; binding three and calling the
+other three unreplaced would be the error. The trap the brief names — pairing by string distance — is
+not what the rule does: swap the list order and the rule follows the order, not the names.
+
+**`pack verify` now distinguishes recorded from silent.** It used to refuse whenever any
+`unresolved_documented_change` existed, which conflated UNKNOWN with UNEXPLAINED and pushed the
+operator toward the one fix the Laws forbid. It now reconciles, per version, the manifest's committed
+`expected_replacements` against the rebuilt catalog — bindings, bound pairs, stated pairs, unresolved
+pairs, migration rows, replacement rows — and refuses when they disagree, when a version declares no
+accounting, or when an unresolved row carries no `close_with`. Generation fails closed too:
+`docs_records` raises when the pairs the sections state outnumber the pairs the records carry, and
+when the header-independent four-cell row census disagrees with the rows the recogniser accepted.
+That census is what stops the cheapest cheat: narrowing `MIGRATION_HEADER` until the count reaches
+zero now breaks the reconciliation instead of turning the gate green.
+
+**17 rows that were silent are now records.** The four-column migration tables carry 41 rows; only
+the 24 whose Change type matches `remov|renam|replac` were ever read, and the other 17 — "Behavioral
+shift", "Type change", "Structural change" — produced nothing at all. Every four-column row is now a
+`migration_entry` fact carrying its four cells and whether it states a replacement.
+
+Counts, before → after, on the retained bytes: unresolved documented replacements 22 → **18**
+(v21 1→1, v22 5→3, v23 4→3, v24 8→8, v25 4→3); bound replacements 4 → **26**; `migration_entry` facts
+0 → **41**; `ChangeSet.renamed()` over v21→v22 and v22→v23 0 → **18**. No candidate count can move:
+`observe/resolver.py` never reads the contract oracle, and `replacement` reaches only
+`obligations/engine.py`, which the baseline gate does not count.
+
+**Why this is one commit, not three.** The parser change, the row-recording change and the gate
+change share one artefact — the seven regenerated catalogs — and no two of them produce a tree that
+stands on its own: the accounting cannot reconcile against records the parser does not yet emit, and
+the gate cannot reconcile against a manifest the refresh has not yet written. Splitting them would
+mean committing trees whose `pack verify` refuses its own data. The offline replay tool is in the
+same commit because it is what produced that data. Recorded here rather than handed back as a choice.
+
+**How the pack is regenerated now.** `uv run python -m hubbleops.packs.google_ads.refresh --docs-only`
+replays the docs family offline from `data/sources/upstream/*.gz` and `raw/docs_vNN.json`, refusing if
+any retained page fails its own hash or if the rebuilt raw descriptor differs; then
+`CHANGES.build(DATA_ROOT)` rebuilds catalogs, proto diffs and the lattice. The whole pack is therefore
+reproducible from committed bytes with no network and no proto tarballs. `changes.py` now imports the
+kind constants and `replacement_accounting` from `refresh.py` — the compiler depends on the parser,
+not the other way round, which is what lets `verify()` reconcile against the parser's own vocabulary.
 
 **tap-google-ads Windows 38 ⊆ Linux 43, and the cause is not a defect (2026-09-17).** The committed
 engine-v0 export (`tests/fixtures/real_repo/tapga_identities_before.json`, 647 identities, 38

@@ -2161,3 +2161,37 @@ unreachable for `google_ads` without dynamic capture, and week 1's item 4b stand
 FIXED: the hole is closed and the replacement over-refuses.
 
 ---
+
+## P-039 — A Receipt carries the pack's open provider UNKNOWNs, so a green pack is not read as a closed one
+
+| | |
+|---|---|
+| **Raised** | 2026-09-18, Phase 6 (documented-replacement binding) |
+| **Touches** | the FROZEN `core/schemas/receipt.json`; `hubbleops/proof/receipt.py` |
+| **Status** | OPEN |
+
+Until 2026-09-18 `hops pack verify google_ads` exited 4 while any documented replacement bound to no
+catalog subject. That refusal conflated UNKNOWN with UNEXPLAINED: a recorded UNKNOWN carrying a
+precise closing instruction is a correct result, and the gate was pushing the operator toward the one
+fix the Laws forbid — relaxing the resolver until the count reached zero. It now exits 0 and prints
+every open UNKNOWN with its `close_with`.
+
+That removes a loud signal. A Receipt binds `changes_hash`, not the pack's self-assessment, so a run
+could always reach `VERIFIED_FOR_SCOPE` against a lattice whose pack carried open provider UNKNOWNs;
+exit 4 was the only thing that made it visible, and it is gone. The gap is older than this change,
+but this change is what makes it quiet.
+
+**The proposed change.** The pack audit block of `receipt.json` gains two fields: the count of
+catalog facts at `UNKNOWN_PROVIDER_CONTRACT` that carry a `close_with`, and the content hash of that
+set. A Proof Pack then states on its face how many provider claims the pack could not bind at the
+scope it was verified for. It closes no UNKNOWN and changes no verdict conjunct; it stops a reader
+inferring "every documented replacement is bound" from a green pack.
+
+**Alternative considered and rejected.** Keep the exit-4 refusal behind a `--strict` flag. Rejected
+because a flag makes the honest result optional and leaves the Receipt silent either way; the count
+belongs on the proof, not on the operator's command line.
+
+**Decision.** Pending repository-owner ruling. `core/schemas/receipt.json` is FROZEN, so nothing in
+this proposal was implemented.
+
+---
